@@ -31,6 +31,7 @@ function completedBody(id: string, created: number, sessionId: string): string {
   return JSON.stringify({
     id,
     object: "event",
+    livemode: false,
     api_version: "2026-08-26.dahlia",
     created,
     type: "checkout.session.completed",
@@ -49,6 +50,7 @@ function canceledBody(id: string, created: number, pi: string): string {
   return JSON.stringify({
     id,
     object: "event",
+    livemode: false,
     api_version: "2026-08-26.dahlia",
     created,
     type: "payment_intent.canceled",
@@ -154,6 +156,7 @@ test("out-of-order canceled is superseded; booking stays confirmed @checkout", a
       };
     },
     eventSettle: async () => undefined,
+    eventClose: async () => undefined,
     deliverConfirmation: async () => {
       emails += 1;
     },
@@ -225,6 +228,7 @@ test("a second confirmation deliver is not issued when already_settled @checkout
       other_open_session_ids: [],
     }),
     eventSettle: async () => undefined,
+    eventClose: async () => undefined,
     deliverConfirmation: async () => {
       emails += 1;
     },

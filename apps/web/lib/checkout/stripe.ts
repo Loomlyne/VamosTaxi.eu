@@ -2,10 +2,11 @@
 //
 // The only Stripe client in apps/web (T-07-20). Checkout Sessions, expire,
 // retrieve, refund. No PaymentIntent-cancel path. Payment methods are Stripe
-// Dashboard + Adaptive Pricing — never a hand-built card/TWINT map (D-09/D-10).
+// Dashboard, with Adaptive Pricing off (J8) — never a hand-built card/TWINT map (D-09/D-10).
 
 import Stripe from "stripe";
 import { CHARGE_CURRENCY, stripeLocale, type CheckoutLocale } from "./currency";
+import { requireStripeSecretMode } from "./stripe-mode";
 
 const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2026-08-26.dahlia";
 
@@ -19,7 +20,9 @@ export function stripeFromEnv(env: CloudflareEnv): Stripe {
   if (!key) {
     throw missingEnvError("STRIPE_SECRET_KEY");
   }
-  return new Stripe(key, {
+  // J1: a value that is not a Stripe secret or restricted key never reaches Stripe.
+  requireStripeSecretMode(key);
+  return new Stripe(key.trim(), {
     httpClient: Stripe.createFetchHttpClient(),
     apiVersion: STRIPE_API_VERSION,
     typescript: true,
@@ -28,7 +31,7 @@ export function stripeFromEnv(env: CloudflareEnv): Stripe {
   });
 }
 
-/** Publishable key from wrangler `vars` — never a secret, never `pk_live_` here. */
+/** Publishable key from wrangler `vars` — public by design, never a secret. Its mode must match the secret key (stripe-mode.ts, health probe). */
 export function stripePublishableKey(env: CloudflareEnv): string {
   const key = env.STRIPE_PUBLISHABLE_KEY;
   if (!key) {
@@ -65,11 +68,13 @@ export interface CreateCheckoutSessionInput {
 
 /**
  * Stripe Checkout Session `expires_at` must be 30 minutes–24 hours from now.
- * The quote lock can be 1440 minutes; clamp only the Stripe clock.
+ * The quote lock can be 1440 minutes; clamp only the Stripe clock. The floor is 31 minutes,
+ * one minute above Stripe's, so the request still lands inside the window after a slow
+ * first try or an SDK retry (J1, W1-11).
  */
 export function stripeSessionExpiresAtUnix(expiresAt: Date, nowMs = Date.now()): number {
   const nowSec = Math.floor(nowMs / 1000);
-  const min = nowSec + 30 * 60;
+  const min = nowSec + 31 * 60;
   const max = nowSec + 24 * 60 * 60 - 30;
   const exp = Math.floor(expiresAt.getTime() / 1000);
   return Math.min(max, Math.max(min, exp));
@@ -78,17 +83,9 @@ export function stripeSessionExpiresAtUnix(expiresAt: Date, nowMs = Date.now()):
 /** Stripe's 30-minute floor plus a 60 s skew buffer; web checkout sessions live this long (D-25). */
 export const WEB_CHECKOUT_MINUTES = 31;
 
-/**
- * Payment methods on the hosted page: card (Apple Pay and Google Pay come with
- * it) plus TWINT only once `STRIPE_CHECKOUT_TWINT` is "on" (D-20). Default off:
- * TWINT is not activated on the sandbox account, and listing it would make
- * session creation fail for everyone.
- */
-export function checkoutPaymentMethodTypes(env: {
-  STRIPE_CHECKOUT_TWINT?: string;
-}): Array<"card" | "twint"> {
-  return env.STRIPE_CHECKOUT_TWINT === "on" ? ["card", "twint"] : ["card"];
-}
+// Re-exported: the method list lives in payment-methods.ts so the page layout can read the TWINT
+// flag without loading the Stripe SDK (J8, W3-08).
+export { checkoutPaymentMethodTypes } from "./payment-methods";
 
 function assertHttpUrl(name: string, value: string | undefined): string {
   if (!value) throw new Error(`${name} is required for a hosted checkout session`);
@@ -144,10 +141,12 @@ export async function createCheckoutSession(
       customer_email: input.customerEmail,
       locale: stripeLocale(locale),
       expires_at: stripeSessionExpiresAtUnix(input.expiresAt),
-      adaptive_pricing: { enabled: true },
-      // Charge is always CHF. Stripe has no Checkout Session presentment pin
-      // for EUR/USD/AED — Adaptive Pricing may show another currency; our
-      // chrome converts with /api/fx. Do not invent a charge currency.
+      // J8 (W2-10, owner 2026-10-09): Adaptive Pricing OFF. The charge is always CHF, in the CHF figure
+      // the page showed. With it on, Stripe could present and charge EUR/USD/AED at its own rate and
+      // spread, a figure the site never showed. Display FX (our /api/fx) stays display only.
+      // `fxFromSession` still reads `presentment_details` / `currency_conversion` so sessions created
+      // before this change (Adaptive Pricing on) settle and record exactly as they did.
+      adaptive_pricing: { enabled: false },
       // Hosted sessions pin the method set (card + optional TWINT, Link off).
       // allow_promotion_codes is never set (D-19).
       expand: ["payment_intent"],
@@ -195,10 +194,13 @@ export async function expireCheckoutSession(
 export async function retrieveCheckoutSession(
   stripe: Stripe,
   sessionId: string,
+  /** Per-call timeout and retries; the return route passes a short deadline (J5, W3-11). */
+  options?: Stripe.RequestOptions,
 ): Promise<Stripe.Checkout.Session> {
-  return stripe.checkout.sessions.retrieve(sessionId, {
-    expand: ["payment_intent"],
-  });
+  const params = { expand: ["payment_intent"] };
+  return options
+    ? stripe.checkout.sessions.retrieve(sessionId, params, options)
+    : stripe.checkout.sessions.retrieve(sessionId, params);
 }
 
 export async function createRefund(

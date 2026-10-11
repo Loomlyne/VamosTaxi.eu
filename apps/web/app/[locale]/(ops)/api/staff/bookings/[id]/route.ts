@@ -147,7 +147,9 @@ export const DELETE = withStaff(async (claims, request) => {
   const id = bookingId(request);
   if (!id) return jsonErr("not-found", 404);
   const { env } = getCloudflareContext();
-  const ok = await eraseBooking(env, claims, id);
-  if (!ok) return jsonErr("not-found", 404);
+  // J7 W6-09: only an unpaid booking is erased; one with a captured payment is cancelled (and refunded) instead.
+  const outcome = await eraseBooking(env, claims, id);
+  if (outcome === "paid") return jsonErr("paid", 409);
+  if (outcome !== "erased") return jsonErr("not-found", 404);
   return jsonOk({ id, erased: true });
 });

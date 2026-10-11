@@ -138,11 +138,11 @@ select is(
 
 -- Grants unchanged ----------------------------------------------------------------------------
 select ok(has_function_privilege('vamos_system',
-  'public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,bigint,text)', 'EXECUTE'),
+  'public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,bigint,text,bigint,text,bigint,text)', 'EXECUTE'),
   '(13) vamos_system keeps EXECUTE');
 select is(
   (select count(*)::int from unnest(array['anon', 'authenticated', 'vamos_checkout', 'vamos_guest', 'vamos_staff', 'vamos_edge', 'vamos_public']) r
-    where has_function_privilege(r, 'public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,bigint,text)', 'EXECUTE')),
+    where has_function_privilege(r, 'public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,bigint,text,bigint,text,bigint,text)', 'EXECUTE')),
   0, '(14) no other API or Worker role can settle');
 
 -- U26: vat_rate_bps comments ------------------------------------------------------------------

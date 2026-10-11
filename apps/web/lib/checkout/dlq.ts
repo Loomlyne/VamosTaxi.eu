@@ -3,8 +3,15 @@
 // D-06: dead-letter consumer for `vamos-stripe-events-{env}-dlq`. A message lands here only
 // after `settle.ts`'s consumer has retried it 8 times (wrangler.jsonc `max_retries: 8`). This
 // handler never calls `settlePayment`, `begin`, or Stripe — it resolves a reference
-// best-effort, alerts a human once, and always acks (T-26.1-10: a DLQ message is never
-// retried into itself; there is no `dead_letter_queue` configured on this consumer).
+// best-effort and alerts a human.
+//
+// J2 (W4-02): the alert result is checked. A mail that did not go out is NOT acked: the message is
+// retried later (DLQ_RETRY_DELAY_SECONDS, up to DLQ_MAX_ATTEMPTS deliveries, wrangler.jsonc sets the
+// same `max_retries` on this consumer) and every failure is an error-level log. There is no further
+// queue (T-26.1-10: a DLQ message is never retried into itself, no `dead_letter_queue` on this
+// consumer), so after the last attempt it is acked with an error log and the durable second line takes
+// over: the event is still unprocessed in stripe_events, the hourly sweep re-enqueues it, and an event
+// that never settles is mailed again as "abandoned" until the mail goes out.
 
 import { asSystem } from "../db/identity";
 import { withRequestContext, type ScalarValue } from "../logger";
@@ -18,6 +25,14 @@ export type DlqAlertInput = {
   reference: string | null;
 };
 
+/** Deliveries of one DLQ message before it is acked without its alert (the sweep is the second line). */
+export const DLQ_MAX_ATTEMPTS = 5;
+
+/** Seconds before a DLQ message whose alert did not go out is delivered again. */
+export const DLQ_RETRY_DELAY_SECONDS = 600;
+
+export type DlqResult = { ack: true } | { retry: true; delaySeconds: number };
+
 export type DlqDeps = {
   lookupReference: (sessionId: string) => Promise<string | null>;
   alert: (input: DlqAlertInput) => Promise<void>;
@@ -27,11 +42,17 @@ export type DlqDeps = {
 export async function handleDlqMessageWithDeps(
   message: StripeQueueMessage,
   deps: DlqDeps,
-): Promise<{ ack: true }> {
+  attempts = 1,
+): Promise<DlqResult> {
+  // A poison body (no ids) still alerts, with what it has.
+  const eventId = typeof message?.eventId === "string" ? message.eventId : "";
+  const type = typeof message?.type === "string" ? message.type : "";
+  const objectId = typeof message?.objectId === "string" ? message.objectId : "";
+
   let reference: string | null = null;
-  if (message.objectId.startsWith("cs_")) {
+  if (objectId.startsWith("cs_")) {
     try {
-      reference = await deps.lookupReference(message.objectId);
+      reference = await deps.lookupReference(objectId);
     } catch {
       // Best-effort. A failed lookup still alerts — with no reference — rather than
       // dropping the alert entirely.
@@ -40,20 +61,15 @@ export async function handleDlqMessageWithDeps(
   }
 
   try {
-    await deps.alert({
-      eventId: message.eventId,
-      type: message.type,
-      objectId: message.objectId,
-      reference,
-    });
+    await deps.alert({ eventId, type, objectId, reference });
   } catch {
-    // The alert is best-effort (T-26.1-11: stripe_events keeps attempts/last_error for
-    // audit). Never retry a DLQ message on account of the alert failing — that would be
-    // the exact loop T-26.1-10 exists to prevent.
-    deps.emit("error", "dlq_alert_failed", {
-      eventId: message.eventId,
-      objectId: message.objectId,
-    });
+    // The mail did not go out (no key, Resend refused it, a thrown error). stripe_events keeps
+    // attempts/last_error for audit (T-26.1-11).
+    deps.emit("error", "dlq_alert_failed", { eventId, objectId, attempts });
+    if (attempts < DLQ_MAX_ATTEMPTS) {
+      return { retry: true, delaySeconds: DLQ_RETRY_DELAY_SECONDS };
+    }
+    deps.emit("error", "dlq_alert_gave_up", { eventId, objectId, attempts });
   }
 
   return { ack: true };
@@ -62,9 +78,10 @@ export async function handleDlqMessageWithDeps(
 export async function handleDlqMessage(
   env: CloudflareEnv,
   message: StripeQueueMessage,
-): Promise<{ ack: true }> {
+  attempts = 1,
+): Promise<DlqResult> {
   const emit = withRequestContext({
-    requestId: message.eventId,
+    requestId: typeof message?.eventId === "string" && message.eventId ? message.eventId : "dlq",
     route: "queue:dlq",
     locale: null,
   });
@@ -80,5 +97,5 @@ export async function handleDlqMessage(
     },
     alert: (input) => deliverStuckPaymentAlert(env, input),
     emit,
-  });
+  }, attempts);
 }

@@ -27,11 +27,13 @@ import {
   retrieveCharge,
   retrieveCheckoutSession,
   retrieveDispute,
+  retrieveRefund,
   stripeFromEnv,
 } from "./stripe";
 import {
   handleChargeRefundedWithDeps,
   handleDisputeWithDeps,
+  handleRefundUpdateWithDeps,
   moneyEventKind,
   paymentIntentIdOfCharge,
   paymentIntentIdOfDispute,
@@ -43,14 +45,23 @@ import { purgeDepsFromEnv, purgeOnSessionExpired } from "./purge-unpaid";
 import { deliverConfirmation } from "./notify";
 import { provisionCheckoutAccount, provisionDeps } from "./provision-account";
 import {
+  deliverAmountMismatchAlert,
   deliverDifferenceNotAppliedAlert,
   deliverOverlapMustFix,
   deliverPaidAfterCancelAlert,
   deliverStuckPaymentAlert,
   type StuckPaymentAlertInput,
 } from "../ops/must-fix-mail";
+import { deliverMoneyAlert } from "../ops/money-alert-mail";
 import { metaPurchaseDepsFromEnv, sendMetaPurchase, type MetaPurchaseInput } from "../meta/purchase";
-import { PAID_ERROR_RETRY_SECONDS, retryDelaySeconds, settleErrorKind, sqlStateOf } from "./settle-errors";
+import { pgTextArrayLiteral } from "./pg-array";
+import {
+  PAID_ERROR_RETRY_SECONDS,
+  retryDelayForAttempt,
+  retryDelaySeconds,
+  settleErrorKind,
+  sqlStateOf,
+} from "./settle-errors";
 
 /**
  * `delaySeconds` (26.1-08): a retry that must wait, e.g. app_refund_pending, so the retry budget spans minutes.
@@ -75,6 +86,12 @@ export type SettleRow = {
   payment_id: number;
   charged_rappen: number;
   other_open_session_ids: string[];
+  /**
+   * J3 (W4-07, W5-02): Stripe collected an amount, currency or booking that does not match what this
+   * payment expected. The capture is recorded; the booking is NOT confirmed and nothing is refunded.
+   * Ops is mailed, then the event is closed.
+   */
+  amount_mismatch?: boolean;
   /** 26.2 P1, kind=extra only: the paid change was applied (it may have ended before payment). */
   applied?: boolean;
   /** 26.2 P1, kind=extra only: the driver the applied class change took off the trip. */
@@ -144,6 +161,12 @@ export type SettleDeps = MoneyEventDeps & {
     session: Stripe.Checkout.Session | null;
   }) => Promise<SettleRow>;
   eventSettle: (eventId: string, error: string | null) => Promise<void>;
+  /**
+   * J2 (W4-09): close an event that needs no further work (no_request, no_payment, booking_missing,
+   * refund_required_no_payment_intent ...): processed_at is set and the reason stays in last_error, so
+   * the unprocessed sweep never re-enqueues it and it stays findable.
+   */
+  eventClose: (eventId: string, reason: string) => Promise<void>;
   deliverConfirmation: (row: SettleRow) => Promise<void>;
   /** 26.5-05: account from the checkout choice; a failure never changes the settle result. */
   provisionAccount?: (row: SettleRow) => Promise<unknown>;
@@ -159,9 +182,11 @@ export type SettleDeps = MoneyEventDeps & {
   refund: (input: RefundInput) => Promise<{ id: string }>;
   /** Records the refund decision (idempotent on stripeRefundId) after `refund` succeeds. */
   recordDuplicateRefund: (input: RecordDuplicateRefundInput) => Promise<void>;
-  /** D-22/D-25a: a payment landed on a booking that cannot run; the charge was refunded. */
+  /** D-22/D-25a: a payment landed on a booking that cannot run; the charge was refunded. Rejects when the mail did not go out (W4-02). */
   alertPaidAfterCancel: (bookingKey: string) => Promise<void>;
-  /** No PaymentIntent to refund, or the refund call itself threw. A human must look. */
+  /** J3 (W4-07): the amount Stripe collected does not match; ops decides. Rejects when the mail did not go out. */
+  alertAmountMismatch?: (input: StuckPaymentAlertInput) => Promise<void>;
+  /** No PaymentIntent to refund. A human must look. Rejects when the mail did not go out (W4-02): the caller then retries, never reads it as sent. */
   alertStuckPayment: (input: StuckPaymentAlertInput) => Promise<void>;
   /** D-21/D-22: expire the booking's other open Checkout Sessions after a succeeded settle. */
   expireSession: (sessionId: string) => Promise<void>;
@@ -175,10 +200,7 @@ export type SettleDeps = MoneyEventDeps & {
   emit: (level: "debug" | "info" | "warn" | "error", type: string, fields?: Record<string, ScalarValue>) => void;
 };
 
-/** Postgres `text[]` literal. A 1-element JS array binds as a scalar; `::text[]` then throws 22P02. */
-export function pgTextArrayLiteral(values: string[]): string {
-  return `{${values.map((value) => `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`).join(",")}}`;
-}
+export { pgTextArrayLiteral };
 
 function paymentIntentIdOf(session: Stripe.Checkout.Session | null): string | null {
   if (!session) return null;
@@ -191,7 +213,7 @@ function paymentIntentIdOf(session: Stripe.Checkout.Session | null): string | nu
 function outcomeFor(
   type: string,
   session: Stripe.Checkout.Session | null,
-): "succeeded" | "failed" | "canceled" | "charge_refunded" | "dispute" | "ignore" {
+): "succeeded" | "failed" | "canceled" | "charge_refunded" | "dispute" | "refund_update" | "ignore" {
   // 26.1-08 D-07: "charge.refunded" and "charge.dispute.created|updated|closed"
   // reach the DB through money-events.ts instead of being ignored.
   const money = moneyEventKind(type);
@@ -210,6 +232,64 @@ function outcomeFor(
   return "ignore";
 }
 
+/**
+ * J2 (W4-04): the object id of a charge event is a charge id, whatever its prefix: `ch_` (card) or
+ * `py_` (a payment that is not a card charge, for example TWINT). A dispute id is `du_` (older) or
+ * `dp_`. The re-read from Stripe is chosen by the event TYPE and the id shape is only checked, so an
+ * id of another shape is an error that retries and alerts, never a quiet "processed".
+ */
+const CHARGE_ID = /^(?:ch|py)_[A-Za-z0-9_]+$/;
+const DISPUTE_ID = /^(?:du|dp)_[A-Za-z0-9_]+$/;
+
+/**
+ * J3 (W4-07, W5-02): what Stripe says it collected, in the shape `checkout_payment_settle` compares with the
+ * payment row. Stripe keeps the Checkout Session and its PaymentIntent in the integration currency (CHF)
+ * even when Adaptive Pricing shows the customer EUR, USD or AED (the presented amount only rides in
+ * `presentment_details`, which `fxFromSession` maps to the FX columns), so a legitimate presentment is
+ * never a mismatch. A session made before 2025-03-31 under the old Adaptive Pricing shape
+ * (`currency_conversion`) carries the customer's currency in `currency` and `amount_total`; there the
+ * creation currency and total of `currency_conversion` are the charge, and the PaymentIntent is not read.
+ * The PaymentIntent's `amount_received` is read only from an expanded, succeeded PaymentIntent in the
+ * session's own currency (a method still processing reports 0). A value that cannot be read is null: the
+ * database skips that check.
+ */
+export function chargeFactsFromSession(session: Stripe.Checkout.Session | null): {
+  amountTotalMinor: number | null;
+  currency: string | null;
+  amountReceivedMinor: number | null;
+  metadataBookingId: string | null;
+} {
+  if (!session) return { amountTotalMinor: null, currency: null, amountReceivedMinor: null, metadataBookingId: null };
+  const conversion = session.currency_conversion ?? null;
+  const currencyRaw = conversion?.source_currency ?? session.currency ?? null;
+  const total = conversion ? conversion.amount_total : session.amount_total;
+  const pi = session.payment_intent;
+  const received =
+    !conversion &&
+    pi &&
+    typeof pi === "object" &&
+    pi.status === "succeeded" &&
+    typeof pi.amount_received === "number" &&
+    typeof pi.currency === "string" &&
+    pi.currency.toLowerCase() === (session.currency ?? "").toLowerCase()
+      ? pi.amount_received
+      : null;
+  const bookingId = session.metadata?.booking_id;
+  return {
+    amountTotalMinor: typeof total === "number" && Number.isFinite(total) ? total : null,
+    currency: typeof currencyRaw === "string" && currencyRaw ? currencyRaw.toUpperCase() : null,
+    amountReceivedMinor: received,
+    metadataBookingId: typeof bookingId === "string" && bookingId ? bookingId : null,
+  };
+}
+
+/** Error-level log fields for a caught error: SQLSTATE and class, or the error's name. Never the message (it may carry values). */
+function errorFields(err: unknown): Record<string, ScalarValue> {
+  const state = sqlStateOf(err);
+  if (state) return { sqlstate: state, sqlstateClass: state.slice(0, 2) };
+  return { errorName: err instanceof Error ? err.name : typeof err };
+}
+
 /** Reasons a succeeded settle can carry that must never confirm the trip (D-22/D-03b). */
 const PAID_AFTER_CANCEL_REASONS: readonly string[] = Object.freeze([
   "paid_after_cancel",
@@ -222,9 +302,14 @@ const MISSING_BOOKING_MIN_AGE_SECONDS = 600;
 
 /**
  * Research Pitfall 7: money arrived for a quote whose booking (payment row) no longer
- * exists. Refund the whole charge, alert a human, and let the caller ack. Returns false
- * (caller retries) when this is not provably that case: not a paid main session, no
- * PaymentIntent, or a session so young the intent transaction may still commit.
+ * exists. Refund the whole charge and alert a human.
+ *
+ * J2 (W4-02, W4-03): `refunded` only when the refund succeeded (or there is no PaymentIntent to
+ * refund) AND the stuck-payment mail went out. A refund that Stripe refused, or a mail that did not
+ * go out, is `retry`: the event stays open (the stable idempotency key makes the refund safe to
+ * repeat) and the queue, then the dead-letter alert and the unprocessed sweep, take over.
+ * `not-applicable` is not provably this case: not a paid main session, or a session so young that
+ * the intent transaction may still commit (P0002 = not committed yet): the caller retries.
  */
 async function refundPaidSessionWithoutBooking(
   message: StripeQueueMessage,
@@ -232,12 +317,12 @@ async function refundPaidSessionWithoutBooking(
   piId: string | null,
   outcome: string,
   deps: SettleDeps,
-): Promise<boolean> {
-  if (outcome !== "succeeded" || !session || session.payment_status !== "paid") return false;
-  if (session.metadata?.kind === "extra") return false;
+): Promise<"refunded" | "retry" | "not-applicable"> {
+  if (outcome !== "succeeded" || !session || session.payment_status !== "paid") return "not-applicable";
+  if (session.metadata?.kind === "extra") return "not-applicable";
   // An unknown age is treated as young: retry, never refund on a guess.
   const ageSeconds = typeof session.created === "number" ? Date.now() / 1000 - session.created : 0;
-  if (ageSeconds < MISSING_BOOKING_MIN_AGE_SECONDS) return false;
+  if (ageSeconds < MISSING_BOOKING_MIN_AGE_SECONDS) return "not-applicable";
   const quoteId = session.metadata?.booking_id ?? "";
   deps.emit("error", "paid_session_without_booking", { eventId: message.eventId, objectId: message.objectId });
   if (piId) {
@@ -251,8 +336,9 @@ async function refundPaidSessionWithoutBooking(
         reason: "booking_missing",
         metadata: { vamos_reason: "booking_missing" },
       });
-    } catch {
-      deps.emit("error", "refund_failed", { eventId: message.eventId, reason: "booking_missing" });
+    } catch (err) {
+      deps.emit("error", "refund_failed", { eventId: message.eventId, reason: "booking_missing", ...errorFields(err) });
+      return "retry";
     }
   }
   try {
@@ -262,22 +348,26 @@ async function refundPaidSessionWithoutBooking(
       objectId: message.objectId,
       reference: null,
     });
-  } catch {
-    // Best-effort alert.
+  } catch (err) {
+    deps.emit("error", "stuck_payment_alert_failed", { eventId: message.eventId, ...errorFields(err) });
+    return "retry";
   }
-  // Refund failed or no PaymentIntent: the alert is the handoff to a human; never loop on it.
-  return true;
+  return "refunded";
 }
 
 export async function handleStripeMessageWithDeps(
   message: StripeQueueMessage,
   deps: SettleDeps,
 ): Promise<HandleResult> {
+  // J2 (W4-14): a body without an object id (a poison message) is handled below as an unknown id,
+  // not as a TypeError thrown from the consumer.
+  const objectId = typeof message.objectId === "string" ? message.objectId : "";
   let session: Stripe.Checkout.Session | null = null;
-  if (message.objectId.startsWith("cs_")) {
+  if (objectId.startsWith("cs_")) {
     try {
-      session = await deps.retrieveSession(message.objectId);
-    } catch {
+      session = await deps.retrieveSession(objectId);
+    } catch (err) {
+      deps.emit("warn", "stripe_read_failed", { eventId: message.eventId, kind: "session", ...errorFields(err) });
       return { retry: true };
     }
   }
@@ -288,17 +378,29 @@ export async function handleStripeMessageWithDeps(
   const money = moneyEventKind(message.type);
   let charge: Stripe.Charge | null = null;
   let dispute: Stripe.Dispute | null = null;
-  if (money === "charge_refunded" && message.objectId.startsWith("ch_")) {
-    try {
-      charge = await deps.retrieveCharge(message.objectId);
-    } catch {
+  // J2 (W4-04): chosen by the event type; ch_ and py_ charges, du_ and dp_ disputes. Any other shape
+  // is an error that is written on the event, logged at error level and retried until the dead-letter
+  // alert fires. It is never stamped processed.
+  if (money === "charge_refunded" || money === "dispute") {
+    const known = money === "charge_refunded" ? CHARGE_ID.test(objectId) : DISPUTE_ID.test(objectId);
+    if (!known) {
+      deps.emit("error", "stripe_event_unknown_object_id", {
+        eventId: message.eventId,
+        eventType: message.type,
+        idPrefix: objectId.slice(0, 3),
+      });
+      try {
+        await deps.eventSettle(message.eventId, "unknown_object_id");
+      } catch {
+        // Best effort: the retry below is the real handling.
+      }
       return { retry: true };
     }
-  }
-  if (money === "dispute" && message.objectId.startsWith("du_")) {
     try {
-      dispute = await deps.retrieveDispute(message.objectId);
-    } catch {
+      if (money === "charge_refunded") charge = await deps.retrieveCharge(objectId);
+      else dispute = await deps.retrieveDispute(objectId);
+    } catch (err) {
+      deps.emit("warn", "stripe_read_failed", { eventId: message.eventId, kind: money, ...errorFields(err) });
       return { retry: true };
     }
   }
@@ -307,10 +409,10 @@ export async function handleStripeMessageWithDeps(
     paymentIntentIdOf(session) ??
     paymentIntentIdOfCharge(charge) ??
     paymentIntentIdOfDispute(dispute) ??
-    (message.objectId.startsWith("pi_") ? message.objectId : null);
+    (objectId.startsWith("pi_") ? objectId : null);
   // The two ids describe one payment. A window spanning only one of them lets
   // a payment_intent.canceled slip past a checkout.session.completed (plan 07-03).
-  const objectIds = [message.objectId, piId].filter((id): id is string => Boolean(id));
+  const objectIds = [objectId, piId].filter((id): id is string => Boolean(id));
 
   let admission: { should_process: boolean; reason: string };
   try {
@@ -320,6 +422,7 @@ export async function handleStripeMessageWithDeps(
       new Date(message.stripeCreated * 1000),
     );
   } catch (err) {
+    deps.emit("warn", "stripe_event_begin_failed", { eventId: message.eventId, ...errorFields(err) });
     if (sqlStateOf(err) === "P0002") return { retry: true };
     // 261002 settle safety: begin() decides nothing about the money. Whatever it threw (a deadlock,
     // a dropped connection, a permission error), the event is tried again, never recorded as
@@ -353,7 +456,16 @@ export async function handleStripeMessageWithDeps(
   if (outcome === "dispute" && dispute) {
     return handleDisputeWithDeps(message, dispute, deps);
   }
-  if (outcome === "ignore" || outcome === "charge_refunded" || outcome === "dispute") {
+  // J7 W6-05: refund.failed / refund.updated / charge.refund.updated re-read the refund themselves.
+  if (outcome === "refund_update") {
+    return handleRefundUpdateWithDeps(message, deps);
+  }
+  if (outcome === "charge_refunded" || outcome === "dispute") {
+    // J2 (W4-04): the object was not read above. Never stamp this as processed.
+    deps.emit("error", "stripe_event_money_object_missing", { eventId: message.eventId, eventType: message.type });
+    return { retry: true };
+  }
+  if (outcome === "ignore") {
     await deps.eventSettle(message.eventId, null);
     return { ack: true };
   }
@@ -362,7 +474,7 @@ export async function handleStripeMessageWithDeps(
   try {
     row = await deps.settlePayment({
       eventId: message.eventId,
-      sessionId: message.objectId.startsWith("cs_") ? message.objectId : session?.id ?? null,
+      sessionId: objectId.startsWith("cs_") ? objectId : session?.id ?? null,
       paymentIntentId: piId,
       outcome,
       session,
@@ -375,7 +487,7 @@ export async function handleStripeMessageWithDeps(
       // quietly instead of retrying into a stuck-payment mail.
       if (session?.metadata?.kind === "extra" && outcome !== "succeeded") {
         try {
-          await deps.eventSettle(message.eventId, "no_request");
+          await deps.eventClose(message.eventId, "no_request");
         } catch {
           return { retry: true };
         }
@@ -396,16 +508,16 @@ export async function handleStripeMessageWithDeps(
         (message.type === "checkout.session.expired" && session && session.payment_status !== "paid")
       ) {
         try {
-          await deps.eventSettle(message.eventId, "no_payment");
+          await deps.eventClose(message.eventId, "no_payment");
         } catch {
           return { retry: true };
         }
         return { ack: true };
       }
       const refunded = await refundPaidSessionWithoutBooking(message, session, piId, outcome, deps);
-      if (refunded) {
+      if (refunded === "refunded") {
         try {
-          await deps.eventSettle(message.eventId, "booking_missing");
+          await deps.eventClose(message.eventId, "booking_missing");
         } catch {
           return { retry: true };
         }
@@ -419,9 +531,11 @@ export async function handleStripeMessageWithDeps(
     // info@ (the stuck-payment mail). Permanent with nothing captured (expired or failed page): the
     // same input fails the same way, record and acknowledge as before.
     if (settleErrorKind(err) === "transient") {
+      deps.emit("warn", "settle_transient_error", { eventId: message.eventId, ...errorFields(err) });
       return { retry: true, delaySeconds: retryDelaySeconds(err) };
     }
     if (outcome === "succeeded") {
+      deps.emit("error", "settle_failed_paid", { eventId: message.eventId, ...errorFields(err) });
       try {
         await deps.eventSettle(message.eventId, state ?? "settle_failed");
       } catch {
@@ -429,8 +543,11 @@ export async function handleStripeMessageWithDeps(
       }
       return { retry: true, delaySeconds: PAID_ERROR_RETRY_SECONDS };
     }
+    // Nothing was captured and the same input fails the same way: closed with the SQLSTATE as its
+    // reason (J2, W4-09: processed, so the sweep never re-enqueues it, and still findable).
+    deps.emit("error", "settle_failed_unpaid", { eventId: message.eventId, ...errorFields(err) });
     try {
-      await deps.eventSettle(message.eventId, state ?? "settle_failed");
+      await deps.eventClose(message.eventId, state ?? "settle_failed");
     } catch {
       return { retry: true };
     }
@@ -451,13 +568,34 @@ export async function handleStripeMessageWithDeps(
   if (outcome === "succeeded") {
     const extra = session?.metadata?.kind === "extra";
 
-    if (row.refund_required) {
+    if (row.amount_mismatch === true) {
+      // J3 (W4-07, W5-02): Stripe collected an amount, currency or booking that does not match what this
+      // payment expected. The settle recorded the capture and left the booking alone: it is not confirmed,
+      // not revived and nothing is refunded. Ops is mailed (ids only) and only then is the event closed; a
+      // mail that did not go out keeps the event open and retries (the settle answers the same again).
+      deps.emit("error", "amount_mismatch", { eventId: message.eventId, bookingId: row.booking_id });
+      try {
+        await (deps.alertAmountMismatch ?? deps.alertStuckPayment)({
+          eventId: message.eventId,
+          type: message.type,
+          objectId: message.objectId,
+          reference: row.reference ?? null,
+        });
+      } catch (err) {
+        deps.emit("error", "amount_mismatch_alert_failed", { eventId: message.eventId, ...errorFields(err) });
+        return { retry: true };
+      }
+      try {
+        await deps.eventClose(message.eventId, "amount_mismatch");
+      } catch {
+        return { retry: true };
+      }
+    } else if (row.refund_required) {
       const reason = row.refund_reason ?? "unknown";
       if (!piId) {
-        // No PaymentIntent to refund. The settle row already stamped
-        // processed_at — this is never retried into itself. A human must
-        // resolve the money manually.
-        deps.emit("warn", "refund_required_no_payment_intent", {
+        // No PaymentIntent to refund. A human must resolve the money by hand: the stuck-payment mail
+        // must have gone out before the event is closed (W4-02). A mail that did not go out retries.
+        deps.emit("error", "refund_required_no_payment_intent", {
           eventId: message.eventId,
           bookingId: row.booking_id,
           reason,
@@ -469,10 +607,20 @@ export async function handleStripeMessageWithDeps(
             objectId: message.objectId,
             reference: row.reference ?? null,
           });
+        } catch (err) {
+          deps.emit("error", "stuck_payment_alert_failed", { eventId: message.eventId, ...errorFields(err) });
+          return { retry: true };
+        }
+        try {
+          await deps.eventClose(message.eventId, "refund_required_no_payment_intent");
         } catch {
-          // Best-effort alert. The settle outcome itself already landed.
+          return { retry: true };
         }
       } else {
+        // J2 (W4-03): the settle left this event OPEN (marker refund_required:<reason>). It is stamped
+        // processed only after the Stripe refund and its record both succeeded. A refund that fails is
+        // retried by the queue (stable idempotency key, so a repeat never refunds twice), then by the
+        // dead-letter alert and the unprocessed sweep.
         const idempotencyKey = `refund:${row.booking_id}:${row.payment_id}:${reason}`;
         try {
           const refund = await deps.refund({
@@ -489,30 +637,33 @@ export async function handleStripeMessageWithDeps(
             refundRappen: row.charged_rappen,
             reason,
           });
-          duplicateRefunded = row.duplicate;
-          if (PAID_AFTER_CANCEL_REASONS.includes(reason)) {
-            try {
-              await deps.alertPaidAfterCancel(row.booking_id);
-            } catch {
-              // Best-effort alert. The refund itself already landed.
-            }
-          }
         } catch (err) {
           deps.emit("error", "refund_failed", {
             eventId: message.eventId,
             bookingId: row.booking_id,
             reason,
+            ...errorFields(err),
           });
+          return { retry: true };
+        }
+        duplicateRefunded = row.duplicate;
+        if (PAID_AFTER_CANCEL_REASONS.includes(reason)) {
           try {
-            await deps.alertStuckPayment({
+            await deps.alertPaidAfterCancel(row.booking_id);
+          } catch (err) {
+            // The refund itself landed; the mail is information for ops. Logged at error level, never silent.
+            deps.emit("error", "paid_after_cancel_alert_failed", {
               eventId: message.eventId,
-              type: message.type,
-              objectId: message.objectId,
-              reference: row.reference ?? null,
+              bookingId: row.booking_id,
+              ...errorFields(err),
             });
-          } catch {
-            // Best-effort alert.
           }
+        }
+        try {
+          await deps.eventSettle(message.eventId, null);
+        } catch {
+          // The refund is recorded; the retry reaches the already-settled branch and closes the event.
+          return { retry: true };
         }
       }
     } else if (!row.already_settled && !extra) {
@@ -563,8 +714,9 @@ export async function handleStripeMessageWithDeps(
     }
 
     // Phase 29 (META-10): after every money step, also when the return route settled first.
-    // Extras never reach it; a refund-required payment reaches it as refundRequired (never sends).
-    if (session && !extra && deps.sendMetaPurchase && row.payment_id > 0) {
+    // Extras never reach it; a refund-required payment reaches it as refundRequired (never sends). A payment
+    // held for an amount mismatch never reaches it: the booking is not confirmed.
+    if (session && !extra && deps.sendMetaPurchase && row.payment_id > 0 && row.amount_mismatch !== true) {
       try {
         await deps.sendMetaPurchase({
           bookingId: row.booking_id,
@@ -654,6 +806,8 @@ export async function handleStripeMessage(
         presentmentCurrency: null,
       };
       const extra = input.session?.metadata?.kind === "extra";
+      // J3: what Stripe collected, compared with the payment row by the settle function (W4-07, W5-02).
+      const facts = chargeFactsFromSession(input.outcome === "succeeded" ? input.session : null);
       try {
         const rows = await asSystem(env, async (sql) => {
           if (extra) {
@@ -667,7 +821,11 @@ export async function handleStripeMessage(
                 ${fx.fxRate},
                 ${fx.fxSource},
                 ${fx.fxQuotedAt}::timestamptz,
-                ${fx.presentmentAmountMinor}
+                ${fx.presentmentAmountMinor},
+                ${facts.amountTotalMinor},
+                ${facts.currency},
+                ${facts.amountReceivedMinor},
+                ${facts.metadataBookingId}
               )
             `;
           }
@@ -682,7 +840,11 @@ export async function handleStripeMessage(
               ${fx.fxSource},
               ${fx.fxQuotedAt}::timestamptz,
               ${fx.presentmentAmountMinor},
-              ${fx.presentmentCurrency}
+              ${fx.presentmentCurrency},
+              ${facts.amountTotalMinor},
+              ${facts.currency},
+              ${facts.amountReceivedMinor},
+              ${facts.metadataBookingId}
             )
           `;
         });
@@ -709,6 +871,7 @@ export async function handleStripeMessage(
           applied: row.applied === true,
           unassigned_chauffeur_id: row.unassigned_chauffeur_id ? String(row.unassigned_chauffeur_id) : null,
           request_id: row.request_id ? String(row.request_id) : null,
+          amount_mismatch: row.amount_mismatch === true,
         };
       } catch (err) {
         if (extra && sqlStateOf(err) === "23P01") {
@@ -716,8 +879,10 @@ export async function handleStripeMessage(
           if (bookingId) {
             try {
               await deliverOverlapMustFix(env, bookingId);
-            } catch {
-              // Extra settle rolled back. Trip is not auto-cancelled. Mail is best-effort.
+            } catch (mailErr) {
+              // Extra settle rolled back. Trip is not auto-cancelled. The settle is retried by the queue; a
+              // mail that did not go out is logged at error level (W4-02), never silent.
+              emit("error", "overlap_must_fix_alert_failed", { eventId: input.eventId, ...errorFields(mailErr) });
             }
           }
         }
@@ -727,6 +892,11 @@ export async function handleStripeMessage(
     eventSettle: async (eventId, error) => {
       await asSystem(env, async (sql) => {
         await sql`select public.stripe_event_settle(${eventId}, ${error})`;
+      });
+    },
+    eventClose: async (eventId, reason) => {
+      await asSystem(env, async (sql) => {
+        await sql`select public.stripe_event_close(${eventId}, ${reason})`;
       });
     },
     deliverConfirmation: (row) => deliverConfirmation(env, row),
@@ -761,6 +931,7 @@ export async function handleStripeMessage(
       });
     },
     alertPaidAfterCancel: (bookingKey) => deliverPaidAfterCancelAlert(env, bookingKey),
+    alertAmountMismatch: (input) => deliverAmountMismatchAlert(env, input),
     alertStuckPayment: (input) => deliverStuckPaymentAlert(env, input),
     purgeOnSessionExpired: (sessionId, bookingId) =>
       purgeOnSessionExpired(purgeDepsFromEnv(env), sessionId, bookingId),
@@ -788,9 +959,9 @@ export async function handleStripeMessage(
       return { outcome: String(rows[0]?.outcome ?? "unknown") };
     },
     upsertDispute: async (input) => {
-      await asSystem(env, async (sql) => {
-        await sql`
-          select public.stripe_dispute_upsert(
+      const rows = await asSystem(env, async (sql) => {
+        return sql`
+          select * from public.stripe_dispute_upsert(
             ${input.stripeDisputeId},
             ${input.paymentIntentId},
             ${input.sessionId},
@@ -801,31 +972,72 @@ export async function handleStripeMessage(
           )
         `;
       });
+      const row = rows[0];
+      return {
+        reference: row?.reference == null ? null : String(row.reference),
+        status: String(row?.status ?? input.status),
+        alertPending: row?.alert_pending === true,
+      };
+    },
+    // J7 W6-07: mail ops about the dispute status, then record that the mail went out. Throws when it did not.
+    alertDispute: async (input) => {
+      await deliverMoneyAlert(env, "dispute", input);
+      await asSystem(env, async (sql) => {
+        await sql`select public.stripe_dispute_alerted(${input.objectId}, ${input.status ?? ""})`;
+      });
+    },
+    // J7 W6-05: a recorded refund that Stripe later failed or canceled.
+    retrieveRefund: (id) => retrieveRefund(stripe, id),
+    recordRefundFailure: async (input) => {
+      const rows = await asSystem(env, async (sql) => {
+        return sql`
+          select * from public.stripe_refund_failed_record(
+            ${input.stripeRefundId},
+            ${input.status},
+            ${input.failureReason},
+            ${input.appSource},
+            ${input.created.toISOString()}::timestamptz
+          )
+        `;
+      });
+      const row = rows[0];
+      return {
+        outcome: String(row?.outcome ?? "unknown"),
+        reference: row?.reference == null ? null : String(row.reference),
+        alertPending: row?.alert_pending === true,
+      };
+    },
+    alertRefundFailed: async (input) => {
+      await deliverMoneyAlert(env, "refund-failed", input);
+      await asSystem(env, async (sql) => {
+        await sql`select public.stripe_refund_failure_alerted(${input.objectId})`;
+      });
     },
     sendMetaPurchase: metaPurchaseDepFor(env, options, emit),
     emit,
   });
 }
 
-/** The two calls the worker needs from a Cloudflare Queues `Message`. */
+/** The calls the worker needs from a Cloudflare Queues `Message`. */
 export type QueueMessageControl = {
   ack: () => void;
   retry: (options?: { delaySeconds?: number }) => void;
+  /** Cloudflare's delivery count: 1 on the first delivery. */
+  attempts?: number;
 };
 
 /**
- * Applies a HandleResult to a queue message (worker.ts). A retry carrying
- * `delaySeconds` (app_refund_pending, 26.1-08) is passed through so the
- * retry budget spans minutes before any dead-letter; a plain retry keeps the
- * queue's default backoff.
+ * Applies a HandleResult to a queue message (worker.ts). A retry carrying `delaySeconds`
+ * (app_refund_pending, 26.1-08; a database hiccup, 261002) is passed through so the retry budget spans
+ * minutes before any dead-letter. J2 (W4-06): a retry that names no delay gets the escalating delay of
+ * `retryDelayForAttempt(message.attempts)`, never an immediate redelivery, so eight retries span about
+ * 27 minutes (long enough for the 10-minute "paid session without a booking" refund rule), not seconds.
  */
 export function applyHandleResult(message: QueueMessageControl, result: HandleResult): "acked" | "retry" {
   if ("retry" in result && result.retry) {
-    if (typeof result.delaySeconds === "number") {
-      message.retry({ delaySeconds: result.delaySeconds });
-    } else {
-      message.retry();
-    }
+    message.retry({
+      delaySeconds: typeof result.delaySeconds === "number" ? result.delaySeconds : retryDelayForAttempt(message.attempts),
+    });
     return "retry";
   }
   message.ack();

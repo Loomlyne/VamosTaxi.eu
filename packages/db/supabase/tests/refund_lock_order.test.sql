@@ -7,7 +7,7 @@
 -- order in the function text, the unchanged attributes and the grants. The two-connection proof is
 -- packages/db/test/local/refund-lock-order.test.ts. Run as postgres by `supabase test db`.
 begin;
-select plan(38);
+select plan(39);
 
 -- The body as statements, in order, comments removed, white space folded, lower case.
 create function pg_temp.stmts(p_fn pg_catalog.regprocedure)
@@ -45,7 +45,7 @@ insert into fns values
   ('public.booking_edit_refund_record(uuid,text,uuid,public.rappen)', 'booking_edit_refund_record'),
   ('public.booking_staff_change(uuid,uuid,text,int8,int4,jsonb,text,int4)', 'booking_staff_change'),
   ('public.booking_staff_trip_change(uuid,uuid,text,jsonb,int8,int4,jsonb,text,numeric,int4,jsonb,int4,text)', 'booking_staff_trip_change'),
-  ('public.checkout_extra_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8)', 'checkout_extra_payment_settle');
+  ('public.checkout_extra_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,int8,text,int8,text)', 'checkout_extra_payment_settle');
 
 -- ── per function: the payment first, one booking lock, the re-check after it (27) ─────────────
 select ok(pg_catalog.cardinality(pg_temp.at(f.fn, 'pay')) >= 1
@@ -80,8 +80,8 @@ select ok((pg_temp.at(f.fn, 'changed'))[1] < (pg_temp.at(f.fn, 'accept'))[1],
   from fns f where f.label in ('booking_staff_change', 'booking_staff_trip_change') order by f.label;
 
 -- ── the order the others already follow (2) ────────────────────────────────────────────────────
-select ok((pg_temp.at('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text)', 'pay'))[1]
-          < (pg_temp.at('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text)', 'booking'))[1],
+select ok((pg_temp.at('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text,int8,text,int8,text)', 'pay'))[1]
+          < (pg_temp.at('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text,int8,text,int8,text)', 'booking'))[1],
           'settle: still locks the payment before the booking (if this changes, revisit 20261007280000)');
 select ok((pg_temp.at('public.meta_purchase_claim(uuid,int8,text,bool,bool,text)', 'pay'))[1]
           < (pg_temp.at('public.meta_purchase_claim(uuid,int8,text,bool,bool,text)', 'booking'))[1],
@@ -96,8 +96,16 @@ select is((select pg_catalog.count(*)::pg_catalog.int4
             where (select pg_catalog.bool_and(a.grantee::pg_catalog.regrole::pg_catalog.text in ('postgres', 'service_role', 'vamos_system'))
                           and pg_catalog.bool_or(a.grantee::pg_catalog.regrole::pg_catalog.text = 'vamos_system')
                      from pg_catalog.pg_proc p, pg_catalog.aclexplode(p.proacl) a
-                    where p.oid = f.fn and a.privilege_type = 'EXECUTE')), 9,
-          'all nine: EXECUTE for vamos_system, otherwise only postgres and service_role');
+                    where p.oid = f.fn and a.privilege_type = 'EXECUTE')), 6,
+          'the six live ones: EXECUTE for vamos_system, otherwise only postgres and service_role');
+-- J7 W5-06: the three legacy writers no application code calls lost vamos_system's EXECUTE.
+select is((select pg_catalog.count(*)::pg_catalog.int4
+             from fns f
+            where f.label in ('ops_refund_record', 'record_booking_refund', 'booking_edit_refund_record')
+              and (select pg_catalog.bool_and(a.grantee::pg_catalog.regrole::pg_catalog.text in ('postgres', 'service_role'))
+                     from pg_catalog.pg_proc p, pg_catalog.aclexplode(p.proacl) a
+                    where p.oid = f.fn and a.privilege_type = 'EXECUTE')), 3,
+          'the three legacy refund writers: vamos_system holds no EXECUTE (J7 W5-06)');
 select is((select pg_catalog.count(*)::pg_catalog.int4 from pg_catalog.pg_proc p
             where p.pronamespace = 'public'::pg_catalog.regnamespace
               and p.proname in (select f.label from fns f)), 9,

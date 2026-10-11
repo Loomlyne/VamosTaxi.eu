@@ -32,8 +32,10 @@ describe("confirmation unmock (D-40)", () => {
       expect(src).not.toMatch(/VT-5\d{3}/);
       expect(src).not.toContain("confirmation.dc.html");
     }
-    // 26.3-14 (D-27): the index route is static "Payment received." copy, never an error.
-    expect(index).toContain("receivedTitle");
+    // 26.3-14 (D-27): the index route is never an error screen. J5 (W3-15): it no longer says
+    // "Payment received." (nothing there knows the payment is captured): it says "we are checking".
+    expect(index).toContain("payCheckingTitle");
+    expect(index).not.toContain("receivedTitle");
     expect(index).not.toMatch(/failed|notVisible/);
   });
 

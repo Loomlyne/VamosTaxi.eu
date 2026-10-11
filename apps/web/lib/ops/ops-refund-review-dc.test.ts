@@ -78,10 +78,15 @@ const KEYS = [
   "errAlready",
   "errNotPaid",
   "errNothing",
-  "errTestOnly",
 ] as const;
 
 describe("OpsDetail refund review panel (UI-SPEC §4)", () => {
+  it("no longer names a Stripe test-account refund (J10)", () => {
+    expect(dc).not.toContain("errTestOnly");
+    expect(dc).not.toContain("stripe-test-only");
+    expect(dc).not.toContain("Stripe test account");
+  });
+
   it("carries every new key in en, de, fr and ar", () => {
     const blocks = tBlocks(dc);
     for (const lang of ["en", "de", "fr", "ar"] as const) {

@@ -5,7 +5,7 @@ import {
   voucherRefundAmountRappen,
   voucherRefundLabelKey,
 } from "./voucher-badge";
-import { customerCancelWindow } from "./cancel-window";
+import { cancelWindowFromMode } from "./cancel-window";
 
 describe("voucherBadgeStatus", () => {
   it("keeps confirmed, assigned, completed, cancelled, refunded", () => {
@@ -73,17 +73,16 @@ describe("voucherRefundAmountRappen (D-23a)", () => {
   });
 });
 
-describe("customerCancelWindow (D-23/D-24)", () => {
-  it("refunds in full automatically more than 24 hours before pickup", () => {
-    expect(customerCancelWindow(24.01)).toBe("auto_full");
-    expect(customerCancelWindow(72)).toBe("auto_full");
+describe("cancelWindowFromMode (D-23/D-24, J7 W6-01)", () => {
+  it("shows the automatic full refund only when compute_cancellation_refund said auto_full", () => {
+    expect(cancelWindowFromMode("auto_full")).toBe("auto_full");
   });
 
-  it("sends every later paid cancel to the admin review, with no 6 hour cut-off", () => {
-    expect(customerCancelWindow(24)).toBe("pending_ops");
-    expect(customerCancelWindow(10)).toBe("pending_ops");
-    expect(customerCancelWindow(5.5)).toBe("pending_ops");
-    expect(customerCancelWindow(0)).toBe("pending_ops");
-    expect(customerCancelWindow(-3)).toBe("pending_ops");
+  it("sends every other answer to the admin review: pending_ops, none, nothing readable", () => {
+    expect(cancelWindowFromMode("pending_ops")).toBe("pending_ops");
+    expect(cancelWindowFromMode("none")).toBe("pending_ops");
+    expect(cancelWindowFromMode(null)).toBe("pending_ops");
+    expect(cancelWindowFromMode(undefined)).toBe("pending_ops");
+    expect(cancelWindowFromMode("")).toBe("pending_ops");
   });
 });

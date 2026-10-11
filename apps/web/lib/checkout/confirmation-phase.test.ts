@@ -4,7 +4,7 @@ import ar from "../../i18n/messages/ar.json";
 import de from "../../i18n/messages/de.json";
 import en from "../../i18n/messages/en.json";
 import fr from "../../i18n/messages/fr.json";
-import { CONFIRMING_MS, confirmationPhase } from "./confirmation-phase";
+import { CONFIRMING_MS, POLL_BUDGET_MS, confirmationPhase } from "./confirmation-phase";
 
 describe("confirmationPhase (D-27)", () => {
   it("confirmed or assigned is booked at any elapsed time", () => {
@@ -32,6 +32,19 @@ describe("confirmationPhase (D-27)", () => {
     expect(confirmationPhase({ elapsedMs: 25_000, status: "", paymentStatus: null })).toBe("received");
   });
 
+  it("past the poll budget the phase is stalled: polling stops, there is a final state (W3-04)", () => {
+    expect(POLL_BUDGET_MS).toBe(5 * 60_000);
+    for (const status of ["pending", "paid", "", null]) {
+      expect(confirmationPhase({ elapsedMs: POLL_BUDGET_MS - 1, status, paymentStatus: null })).toBe("received");
+      expect(confirmationPhase({ elapsedMs: POLL_BUDGET_MS, status, paymentStatus: null })).toBe("stalled");
+    }
+  });
+
+  it("stalled never outranks booked or hidden", () => {
+    expect(confirmationPhase({ elapsedMs: POLL_BUDGET_MS * 2, status: "confirmed", paymentStatus: null })).toBe("booked");
+    expect(confirmationPhase({ elapsedMs: POLL_BUDGET_MS * 2, status: "cancelled", paymentStatus: null })).toBe("hidden");
+  });
+
   it("a failed payment on the return path still never shows error copy", () => {
     expect(confirmationPhase({ elapsedMs: 1000, status: "pending", paymentStatus: "failed" })).toBe("confirming");
     expect(confirmationPhase({ elapsedMs: 30_000, status: "pending", paymentStatus: "failed" })).toBe("received");
@@ -51,6 +64,13 @@ describe("post-payment strings in four languages (D-27, D-28)", () => {
     "confirmingBody",
     "receivedTitle",
     "receivedBody",
+    "payUnpaidNotice",
+    "payFailedNotice",
+    "payCheckingTitle",
+    "payCheckingBody",
+    "payCheckingAgain",
+    "payLinkRaceRefundedTitle",
+    "payLinkRaceRefundedBody",
     "statusBooked",
     "bookedTitleNoName",
     "factWhen",
@@ -66,6 +86,8 @@ describe("post-payment strings in four languages (D-27, D-28)", () => {
       const t = createTranslator({ locale, messages: all[locale], namespace: "checkout" });
       for (const key of plain) expect(String(t(key)).trim(), key).not.toBe("");
       expect(t("receivedContact", { email: "info@vamostaxi.site" })).toContain("info@vamostaxi.site");
+      expect(t("payUnknownNotice", { email: "info@vamostaxi.site" })).toContain("info@vamostaxi.site");
+      expect(t("payCheckingStalledBody", { email: "info@vamostaxi.site" })).toContain("info@vamostaxi.site");
       expect(t("bookedTitle", { firstName: "Ana" })).toContain("Ana");
       expect(t("receiptFare", { class: "Economy" })).toContain("Economy");
       expect(t("receiptVat", { rate: "8.1" })).toContain("8.1");

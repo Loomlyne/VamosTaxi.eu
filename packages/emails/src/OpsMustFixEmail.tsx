@@ -33,7 +33,10 @@ export type OpsMustFixKind =
   | "overlap"
   | "stuck-payment"
   | "paid-after-cancel"
-  | "difference-not-applied";
+  | "difference-not-applied"
+  | "amount-mismatch"
+  | "refund-failed"
+  | "dispute";
 
 export type OpsMustFixTrip = {
   reference: string;
@@ -70,6 +73,12 @@ function headlineKey(kind: OpsMustFixKind): string {
       return "opsMustFix.paidAfterCancelHeadline";
     case "difference-not-applied":
       return "opsMustFix.differenceNotAppliedHeadline";
+    case "amount-mismatch":
+      return "opsMustFix.amountMismatchHeadline";
+    case "refund-failed":
+      return "opsMustFix.refundFailedHeadline";
+    case "dispute":
+      return "opsMustFix.disputeHeadline";
     default:
       return "opsMustFix.offRoadHeadline";
   }
@@ -85,6 +94,12 @@ function bodyKey(kind: OpsMustFixKind): string {
       return "opsMustFix.paidAfterCancelBody";
     case "difference-not-applied":
       return "opsMustFix.differenceNotAppliedBody";
+    case "amount-mismatch":
+      return "opsMustFix.amountMismatchBody";
+    case "refund-failed":
+      return "opsMustFix.refundFailedBody";
+    case "dispute":
+      return "opsMustFix.disputeBody";
     default:
       return "opsMustFix.offRoadBody";
   }

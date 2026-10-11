@@ -11,6 +11,7 @@
 
 export const dynamic = "force-dynamic";
 
+import { stripeKeyRefused } from "@/lib/checkout/stripe-mode";
 import type { VamosClaims } from "@/lib/db/identity";
 import { asCustomer, asGuest, asSystem } from "@/lib/db/identity";
 import {
@@ -275,10 +276,7 @@ export async function acceptPaidEdit(
   const requestId = (input.requestId ?? "").trim();
   if (!requestId) return { ok: false, code: "invalid-body" };
 
-  const secret = env.STRIPE_SECRET_KEY ?? "";
-  if (secret.startsWith("sk_live_")) {
-    return { ok: false, code: "stripe-test-only" };
-  }
+  if (stripeKeyRefused(env)) return { ok: false, code: "stripe-failed" };
 
   type AcceptRow = {
     request_id: string;

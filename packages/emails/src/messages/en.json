@@ -75,7 +75,13 @@
     "paidAfterCancelHeadline": "Paid after cancel — refunded",
     "paidAfterCancelBody": "A payment arrived for a booking that could not run. The charge was refunded automatically. No action is needed unless the customer writes in.",
     "differenceNotAppliedHeadline": "Difference paid, change not applied",
-    "differenceNotAppliedBody": "The customer paid the difference for this booking, but the change was not applied: the trip was cancelled, a newer change replaced it, or it no longer fits. The payment is recorded and shows as Refund due. Send it back from the dashboard, or make the change again."
+    "differenceNotAppliedBody": "The customer paid the difference for this booking, but the change was not applied: the trip was cancelled, a newer change replaced it, or it no longer fits. The payment is recorded and shows as Refund due. Send it back from the dashboard, or make the change again.",
+    "amountMismatchHeadline": "Payment held: the amount does not match",
+    "amountMismatchBody": "Stripe collected a payment that does not match the amount, currency or booking this checkout expected. The money is recorded and the booking is NOT confirmed. Nothing was refunded. Open the booking in the dashboard and the payment in Stripe, then confirm the booking or refund the payment.",
+    "refundFailedHeadline": "A refund was reversed by Stripe",
+    "refundFailedBody": "Stripe reported a refund as failed after it was recorded. The booking shows the refund as due again. Open the booking in the dashboard and send the refund again, or check the refund in Stripe.",
+    "disputeHeadline": "A card dispute was opened or changed",
+    "disputeBody": "Stripe reported a dispute on a payment for this booking. Open the dispute in Stripe to see its status and its evidence deadline. The booking shows the dispute in the dashboard."
   },
   "cancellation": {
     "subject": "Booking {reference} is cancelled",

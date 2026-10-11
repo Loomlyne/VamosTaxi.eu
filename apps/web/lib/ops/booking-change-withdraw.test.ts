@@ -201,9 +201,9 @@ describe("withdrawBookingChange", () => {
     expect(await withdrawBookingChange(env, claims, "VT-26-0801")).toEqual({ ok: false, code: "already-paid" });
   });
 
-  it("a live Stripe key and an unknown booking are refused", async () => {
-    const live = { STRIPE_SECRET_KEY: "sk_live_x" } as unknown as CloudflareEnv;
-    expect(await withdrawBookingChange(live, claims, "VT-26-0801")).toEqual({ ok: false, code: "stripe-test-only" });
+  it("a key that is not a Stripe key and an unknown booking are refused (J1)", async () => {
+    const bad = { STRIPE_SECRET_KEY: " not-a-stripe-key" } as unknown as CloudflareEnv;
+    expect(await withdrawBookingChange(bad, claims, "VT-26-0801")).toEqual({ ok: false, code: "stripe-failed" });
     expect(await withdrawBookingChange(env, claims, "nope")).toEqual({ ok: false, code: "not-found" });
   });
 });

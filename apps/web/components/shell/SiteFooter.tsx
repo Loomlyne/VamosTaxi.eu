@@ -54,6 +54,11 @@ export interface SiteFooterProps {
   wordmark?: boolean;
   showChauffeurByHour?: boolean;
   showPaymentMarks?: boolean;
+  /**
+   * J8 (W3-08): the TWINT mark follows `STRIPE_CHECKOUT_TWINT` (decided by the layout from the Worker env).
+   * Off by default: no TWINT promise while the Stripe page does not offer it.
+   */
+  showTwint?: boolean;
 }
 
 // ── the per-character link roll ──────────────────────────────────────────────────────
@@ -163,6 +168,7 @@ export function SiteFooter({
   wordmark = true,
   showChauffeurByHour = true,
   showPaymentMarks = true,
+  showTwint = false,
 }: SiteFooterProps) {
   const t = useTranslations("common");
   const tFooter = useTranslations("footer");
@@ -372,7 +378,7 @@ export function SiteFooter({
             <span data-ft-paylabel="1">{t("payment")}</span>
             <span data-ft-paymark="1">{tFooter("payment-visa")}</span>
             <span data-ft-paymark="1">{tFooter("payment-mastercard")}</span>
-            <span data-ft-paymark="1">{tFooter("payment-twint")}</span>
+            {showTwint ? <span data-ft-paymark="1">{tFooter("payment-twint")}</span> : null}
             <span data-ft-paymark="1">{tFooter("payment-apple-pay")}</span>
           </div>
         ) : null}

@@ -73,8 +73,10 @@ describe("customer refund words and amount (26.1-18, UI-SPEC §2)", () => {
   it("customer cancel screens use the shared D-24 window, not a 6 hour cut-off", () => {
     const route = read("apps/web/app/api/manage/booking/route.ts");
     const client = read("apps/web/app/[locale]/confirmation/[ref]/ConfirmationClient.tsx");
-    expect(route).toMatch(/customerCancelWindow\(/);
-    expect(route).not.toMatch(/hours > 6/);
+    // J7 W6-01: the window is the database's answer (published free_cancel_hours), not a TypeScript copy of 24.
+    expect(route).toMatch(/compute_cancellation_refund\(/);
+    expect(route).toMatch(/cancelWindowFromMode\(/);
+    expect(route).not.toMatch(/hoursBefore|hours > 24|hours > 6/);
     // 2026-10-01: cancelling left /confirmation for Manage booking (owner decision).
     expect(client).not.toMatch(/cancelSheet|paid-cancel|hours > 6/);
   });

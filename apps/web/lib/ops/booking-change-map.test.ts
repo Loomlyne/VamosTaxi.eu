@@ -4,6 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  CHANGE_FAIL_CODES,
   changeFailStatus,
   changeRefusal,
   mapChangeSqlError,
@@ -82,5 +83,6 @@ describe("mapChangeSqlError", () => {
     expect(changeFailStatus("too-late")).toBe(409);
     expect(changeFailStatus("stripe-failed")).toBe(502);
     expect(changeFailStatus("invalid-body")).toBe(400);
+    expect(CHANGE_FAIL_CODES).not.toContain("stripe-test-only");
   });
 });

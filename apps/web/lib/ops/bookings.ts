@@ -181,6 +181,7 @@ export async function loadBookings(
         select coalesce(sum(br.refund_rappen), 0) as refund_rappen
         from public.booking_refunds br
         where br.booking_id = b.id
+          and not exists (select 1 from public.booking_refund_reversals rv where rv.refund_id = br.id)
       ) rf on true
       left join lateral (
         select
@@ -472,8 +473,11 @@ export async function loadDashboardMoney(
       select coalesce(sum(r.refund_rappen), 0)::int as refund_rappen
       from public.booking_refunds as r
       where
-        ${fromUtc}::timestamptz is null
-        or r.decided_at >= ${fromUtc}::timestamptz
+        not exists (select 1 from public.booking_refund_reversals as rv where rv.refund_id = r.id)
+        and (
+          ${fromUtc}::timestamptz is null
+          or r.decided_at >= ${fromUtc}::timestamptz
+        )
     `;
     const lines = await sql<
       { customer: string | null; booking: string | null; amount_rappen: number | string }[]
@@ -485,8 +489,11 @@ export async function loadDashboardMoney(
       from public.booking_refunds as r
       join public.bookings as b on b.id = r.booking_id
       where
-        ${fromUtc}::timestamptz is null
-        or r.decided_at >= ${fromUtc}::timestamptz
+        not exists (select 1 from public.booking_refund_reversals as rv where rv.refund_id = r.id)
+        and (
+          ${fromUtc}::timestamptz is null
+          or r.decided_at >= ${fromUtc}::timestamptz
+        )
       order by r.decided_at desc, r.id desc
     `;
     let incomeRappen = 0;

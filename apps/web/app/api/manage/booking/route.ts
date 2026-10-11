@@ -4,9 +4,9 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { readAllowed, readRateLimited } from "@/lib/abuse/read-rate-limit";
 import { MANAGE_COOKIE_NAME, hashManageToken, rawManageTokenFromRequest } from "@/lib/checkout/manage-token";
-import { customerCancelWindow, customerCanCancel } from "@/lib/checkout/cancel-window";
+import { cancelWindowFromMode, customerCanCancel } from "@/lib/checkout/cancel-window";
 import { manageExtrasFromJson, type ManageExtras } from "@/lib/checkout/manage-money";
-import { asGuest } from "@/lib/db/identity";
+import { asGuest, asSystem } from "@/lib/db/identity";
 import { loadManageReviewState } from "@/lib/db/system-reads";
 
 const NOT_FOUND =
@@ -99,10 +99,24 @@ function countryLabel(isoCode: string | null | undefined): string {
   }
 }
 
-function hoursBefore(original: string | Date | null, now: Date): number {
-  const stamp = original instanceof Date ? original.getTime() : Date.parse(str(original));
-  if (!Number.isFinite(stamp)) return 0;
-  return (stamp - now.getTime()) / 3_600_000;
+/**
+ * J7 W6-01: the cancel window comes from the same definer function the cancel itself uses (EXECUTE
+ * vamos_system), so the sheet never promises a window the database does not apply. A window that cannot be
+ * read falls back to the review copy (pending_ops), never to a promise of an automatic refund.
+ */
+async function cancelWindowOf(env: CloudflareEnv, bookingId: string) {
+  try {
+    const mode = await asSystem(env, async (sql) => {
+      const rows = await sql<{ refund_mode: string | null }[]>`
+        select refund_mode from public.compute_cancellation_refund(${bookingId}::uuid)
+      `;
+      return rows[0]?.refund_mode ?? null;
+    });
+    return cancelWindowFromMode(mode);
+  } catch (err) {
+    console.error("manage_booking_cancel_window_failed", err instanceof Error ? err.message : String(err));
+    return cancelWindowFromMode(null);
+  }
 }
 
 export async function GET(request: Request): Promise<Response> {
@@ -158,9 +172,9 @@ export async function GET(request: Request): Promise<Response> {
   const refundStatus = str(row.refund_status) || "none";
   const refunded = refundStatus === "refunded";
   const payoutCountry = str(row.payout_country).toUpperCase() || (refunded ? "CH" : "");
-  // D-23/D-24 (26.1-18): >24 h auto full refund, otherwise the admin reviews it.
-  // Unpaid rows returned "gone" above, so every booking here was paid.
-  const windowKind = customerCancelWindow(hoursBefore(row.original_scheduled_at, new Date()));
+  // D-23/D-24 (26.1-18) + J7 W6-01: outside the published free-cancel window an automatic full refund, otherwise
+  // the admin reviews it. Unpaid rows returned "gone" above, so every booking here was paid.
+  const windowKind = await cancelWindowOf(env, String(row.booking_id));
   const canCancel = customerCanCancel(status, reviewSubmitted);
 
   return json(

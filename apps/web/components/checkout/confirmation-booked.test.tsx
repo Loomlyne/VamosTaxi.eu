@@ -166,12 +166,20 @@ describe("/confirmation booked page (signed 2026-10-01)", () => {
     }
   });
 
-  it("an unpaid booking shows FINISH PAYMENT alone and no next steps", () => {
+  it("an unpaid booking shows FINISH PAYMENT alone (to that booking's checkout resume) and no next steps", () => {
     const unpaid = { ...booked, status: "pending", paymentStatus: null } as unknown as ConfirmationFacts;
-    const html = render(<ConfirmationClient {...props({ booking: unpaid })} />);
+    const resume = "/checkout?resume=11111111-2222-4333-8444-555555555555";
+    const html = render(<ConfirmationClient {...props({ booking: unpaid, finishHref: resume })} />);
     const buttons = actionButtons(html);
     expect(buttons).toHaveLength(1);
-    expect(buttons[0]).toContain('href="/en/checkout"');
+    expect(buttons[0]).toContain(`href="${resume}"`);
+    expect(html).not.toContain("data-confirmation-next");
+  });
+
+  it("an unpaid booking whose checkout cannot be named shows no FINISH PAYMENT button (J5, W3-06: never a dead control)", () => {
+    const unpaid = { ...booked, status: "pending", paymentStatus: null } as unknown as ConfirmationFacts;
+    const html = render(<ConfirmationClient {...props({ booking: unpaid })} />);
+    expect(actionButtons(html)).toHaveLength(0);
     expect(html).not.toContain("data-confirmation-next");
   });
 

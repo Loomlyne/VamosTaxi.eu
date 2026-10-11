@@ -42,8 +42,8 @@ export type Trip = {
   extras: string[];
   /** quote_id of the booking to refill after Back from Stripe. */
   resume: string | null;
-  /** Payment outcome shown after Back (`unpaid`, `failed`, `cancelled`). */
-  pay: string | null;
+  /** Payment outcome shown after the Stripe return (J5: one list, `PAY_OUTCOMES`). */
+  pay: PayOutcome | null;
 };
 
 export type ParsedTrip = { trip: Trip; errors: TripFieldError[] };
@@ -72,7 +72,15 @@ const intIn = (min: number, max: number) =>
     .regex(/^\d{1,3}$/)
     .transform(Number)
     .pipe(z.number().int().min(min).max(max));
-const payOutcome = z.enum(["unpaid", "failed", "cancelled"]);
+/**
+ * Every `pay=` value the return route can emit AND the checkout renders (W3-01). One list for
+ * the zod schema, the route's redirect builder and the notice renderer, so a value can never
+ * be emitted that parses to null: `unpaid` (Stripe says not paid), `unknown` (Stripe could not
+ * be read and nothing else could be looked up), `failed`, `cancelled`.
+ */
+export const PAY_OUTCOMES = ["unpaid", "unknown", "failed", "cancelled"] as const;
+export type PayOutcome = (typeof PAY_OUTCOMES)[number];
+const payOutcome = z.enum(PAY_OUTCOMES);
 
 function read(params: URLSearchParams | Record<string, string | undefined>, key: string): string | null {
   const raw = params instanceof URLSearchParams ? params.get(key) : params[key];

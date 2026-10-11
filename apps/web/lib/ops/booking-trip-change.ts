@@ -28,6 +28,7 @@
 // Writes are SECURITY DEFINER functions under asSystem, refusals mapped AROUND the wrapper
 // (postgres.js begin() rethrows).
 
+import { stripeKeyRefused } from "@/lib/checkout/stripe-mode";
 import { sendTripChangePay, type EmailLocale } from "@vamos/emails/confirmation";
 import { asSystem, type VamosClaims } from "@/lib/db/identity";
 import { supersedePendingEditRequest } from "@/lib/db/system-reads";
@@ -274,8 +275,7 @@ export async function confirmTripChange(
   const trip = body.trip;
   if (!trip) return confirmBookingChange(env, claims, bookingKey, p1, dashboardOrigin, deps);
   if (body.expectTotalRappen == null || body.expectPaidRappen == null) return { ok: false, code: "invalid-body" };
-  // Plan: the change machine refuses a live key until the security session's pre-launch proof.
-  if ((env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live_")) return { ok: false, code: "stripe-test-only" };
+  if (stripeKeyRefused(env)) return { ok: false, code: "stripe-failed" };
 
   const rules = await loadChangeRules(env, claims, bookingKey, deps);
   if (!rules.ok) return rules;

@@ -9,6 +9,13 @@
 
 import { payableRappen } from "./payable";
 
+/**
+ * J6 (W2-03, U19): the smallest charge a card payment takes, in rappen (CHF 0.50, signed by the owner
+ * 2026-10-09). A total below it is refused before Stripe with `amount_below_minimum`: Stripe refuses
+ * the session and the customer used to get a bare 500. Pure constant, safe in the browser bundle.
+ */
+export const MIN_CHARGE_RAPPEN = 50;
+
 /** One passenger extra the live price book offers, with its display names. */
 export type ExtraCatalogRow = {
   code: string;

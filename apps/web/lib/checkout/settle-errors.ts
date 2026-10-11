@@ -53,3 +53,20 @@ export function retryDelaySeconds(err: unknown): number {
 
 /** Seconds before the retry of a permanent error after money was captured: 8 tries span about 40 minutes at most, then the dead-letter queue mails info@. */
 export const PAID_ERROR_RETRY_SECONDS = 300;
+
+/**
+ * J2 (W4-06, W1-14): seconds a queue message waits before delivery number `attempts + 1`, when the
+ * handler asks for a retry without naming a delay (a Stripe read that failed, P0002 while the intent
+ * transaction commits, a refund that Stripe refused, a handler that threw). `attempts` is Cloudflare's
+ * `message.attempts` (1 on the first delivery). The eight retries `wrangler.jsonc` allows then span
+ * 30 + 60 + 120 + 240 + 4 x 300 seconds, about 27 minutes: longer than the 10 minutes a paid session
+ * must age before it is refunded for lack of a booking (MISSING_BOOKING_MIN_AGE_SECONDS), and never
+ * longer than the 10-minute idle window of the unprocessed-event sweep, so a healthy retry is never
+ * swept at the same time. A missing or non-positive `attempts` reads as the first delivery.
+ */
+export const QUEUE_RETRY_DELAYS_SECONDS: readonly number[] = Object.freeze([30, 60, 120, 240, 300, 300, 300, 300]);
+
+export function retryDelayForAttempt(attempts: number | undefined): number {
+  const n = typeof attempts === "number" && Number.isFinite(attempts) && attempts >= 1 ? Math.floor(attempts) : 1;
+  return QUEUE_RETRY_DELAYS_SECONDS[Math.min(n, QUEUE_RETRY_DELAYS_SECONDS.length) - 1] ?? 300;
+}
