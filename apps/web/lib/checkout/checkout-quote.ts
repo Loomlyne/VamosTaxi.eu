@@ -9,6 +9,7 @@
 // path is testable without a browser.
 
 import { smallPhotoUrl } from "@/lib/photos/variant";
+import { classCardRappen } from "./card-price";
 import type { Trip } from "./trip-url";
 
 export type DisplayCurrency = "CHF" | "EUR" | "USD" | "AED";
@@ -48,8 +49,10 @@ export type ClassView = {
   pax: number;
   /** Bags the class takes. */
   bags: number;
-  /** CHF rappen; null while pricing is not live (shown as `CHF 000`). */
+  /** CHF rappen, class net before VAT; null while pricing is not live. Compared and sent as-is. */
   totalRappen: number | null;
+  /** What the card shows: totalRappen with VAT included (the checkout total before extras/voucher). */
+  cardRappen: number | null;
 };
 
 export type QuoteOk = {
@@ -58,6 +61,8 @@ export type QuoteOk = {
   lock: string;
   expiresAt: string;
   pricingLive: boolean;
+  /** Settings VAT rate (81 = 8.1 %) from the quote answer; null on an answer that predates it. */
+  vatRateBps: number | null;
   classes: ClassView[];
   /** No class is eligible for this party (D-11 empty state). */
   noneFit: boolean;
@@ -131,7 +136,7 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 }
 
-function classView(raw: unknown): ClassView | null {
+function classView(raw: unknown, vatRateBps: number | null): ClassView | null {
   const c = asRecord(raw);
   if (typeof c.slug !== "string" || c.slug === "") return null;
   const block =
@@ -139,6 +144,7 @@ function classView(raw: unknown): ClassView | null {
       ? (c.ineligible_reason as ClassBlock)
       : null;
   const eligible = c.eligible === true;
+  const totalRappen = typeof c.total_rappen === "number" && Number.isFinite(c.total_rappen) ? c.total_rappen : null;
   return {
     slug: c.slug,
     name: typeof c.name === "string" && c.name ? c.name : c.slug,
@@ -148,7 +154,8 @@ function classView(raw: unknown): ClassView | null {
     block: eligible ? null : (block ?? "unavailable"),
     pax: typeof c.effective_max_pax === "number" ? c.effective_max_pax : 0,
     bags: typeof c.max_bags === "number" ? c.max_bags : 0,
-    totalRappen: typeof c.total_rappen === "number" && Number.isFinite(c.total_rappen) ? c.total_rappen : null,
+    totalRappen,
+    cardRappen: classCardRappen(totalRappen, vatRateBps),
   };
 }
 
@@ -181,8 +188,9 @@ export function kmFigure(distanceM: number | null | undefined): string | null {
 export function parseQuoteJson(status: number, json: unknown): QuoteResult {
   const body = asRecord(json);
   if (body.ok === true && typeof body.quote_id === "string" && typeof body.lock === "string") {
+    const vatRateBps = typeof body.vat_rate_bps === "number" ? body.vat_rate_bps : null;
     const classes = (Array.isArray(body.classes) ? body.classes : [])
-      .map(classView)
+      .map((raw) => classView(raw, vatRateBps))
       .filter((c): c is ClassView => c !== null);
     return {
       kind: "ok",
@@ -190,6 +198,7 @@ export function parseQuoteJson(status: number, json: unknown): QuoteResult {
       lock: body.lock,
       expiresAt: typeof body.expires_at === "string" ? body.expires_at : "",
       pricingLive: body.pricing_live !== false,
+      vatRateBps,
       classes,
       noneFit: classes.length === 0 || classes.every((c) => !c.eligible),
       distanceM: routeDistanceM(body.route),

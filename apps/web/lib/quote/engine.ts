@@ -62,6 +62,8 @@ export type LoadAndPriceOk = {
   ok: true;
   quote: PriceQuoteOutput & {
     computed_at: string;
+    /** Settings VAT rate (tenths of a percent, 81 = 8.1 %). Display only; the charge reads its own. */
+    vat_rate_bps?: number;
   };
   coupon?: LoadAndPriceCoupon | null;
 };
@@ -257,6 +259,7 @@ export async function loadAndPrice(
       settings_version_id: priced.settings_version_id,
       partially_priced_class_slugs: priced.partially_priced_class_slugs,
       computed_at: input.computed_at,
+      vat_rate_bps: flags.vat_rate_bps,
     },
     coupon: couponEval,
   };

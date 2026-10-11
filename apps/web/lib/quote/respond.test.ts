@@ -20,6 +20,7 @@ const SUCCESS_KEYS = [
   "expires_at",
   "engine_version",
   "pricing_live",
+  "vat_rate_bps",
   // Security S10 (2026-10-05): rate_version and settings_version_id are internal row ids; gone.
   "display_currency",
   "route",
@@ -91,6 +92,7 @@ function successQuote(overrides: Partial<QuotePipelineOk> = {}): QuotePipelineOk
     expires_at: "2099-01-01T12:00:00.000Z",
     engine_version: "quote-engine@abcdef1",
     pricing_live: false,
+    vat_rate_bps: 81,
     rate_version: null,
     settings_version_id: 1,
     display_currency: "CHF",

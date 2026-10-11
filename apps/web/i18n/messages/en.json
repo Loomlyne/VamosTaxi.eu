@@ -598,6 +598,7 @@
     "receiptVoucher": "Voucher {code}",
     "receiptVat": "VAT {rate} %",
     "receiptVatPlain": "VAT",
+    "vatIncluded": "VAT {rate} % included",
     "receiptTotalPaid": "Total paid",
     "receiptPresentment": "You paid <fig>{paid}</fig> in {currency}. Vamos received <fig>{received}</fig>.",
     "backAria": "Back",

@@ -42,6 +42,7 @@ import {
   type LockSecrets,
   type QuoteLockPayload,
 } from "./lock";
+import { CH_VAT_RATE_BPS } from "../checkout/vat";
 import { preCouponTotalOfClass } from "../pricing/policy";
 import type { ClassBoardEntry, PolicySnapshot, QuoteInput } from "../pricing/types";
 import {
@@ -146,6 +147,8 @@ export type QuotePipelineOk = {
   expires_at: string;
   engine_version: string;
   pricing_live: boolean;
+  /** Settings VAT rate, tenths of a percent (81 = 8.1 %). The cards show class net + this VAT. */
+  vat_rate_bps: number;
   rate_version: { id: number; slug: string } | null;
   settings_version_id: number;
   display_currency: CurrencyCode;
@@ -446,6 +449,7 @@ async function mintSuccess(args: {
     policy: PolicySnapshot | null;
     rate_version: { id: number; slug: string } | null;
     pricing_live: boolean;
+    vat_rate_bps?: number;
   };
   route: { legs: QuoteRouteLeg[] };
   coupon?: CouponInfo | null;
@@ -459,6 +463,7 @@ async function mintSuccess(args: {
     expires_at: args.payload.exp,
     engine_version: args.payload.engine_version,
     pricing_live: args.quote.pricing_live,
+    vat_rate_bps: args.quote.vat_rate_bps ?? CH_VAT_RATE_BPS,
     rate_version: args.quote.rate_version,
     settings_version_id: args.payload.settings_version_id,
     display_currency: args.payload.display_currency,

@@ -241,6 +241,7 @@ describe("S10: no internal ids in public API answers", () => {
       expires_at: "2099-01-01T12:00:00.000Z",
       engine_version: "quote-engine@abcdef1",
       pricing_live: true,
+      vat_rate_bps: 81,
       rate_version: { id: 18, slug: "book-18" },
       settings_version_id: 7,
       display_currency: "CHF",

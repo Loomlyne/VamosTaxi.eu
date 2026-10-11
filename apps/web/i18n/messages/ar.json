@@ -598,6 +598,7 @@
     "receiptVoucher": "قسيمة {code}",
     "receiptVat": "ضريبة القيمة المضافة {rate} %",
     "receiptVatPlain": "ضريبة القيمة المضافة",
+    "vatIncluded": "شاملة ضريبة القيمة المضافة {rate} %",
     "receiptTotalPaid": "إجمالي المدفوع",
     "receiptPresentment": "دفعت <fig>{paid}</fig> بعملة {currency}. استلمت Vamos <fig>{received}</fig>.",
     "backAria": "رجوع",

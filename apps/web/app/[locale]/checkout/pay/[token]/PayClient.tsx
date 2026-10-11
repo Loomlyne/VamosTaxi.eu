@@ -309,7 +309,7 @@ export function PayClient({ token }: { token: string }) {
             return { label: t("couponCode", { code: line.code }), amount, credit: true };
           default: {
             const rate = vatPercentLabel(line.vatRateBps);
-            return { label: rate ? t("receiptVat", { rate }) : t("receiptVatPlain"), amount };
+            return { label: rate ? t("vatIncluded", { rate }) : t("receiptVatPlain"), amount, muted: true };
           }
         }
       })
