@@ -77,6 +77,14 @@ describe("dc mock URL gate", () => {
     expect(res.headers.get("set-cookie") ?? "").toMatch(/Secure/i);
   });
 
+  it("never lets a browser cache a redirect that sets the language cookie", () => {
+    for (const path of ["/en", "/en/contact", "/de/sign-in"]) {
+      const res = gatePublicRequest(req(path)) as Response;
+      expect(res.status).toBe(308);
+      expect(res.headers.get("cache-control")).toBe("private, no-store");
+    }
+  });
+
   it("308s /en to the unprefixed path", () => {
     const gated = gatePublicRequest(req("/en/contact"));
     expect((gated as Response).status).toBe(308);

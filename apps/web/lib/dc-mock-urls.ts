@@ -135,6 +135,9 @@ function redirectTo(
       "set-cookie",
       `NEXT_LOCALE=${prefix}; Path=/; SameSite=Lax; Secure; Max-Age=31536000`,
     );
+    // A 308 is cached by the browser for good. If this one is replayed from cache, the cookie above is never
+    // set again, so a typed /en keeps landing on the visitor's last language.
+    headers.set("cache-control", "private, no-store");
   }
   return new Response(null, { status: 308, headers });
 }
