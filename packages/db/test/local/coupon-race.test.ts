@@ -362,9 +362,9 @@ describe("coupon global_limit = 1 under two parallel payers (QUOTE-06, GAP-1)", 
         { client: a },
       );
       const bOut = await outcome(bP!);
-      // B is held by A's open checkout. Today B stops at its snapshot insert: the
-      // price_snapshots.coupon_id FK check needs FOR KEY SHARE on the coupon row A locked FOR UPDATE
-      // (on = "coupons"); without that lock B would stop at the reference counter instead.
+      // B is held by A's open checkout. Since 20261011100000 the coupon trigger locks FOR NO KEY
+      // UPDATE, which does not clash with the snapshot's FOR KEY SHARE, so B waits on A at the
+      // booking_reference_counters row instead of the coupons row (before the fix it deadlocked).
       expect(wait!.blockers, `B waited on ${wait!.on}`).toEqual([aPid]);
       expectCouponRefusal(bOut);
       expect(await redemptions(coupon.id)).toEqual([{ booking_id: aRow.booking_id }]);
