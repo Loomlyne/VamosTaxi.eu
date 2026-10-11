@@ -100,10 +100,9 @@ the controller (the Claude desktop session "Vamos Taxi controller", named on the
 - Phase 19 added: V1 production close-out leftover live gates and 10k booking surge (2026-09-18). Parked. Hard gate in ROADMAP. Current stays 17 leftover live close.
 - Phase 20 added: Security audit fix-up (2026-09-19). Does not begin Phase 19. Owner SQL. No `.eu`. No `sk_live_`.
 - Phases 21–25 added: v1.2 Payment (2026-09-22). PAY-08…PAY-18. Leftovers 16/17/19/20 unchanged.
-- v1.3 started (2026-09-23): Meta measurement. Phase 21 is not current. Do not `phases.clear`.
-- Phases 26–29 approved (2026-09-23): v1.3 Meta measurement. META-01…META-14. Next is discuss-phase 26. Phase 21 is not current.
+- v1.3 started (2026-09-23): Meta measurement. Do not `phases.clear`.
+- Phases 26–29 approved (2026-09-23): v1.3 Meta measurement. META-01…META-14. Next is discuss-phase 26.
 - Phase 26 lock shipped (2026-09-24) on `gsd/phase-26-legal-gate`. Empty slots. Flag is the literal false. Policy version stays `2026-09-12`. Not merged. Pixel stays off until the owner pastes the four-language lines.
-- Phase 21 execution on `gsd/phase-21-charge-gate` (2026-09-22): planning complete — 8 plans; execution started. Plans 21-01…21-08 stay checked. Progress stays 10/10 in progress. Phase 21 is not complete. Do not execute Phase 16/17/19/20.
 - Phase 26.3 discuss signed (2026-09-29): renamed Booking flow rebuild; Stripe hosted page, one checkout, URL handover, generic extras, pickup instant, test bookings deleted by owner script. Starts before 26.2.
 - Phase 26.3 inserted (2026-09-28): Booking flow simplification. Sketch 001 Variant A approved by the owner (two screens, home price strip on tablet/desktop, one checkout page). Placed before 27 by owner choice so the pixel measures the new funnel. Depends on 26.1 and 26.2 merging first. Next is discuss-phase 26.3.
 - Phase closure (owner, 2026-09-29, `.planning/PHASE-CLOSURE-2026-09-29.md`): 16 complete; 17 closed, feature removed; 21 to 25 and 4.3 replaced by 26.1/26.3; 05-19 dropped; 11-12 owner-held; 19, 20 and 26.2 rewritten and signed.

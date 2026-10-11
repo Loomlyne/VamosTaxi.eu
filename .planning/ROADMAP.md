@@ -86,7 +86,6 @@ the word "Phase", so GSD reads each line as one phase.
 - [x] **Phase 2: Data Schema, RLS & Staff Auth Foundations** - Postgres mirrors the VamosOps contract with RLS everywhere and invited, MFA-gated staff auth
 - [x] **Phase 3: Hyperdrive Data Access Wiring** - The Worker reaches Postgres through Hyperdrive, fast and safely isolated per request
 - [x] **Phase 4: Quote & Pricing Engine** - The booking widget returns a real, locked, server-priced quote for any eligible route (completed 2026-09-06)
-- [x] **Phase 4.3: Blended distance bands + OPS rate book (INSERTED)** - REPLACED (owner, 2026-09-29) by the 26.1 owner formula: start + per km × km, airport fee, ticked surcharges, route amount, VAT, coupon; no bands. Never build. Its band tables go with G8/G9 after P6
 - [x] **Phase 5: Public Surfaces & Customer Accounts** - Every public mock is a live route on real data, and customers can create and access accounts (completed 2026-09-06; 05-19 dropped, 05-24 folded into 27.1, 05-28 shipped 2026-10-01 as B8)
 - [x] **Phase 5.1: CSS and CI clean-up (INSERTED)** - WhenPicker harness parse and range visual lock (completed 2026-09-02; only plan 02 is on file)
 - [x] **Phase 5.2: One-way only (INSERTED)** - Return tab removed; quote always one way (completed 2026-09-03, UAT 3/3)
@@ -102,15 +101,9 @@ the word "Phase", so GSD reads each line as one phase.
 - [x] **Phase 14: Inbound webhook** - Signed Resend webhook appends matched replies; unmatched mail does not create a ticket (completed 2026-09-18)
 - [x] **Phase 15: Wire Ops #support to APIs** - Live `#support` list, thread, booking_ref+locale, status filters; EN/DE/FR/AR; escaped text (completed 2026-09-18)
 - [x] **Phase 16: Staging MX + end-to-end UAT** - Customer Reply-in-Gmail appends to the same ticket; MX only on replies.vamostaxi.site (complete: 16-UAT 10 of 10 passed; closure file 2026-09-29)
-- [x] **Phase 17: Ops chauffeur profile, shift roster, two-driver vehicles** - CLOSED (owner, 2026-09-29): feature removed, "we deleted that part"; never build. A fresh phase if it is wanted again
 - [x] **Phase 18: OPS Pricing source of truth** - `/pricing` is the only fare book; public offers follow Publish (completed 2026-09-15)
 - [x] **Phase 19: 10,000-booking surge proof on the 26.3 checkout** - CLOSED by the owner (2026-09-30, confirmed 2026-10-01 23:59): no surge test, not a launch item (`decisions/2026-10-01-phase19-and-26.2-units-closed.md`)
 - [x] **Phase 20: Security check of the changed app (2026-10)** - Check, serious fixes, owner decisions and refunds by hand are live (20-06, 07, 08, 10, 12); every fix re-probed on live and hosted functions/grants compared with the migration files in 20-09; owner's 4242 payment VT-26-0750 passed (completed 2026-10-02)
-- [x] **Phase 21: Charge gate + visible refusal + payable intent** - REPLACED (owner, 2026-09-29) by 26.1 (live); its client code was rebuilt by 26.3. Never build
-- [x] **Phase 22: Card confirm + thank-you webhook wait** - REPLACED (owner, 2026-09-29) by 26.3: payment is Stripe's hosted page, no card form on the site. Never build
-- [x] **Phase 23: Wallets + Dashboard methods** - REPLACED (owner, 2026-09-29) by 26.3: Stripe's page shows card, Apple Pay, Google Pay and TWINT. Never build
-- [x] **Phase 24: Dual-payer, pay-link, mail split** - REPLACED (owner, 2026-09-29) by 26.1 for the server; 26.3 removed the pay-link option from checkout. Never build
-- [x] **Phase 25: /bookings unpaid + TEST UAT + secret-swap design** - REPLACED (owner, 2026-09-29) by 26.1 and 26.3. Never build
 - [x] **Phase 26: Legal gate** - Pixel and Purchase stay off until owner banner, cookies, and privacy lines exist in en/de/fr/ar; new policy version; flag stays off (completed 2026-09-23)
 - [x] **Phase 26.0: Main green (INSERTED)** - Honest test and gate set, Linux e2e job, /dev test-only, imprint en+de notice (shipped 2026-10-01, 6ec73c52, Worker c2127d38; the remaining reds are lane B on the board)
 - [x] **Phase 26.1: Payment and pricing integrity (INSERTED)** - A paid session always confirms; refunds, disputes and DLQ reach the DB; the owner fare formula with 26 cantons; pay-link lock and race; refund rules; three classes; admin sign-in options (shipped 2026-09-28, cff97a0e; 26.1-28 superseded)
@@ -323,15 +316,6 @@ Plans:
 - [x] 04-14-PLAN.md — The rules Phase 7's handler must obey, and the ledger that keeps this phase's open questions
 
 **UI hint**: yes
-
-### Phase 4.3: Blended distance bands + OPS rate book (SUPERSEDED by 26.1, owner 2026-09-29)
-
-**State**: Replaced, never build. The owner formula of 26.1 is start price + price per km × km, then airport
-fee, ticked surcharges, route amount, VAT, coupon. No bands. The folder was removed on 2026-09-29; the last
-commit that has it is `37e55d26` (`git checkout 37e55d26 -- .planning/phases/04.3-blended-distance-bands`).
-The old band tables (`distance_bands`, `region_premiums`, `rate_version_rules`) are dropped by G8/G9 after P6
-(owner chose "Drop them", 2026-10-01). The full former text of this section is in git history before this commit.
-**Source**: `.planning/PHASE-CLOSURE-2026-09-29.md`, section "Replaced, do not build".
 
 ### Phase 5: Public Surfaces & Customer Accounts
 
@@ -779,15 +763,6 @@ appends to the same ticket. Apex Gmail `info@` unchanged. No live `vamostaxi.eu`
 
 **UI hint**: observation-only — 16-UI-SPEC.md (no new chrome)
 
-### Phase 17: Ops chauffeur profile, shift roster, two-driver vehicles (CLOSED, feature removed, owner 2026-09-29)
-
-**State**: Closed, never build. Owner: "we deleted that part". If it is wanted later it gets a fresh phase.
-The fleet model that is live instead is "chauffeurs by class" (main `b0ee0421`, 2026-10-01; no cars page, owner
-decision `.planning/decisions/2026-10-01-no-cars-page.md`). The folder was removed on 2026-09-29; the last
-commit that has it is `37e55d26`. `17-UAT.md` stays as history in that commit. The full former text of this
-section is in git history before this commit.
-**Source**: `.planning/PHASE-CLOSURE-2026-09-29.md`, sections "Closed" and "Folders removed on 2026-09-29".
-
 ### Phase 18: OPS Pricing source of truth
 
 **Goal**: `https://dashboard.vamostaxi.site/pricing` is the only fare book. Every add/edit/delete/Publish on that page drives quote, checkout recap, confirmation, ops amounts, Stripe, and new booking mail. New layout, same Vamos tokens. Desktop, tablet, mobile.
@@ -863,35 +838,6 @@ live and read back (commit message). The Worker deploy that carries G28 was not 
 read. Left: 20-09, the live proof (the owner's 4242 payment and refund by hand, then a re-probe of A to C2 and
 the leftovers). Also tracked outside this phase: B3 live-key refusals, G23 after B7, G8/G9 after P6.
 **UI hint**: no new screens.
-
-### Phase 21: Charge gate + visible refusal + payable intent (SUPERSEDED by 26.1 and 26.3, owner 2026-09-29)
-
-**State**: Replaced, never build. 26.1 is live; this phase was built on `gsd/phase-21-charge-gate` but never
-fully tested, and its client code was rebuilt by 26.3. The folder was removed on 2026-09-29; the last commit
-that has it is `37e55d26`. Requirements PAY-08, PAY-09.
-
-### Phase 22: Card confirm + thank-you webhook wait (SUPERSEDED by 26.3, owner 2026-09-29)
-
-**State**: Replaced, never build. Payment is Stripe's hosted page; there is no card form on vamostaxi.site.
-Never had a folder. Requirements PAY-10, PAY-12.
-
-### Phase 23: Wallets + Dashboard methods (SUPERSEDED by 26.3, owner 2026-09-29)
-
-**State**: Replaced, never build. Stripe's page shows card, Apple Pay, Google Pay and TWINT. Never had a
-folder. Requirement PAY-11.
-
-### Phase 24: Dual-payer, pay-link, mail split (SUPERSEDED by 26.1 and 26.3, owner 2026-09-29)
-
-**State**: Replaced, never build. 26.1 built the server side; 26.3 removed the pay-link option from checkout.
-Never had a folder. Requirements PAY-14 to PAY-17.
-
-### Phase 25: /bookings unpaid + TEST UAT + secret-swap design (SUPERSEDED by 26.1 and 26.3, owner 2026-09-29)
-
-**State**: Replaced, never build. Never had a folder. Requirements PAY-13, PAY-18. The live Stripe key stays
-the owner's word (launch item).
-
-**Source for 21 to 25**: `.planning/PHASE-CLOSURE-2026-09-29.md`, section "Replaced, do not build". The full
-former text of these five sections is in git history before this commit.
 
 ### Phase 26: Legal gate
 
