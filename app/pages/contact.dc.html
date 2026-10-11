@@ -25,7 +25,6 @@
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
 <script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
-<script id="ct-turnstile-api" src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
 <script src="../vamos-page-transition.js"></script>
@@ -289,6 +288,16 @@ class Component extends DCLogic {
   }
   componentDidMount() {
     if (this.leaveMockContactPath()) return;
+    /* One copy only: the cookie banner (vamos-consent.js) may have added the script already, and it skips when this one is there. */
+    var api = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    if (!document.querySelector('script[src="' + api + '"]')) {
+      var tag = document.createElement('script');
+      tag.id = 'ct-turnstile-api';
+      tag.src = api;
+      tag.async = true;
+      tag.defer = true;
+      document.head.appendChild(tag);
+    }
     this.waitForTurnstile();
   }
   componentWillUnmount() {
