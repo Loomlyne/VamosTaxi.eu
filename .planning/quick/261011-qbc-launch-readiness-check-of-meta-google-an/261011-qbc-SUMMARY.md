@@ -20,3 +20,9 @@ Check only: no product code changed, nothing deployed. Session acted as control 
 
 ## Next
 Fix job for CR-01, WR-01, WR-03 (+ WR-02 after his decision), then GA4 job, then owner proof: Meta test code + 4242 payment + Tag Assistant on live /confirmation.
+
+## Fix landed (2026-10-11)
+
+- Commit 88f74c18 on main: CR-01 (Google conversion queued when the confirmation page renders before the loader), WR-03 (stable InitiateCheckout id, kept only after Marketing consent). Fable fix review: SHIP (`261011-qbc-FIX-REVIEW.md`); its WR-01 fixed in the same commit.
+- `pnpm gate:local` green. Deployed Worker `vamos` version d890510e (staging env, vamostaxi.site). Live `/app/vamos-google.js` carries `VamosGoogleQueue`; CSP on /checkout and /confirmation unchanged.
+- Open: owner's 4242 payment and booking_payments read; Meta test event code run; GA4 G- id; remarketing wording adoption.
