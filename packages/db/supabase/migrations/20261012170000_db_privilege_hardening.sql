@@ -1,4 +1,4 @@
--- 20261009160000_db_privilege_hardening.sql
+-- 20261012170000_db_privilege_hardening.sql
 --
 -- J9 (payments review 2026-10-09). Findings W5-07, W5-08, W5-16, W5-18, W5-19, W5-23.
 -- Independent of 20261007320000 (REST function revoke): it neither needs that migration applied nor

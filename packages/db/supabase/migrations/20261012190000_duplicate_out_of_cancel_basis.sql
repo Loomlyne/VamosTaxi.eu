@@ -1,18 +1,18 @@
--- 20261009180000_duplicate_out_of_cancel_basis.sql
+-- 20261012190000_duplicate_out_of_cancel_basis.sql
 --
--- Integration of the 2026-10-09 payments chains. 20261009110000 (J3, W5-09) left a duplicate
+-- Integration of the 2026-10-09 payments chains. 20261012110000 (J3, W5-09) left a duplicate
 -- charge out of app.booking_paid_net and out of compute_cancellation_refund's basis: that charge
 -- is refunded to its payer by checkout_duplicate_refund_record, and a cancel must not owe it as
--- well. 20261009140000 replaced compute_cancellation_refund from the pre-J3 body (plus the
+-- well. 20261012150000 replaced compute_cancellation_refund from the pre-J3 body (plus the
 -- published free_cancel_hours window and real elapsed hours) and dropped the exclusion.
--- 20261009150000 replaced app.booking_paid_net to skip reversed refunds and dropped it too.
+-- 20261012160000 replaced app.booking_paid_net to skip reversed refunds and dropped it too.
 -- A later CREATE OR REPLACE is the definition that runs, so without this file a cancel of a
 -- booking that also has a duplicate charge owes both amounts.
 --
 -- This file is those two J7 bodies with the exclusion put back. Nothing else changes: the window
 -- is still free_cancel_hours, the hours are still app.refund_hours_before, and a reversed refund
 -- still does not reduce the paid net. Same grants. No data change. One transaction.
--- Apply after 20261009170000.
+-- Apply after 20261012180000.
 begin;
 
 create or replace function public.compute_cancellation_refund(p_booking_id pg_catalog.uuid)
@@ -55,7 +55,7 @@ begin
     from public.booking_payments as p
    where p.booking_id = p_booking_id
      and p.captured_at is not null
-     -- 20261009110000 (W5-09), restored here: a duplicate charge is refunded to its payer by
+     -- 20261012110000 (W5-09), restored here: a duplicate charge is refunded to its payer by
      -- checkout_duplicate_refund_record and is never part of what the booking owes on a cancel.
      and p.status is distinct from 'duplicate';
 
@@ -91,7 +91,7 @@ revoke all on function public.compute_cancellation_refund(pg_catalog.uuid) from 
 grant execute on function public.compute_cancellation_refund(pg_catalog.uuid) to vamos_system, postgres;
 
 comment on function public.compute_cancellation_refund(pg_catalog.uuid) is
-  'J7 (26.1-17 D-23/D-24, W6-01/02/03) plus J3 W5-09 restored by 20261009180000: hours = real elapsed time from now to the earliest original_scheduled_at (D-26, timestamptz, DST-safe). auto_full when hours exceed the free_cancel_hours the booking was sold under (first price snapshot policy; 24 when unknown) at 100 % of captured charged_rappen, excluding duplicate payments; pending_ops inside that window, inside 6 h and after pickup with refund_rappen/refund_percent null (the admin sets the percentage); none only when nothing was captured. EXECUTE vamos_system.';
+  'J7 (26.1-17 D-23/D-24, W6-01/02/03) plus J3 W5-09 restored by 20261012190000: hours = real elapsed time from now to the earliest original_scheduled_at (D-26, timestamptz, DST-safe). auto_full when hours exceed the free_cancel_hours the booking was sold under (first price snapshot policy; 24 when unknown) at 100 % of captured charged_rappen, excluding duplicate payments; pending_ops inside that window, inside 6 h and after pickup with refund_rappen/refund_percent null (the admin sets the percentage); none only when nothing was captured. EXECUTE vamos_system.';
 
 create or replace function app.booking_paid_net(p_booking_id pg_catalog.uuid)
 returns pg_catalog.int4
@@ -125,6 +125,6 @@ $$;
 revoke all on function app.booking_paid_net(pg_catalog.uuid) from public;
 
 comment on function app.booking_paid_net(pg_catalog.uuid) is
-  '26.2 P1 + J7, with J3 W5-09 restored by 20261009180000: sum of captured charged_rappen minus sum of booking_refunds.refund_rappen for one booking. Duplicate payments and their refunds are left out. A refund with a reversal row does not count. No grant.';
+  '26.2 P1 + J7, with J3 W5-09 restored by 20261012190000: sum of captured charged_rappen minus sum of booking_refunds.refund_rappen for one booking. Duplicate payments and their refunds are left out. A refund with a reversal row does not count. No grant.';
 
 commit;

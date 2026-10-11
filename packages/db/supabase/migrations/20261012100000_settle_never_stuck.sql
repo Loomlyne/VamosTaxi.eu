@@ -1,4 +1,4 @@
--- 20261009100000_settle_never_stuck.sql
+-- 20261012100000_settle_never_stuck.sql
 --
 -- Stripe payments review 2026-10-09, job J2 "settle never gets stuck"
 -- (.planning/audits/2026-10-09-stripe-W4.md, -W5.md). Findings: W4-01, W4-03, W4-09, W4-17, W5-04, W5-12,
@@ -18,7 +18,7 @@
 --     re-enqueues them. An event swept p_max_sweeps times without success is returned once as 'abandon': the
 --     Worker mails info@ and marks it (stripe_events_sweep_abandoned) only after the mail left, so a failed
 --     alert is tried again next hour and a permanently failing event never loops.
--- (6) checkout_payment_settle (body of 20261007310000 plus the lines marked 20261009100000):
+-- (6) checkout_payment_settle (body of 20261007310000 plus the lines marked 20261012100000):
 --     W4-03  the four refund-required branches (duplicate_charge, test_booking, requote_superseded,
 --            paid_after_cancel) no longer stamp processed_at. They record the marker
 --            `refund_required:<reason>` in stripe_events.last_error and leave the event open; the Worker
@@ -30,7 +30,7 @@
 --     W5-12  an unusable currency / FX tuple is dropped (capture recorded as CHF without FX detail, raw facts on
 --            the payment.succeeded event payload) instead of raising a CHECK violation after capture.
 --     W5-17  the already-settled branch keeps the event's first processed_at.
--- (7) checkout_extra_payment_settle (body of 20261007280000 plus the lines marked 20261009100000): W5-12 and
+-- (7) checkout_extra_payment_settle (body of 20261007280000 plus the lines marked 20261012100000): W5-12 and
 --     W4-17 as above; the already-settled stamp keeps the first processed_at.
 --
 -- Lock order unchanged: payment row, then booking row, then the stripe_events row (stripe_event_begin,
@@ -51,13 +51,13 @@ alter table public.stripe_events
   add column abandoned_at pg_catalog.timestamptz;
 
 comment on column public.stripe_events.last_attempt_at is
-  '20261009100000: when stripe_event_begin last ran for this event (the queue consumer''s latest delivery). The sweep skips an event attempted within the last 10 minutes.';
+  '20261012100000: when stripe_event_begin last ran for this event (the queue consumer''s latest delivery). The sweep skips an event attempted within the last 10 minutes.';
 comment on column public.stripe_events.sweep_count is
-  '20261009100000: how many times the hourly sweep re-enqueued this unprocessed event (bounded by stripe_events_sweep_claim p_max_sweeps).';
+  '20261012100000: how many times the hourly sweep re-enqueued this unprocessed event (bounded by stripe_events_sweep_claim p_max_sweeps).';
 comment on column public.stripe_events.sweep_last_at is
-  '20261009100000: when the sweep last re-enqueued this event.';
+  '20261012100000: when the sweep last re-enqueued this event.';
 comment on column public.stripe_events.abandoned_at is
-  '20261009100000: set once ops was mailed that this event never settled after every sweep. The sweep ignores it from then on; the row stays unprocessed and findable.';
+  '20261012100000: set once ops was mailed that this event never settled after every sweep. The sweep ignores it from then on; the row stays unprocessed and findable.';
 
 -- ---------------------------------------------------------------------------
 -- (2) stripe_event_begin: 20260827000004 plus last_attempt_at.
@@ -81,7 +81,7 @@ declare
 begin
   update public.stripe_events
      set attempts = attempts + 1,
-         last_attempt_at = pg_catalog.now()   -- 20261009100000
+         last_attempt_at = pg_catalog.now()   -- 20261012100000
    where id = p_event_id
   returning processed_at into v_processed_at;
 
@@ -170,7 +170,7 @@ revoke all on function public.stripe_event_settle(pg_catalog.text, pg_catalog.te
 grant execute on function public.stripe_event_settle(pg_catalog.text, pg_catalog.text) to vamos_system;
 
 comment on function public.stripe_event_settle(pg_catalog.text, pg_catalog.text) is
-  'Plan 07-03, 20261009100000: stamp processed_at on success, or last_error without processed_at on failure. An unknown event id raises P0002; an already processed row is left unchanged.';
+  'Plan 07-03, 20261012100000: stamp processed_at on success, or last_error without processed_at on failure. An unknown event id raises P0002; an already processed row is left unchanged.';
 
 -- ---------------------------------------------------------------------------
 -- (4) stripe_event_close (W4-09)
@@ -218,7 +218,7 @@ revoke all on function public.stripe_event_close(pg_catalog.text, pg_catalog.tex
 grant execute on function public.stripe_event_close(pg_catalog.text, pg_catalog.text) to vamos_system;
 
 comment on function public.stripe_event_close(pg_catalog.text, pg_catalog.text) is
-  '20261009100000 (W4-09): close an event that needs no further work. Sets processed_at and keeps the reason in last_error, so the unprocessed sweep never re-enqueues it and it stays findable. An unknown id raises P0002; an already processed row is unchanged.';
+  '20261012100000 (W4-09): close an event that needs no further work. Sets processed_at and keeps the reason in last_error, so the unprocessed sweep never re-enqueues it and it stays findable. An unknown id raises P0002; an already processed row is unchanged.';
 
 -- ---------------------------------------------------------------------------
 -- (5) the unprocessed-event sweep (W4-01)
@@ -307,7 +307,7 @@ grant execute on function public.stripe_events_sweep_claim(
 comment on function public.stripe_events_sweep_claim(
   pg_catalog.interval, pg_catalog.int4, pg_catalog.int4, pg_catalog.interval
 ) is
-  '20261009100000 (W4-01): the unprocessed-event sweep. Returns up to p_limit events to re-enqueue (action requeue; sweep_count and sweep_last_at are bumped) and, separately, events that used all p_max_sweeps sweeps and are still open (action abandon; nothing is changed, the Worker mails ops and then calls stripe_events_sweep_abandoned). Skips processed events, events attempted or swept within p_min_age, events older than p_horizon and events closed with a benign reason. Touches only stripe_events.';
+  '20261012100000 (W4-01): the unprocessed-event sweep. Returns up to p_limit events to re-enqueue (action requeue; sweep_count and sweep_last_at are bumped) and, separately, events that used all p_max_sweeps sweeps and are still open (action abandon; nothing is changed, the Worker mails ops and then calls stripe_events_sweep_abandoned). Skips processed events, events attempted or swept within p_min_age, events older than p_horizon and events closed with a benign reason. Touches only stripe_events.';
 
 create or replace function public.stripe_events_sweep_abandoned(
   p_event_ids pg_catalog.text[]
@@ -334,7 +334,7 @@ revoke all on function public.stripe_events_sweep_abandoned(pg_catalog.text[]) f
 grant execute on function public.stripe_events_sweep_abandoned(pg_catalog.text[]) to vamos_system;
 
 comment on function public.stripe_events_sweep_abandoned(pg_catalog.text[]) is
-  '20261009100000 (W4-01): mark events whose abandon report reached ops, so the sweep reports each one once. Returns how many rows were marked.';
+  '20261012100000 (W4-01): mark events whose abandon report reached ops, so the sweep reports each one once. Returns how many rows were marked.';
 
 -- ---------------------------------------------------------------------------
 -- (6) checkout_payment_settle
@@ -381,7 +381,7 @@ declare
   v_min_scheduled pg_catalog.timestamptz;
   v_pickup_ahead pg_catalog.bool;
   v_from_status public.booking_status;
-  -- 20261009100000
+  -- 20261012100000
   v_marker pg_catalog.text;
   v_marker_reason pg_catalog.text;
   v_fx_note pg_catalog.jsonb;
@@ -393,7 +393,7 @@ begin
       using errcode = 'check_violation';
   end if;
 
-  -- 20261009100000 (W5-12): the currency and FX values come from the Worker and meet three CHECK
+  -- 20261012100000 (W5-12): the currency and FX values come from the Worker and meet three CHECK
   -- constraints (currency allowed, CHF exactly when there is no rate, FX columns all or none) and
   -- write-once rules. A value the row cannot hold must never make the settle raise after Stripe has
   -- captured the money. Unusable values are dropped: the capture is recorded without the FX detail
@@ -456,7 +456,7 @@ begin
 
   -- Already-settled: this exact row already reached succeeded. Unchanged.
   if v_pay.status = 'succeeded' and p_outcome = 'succeeded' then
-    -- 20261009100000 (W4-03): the first delivery of THIS event settled the payment but left it open
+    -- 20261012100000 (W4-03): the first delivery of THIS event settled the payment but left it open
     -- because the Stripe refund was still to be made (duplicate_charge, test_booking, paid_after_cancel,
     -- requote_superseded: the marker `refund_required:<reason>` on the event row). A retry of that
     -- event gets the refund order again, so a refund that failed is made on the next delivery. The
@@ -490,7 +490,7 @@ begin
     -- 20261007310000 (U15): the second delivery of this payment (the Stripe webhook after the return
     -- route, or the other way round) marks its own stripe_events row processed too, as every other
     -- branch does. Nothing else is written: no payment, booking or booking_events row.
-    -- 20261009100000 (W5-17): the first processing time is kept.
+    -- 20261012100000 (W5-17): the first processing time is kept.
     update public.stripe_events
        set processed_at = pg_catalog.now()
      where id = p_event_id
@@ -507,7 +507,7 @@ begin
 
   -- Non-succeeded outcome: unchanged failure path, extended return shape only.
   if p_outcome is distinct from 'succeeded' then
-    -- 20261009100000 (W4-17, W5-04): a late or same-second failed / canceled event for a payment that
+    -- 20261012100000 (W4-17, W5-04): a late or same-second failed / canceled event for a payment that
     -- already succeeded (or was recorded as a duplicate) changes nothing and raises nothing. The
     -- column whitelist makes a succeeded row terminal, so the update below would raise and the event
     -- would retry into the dead-letter queue for good. The event is closed here.
@@ -1009,7 +1009,7 @@ begin
     raise exception 'invalid_outcome' using errcode = 'check_violation';
   end if;
 
-  -- 20261009100000 (W5-12): see checkout_payment_settle. A currency or FX tuple the row cannot hold
+  -- 20261012100000 (W5-12): see checkout_payment_settle. A currency or FX tuple the row cannot hold
   -- is dropped; the capture is recorded without the FX detail (the difference is CHF, charged_rappen is
   -- the CHF figure from the extra snapshot).
   if p_charged_currency is not null then
@@ -1101,7 +1101,7 @@ begin
                null::pg_catalog.uuid;
       return;
     end if;
-    -- 20261009100000 (W4-17, W5-04): a late failed / canceled event for a difference that was paid
+    -- 20261012100000 (W4-17, W5-04): a late failed / canceled event for a difference that was paid
     -- writes no payment.failed event and ends no request. The event is closed.
     if v_pay.status in ('succeeded', 'duplicate') and p_outcome is distinct from 'succeeded' then
       update public.stripe_events

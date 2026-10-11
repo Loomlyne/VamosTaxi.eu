@@ -1,4 +1,4 @@
--- 20261009140000_refund_policy_window.sql
+-- 20261012150000_refund_policy_window.sql
 --
 -- J7 (payments review 2026-10-09), findings W6-01, W6-02, W6-03.
 --

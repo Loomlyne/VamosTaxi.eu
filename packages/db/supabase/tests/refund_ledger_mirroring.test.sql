@@ -1,6 +1,6 @@
 -- refund_ledger_mirroring.test.sql
 --
--- J7 (payments review 2026-10-09). Migration 20261009150000_refund_ledger_mirroring.sql.
+-- J7 (payments review 2026-10-09). Migration 20261012160000_refund_ledger_mirroring.sql.
 --   W6-05  a refund Stripe accepted and later failed: reversal row, refunded_rappen back down, the intent of
 --          an app refund reopened for Retry, a dashboard-refunded booking owed again, idempotent, a refund
 --          that failed does not count against the cap.

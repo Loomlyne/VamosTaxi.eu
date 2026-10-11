@@ -15,10 +15,10 @@
 --   G  Accept: a second Accept after the amount moved is refused (price-changed), nothing written; the same
 --      amount still answers extra_required; the refusal order is unchanged.
 --   H  checkout_reference_for_session finds the booking of a difference page.
---   J  J3 (20261009110000): a difference whose amount, currency or booking does not match what was asked is
+--   J  J3 (20261012110000): a difference whose amount, currency or booking does not match what was asked is
 --      recorded but never applied (W4-07, W5-02); a difference paid after its price record expired is still
 --      recorded (W5-10); the gate flag does not leak.
---   I  J2 (20261009100000): a late failed event never touches a paid difference (W4-17, W5-04); a currency or
+--   I  J2 (20261012100000): a late failed event never touches a paid difference (W4-17, W5-04); a currency or
 --      FX tuple the row cannot hold never makes the settle raise after capture (W5-12).
 -- Rolled back. Synthetic integer rappen only, never a product CHF.
 begin;
@@ -679,7 +679,7 @@ select is(
   'reference: an ended request''s page still names its booking');
 
 -- ---------------------------------------------------------------------------
--- I. J2 (20261009100000): late failure on a paid difference; FX the row cannot hold
+-- I. J2 (20261012100000): late failure on a paid difference; FX the row cannot hold
 -- ---------------------------------------------------------------------------
 select pg_temp.ssf_mk('lt');
 create temporary table lt_w as select * from pg_temp.ssf_change('lt', 13);
@@ -739,7 +739,7 @@ select ok((select p.charged_currency = 'EUR' and p.fx_rate = 1.05 and p.presentm
              from public.booking_payments p where p.stripe_checkout_session_id = 'cs_ssf_fxe'),
   'fx: a complete EUR tuple is stored unchanged');
 -- ---------------------------------------------------------------------------
--- J. J3 (20261009110000): amount, currency and booking check on a difference; the charge gate never refuses a captured one
+-- J. J3 (20261012110000): amount, currency and booking check on a difference; the charge gate never refuses a captured one
 -- ---------------------------------------------------------------------------
 select pg_temp.ssf_mk('am');
 create temporary table am_w as select * from pg_temp.ssf_change('am', 13);

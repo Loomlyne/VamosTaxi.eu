@@ -1,7 +1,7 @@
--- 20261009110000_amount_state_verify.sql
+-- 20261012110000_amount_state_verify.sql
 --
 -- Stripe payments review 2026-10-09, job J3 "amount and state verification" (W4-07, W4-08, W5-02, W5-03,
--- W5-09, W5-10; .planning/audits/2026-10-09-stripe-W4.md and -W5.md). Builds on J2 (20261009100000).
+-- W5-09, W5-10; .planning/audits/2026-10-09-stripe-W4.md and -W5.md). Builds on J2 (20261012100000).
 --
 -- (1) tg_payment_update_whitelist (W5-03): body of 20260930190000 plus status transition rules. Only forward
 --     moves: requires_payment -> succeeded / failed / canceled / duplicate; failed or canceled -> succeeded /
@@ -13,8 +13,8 @@
 --     quote lock) are skipped for one succeeded insert that carries captured_at, when
 --     checkout_extra_payment_settle has set the transaction-local flag vamos.settle_capture. Amount, booking
 --     and snapshot-binding checks still run. A difference paid after its price record expired is recorded.
--- (3) checkout_payment_settle (W4-07, W5-02, W4-08): body of 20261009100000 plus the lines marked
---     20261009110000. New trailing optional parameters p_amount_total_minor, p_amount_currency,
+-- (3) checkout_payment_settle (W4-07, W5-02, W4-08): body of 20261012100000 plus the lines marked
+--     20261012110000. New trailing optional parameters p_amount_total_minor, p_amount_currency,
 --     p_amount_received_minor, p_metadata_booking_id (a call without them behaves as before) and a new last
 --     return column amount_mismatch. A mismatch (currency not CHF, amount_total or amount_received not the
 --     row's charged_rappen, the session metadata naming another booking) records the capture, writes a
@@ -23,7 +23,7 @@
 --     has mailed ops. Duplicate detection also looks across the booking: a second main-session payment on
 --     the same booking is a duplicate even with another snapshot (difference payments are not counted).
 --     The old 10-argument function is dropped: with defaults on the new one both would match a call.
--- (4) checkout_extra_payment_settle (W4-07, W5-02, W5-10): body of 20261009100000 plus marked lines. Same
+-- (4) checkout_extra_payment_settle (W4-07, W5-02, W5-10): body of 20261012100000 plus marked lines. Same
 --     trailing parameters (old 9-argument function dropped). A mismatch records the capture and takes the
 --     existing not-applied path (nothing applied, Refund due, the info@ mail) with the reason on the event.
 --     The payment insert sets vamos.settle_capture for the gate (2).
@@ -35,7 +35,7 @@
 --     (a held mismatch) is not cancelled by the clock (test bookings unchanged).
 --
 -- Lock order unchanged (payment row, booking row, event row). No data is changed. One transaction.
--- Apply order: after 20261009100000, before the Worker of this branch. An older Worker (J2) calls the settle
+-- Apply order: after 20261012100000, before the Worker of this branch. An older Worker (J2) calls the settle
 -- functions with their old argument lists: they resolve to the new functions through the defaults and skip
 -- the amount checks until the new Worker is live.
 begin;
@@ -69,7 +69,7 @@ begin
     return new;
   end if;
 
-  -- 20261009110000 (W5-03): status only moves forward. Out of requires_payment a payment may succeed,
+  -- 20261012110000 (W5-03): status only moves forward. Out of requires_payment a payment may succeed,
   -- fail, be canceled or be recorded as a duplicate; a failed or canceled row may still succeed (a late
   -- payment) or be recorded as a duplicate, or swap between failed and canceled (Stripe sends
   -- checkout.session.expired and payment_intent.canceled for one page, in either order); a duplicate is
@@ -181,7 +181,7 @@ declare
   s public.price_snapshots%rowtype;
   v_status public.rate_version_status;
   v_hold timestamptz;
-  -- 20261009110000 (W5-10)
+  -- 20261012110000 (W5-10)
   v_capture pg_catalog.bool;
 begin
   select * into s from public.price_snapshots where id = new.snapshot_id;
@@ -209,7 +209,7 @@ begin
   -- 26.1-15 (D-20): a sent pay link holds the booking and its price until hold_until.
   -- Null (no pay link) leaves both clocks exactly as before.
   select b.hold_until into v_hold from public.bookings b where b.id = new.booking_id;
-  -- 20261009110000 (W5-10): the two clocks guard the moment a customer COMMITS to pay. They must never
+  -- 20261012110000 (W5-10): the two clocks guard the moment a customer COMMITS to pay. They must never
   -- refuse to RECORD money Stripe has already taken. checkout_extra_payment_settle (a difference page
   -- paid after its price record expired) sets the transaction-local flag vamos.settle_capture before its
   -- one succeeded insert; only then, and only for a succeeded row that carries captured_at, the clocks are
@@ -271,7 +271,7 @@ create or replace function public.checkout_payment_settle(
   p_fx_quoted_at pg_catalog.timestamptz,
   p_presentment_amount_minor pg_catalog.int8,
   p_presentment_currency pg_catalog.text default null,
-  -- 20261009110000 (W4-07, W5-02): what Stripe says it collected. All four are optional: null skips that check.
+  -- 20261012110000 (W4-07, W5-02): what Stripe says it collected. All four are optional: null skips that check.
   p_amount_total_minor pg_catalog.int8 default null,
   p_amount_currency pg_catalog.text default null,
   p_amount_received_minor pg_catalog.int8 default null,
@@ -308,11 +308,11 @@ declare
   v_min_scheduled pg_catalog.timestamptz;
   v_pickup_ahead pg_catalog.bool;
   v_from_status public.booking_status;
-  -- 20261009100000
+  -- 20261012100000
   v_marker pg_catalog.text;
   v_marker_reason pg_catalog.text;
   v_fx_note pg_catalog.jsonb;
-  -- 20261009110000
+  -- 20261012110000
   v_mm_reasons pg_catalog.text[];
 begin
   if p_outcome is distinct from 'succeeded'
@@ -322,7 +322,7 @@ begin
       using errcode = 'check_violation';
   end if;
 
-  -- 20261009100000 (W5-12): the currency and FX values come from the Worker and meet three CHECK
+  -- 20261012100000 (W5-12): the currency and FX values come from the Worker and meet three CHECK
   -- constraints (currency allowed, CHF exactly when there is no rate, FX columns all or none) and
   -- write-once rules. A value the row cannot hold must never make the settle raise after Stripe has
   -- captured the money. Unusable values are dropped: the capture is recorded without the FX detail
@@ -385,7 +385,7 @@ begin
 
   -- Already-settled: this exact row already reached succeeded. Unchanged.
   if v_pay.status = 'succeeded' and p_outcome = 'succeeded' then
-    -- 20261009100000 (W4-03): the first delivery of THIS event settled the payment but left it open
+    -- 20261012100000 (W4-03): the first delivery of THIS event settled the payment but left it open
     -- because the Stripe refund was still to be made (duplicate_charge, test_booking, paid_after_cancel,
     -- requote_superseded: the marker `refund_required:<reason>` on the event row). A retry of that
     -- event gets the refund order again, so a refund that failed is made on the next delivery. The
@@ -397,7 +397,7 @@ begin
        and e.processed_at is null;
 
     if v_marker = 'amount_mismatch' then
-      -- 20261009110000 (W4-07): the first delivery held this payment for review; the Worker has not yet
+      -- 20261012110000 (W4-07): the first delivery held this payment for review; the Worker has not yet
       -- mailed ops and closed the event. A retry gets the same answer and nothing else is written.
       select coalesce(pg_catalog.array_agg(bp3.stripe_checkout_session_id), array[]::pg_catalog.text[])
         into v_other_sessions
@@ -439,7 +439,7 @@ begin
     -- 20261007310000 (U15): the second delivery of this payment (the Stripe webhook after the return
     -- route, or the other way round) marks its own stripe_events row processed too, as every other
     -- branch does. Nothing else is written: no payment, booking or booking_events row.
-    -- 20261009100000 (W5-17): the first processing time is kept.
+    -- 20261012100000 (W5-17): the first processing time is kept.
     update public.stripe_events
        set processed_at = pg_catalog.now()
      where id = p_event_id
@@ -456,7 +456,7 @@ begin
 
   -- Non-succeeded outcome: unchanged failure path, extended return shape only.
   if p_outcome is distinct from 'succeeded' then
-    -- 20261009100000 (W4-17, W5-04): a late or same-second failed / canceled event for a payment that
+    -- 20261012100000 (W4-17, W5-04): a late or same-second failed / canceled event for a payment that
     -- already succeeded (or was recorded as a duplicate) changes nothing and raises nothing. The
     -- column whitelist makes a succeeded row terminal, so the update below would raise and the event
     -- would retry into the dead-letter queue for good. The event is closed here.
@@ -533,7 +533,7 @@ begin
   -- Duplicate detection (D-22): another row on the same snapshot already
   -- succeeded. Flag duplicate; never attempt a second confirm or a second
   -- revive.
-  -- 20261009110000 (W4-08): beyond the snapshot, two main-session payments on one booking are a duplicate
+  -- 20261012110000 (W4-08): beyond the snapshot, two main-session payments on one booking are a duplicate
   -- even when they cite different price records (a staff change rebound the booking while an older page
   -- was still open and was then paid). A difference payment (extra) is another payment of the booking,
   -- never the first one: it is named by a change request's extra_payment_id and is not counted.
@@ -602,7 +602,7 @@ begin
       using errcode = 'P0002';
   end if;
 
-  -- 20261009110000 (W4-07, W5-02): what Stripe collected must be what this payment row expected: CHF,
+  -- 20261012110000 (W4-07, W5-02): what Stripe collected must be what this payment row expected: CHF,
   -- the row's charged_rappen (session amount_total and, when the Worker read it, the PaymentIntent's
   -- amount_received), and the booking named in the session metadata (the booking id or its quote id).
   -- A legitimate adaptive-pricing presentment in EUR/USD/AED is not a mismatch: Stripe keeps the session
@@ -984,7 +984,7 @@ comment on function public.checkout_payment_settle(
   pg_catalog.numeric, pg_catalog.text, pg_catalog.timestamptz, pg_catalog.int8, pg_catalog.text,
   pg_catalog.int8, pg_catalog.text, pg_catalog.int8, pg_catalog.text
 ) is
-  '26.1 settle (pending -> paid -> confirmed, revive, duplicate, refund-required), J2 20261009100000 (event kept open until the refund is made, late failure guard, FX fallback), J3 20261009110000 (W4-07/W5-02 amount, currency and booking check held for review, W4-08 duplicate across the booking). Optional trailing p_amount_* / p_metadata_booking_id: null skips that check. EXECUTE vamos_system only.';
+  '26.1 settle (pending -> paid -> confirmed, revive, duplicate, refund-required), J2 20261012100000 (event kept open until the refund is made, late failure guard, FX fallback), J3 20261012110000 (W4-07/W5-02 amount, currency and booking check held for review, W4-08 duplicate across the booking). Optional trailing p_amount_* / p_metadata_booking_id: null skips that check. EXECUTE vamos_system only.';
 
 -- (4)
 drop function public.checkout_extra_payment_settle(
@@ -1002,7 +1002,7 @@ create or replace function public.checkout_extra_payment_settle(
   p_fx_source pg_catalog.text,
   p_fx_quoted_at pg_catalog.timestamptz,
   p_presentment_amount_minor pg_catalog.int8,
-  -- 20261009110000 (W4-07, W5-02): what Stripe says it collected; null skips that check.
+  -- 20261012110000 (W4-07, W5-02): what Stripe says it collected; null skips that check.
   p_amount_total_minor pg_catalog.int8 default null,
   p_amount_currency pg_catalog.text default null,
   p_amount_received_minor pg_catalog.int8 default null,
@@ -1042,7 +1042,7 @@ declare
   v_err_state pg_catalog.text;
   v_err_text pg_catalog.text;
   v_locked pg_catalog.int8;
-  -- 20261009110000
+  -- 20261012110000
   v_mm_reasons pg_catalog.text[];
   v_mismatch pg_catalog.bool := false;
 begin
@@ -1052,7 +1052,7 @@ begin
     raise exception 'invalid_outcome' using errcode = 'check_violation';
   end if;
 
-  -- 20261009100000 (W5-12): see checkout_payment_settle. A currency or FX tuple the row cannot hold
+  -- 20261012100000 (W5-12): see checkout_payment_settle. A currency or FX tuple the row cannot hold
   -- is dropped; the capture is recorded without the FX detail (the difference is CHF, charged_rappen is
   -- the CHF figure from the extra snapshot).
   if p_charged_currency is not null then
@@ -1144,7 +1144,7 @@ begin
                null::pg_catalog.uuid;
       return;
     end if;
-    -- 20261009100000 (W4-17, W5-04): a late failed / canceled event for a difference that was paid
+    -- 20261012100000 (W4-17, W5-04): a late failed / canceled event for a difference that was paid
     -- writes no payment.failed event and ends no request. The event is closed.
     if v_pay.status in ('succeeded', 'duplicate') and p_outcome is distinct from 'succeeded' then
       update public.stripe_events
@@ -1209,7 +1209,7 @@ begin
 
   v_orig := v_booking.price_snapshot_id;
 
-  -- 20261009110000 (W4-07, W5-02): the difference Stripe collected must be the difference this request
+  -- 20261012110000 (W4-07, W5-02): the difference Stripe collected must be the difference this request
   -- asked for: CHF, the extra price record's total, the booking named in the session metadata. A mismatch
   -- records the capture (the money is real) but applies nothing: it takes the not-applied path below
   -- (Refund due for ops to decide, the info@ mail) with the reason on the event.
@@ -1246,7 +1246,7 @@ begin
    where id = v_booking.id;
 
   if v_pay.id is null then
-    -- 20261009110000 (W5-10): Stripe has already taken this money. The charge gate's two clocks (payment
+    -- 20261012110000 (W5-10): Stripe has already taken this money. The charge gate's two clocks (payment
     -- window, quote lock) must never refuse to RECORD a captured payment: this transaction-local flag
     -- makes tg_payment_matches_snapshot skip those two checks for this one succeeded insert. Amount,
     -- booking and snapshot-binding checks still run.
@@ -1484,7 +1484,7 @@ comment on function public.checkout_extra_payment_settle(
   pg_catalog.numeric, pg_catalog.text, pg_catalog.timestamptz, pg_catalog.int8,
   pg_catalog.int8, pg_catalog.text, pg_catalog.int8, pg_catalog.text
 ) is
-  '08-07 D-67/D-69 + 26.2 P1: insert the extra payment against the difference snapshot. A request that still waits is applied (applied, class_changed, unassigned_chauffeur_id returned; D6), so is one withdrawn in the same second when nothing newer was asked and the trip still runs; a request that has ended otherwise is not applied and the overpayment shows as Refund due. Not paid (failed / canceled / expired): the request ends (D4), the booking is untouched. Never rewinds confirmed to pending. 261002 settle safety: one lock order (the booking, then its request) like every other writer, so a deadlock with a customer request cannot happen; a Stripe page shared by two requests settles the one that waits; a booking that is cancelled, partly cancelled or refunded never gets the change applied: the payment is recorded, a change that waited ends (superseded), and Refund due is the full refund the cancel owed plus the difference, otherwise pending_ops for the owner to decide (event refund.requested via difference_after_cancel); the apply runs in its own block: a deadlock, serialization, lock, connection, resource, shutdown or timeout error is raised again so the Worker retries, any other error rolls back the apply only, the payment is recorded, the request ends (superseded) and the paid difference shows as Refund due (event refund.requested via difference_not_applied with sqlstate and reason). EXECUTE vamos_system only. J2 20261009100000: a late failed event writes nothing; an FX tuple the row cannot hold is dropped. J3 20261009110000: optional trailing p_amount_* / p_metadata_booking_id; an amount, currency or booking mismatch records the capture but applies nothing (event refund.requested via amount_mismatch); the payment insert is never refused by the charge gate''s clocks (W5-10).';
+  '08-07 D-67/D-69 + 26.2 P1: insert the extra payment against the difference snapshot. A request that still waits is applied (applied, class_changed, unassigned_chauffeur_id returned; D6), so is one withdrawn in the same second when nothing newer was asked and the trip still runs; a request that has ended otherwise is not applied and the overpayment shows as Refund due. Not paid (failed / canceled / expired): the request ends (D4), the booking is untouched. Never rewinds confirmed to pending. 261002 settle safety: one lock order (the booking, then its request) like every other writer, so a deadlock with a customer request cannot happen; a Stripe page shared by two requests settles the one that waits; a booking that is cancelled, partly cancelled or refunded never gets the change applied: the payment is recorded, a change that waited ends (superseded), and Refund due is the full refund the cancel owed plus the difference, otherwise pending_ops for the owner to decide (event refund.requested via difference_after_cancel); the apply runs in its own block: a deadlock, serialization, lock, connection, resource, shutdown or timeout error is raised again so the Worker retries, any other error rolls back the apply only, the payment is recorded, the request ends (superseded) and the paid difference shows as Refund due (event refund.requested via difference_not_applied with sqlstate and reason). EXECUTE vamos_system only. J2 20261012100000: a late failed event writes nothing; an FX tuple the row cannot hold is dropped. J3 20261012110000: optional trailing p_amount_* / p_metadata_booking_id; an amount, currency or booking mismatch records the capture but applies nothing (event refund.requested via amount_mismatch); the payment insert is never refused by the charge gate''s clocks (W5-10).';
 
 -- (5)
 create or replace function public.compute_cancellation_refund(p_booking_id pg_catalog.uuid)
@@ -1532,7 +1532,7 @@ begin
     from public.booking_payments as p
    where p.booking_id = p_booking_id
      and p.captured_at is not null
-     -- 20261009110000 (W5-09): a duplicate charge is refunded to its payer by checkout_duplicate_refund_record
+     -- 20261012110000 (W5-09): a duplicate charge is refunded to its payer by checkout_duplicate_refund_record
      -- and is never part of what the booking owes on a cancel (it would owe more than it can send back).
      and p.status is distinct from 'duplicate';
 
@@ -1567,7 +1567,7 @@ revoke all on function public.compute_cancellation_refund(pg_catalog.uuid) from 
 grant execute on function public.compute_cancellation_refund(pg_catalog.uuid) to vamos_system, postgres;
 
 comment on function public.compute_cancellation_refund(pg_catalog.uuid) is
-  '26.1-17 D-23/D-24 (supersedes 09-02 D-02 windows): hours vs original_scheduled_at AT TIME ZONE Europe/Zurich. auto_full >24h at 100 % of captured charged_rappen; pending_ops inside 24h, inside 6h and after pickup with refund_rappen/refund_percent null (the admin sets the percentage); none only when nothing was captured. 20261009110000: duplicate payments are not part of the basis.';
+  '26.1-17 D-23/D-24 (supersedes 09-02 D-02 windows): hours vs original_scheduled_at AT TIME ZONE Europe/Zurich. auto_full >24h at 100 % of captured charged_rappen; pending_ops inside 24h, inside 6h and after pickup with refund_rappen/refund_percent null (the admin sets the percentage); none only when nothing was captured. 20261012110000: duplicate payments are not part of the basis.';
 
 create or replace function app.booking_paid_net(p_booking_id pg_catalog.uuid)
 returns pg_catalog.int4
@@ -1576,7 +1576,7 @@ stable
 security definer
 set search_path = ''
 as $$
-  -- 20261009110000 (W5-09): a duplicate charge is refunded to its payer by checkout_duplicate_refund_record;
+  -- 20261012110000 (W5-09): a duplicate charge is refunded to its payer by checkout_duplicate_refund_record;
   -- neither its capture nor that refund is part of what the booking itself has paid.
   select (
     coalesce((select pg_catalog.sum(p.charged_rappen)
@@ -1599,7 +1599,7 @@ $$;
 revoke all on function app.booking_paid_net(pg_catalog.uuid) from public;
 
 comment on function app.booking_paid_net(pg_catalog.uuid) is
-  '26.2 P1: sum of captured charged_rappen minus sum of booking_refunds.refund_rappen for one booking. 20261009110000: duplicate payments and their refunds are left out. No grant.';
+  '26.2 P1: sum of captured charged_rappen minus sum of booking_refunds.refund_rappen for one booking. 20261012110000: duplicate payments and their refunds are left out. No grant.';
 
 -- (6)
 create or replace function public.checkout_expire_unpaid()
@@ -1620,7 +1620,7 @@ begin
      where b.status = 'pending'
        and b.pay_link_sent_at is not null
        and greatest(ps.quote_lock_expires_at, coalesce(b.hold_until, ps.quote_lock_expires_at)) <= now()
-       -- 20261009110000 (W4-07): a pending booking that holds a captured payment (an amount mismatch was
+       -- 20261012110000 (W4-07): a pending booking that holds a captured payment (an amount mismatch was
        -- held for review) is never cancelled by the clock; ops decides. Test bookings are unchanged.
        and (
          b.is_test
@@ -1676,6 +1676,6 @@ revoke all on function public.checkout_expire_unpaid() from public;
 grant execute on function public.checkout_expire_unpaid() to vamos_system;
 
 comment on function public.checkout_expire_unpaid() is
-  'Hourly cron: cancel every pending booking WITH a pay link whose 24-hour hold is past (26.1-15 D-20). A pending booking with no pay link is left for purge_unpaid_booking (26.3-07 D-25). Returns each cancelled booking''s open Stripe Checkout Session ids and releases its coupon redemption. 20261009110000: a pending booking that holds a captured payment (held for review) is not cancelled. EXECUTE: vamos_system only.';
+  'Hourly cron: cancel every pending booking WITH a pay link whose 24-hour hold is past (26.1-15 D-20). A pending booking with no pay link is left for purge_unpaid_booking (26.3-07 D-25). Returns each cancelled booking''s open Stripe Checkout Session ids and releases its coupon redemption. 20261012110000: a pending booking that holds a captured payment (held for review) is not cancelled. EXECUTE: vamos_system only.';
 
 commit;

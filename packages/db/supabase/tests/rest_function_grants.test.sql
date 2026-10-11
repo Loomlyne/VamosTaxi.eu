@@ -5,7 +5,7 @@
 -- migration, so it passes there; a green run of this file says NOTHING about the live database, where
 -- 20261007320000 stays unapplied until the owner's word (after about a day of the Worker and the 4242 payment).
 -- Test 1 states the migration it expects and fails loudly if it is missing from the local migration history.
--- The J9 migration (20261009160000) does not depend on it and this file does not test J9.
+-- The J9 migration (20261012170000) does not depend on it and this file does not test J9.
 -- 261005 money hardening S6, migrations 20261007310000 (grant, coupon codes) and 20261007320000 (revoke). Eight SECURITY DEFINER functions were executable
 -- by anon (and some by authenticated), so anyone could call them through Supabase REST with the public
 -- key, past the Worker's rate limits. EXECUTE now sits with vamos_checkout (the Worker's public

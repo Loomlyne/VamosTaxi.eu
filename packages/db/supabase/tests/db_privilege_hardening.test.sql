@@ -1,6 +1,6 @@
 -- db_privilege_hardening.test.sql
 --
--- J9 (payments review 2026-10-09). Migration 20261009160000_db_privilege_hardening.sql. It does not depend on
+-- J9 (payments review 2026-10-09). Migration 20261012170000_db_privilege_hardening.sql. It does not depend on
 -- 20261007320000 (REST function revoke) being applied or not: nothing here reads those eight ACLs.
 --   W5-07  staff write only the columns the Worker writes: status, refund and price columns, inserts and
 --          deletes on bookings and booking_legs are refused; the writes the dashboard really makes still work;

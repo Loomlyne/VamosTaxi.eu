@@ -1,6 +1,6 @@
 -- amount_state_verify.test.sql
 --
--- Stripe payments review 2026-10-09, job J3, migration 20261009110000 (W4-07, W4-08, W5-02, W5-03, W5-09,
+-- Stripe payments review 2026-10-09, job J3, migration 20261012110000 (W4-07, W4-08, W5-02, W5-03, W5-09,
 -- W5-10). The difference (extra) payment side of W4-07 and W5-10 is in settle_safety.test.sql section J.
 --   A  amount, currency and booking check at settle: a match settles; a mismatch records the capture and holds
 --      the booking; a legitimate EUR presentment is not a mismatch; the old call without amounts is unchanged.
@@ -340,7 +340,7 @@ select ok(
   '(58) lock order unchanged: payment row, then booking row, then the event row');
 select is((select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
             where n.nspname = 'public' and p.proname = 'checkout_payment_settle'
-              and obj_description(p.oid, 'pg_proc') like '%20261009110000%'), 1, '(59) the settle comment names this migration');
+              and obj_description(p.oid, 'pg_proc') like '%20261012110000%'), 1, '(59) the settle comment names this migration');
 select ok(has_function_privilege('vamos_system', 'public.compute_cancellation_refund(uuid)', 'EXECUTE'), '(60) compute_cancellation_refund keeps its grant');
 
 select * from finish();

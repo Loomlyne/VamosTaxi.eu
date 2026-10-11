@@ -1,9 +1,9 @@
--- 20261009115000_late_paylink_settle.sql
+-- 20261012120000_late_paylink_settle.sql
 --
 -- Stripe payments review 2026-10-09, job J4 "late payment and pay-link settle" (W5-01, W5-11, W4-05, W5-13;
--- .planning/audits/2026-10-09-stripe-W4.md and -W5.md). Builds on J2 (20261009100000) and J3 (20261009110000).
+-- .planning/audits/2026-10-09-stripe-W4.md and -W5.md). Builds on J2 (20261012100000) and J3 (20261012110000).
 --
--- (1) stripe_event_begin (W4-05): body of 20261009100000 plus a type-aware out-of-order rule. Only an event
+-- (1) stripe_event_begin (W4-05): body of 20261012100000 plus a type-aware out-of-order rule. Only an event
 --     that would REGRESS a payment (checkout.session.expired, checkout.session.async_payment_failed,
 --     payment_intent.canceled) is superseded, and only by a processed later event that proves the payment
 --     went through (checkout.session.completed, async_payment_succeeded, payment_intent.succeeded) on the same
@@ -12,7 +12,7 @@
 -- (2) app.coupon_reactivate (W5-13, new): gives a revived booking's released coupon redemptions back only while
 --     the coupon's global and per-user caps allow it (the cap trigger is insert-only and never saw the old
 --     UPDATE). A redemption that no longer fits stays released; the revive event records how many.
--- (3) checkout_payment_settle (W5-01, W5-13): body of 20261009110000 plus the lines marked 20261009115000. A
+-- (3) checkout_payment_settle (W5-01, W5-13): body of 20261012110000 plus the lines marked 20261012120000. A
 --     pending booking is "late" only when its price lock AND its pay-link hold (bookings.hold_until) are past:
 --     a pay-link payment inside its hold takes the normal pending -> paid -> confirmed path with its status
 --     events and legs. The revive branch (cancelled, or pending with lock and hold both past) now confirms
@@ -27,7 +27,7 @@
 -- Lock order: payment rows of the booking first (ordered by id), then the booking, then the event row.
 -- purge_unpaid_booking follows that order too (it used to take the booking first). The coupon row is last,
 -- as the cap trigger takes it. No data is changed. One transaction.
--- Apply order: after 20261009110000. Worker order: deploy the Worker of this branch FIRST, then apply this file:
+-- Apply order: after 20261012110000. Worker order: deploy the Worker of this branch FIRST, then apply this file:
 -- the new Worker marks the verified sessions dead and then purges (the old rules purge them as before); the
 -- reverse order leaves purge refusing (answering false) for bookings the old Worker has not marked, until the
 -- Worker is deployed (a customer who goes back and changes a selection would see quote_already_booked).
@@ -54,7 +54,7 @@ declare
 begin
   update public.stripe_events
      set attempts = attempts + 1,
-         last_attempt_at = pg_catalog.now()   -- 20261009100000
+         last_attempt_at = pg_catalog.now()   -- 20261012100000
    where id = p_event_id
   returning processed_at into v_processed_at;
 
@@ -72,7 +72,7 @@ begin
   -- payment family is refused here, not in the Worker. p_object_ids spans cs_ and
   -- pi_ ids. The stripe_events_object (object_id, stripe_created) partial index
   -- serves this predicate.
-  -- 20261009115000 (W4-05): the rule is by event TYPE, not by object family. Only an event that would
+  -- 20261012120000 (W4-05): the rule is by event TYPE, not by object family. Only an event that would
   -- REGRESS a payment (the page expired, an asynchronous payment failed, the PaymentIntent was canceled) is
   -- superseded, and only by a processed event that proves the payment went through: a later paid
   -- checkout.session.completed, checkout.session.async_payment_succeeded or payment_intent.succeeded on the
@@ -114,7 +114,7 @@ grant execute on function public.stripe_event_begin(
 comment on function public.stripe_event_begin(
   pg_catalog.text, pg_catalog.text[], pg_catalog.timestamptz
 ) is
-  'D-14 (plan 07-03), 20261009100000 (last_attempt_at), 20261009115000 (W4-05): increment attempts, then already_processed / superseded / ok. Superseded only for an event that would regress a payment (expired, async_payment_failed, payment_intent.canceled) when a later paid event is already processed on the same cs_/pi_ ids. Ordering is stripe_created, never received_at.';
+  'D-14 (plan 07-03), 20261012100000 (last_attempt_at), 20261012120000 (W4-05): increment attempts, then already_processed / superseded / ok. Superseded only for an event that would regress a payment (expired, async_payment_failed, payment_intent.canceled) when a later paid event is already processed on the same cs_/pi_ ids. Ordering is stripe_created, never received_at.';
 
 -- (2)
 create or replace function app.coupon_reactivate(p_booking_id pg_catalog.uuid)
@@ -166,7 +166,7 @@ $$;
 revoke all on function app.coupon_reactivate(pg_catalog.uuid) from public;
 
 comment on function app.coupon_reactivate(pg_catalog.uuid) is
-  '20261009115000 (W5-13): re-activates a revived booking''s released coupon redemptions only while the coupon''s global and per-user caps allow it. Returns how many stayed released. Called by checkout_payment_settle only. No grant.';
+  '20261012120000 (W5-13): re-activates a revived booking''s released coupon redemptions only while the coupon''s global and per-user caps allow it. Returns how many stayed released. Called by checkout_payment_settle only. No grant.';
 
 -- (3)
 create or replace function public.checkout_payment_settle(
@@ -180,7 +180,7 @@ create or replace function public.checkout_payment_settle(
   p_fx_quoted_at pg_catalog.timestamptz,
   p_presentment_amount_minor pg_catalog.int8,
   p_presentment_currency pg_catalog.text default null,
-  -- 20261009110000 (W4-07, W5-02): what Stripe says it collected. All four are optional: null skips that check.
+  -- 20261012110000 (W4-07, W5-02): what Stripe says it collected. All four are optional: null skips that check.
   p_amount_total_minor pg_catalog.int8 default null,
   p_amount_currency pg_catalog.text default null,
   p_amount_received_minor pg_catalog.int8 default null,
@@ -217,13 +217,13 @@ declare
   v_min_scheduled pg_catalog.timestamptz;
   v_pickup_ahead pg_catalog.bool;
   v_from_status public.booking_status;
-  -- 20261009100000
+  -- 20261012100000
   v_marker pg_catalog.text;
   v_marker_reason pg_catalog.text;
   v_fx_note pg_catalog.jsonb;
-  -- 20261009110000
+  -- 20261012110000
   v_mm_reasons pg_catalog.text[];
-  -- 20261009115000
+  -- 20261012120000
   v_lock_live pg_catalog.bool;
   v_coupons_kept pg_catalog.int4;
 begin
@@ -234,7 +234,7 @@ begin
       using errcode = 'check_violation';
   end if;
 
-  -- 20261009100000 (W5-12): the currency and FX values come from the Worker and meet three CHECK
+  -- 20261012100000 (W5-12): the currency and FX values come from the Worker and meet three CHECK
   -- constraints (currency allowed, CHF exactly when there is no rate, FX columns all or none) and
   -- write-once rules. A value the row cannot hold must never make the settle raise after Stripe has
   -- captured the money. Unusable values are dropped: the capture is recorded without the FX detail
@@ -297,7 +297,7 @@ begin
 
   -- Already-settled: this exact row already reached succeeded. Unchanged.
   if v_pay.status = 'succeeded' and p_outcome = 'succeeded' then
-    -- 20261009100000 (W4-03): the first delivery of THIS event settled the payment but left it open
+    -- 20261012100000 (W4-03): the first delivery of THIS event settled the payment but left it open
     -- because the Stripe refund was still to be made (duplicate_charge, test_booking, paid_after_cancel,
     -- requote_superseded: the marker `refund_required:<reason>` on the event row). A retry of that
     -- event gets the refund order again, so a refund that failed is made on the next delivery. The
@@ -309,7 +309,7 @@ begin
        and e.processed_at is null;
 
     if v_marker = 'amount_mismatch' then
-      -- 20261009110000 (W4-07): the first delivery held this payment for review; the Worker has not yet
+      -- 20261012110000 (W4-07): the first delivery held this payment for review; the Worker has not yet
       -- mailed ops and closed the event. A retry gets the same answer and nothing else is written.
       select coalesce(pg_catalog.array_agg(bp3.stripe_checkout_session_id), array[]::pg_catalog.text[])
         into v_other_sessions
@@ -351,7 +351,7 @@ begin
     -- 20261007310000 (U15): the second delivery of this payment (the Stripe webhook after the return
     -- route, or the other way round) marks its own stripe_events row processed too, as every other
     -- branch does. Nothing else is written: no payment, booking or booking_events row.
-    -- 20261009100000 (W5-17): the first processing time is kept.
+    -- 20261012100000 (W5-17): the first processing time is kept.
     update public.stripe_events
        set processed_at = pg_catalog.now()
      where id = p_event_id
@@ -368,7 +368,7 @@ begin
 
   -- Non-succeeded outcome: unchanged failure path, extended return shape only.
   if p_outcome is distinct from 'succeeded' then
-    -- 20261009100000 (W4-17, W5-04): a late or same-second failed / canceled event for a payment that
+    -- 20261012100000 (W4-17, W5-04): a late or same-second failed / canceled event for a payment that
     -- already succeeded (or was recorded as a duplicate) changes nothing and raises nothing. The
     -- column whitelist makes a succeeded row terminal, so the update below would raise and the event
     -- would retry into the dead-letter queue for good. The event is closed here.
@@ -445,7 +445,7 @@ begin
   -- Duplicate detection (D-22): another row on the same snapshot already
   -- succeeded. Flag duplicate; never attempt a second confirm or a second
   -- revive.
-  -- 20261009110000 (W4-08): beyond the snapshot, two main-session payments on one booking are a duplicate
+  -- 20261012110000 (W4-08): beyond the snapshot, two main-session payments on one booking are a duplicate
   -- even when they cite different price records (a staff change rebound the booking while an older page
   -- was still open and was then paid). A difference payment (extra) is another payment of the booking,
   -- never the first one: it is named by a change request's extra_payment_id and is not counted.
@@ -514,7 +514,7 @@ begin
       using errcode = 'P0002';
   end if;
 
-  -- 20261009110000 (W4-07, W5-02): what Stripe collected must be what this payment row expected: CHF,
+  -- 20261012110000 (W4-07, W5-02): what Stripe collected must be what this payment row expected: CHF,
   -- the row's charged_rappen (session amount_total and, when the Worker read it, the PaymentIntent's
   -- amount_received), and the booking named in the session metadata (the booking id or its quote id).
   -- A legitimate adaptive-pricing presentment in EUR/USD/AED is not a mismatch: Stripe keeps the session
@@ -631,7 +631,7 @@ begin
   -- Cancelled (or pending whose quote lock has already expired): decide
   -- revive (D-03/D-03a) vs refund-only (D-03b requote, or pickup already
   -- passed).
-  -- 20261009115000 (W5-01): a pending booking is "late" only when its price lock AND its pay-link hold
+  -- 20261012120000 (W5-01): a pending booking is "late" only when its price lock AND its pay-link hold
   -- (bookings.hold_until, the 24 h of a sent pay link) are both past. A pay-link payment inside its hold
   -- takes the normal pending -> paid -> confirmed path below, with its status events and its legs. Before,
   -- the quote lock alone (30 minutes) decided: every pay-link payment after the first half hour jumped
@@ -732,7 +732,7 @@ begin
              updated_at = pg_catalog.now()
        where id = v_booking.id;
 
-      -- 20261009115000 (W5-01): every leg that was not running becomes confirmed with the booking (a
+      -- 20261012120000 (W5-01): every leg that was not running becomes confirmed with the booking (a
       -- cancelled booking's legs are cancelled, a truly expired pending booking's legs are pending).
       update public.booking_legs
          set status = 'confirmed'::public.booking_status,
@@ -742,7 +742,7 @@ begin
                         'pending'::public.booking_status,
                         'paid'::public.booking_status);
 
-      -- 20261009115000 (W5-13): the coupon use comes back only while the coupon's caps allow it.
+      -- 20261012120000 (W5-13): the coupon use comes back only while the coupon's caps allow it.
       v_coupons_kept := app.coupon_reactivate(v_booking.id);
 
       insert into public.booking_events (
@@ -758,7 +758,7 @@ begin
              end
       );
 
-      -- 20261009115000 (W5-01): the same status event every confirmation carries, so the timeline and
+      -- 20261012120000 (W5-01): the same status event every confirmation carries, so the timeline and
       -- every reader of booking.status_changed see this booking confirmed.
       insert into public.booking_events (
         booking_id, kind, actor_kind, actor_label, from_status, to_status, payment_id, payload
@@ -922,7 +922,7 @@ comment on function public.checkout_payment_settle(
   pg_catalog.numeric, pg_catalog.text, pg_catalog.timestamptz, pg_catalog.int8, pg_catalog.text,
   pg_catalog.int8, pg_catalog.text, pg_catalog.int8, pg_catalog.text
 ) is
-  '26.1 settle (pending -> paid -> confirmed, revive, duplicate, refund-required), J2 20261009100000 (event kept open until the refund is made, late failure guard, FX fallback), J3 20261009110000 (amount, currency and booking check held for review, duplicate across the booking), J4 20261009115000 (W5-01 a pay-link payment inside its hold takes the normal path; the revive branch confirms the legs and logs booking.status_changed; W5-13 coupon caps on re-activation). Optional trailing p_amount_* / p_metadata_booking_id: null skips that check. EXECUTE vamos_system only.';
+  '26.1 settle (pending -> paid -> confirmed, revive, duplicate, refund-required), J2 20261012100000 (event kept open until the refund is made, late failure guard, FX fallback), J3 20261012110000 (amount, currency and booking check held for review, duplicate across the booking), J4 20261012120000 (W5-01 a pay-link payment inside its hold takes the normal path; the revive branch confirms the legs and logs booking.status_changed; W5-13 coupon caps on re-activation). Optional trailing p_amount_* / p_metadata_booking_id: null skips that check. EXECUTE vamos_system only.';
 
 -- (4)
 create or replace function public.checkout_payments_mark_dead(
@@ -966,7 +966,7 @@ grant execute on function public.checkout_payments_mark_dead(pg_catalog.uuid, pg
   to vamos_system, vamos_checkout;
 
 comment on function public.checkout_payments_mark_dead(pg_catalog.uuid, pg_catalog.text[]) is
-  '20261009115000 (W5-11): marks the requires_payment payment rows of one booking, whose Stripe Checkout Session ids the caller has read back as expired and unpaid, as canceled. Only requires_payment rows and only the named ids; a row that already moved is skipped. The caller then purges: purge_unpaid_booking refuses while a requires_payment row names a session. EXECUTE vamos_system and vamos_checkout, as purge_unpaid_booking.';
+  '20261012120000 (W5-11): marks the requires_payment payment rows of one booking, whose Stripe Checkout Session ids the caller has read back as expired and unpaid, as canceled. Only requires_payment rows and only the named ids; a row that already moved is skipped. The caller then purges: purge_unpaid_booking refuses while a requires_payment row names a session. EXECUTE vamos_system and vamos_checkout, as purge_unpaid_booking.';
 
 -- (5)
 create or replace function public.purge_unpaid_booking(p_booking_id uuid, p_reason text)
@@ -1001,7 +1001,7 @@ begin
     return false;
   end if;
 
-  -- 20261009115000 (W5-11): the booking may only go when no Stripe Checkout Session of it can still be
+  -- 20261012120000 (W5-11): the booking may only go when no Stripe Checkout Session of it can still be
   -- paid. A payment row that is still requires_payment names a session nobody has proved dead: refuse.
   -- The caller (the Worker) first retrieves every session of the booking, finds it expired and unpaid, and
   -- marks exactly those rows with checkout_payments_mark_dead; only then is a purge allowed. Without this a
@@ -1017,7 +1017,7 @@ begin
     return false;
   end if;
 
-  -- 20261009115000 (W5-11): reason unpaid_expired means the price lock has expired; a booking whose lock
+  -- 20261012120000 (W5-11): reason unpaid_expired means the price lock has expired; a booking whose lock
   -- is still live is not "unpaid expired". (superseded replaces a booking the customer just changed.)
   if p_reason = 'unpaid_expired' and exists (
     select 1
@@ -1061,6 +1061,6 @@ revoke all on function public.purge_unpaid_booking(uuid, text) from public;
 grant execute on function public.purge_unpaid_booking(uuid, text) to vamos_system, vamos_checkout;
 
 comment on function public.purge_unpaid_booking(uuid, text) is
-  'D-25/D-45: hard-deletes one eligible unpaid booking (pending, no pay link, no paid/captured payment, no refund/dispute/notification/edit request/review) and writes one non-PII audit_log line. Its consent_log rows and account_agreement_records rows are detached (booking_id -> NULL), never deleted (20261007300000). 20261009115000 (W5-11): answers false while a payment row still names an unverified Stripe session (requires_payment; the caller marks verified-dead sessions first with checkout_payments_mark_dead) and, for reason unpaid_expired, while the price lock or pay-link hold is live. Returns false when not eligible. EXECUTE: vamos_system, vamos_checkout.';
+  'D-25/D-45: hard-deletes one eligible unpaid booking (pending, no pay link, no paid/captured payment, no refund/dispute/notification/edit request/review) and writes one non-PII audit_log line. Its consent_log rows and account_agreement_records rows are detached (booking_id -> NULL), never deleted (20261007300000). 20261012120000 (W5-11): answers false while a payment row still names an unverified Stripe session (requires_payment; the caller marks verified-dead sessions first with checkout_payments_mark_dead) and, for reason unpaid_expired, while the price lock or pay-link hold is live. Returns false when not eligible. EXECUTE: vamos_system, vamos_checkout.';
 
 commit;

@@ -1,6 +1,6 @@
 -- late_paylink_settle.test.sql
 --
--- Stripe payments review 2026-10-09, job J4, migration 20261009115000 (W5-01, W5-11, W4-05, W5-13).
+-- Stripe payments review 2026-10-09, job J4, migration 20261012120000 (W5-01, W5-11, W4-05, W5-13).
 --   A  a pay-link payment inside its 24 h hold takes the normal pending -> paid -> confirmed path (legs
 --      confirmed, status events); the revive branch (cancelled, or lock and hold both past) confirms legs and
 --      logs booking.status_changed next to booking.revived; the refund path for a gone pickup is unchanged.
@@ -269,7 +269,7 @@ select ok(
      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.proname = 'checkout_payment_settle'),
   '(46) settle lock order unchanged: payment row, booking row, event row');
-select ok((select obj_description(p.oid, 'pg_proc') like '%20261009115000%' from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+select ok((select obj_description(p.oid, 'pg_proc') like '%20261012120000%' from pg_proc p join pg_namespace n on n.oid = p.pronamespace
             where n.nspname = 'public' and p.proname = 'purge_unpaid_booking'), '(47) the purge comment names this migration');
 
 select * from finish();

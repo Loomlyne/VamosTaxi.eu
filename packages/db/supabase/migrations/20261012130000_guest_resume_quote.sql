@@ -1,4 +1,4 @@
--- 20261009120000_guest_resume_quote.sql
+-- 20261012130000_guest_resume_quote.sql
 --
 -- J5 (payments review W3-06). The confirmation page of an UNPAID booking shows FINISH PAYMENT.
 -- It used to link to the bare, empty checkout. The checkout can refill a booking

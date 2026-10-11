@@ -1,6 +1,6 @@
 -- refund_policy_window.test.sql
 --
--- J7 (payments review 2026-10-09). Migration 20261009140000_refund_policy_window.sql.
+-- J7 (payments review 2026-10-09). Migration 20261012150000_refund_policy_window.sql.
 --   W6-01  the full-refund window is the free_cancel_hours the booking was sold under (the policy in its
 --          first price snapshot), not the literal 24. Proven at 12, 24 and 48 hours, on both sides of
 --          each window, and with a case the old literal 24 answers the other way round.

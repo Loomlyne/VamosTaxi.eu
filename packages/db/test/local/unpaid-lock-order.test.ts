@@ -1,6 +1,6 @@
 // packages/db/test/local/unpaid-lock-order.test.ts
 //
-// J9 W5-18 (migration 20261009160000): checkout_abandon_unpaid, checkout_requote_cancel and
+// J9 W5-18 (migration 20261012170000): checkout_abandon_unpaid, checkout_requote_cancel and
 // purge_unpaid_booking lock the booking's payment rows BEFORE the booking, the order of
 // checkout_payment_settle. Before, they took the booking first and then wrote the payment rows, so a settle
 // that held the payment and waited for the booking deadlocked with them (40P01). Two real connections with
@@ -152,7 +152,7 @@ async function race(
   }
 }
 
-describe("abandon, requote cancel and purge lock the payment before the booking (20261009160000)", () => {
+describe("abandon, requote cancel and purge lock the payment before the booking (20261012170000)", () => {
   it("refuses any host but 127.0.0.1", () => {
     expect(new URL(SUPER).hostname).toBe("127.0.0.1");
   });

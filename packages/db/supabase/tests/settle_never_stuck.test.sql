@@ -1,6 +1,6 @@
 -- settle_never_stuck.test.sql
 --
--- Stripe payments review 2026-10-09, job J2, migration 20261009100000 (W4-01, W4-03, W4-09, W4-17,
+-- Stripe payments review 2026-10-09, job J2, migration 20261012100000 (W4-01, W4-03, W4-09, W4-17,
 -- W5-04, W5-12, W5-17). The extra-payment (difference) side of W4-17 and W5-12 is in
 -- settle_safety.test.sql section I.
 --   A  stripe_event_settle: an unknown id raises P0002, a processed row keeps its first processed_at and
@@ -380,7 +380,7 @@ select is((select count(*)::int from information_schema.columns
               and column_name in ('last_attempt_at', 'sweep_count', 'sweep_last_at', 'abandoned_at')),
   4, '(75) stripe_events has the four new columns');
 select ok((select sweep_count = 0 from public.stripe_events where id = 'evt_sns_open'), '(76) an ordinary event starts at sweep_count 0');
-select ok((select obj_description(p.oid, 'pg_proc') like '%20261009100000%'
+select ok((select obj_description(p.oid, 'pg_proc') like '%20261012100000%'
      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.proname = 'stripe_event_settle'), '(77) the comment names the migration');
 
