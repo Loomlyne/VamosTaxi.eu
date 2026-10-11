@@ -58,6 +58,9 @@ main = origin/main `358a5ba6` (planning note). Last code commit `25f64c9b` (19:5
 
 ## Open work, 2026-10-11 (order is the owner's answer)
 
+Owner's order (2026-10-11 20:5x): J1–J10 first with the Phase 30 plan alongside; then Dependabot; then the `320000` vs J9 check; then the single-leg refund. Stripe findings get his signatures in between.
+Work threads started 2026-10-11 by the controller: `mcp:632f5ab5-4d41-4c94-a50c-052c210d31bd` "Vamos J1–J10 land on main" (branch `pay-j1-j10-land` from origin/main, Opus 5.5 high); `mcp:e703ca46-2106-470c-ad66-3e948b3f074c` "Vamos Phase 30 plan: class lifecycle" (worktree `phase-30-vehicle-class-lifecycle`, design and plan only).
+
 | Item | State | Next | GSD skill |
 |---|---|---|---|
 | Phase 30, vehicle class lifecycle | Discussed (`decisions/2026-10-11-fleet-lifecycle.md`, `30-CONTEXT.md` untracked); worktree `phase-30-vehicle-class-lifecycle` at `a5ebb8ff`, not on GitHub | Plan, then his plan signature, then execute in its own thread | `/gsd-plan-phase 30` → `/gsd-execute-phase 30` → `/gsd-verify-work` → `/gsd-ship` |
