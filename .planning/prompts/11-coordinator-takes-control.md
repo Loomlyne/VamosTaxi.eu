@@ -46,7 +46,7 @@ request from the owner, and before every ship, read all of this yourself:
 - A fact about live data comes from the live row, never from code. Times come from the clock.
 - Browser tests are the owner's. Secrets stay in his terminal; never read or print `META_CAPI_ACCESS_TOKEN`. Commands he runs are numbered steps; never put a runnable deploy command in a code block for him.
 - The dashboard gateway Worker `vamos-dashboard` is deployed only with his explicit yes for that ship. After a deploy that touches checkout: his 4242 payment first, then you read `booking_payments` by status.
-- One product per session. Jev is Hermes-only: never run or simulate it.
+- One product per session. Jev (TypeSafe) is available through plugin `typesafe`: advisory only, real calls only, never simulated.
 
 ## 6. State at the hand-over (read the board for the rest)
 Read on 2026-10-01 15:54 (+04) by the old control session:
