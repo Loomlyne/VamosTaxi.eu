@@ -67,7 +67,10 @@ describe("confirmationConversion", () => {
 describe("the page", () => {
   const src = readFileSync(resolve(__dirname, "../../app/[locale]/confirmation/[ref]/ConfirmationClient.tsx"), "utf8");
   it("reports through the loader only, once per value, and never sends an address or a name", () => {
-    expect(src.match(/\.conversion\?\.\(/g)).toHaveLength(1);
+    // One direct call when the loader is there, else one push onto the queue the loader drains (CR-01, 2026-10-11).
+    expect(src.match(/VamosGoogle\.conversion\(/g)).toHaveLength(1);
+    expect(src.match(/VamosGoogleQueue/g)?.length ?? 0).toBeGreaterThanOrEqual(1);
+    expect(src.match(/q\.push\(item\)/g)).toHaveLength(1);
     expect(src).toContain("confirmationConversion({");
     const effect = src.slice(src.indexOf("const conversionValue"), src.indexOf('if (initialPhase === "hidden")'));
     expect(effect).toContain("[conversionValue, reference]");

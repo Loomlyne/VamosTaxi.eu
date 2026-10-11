@@ -31,6 +31,7 @@ interface Opts {
   state?: State | (() => Promise<State>);
   storage?: Record<string, string>;
   noStorage?: boolean;
+  queue?: unknown[];
 }
 
 function load(o: Opts = {}) {
@@ -57,6 +58,7 @@ function load(o: Opts = {}) {
     },
   };
   win.document = document;
+  if (o.queue) win.VamosGoogleQueue = o.queue;
   const ls = {
     getItem: (k: string) => (k in store ? store[k] : null),
     setItem: (k: string, v: string) => void (store[k] = String(v)),
@@ -99,6 +101,7 @@ function load(o: Opts = {}) {
     store,
     fetchCalls,
     listeners,
+    queue: () => win.VamosGoogleQueue as { push: (i: unknown) => unknown },
     g: () => win.VamosGoogle as {
       allowed: (h: string) => boolean;
       scrub: (h: string, r?: string) => { location: string; referrer: string };
@@ -358,6 +361,56 @@ describe("conversion", () => {
     expect(h.g().pending()).toBe(0);
     expect(conv(h)).toHaveLength(1);
     expect(h.calls().map((c) => c[0])).toEqual(["consent", "js", "consent", "config", "event"]);
+  });
+
+  it("pre-load queue: an item pushed before the loader ran is drained on load and goes out once", async () => {
+    const early = [info];
+    const h = load({ open: true, href: "https://vamostaxi.site/confirmation/VT-26-07331", queue: early });
+    expect(h.g().pending()).toBe(1);
+    await h.settle();
+    expect(conv(h)).toEqual([["event", "conversion", { send_to: SEND, value: 99.79, currency: "CHF", transaction_id: "VT-26-07331" }]]);
+  });
+
+  it("pre-load queue: a late push works and does not double-send the same reference", async () => {
+    const h = load({ open: true, href: "https://vamostaxi.site/confirmation/VT-26-07331", queue: [info] });
+    await h.settle();
+    h.queue().push(info);
+    h.queue().push({ ...info });
+    h.g().conversion(info);
+    expect(conv(h)).toHaveLength(1);
+    const other = { value: 20, transactionId: "VT-26-07332" };
+    h.queue().push(other);
+    expect(conv(h)).toHaveLength(2);
+  });
+
+  it("pre-load queue: no queue at all is fine, and bad items are refused by the same guards", async () => {
+    const h = load({ open: true, href: "https://vamostaxi.site/confirmation/VT-26-07331" });
+    await h.settle();
+    h.queue().push({ value: -1, transactionId: "VT-26-07331" });
+    h.queue().push({ value: 10, transactionId: "nope" });
+    h.queue().push(null);
+    expect(conv(h)).toHaveLength(0);
+  });
+
+  it("pre-load queue: Marketing off drops the queued conversion", async () => {
+    const h = load({
+      open: true,
+      href: "https://vamostaxi.site/confirmation/VT-26-07331",
+      queue: [info],
+      state: { ok: true, chosen: true, choice: { marketing: false } },
+    });
+    await h.settle();
+    expect(conv(h)).toHaveLength(0);
+    expect(h.appended).toHaveLength(0);
+  });
+
+  it("pre-load queue: a reload with the key already written sends nothing", async () => {
+    const first = load({ open: true, href: "https://vamostaxi.site/confirmation/VT-26-07331", queue: [info] });
+    await first.settle();
+    const reload = load({ open: true, href: "https://vamostaxi.site/confirmation/VT-26-07331", queue: [info], storage: first.store });
+    await reload.settle();
+    expect(conv(first)).toHaveLength(1);
+    expect(conv(reload)).toHaveLength(0);
   });
 
   it("Marketing not on: the waiting conversion is dropped and a later Accept does not replay it", async () => {
