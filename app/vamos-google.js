@@ -20,6 +20,9 @@
    conversion and deletes Google's cookies (every domain form). Our code never writes a value into them.
 
    API: VamosGoogle.conversion({ value, transactionId }) -> true if sent or queued, false if refused;
+   a page that runs before this script loads pushes { value, transactionId } onto window.VamosGoogleQueue (an
+   array); on load each item goes through conversion() (every guard applies) and the queue object's push()
+   then does the same;
    for tests: .allowed(href), .scrub(href, referrer), .loaded(), .revoked(), .pending()
 
    Plain browser script (not transpiled): var, function. */
@@ -277,6 +280,16 @@
     revoked: function () { return revokedHere; },
     pending: function () { return queued.length; },
   };
+
+  /* Items pushed before this script loaded (the confirmation page can run first): each goes through the same
+     guards and the once-only key. Later pushes behave the same. */
+  (function () {
+    var early = window.VamosGoogleQueue;
+    window.VamosGoogleQueue = { push: function (item) { conversion(item); return 0; } };
+    if (early && typeof early.length === 'number' && typeof early !== 'string') {
+      for (var i = 0; i < early.length; i++) conversion(early[i]);
+    }
+  })();
 
   start();
 })();

@@ -575,9 +575,19 @@ export function ConfirmationClient({
   const conversionValue = conversion?.value ?? null;
   useEffect(() => {
     if (conversionValue === null) return;
-    const google = (window as unknown as { VamosGoogle?: { conversion?: (i: { value: number; transactionId: string }) => boolean } }).VamosGoogle;
+    const w = window as unknown as {
+      VamosGoogle?: { conversion?: (i: { value: number; transactionId: string }) => boolean };
+      VamosGoogleQueue?: { push: (i: { value: number; transactionId: string }) => unknown };
+    };
     try {
-      google?.conversion?.({ value: conversionValue, transactionId: reference });
+      const item = { value: conversionValue, transactionId: reference };
+      if (w.VamosGoogle?.conversion) {
+        w.VamosGoogle.conversion(item);
+      } else {
+        // The loader (afterInteractive) is not there yet: it drains this queue when it starts.
+        const q: { push: (i: { value: number; transactionId: string }) => unknown } = w.VamosGoogleQueue ?? (w.VamosGoogleQueue = [] as { value: number; transactionId: string }[]);
+        q.push(item);
+      }
     } catch {
       // never blocks the booking page
     }
