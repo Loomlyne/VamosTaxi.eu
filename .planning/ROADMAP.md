@@ -1221,6 +1221,17 @@ Plans:
 Plans:
 - [ ] TBD (run /gsd-plan-phase 30 to break down)
 
+### Phase 32: Automatic translator
+
+**Goal:** Every text that has a language reaches the customer in English, German, French and Arabic without Koss checking it: gaps in the site dictionary and messages, text he types on the dashboard (extras, FAQ, content), emails, customer messages to him and his replies. Gemma 4 on Cloudflare Workers AI fills it in the background, cached by source text and language, never in a public page view; a missing translation shows the source, never a blank. Human strings and owner-approved legal wording are never touched. The dashboard marks machine text and his correction always wins.
+**Decisions:** owner, question form 2026-10-12 ~19:20 +04; context `.planning/phases/32-auto-translate/32-CONTEXT.md`
+**Requirements**: TBD
+**Depends on:** Phase 29 (no code dependency on Phases 30 or 31; shares only `app/vamos-i18n-dict.js`)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 32 to break down)
+
 ## Progress
 
 **Execution Order:**
