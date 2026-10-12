@@ -28,7 +28,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-12 04:21 (+04), J1–J10 landed and deployed; his payment UAT open
+**Last update:** 2026-10-12 11:35 (+04), J1–J10 closed: payment UAT waived by owner, branch and work folders removed
 
 ## Take-over read, 2026-10-11 20:47 (+04)
 
@@ -65,7 +65,7 @@ Work threads started 2026-10-11 by the controller: `mcp:632f5ab5-4d41-4c94-a50c-
 | Item | State | Next | GSD skill |
 |---|---|---|---|
 | Phase 30, vehicle class lifecycle | UI-SPEC rev 3 (`16a3aa40`, branch `phase-30-vehicle-class-lifecycle`) approved 2026-10-12 04:3x; amendments 2 and 7a signed (`88cd312b`); his 14 answers sent to the thread: Q1 first missing, Q2 strict, Q3 warn, Q4 count line yes, Q5/Q6 44px tap areas, Q7 Assign line yes, Q8 he publishes, Q9 About "The fleet" inside 30, Q10 Edit-panel Delete removed, Q11 draw 390 first, Q12 keep "140 / 0", Q13 copy accepted, Q14 Live only (2 / 3) | Thread draws new pictures (Q3, Q4, Q7, Q9, Q11, Q14) → his signature → `/gsd-plan-phase 30` | `/gsd-ui-phase 30` (revision) → `/gsd-plan-phase 30` |
-| Payment jobs J1–J10 | Landed `bc38a031`, live Worker `09dbf47c`. Baseline 2026-10-12 00:20 UTC: `booking_payments` succeeded = 2; two old open `payment_intent.canceled` events (`sweep_count` 0) for the J2 sweep | His UAT: 4242 (expect decline, live key), his own card small amount, dashboard refund; controller reads `booking_payments` after each. Then delete branch `pay-j1-j10-land` (tag `archive/pay-j1-j10-land-612af0c0`), worktrees, settle thread | `/gsd-verify-work` |
+| Payment jobs J1–J10 | Closed 2026-10-12. Landed `bc38a031`, live Worker `09dbf47c`. J2 sweep closed `evt_3UOGMo…` at 01:01 UTC (`no_payment`); staff digest sent 04:01 UTC; `booking_payments` succeeded = 2 at 11:20 (+04) via the reconnected Supabase connector | Owner waived the payment UAT ("no need for test the payment live works", 2026-10-12). Branch `pay-j1-j10-land` deleted from GitHub (tag `archive/pay-j1-j10-land-612af0c0`), clone `cc-j1-j10` removed (tree = `bc38a031`), scratch kept in `~/.vamos-scratch/ctl/j1-j10-ship` | done |
 | Held `20261007320000` REST revoke | Not applied. J9 `20261009160000_db_privilege_hardening` says it is independent and order-free; J9 also revokes functions from `service_role` | Controller compares both on a lab replay before either is applied; his 4242 + voucher quote + cookie choice first | `/gsd-secure-phase` (threat check) |
 | Single-leg refund on its own subtotal | Decision `decisions/2026-10-11-single-leg-refund-own-subtotal.md` | After J7/J10 land | `/gsd-quick` in its own thread, or a phase if the plan grows |
 | Stripe review findings (127) | `audits/2026-10-09-stripe-payments-REVIEW.md`, untracked, awaiting his signature per finding | His signatures; J1–J10 already cover part | `/gsd-review-backlog` |
