@@ -27,8 +27,10 @@ import { withRequestContext } from "./lib/logger";
 import { withLegacyAuthCookiesExpired } from "./lib/supabase/cookies";
 import { isZurichDigestTime, runStaffDigest } from "./lib/ops/digest";
 import { createDigestDependencies } from "./lib/supabase/service";
-import { applyHandleResult, handleStripeMessage } from "./lib/checkout/settle";
+import { handleStripeMessage } from "./lib/checkout/settle";
 import { handleDlqMessage } from "./lib/checkout/dlq";
+import { consumeDlqMessage, consumeStripeEventMessage } from "./lib/checkout/queue-consumers";
+import { sweepUnprocessedEvents } from "./lib/checkout/stripe-events-sweep";
 import { sweepStuckNotifications } from "./lib/checkout/notify";
 import { sweepStripeFees } from "./lib/checkout/stripe-fee";
 import { sweepMetaPurchaseIds } from "./lib/meta/purchase";
@@ -37,7 +39,6 @@ import { purgeExpiredUnpaid } from "./lib/checkout/purge-unpaid";
 import { runReminder24h } from "./lib/lifecycle/reminder";
 import { probeHealth } from "./lib/health/probe";
 import { stripInternalHeaders } from "./lib/security/strip-internal-headers";
-import type { StripeQueueMessage } from "./lib/checkout/webhook";
 
 /**
  * Every answer, public and dashboard: a browser still holding the old `sb-<ref>-auth-token*`
@@ -152,6 +153,16 @@ export default {
       emit("error", "expire_unpaid", { outcome: "failed" });
     }
 
+    // J2 (W4-01): Stripe events that were recorded but never settled go back on the queue (idle 10
+    // minutes, bounded batch); one that never settles after every sweep is mailed to ops once. Counts and
+    // ids only, no PII.
+    try {
+      const swept = await sweepUnprocessedEvents(env);
+      emit(swept.enqueueFailed > 0 || swept.alertFailed > 0 ? "error" : "info", "stripe_events_sweep", swept);
+    } catch {
+      emit("error", "stripe_events_sweep", { outcome: "failed" });
+    }
+
     try {
       const reminder = await runReminder24h(env, scheduledAt);
       emit("info", "reminder_24h", reminder);
@@ -181,7 +192,8 @@ export default {
     // In-process hourly probe (LAUNCH-03). Do not HTTP-loopback to the route.
     try {
       const health = await probeHealth(env);
-      emit("info", "health_probe", {
+      // J1: a down dependency, including payments down on a key-mode mismatch, is an error line.
+      emit(health.ok ? "info" : "error", "health_probe", {
         ok: health.ok,
         db: health.db,
         payments: health.payments,
@@ -223,13 +235,14 @@ export default {
           route: `queue:${batch.queue}`,
           locale: null,
         });
-        try {
-          await handleDlqMessage(env, message.body as StripeQueueMessage);
-        } catch {
-          emit("error", "dlq_handle_failed", { messageId: message.id });
-        }
-        message.ack();
-        emit("info", "dlq", { messageId: message.id, batchSize: batch.messages.length });
+        // J2 (W4-02): the alert result is read. A mail that did not go out is retried later (up to the
+        // attempt limit in dlq.ts), never acked as sent; the sweep is the durable second line.
+        await consumeDlqMessage(
+          message,
+          batch.messages.length,
+          (body, attempts) => handleDlqMessage(env, body, attempts),
+          emit,
+        );
       }
       return;
     }
@@ -240,26 +253,15 @@ export default {
         route: `queue:${batch.queue}`,
         locale: null,
       });
-      const body = message.body as StripeQueueMessage;
-      let ackOutcome: "acked" | "retry" | "ack-failed" = "acked";
-      try {
-        // Phase 29: only the queue may send the Purchase; the return route never does.
-        const result = await handleStripeMessage(env, body, { metaPurchase: true });
-        // 26.1-08: a delayed retry (app_refund_pending) passes delaySeconds through.
-        ackOutcome = applyHandleResult(message, result);
-      } catch {
-        try {
-          message.retry();
-          ackOutcome = "retry";
-        } catch {
-          ackOutcome = "ack-failed";
-        }
-      }
-      emit("info", "queue", {
-        messageId: message.id,
-        batchSize: batch.messages.length,
-        ackOutcome,
-      });
+      // Phase 29: only the queue may send the Purchase; the return route never does.
+      // 26.1-08: a delayed retry (app_refund_pending) passes delaySeconds through. J2 (W4-14, W1-14,
+      // W4-06): a thrown handler is logged at error level and retried after a delay.
+      await consumeStripeEventMessage(
+        message,
+        batch.messages.length,
+        (body) => handleStripeMessage(env, body, { metaPurchase: true }),
+        emit,
+      );
     }
   },
 } satisfies ExportedHandler<CloudflareEnv>;

@@ -98,23 +98,6 @@ function regionName(iso: string, locale: string): string {
   }
 }
 
-/** 26.2 audit U06-19: the payout day as a localised date, never the raw ISO string. */
-function payoutDate(iso: string, locale: string): string {
-  const trimmed = iso.trim();
-  if (!trimmed) return "";
-  const day = trimmed.slice(0, 10);
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day);
-  if (!m) return day;
-  try {
-    const tag = locale === "ar" ? "ar" : locale === "de" ? "de-CH" : locale === "fr" ? "fr-CH" : "en-GB";
-    return new Intl.DateTimeFormat(tag, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
-      new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))),
-    );
-  } catch {
-    return day;
-  }
-}
-
 /** 26.2 audit U06-1: money lines from the snapshot rows, so any owner-added extra shows by its own name. */
 function receiptMoneyLines(
   rows: ReceiptRow[],
@@ -353,20 +336,13 @@ export function BookingVoucher({
   const refundAmountMajor = rappenToMajor(refundAmountRappen);
   const country =
     regionName(booking?.payoutCountry || "", locale) || t("switzerland");
-  const onDate = booking?.availableOn ? payoutDate(booking.availableOn, locale) : "";
-  // 26.2 audit U06-19: both sentences carry their own full stop; no literal joiner, and the
-  // date is wrapped in LRI/PDI isolates so it keeps its own direction inside Arabic text
-  // (the message text cannot take a className around one placeholder).
+  // J8 (W3-09): the old second sentence named Stripe's payout day to Vamos (`available_on` of the original
+  // charge) as if it were the day the customer's money arrives. It is neither: no date is shown, only that it can
+  // take a few business days to reach the card.
   const refundedCopy =
     refundStatus === "refunded" ? (
       <>
-        {t("refundedToCard", { country })}
-        {onDate ? (
-          <>
-            {" "}
-            {t("stripePayoutOn", { date: `\u2066${onDate}\u2069` })}
-          </>
-        ) : null}
+        {t("refundedToCard", { country })} {t("refundArrivalNote")}
       </>
     ) : null;
   const reviewed = Boolean(booking?.reviewSubmitted);

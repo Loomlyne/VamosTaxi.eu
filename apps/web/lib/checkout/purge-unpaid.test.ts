@@ -11,7 +11,14 @@ const OPEN = { status: "open", payment_status: "unpaid", metadata: {} } as const
 const PAID = { status: "complete", payment_status: "paid", metadata: {} } as const;
 
 function sweep(sessions: Record<string, unknown>, rows: { booking_id: string; session_ids: string[] }[], purge = true) {
-  const purgeFn = vi.fn(async () => purge);
+  const order: string[] = [];
+  const purgeFn = vi.fn(async () => {
+    order.push("purge");
+    return purge;
+  });
+  const markDead = vi.fn(async () => {
+    order.push("dead");
+  });
   const emit = vi.fn();
   const deps = {
     candidates: async () => rows.map((r) => ({ ...r, reference: "VT-1" })),
@@ -21,10 +28,62 @@ function sweep(sessions: Record<string, unknown>, rows: { booking_id: string; se
       return s as never;
     },
     purge: purgeFn,
+    markDead,
     emit,
   } as PurgeSweepDeps;
-  return { deps, purgeFn, emit };
+  return { deps, purgeFn, emit, markDead, order };
 }
+
+describe("J4 W5-11: the verified sessions are marked dead before the purge", () => {
+  it("sweep: mark dead with exactly the verified ids, then purge", async () => {
+    const t = sweep({ cs_1: EXP, cs_2: EXP }, [{ booking_id: "b1", session_ids: ["cs_1", "cs_2"] }]);
+    await purgeExpiredUnpaidWithDeps(t.deps);
+    expect(t.markDead).toHaveBeenCalledWith("b1", ["cs_1", "cs_2"]);
+    expect(t.order).toEqual(["dead", "purge"]);
+  });
+  it("sweep: nothing is marked dead while a session is open or paid", async () => {
+    const open = sweep({ cs_1: EXP, cs_2: OPEN }, [{ booking_id: "b1", session_ids: ["cs_1", "cs_2"] }]);
+    await purgeExpiredUnpaidWithDeps(open.deps);
+    const paid = sweep({ cs_1: PAID }, [{ booking_id: "b1", session_ids: ["cs_1"] }]);
+    await purgeExpiredUnpaidWithDeps(paid.deps);
+    expect(open.markDead).not.toHaveBeenCalled();
+    expect(paid.markDead).not.toHaveBeenCalled();
+  });
+  it("sweep: a failing mark is logged and the purge is still asked (the database refuses it without the proof)", async () => {
+    const t = sweep({ cs_1: EXP }, [{ booking_id: "b1", session_ids: ["cs_1"] }]);
+    t.markDead.mockRejectedValueOnce(new Error("rpc missing"));
+    expect((await purgeExpiredUnpaidWithDeps(t.deps)).purged).toBe(1);
+    expect(t.emit).toHaveBeenCalledWith("purge_mark_dead_failed", { bookingId: "b1" });
+  });
+  it("expired-page path: every session is verified, marked dead, then the booking is purged", async () => {
+    const order: string[] = [];
+    const deps = {
+      sessionIdsFor: async () => ["cs_1", "cs_2"],
+      retrieve: async (id: string) => ({ ...EXP, id }) as never,
+      purge: vi.fn(async () => {
+        order.push("purge");
+        return true;
+      }),
+      markDead: vi.fn(async () => {
+        order.push("dead");
+      }),
+    };
+    expect(await purgeOnSessionExpired(deps, "cs_1", "b1")).toBe(true);
+    expect(deps.markDead).toHaveBeenCalledWith("b1", ["cs_1", "cs_2"]);
+    expect(order).toEqual(["dead", "purge"]);
+  });
+  it("expired-page path: an open sibling session means no mark and no purge", async () => {
+    const deps = {
+      sessionIdsFor: async () => ["cs_1", "cs_2"],
+      retrieve: async (id: string) => (id === "cs_2" ? OPEN : EXP) as never,
+      purge: vi.fn(async () => true),
+      markDead: vi.fn(async () => undefined),
+    };
+    expect(await purgeOnSessionExpired(deps, "cs_1", "b1")).toBe(false);
+    expect(deps.markDead).not.toHaveBeenCalled();
+    expect(deps.purge).not.toHaveBeenCalled();
+  });
+});
 
 describe("purgeExpiredUnpaidWithDeps", () => {
   it("purges a booking whose sessions are all expired and unpaid", async () => {

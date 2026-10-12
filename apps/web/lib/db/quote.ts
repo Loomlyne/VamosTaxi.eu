@@ -177,3 +177,46 @@ export async function loadLaunchFlags(
     return { ...LAUNCH_FLAGS_CLOSED };
   }
 }
+
+/**
+ * J6 (W2-04): the launch flags for a CHARGE. `loadLaunchFlags` is for display: it never throws and
+ * answers 8.1 % when anything is wrong, which is a safe thing to show and a wrong thing to charge.
+ * This one throws when the read fails or the answer carries no usable rate, so Pay and the screen's
+ * price (`/api/checkout/price`) refuse `pricing_not_live` instead of charging a rate nobody set.
+ */
+export class LaunchFlagsUnavailableError extends Error {
+  constructor(reason: string) {
+    super(`launch flags unavailable: ${reason}`);
+    this.name = "LaunchFlagsUnavailableError";
+  }
+}
+
+/** The VAT rate out of a quote_rate_book answer, or null when it is absent or not a non-negative number. */
+export function strictVatRateBps(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value) && value >= 0) return Math.trunc(value);
+  if (typeof value === "string" && /^\d{1,4}$/.test(value.trim())) return Number(value.trim());
+  return null;
+}
+
+export async function loadLaunchFlagsStrict(
+  env: CloudflareEnv,
+  request?: RequestContext,
+): Promise<LaunchFlags> {
+  let result: unknown;
+  try {
+    result = await asCheckout(env, null, async (tx) => {
+      const rows = await tx`select public.quote_rate_book(${false}) as result`;
+      return rows[0]?.result ?? null;
+    });
+  } catch {
+    throw new LaunchFlagsUnavailableError("read failed");
+  }
+  if (!isRecord(result) || typeof result.public_chf !== "boolean") {
+    throw new LaunchFlagsUnavailableError("no launch flags in the rate book");
+  }
+  const bps = strictVatRateBps(result.vat_rate_bps);
+  if (bps === null) throw new LaunchFlagsUnavailableError("no VAT rate in the rate book");
+  const flags: LaunchFlags = { public_chf: result.public_chf, vat_rate_bps: bps };
+  emit(request, "launch_flags", { public_chf: flags.public_chf, vat_rate_bps: flags.vat_rate_bps });
+  return flags;
+}

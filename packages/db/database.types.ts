@@ -159,6 +159,7 @@ export type Database = {
       }
       booking_disputes: {
         Row: {
+          alerted_status: string | null
           amount_rappen: number | null
           booking_id: string
           id: number
@@ -170,6 +171,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          alerted_status?: string | null
           amount_rappen?: number | null
           booking_id: string
           id?: never
@@ -181,6 +183,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          alerted_status?: string | null
           amount_rappen?: number | null
           booking_id?: string
           id?: never
@@ -750,6 +753,67 @@ export type Database = {
             foreignKeyName: "booking_refund_intents_refund_id_fkey"
             columns: ["refund_id"]
             isOneToOne: false
+            referencedRelation: "booking_refunds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_refund_reversals: {
+        Row: {
+          alert_sent_at: string | null
+          booking_id: string
+          failure_reason: string | null
+          payment_id: number
+          recorded_at: string
+          refund_id: number
+          reversed_rappen: number
+          stripe_created: string
+          stripe_refund_id: string
+          stripe_status: string
+        }
+        Insert: {
+          alert_sent_at?: string | null
+          booking_id: string
+          failure_reason?: string | null
+          payment_id: number
+          recorded_at?: string
+          refund_id: number
+          reversed_rappen: number
+          stripe_created: string
+          stripe_refund_id: string
+          stripe_status: string
+        }
+        Update: {
+          alert_sent_at?: string | null
+          booking_id?: string
+          failure_reason?: string | null
+          payment_id?: number
+          recorded_at?: string
+          refund_id?: number
+          reversed_rappen?: number
+          stripe_created?: string
+          stripe_refund_id?: string
+          stripe_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_refund_reversals_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_refund_reversals_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "booking_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_refund_reversals_refund_id_fkey"
+            columns: ["refund_id"]
+            isOneToOne: true
             referencedRelation: "booking_refunds"
             referencedColumns: ["id"]
           },
@@ -2424,36 +2488,48 @@ export type Database = {
       }
       stripe_events: {
         Row: {
+          abandoned_at: string | null
           attempts: number
           id: string
+          last_attempt_at: string | null
           last_error: string | null
           object_id: string | null
           payload: Json
           processed_at: string | null
           received_at: string
           stripe_created: string
+          sweep_count: number
+          sweep_last_at: string | null
           type: string
         }
         Insert: {
+          abandoned_at?: string | null
           attempts?: number
           id: string
+          last_attempt_at?: string | null
           last_error?: string | null
           object_id?: string | null
           payload: Json
           processed_at?: string | null
           received_at?: string
           stripe_created: string
+          sweep_count?: number
+          sweep_last_at?: string | null
           type: string
         }
         Update: {
+          abandoned_at?: string | null
           attempts?: number
           id?: string
+          last_attempt_at?: string | null
           last_error?: string | null
           object_id?: string | null
           payload?: Json
           processed_at?: string | null
           received_at?: string
           stripe_created?: string
+          sweep_count?: number
+          sweep_last_at?: string | null
           type?: string
         }
         Relationships: []
@@ -3193,11 +3269,15 @@ export type Database = {
       }
       checkout_extra_payment_settle: {
         Args: {
+          p_amount_currency?: string
+          p_amount_received_minor?: number
+          p_amount_total_minor?: number
           p_charged_currency: string
           p_event_id: string
           p_fx_quoted_at: string
           p_fx_rate: number
           p_fx_source: string
+          p_metadata_booking_id?: string
           p_outcome: string
           p_payment_intent_id: string
           p_presentment_amount_minor: number
@@ -3290,11 +3370,15 @@ export type Database = {
       }
       checkout_payment_settle: {
         Args: {
+          p_amount_currency?: string
+          p_amount_received_minor?: number
+          p_amount_total_minor?: number
           p_charged_currency: string
           p_event_id: string
           p_fx_quoted_at: string
           p_fx_rate: number
           p_fx_source: string
+          p_metadata_booking_id?: string
           p_outcome: string
           p_payment_intent_id: string
           p_presentment_amount_minor: number
@@ -3303,6 +3387,7 @@ export type Database = {
         }
         Returns: {
           already_settled: boolean
+          amount_mismatch: boolean
           booking_id: string
           charged_rappen: number
           contact_email: string
@@ -3316,6 +3401,10 @@ export type Database = {
           revived: boolean
           snapshot_id: number
         }[]
+      }
+      checkout_payments_mark_dead: {
+        Args: { p_booking_id: string; p_session_ids: string[] }
+        Returns: number
       }
       checkout_quote_left: { Args: { p_quote_id: string }; Returns: boolean }
       checkout_reference_for_session: {
@@ -3553,6 +3642,10 @@ export type Database = {
       guest_confirmation_read: {
         Args: { p_reference: string; p_token_hash: string }
         Returns: Json
+      }
+      guest_resume_quote: {
+        Args: { p_reference: string; p_token_hash: string }
+        Returns: string
       }
       manage_booking_cancel: {
         Args: { p_leg_seq?: number; p_token_hash: string }
@@ -4019,6 +4112,13 @@ export type Database = {
           user_id: string
         }[]
       }
+      staff_erase_unpaid_booking: {
+        Args: { p_key: string }
+        Returns: {
+          booking_id: string
+          outcome: string
+        }[]
+      }
       staff_extra_label_upsert: {
         Args: {
           p_ar: string
@@ -4076,6 +4176,10 @@ export type Database = {
           refund_id: number
         }[]
       }
+      stripe_dispute_alerted: {
+        Args: { p_status: string; p_stripe_dispute_id: string }
+        Returns: undefined
+      }
       stripe_dispute_upsert: {
         Args: {
           p_amount_rappen: unknown
@@ -4087,8 +4191,11 @@ export type Database = {
           p_stripe_dispute_id: string
         }
         Returns: {
+          alert_pending: boolean
           booking_id: string
           dispute_id: number
+          reference: string
+          status: string
         }[]
       }
       stripe_event_begin: {
@@ -4102,6 +4209,10 @@ export type Database = {
           should_process: boolean
         }[]
       }
+      stripe_event_close: {
+        Args: { p_event_id: string; p_reason: string }
+        Returns: undefined
+      }
       stripe_event_record: {
         Args: {
           p_id: string
@@ -4114,6 +4225,47 @@ export type Database = {
       }
       stripe_event_settle: {
         Args: { p_error: string; p_event_id: string }
+        Returns: undefined
+      }
+      stripe_events_sweep_abandoned: {
+        Args: { p_event_ids: string[] }
+        Returns: number
+      }
+      stripe_events_sweep_claim: {
+        Args: {
+          p_horizon?: string
+          p_limit?: number
+          p_max_sweeps?: number
+          p_min_age?: string
+        }
+        Returns: {
+          action: string
+          attempts: number
+          event_id: string
+          event_type: string
+          last_error: string
+          object_id: string
+          stripe_created: string
+        }[]
+      }
+      stripe_refund_failed_record: {
+        Args: {
+          p_app_source: boolean
+          p_created: string
+          p_failure_reason: string
+          p_status: string
+          p_stripe_refund_id: string
+        }
+        Returns: {
+          alert_pending: boolean
+          booking_id: string
+          outcome: string
+          reference: string
+          refund_id: number
+        }[]
+      }
+      stripe_refund_failure_alerted: {
+        Args: { p_stripe_refund_id: string }
         Returns: undefined
       }
       submit_contact_message: {

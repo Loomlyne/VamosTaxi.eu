@@ -320,8 +320,8 @@ select is(
 );
 select is(
   (select state from public.checkout_pay_link_state(decode(repeat('c1', 32), 'hex'))),
-  'payable',
-  'state: the unrevoked first token is still payable'
+  'expired',
+  'state: the first token was revoked when the resend stored the second (J9 W5-19)'
 );
 
 -- 4. 24 h + 1 s after sending: refused everywhere --------------------------------------

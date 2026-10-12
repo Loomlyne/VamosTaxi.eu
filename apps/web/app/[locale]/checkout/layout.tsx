@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { loadSettingsVersion } from "@/lib/db/quote";
 import { accountCreateAvailable, guestAccountsOn } from "@/lib/checkout/account-notice";
 import { policyHours } from "@/lib/checkout/policy-settings";
+import { checkoutPaymentMethodTypes } from "@/lib/checkout/payment-methods";
 import { CheckoutSettingsProvider } from "./CheckoutSettings";
 import "./checkout.css";
 
@@ -47,11 +48,6 @@ export default async function CheckoutLayout({
     }
   }
 
-  const publishableKey =
-    env?.STRIPE_PUBLISHABLE_KEY && env.STRIPE_PUBLISHABLE_KEY !== "pk_test_placeholder"
-      ? env.STRIPE_PUBLISHABLE_KEY
-      : "";
-
   let guestOn = false;
   let createOn = false;
   if (env) {
@@ -71,7 +67,7 @@ export default async function CheckoutLayout({
         freeCancelHours,
         checkoutWindowMinutes,
         turnstileSiteKey: env?.TURNSTILE_SITE_KEY ?? process.env.TURNSTILE_SITE_KEY,
-        publishableKey,
+        twintOn: env ? checkoutPaymentMethodTypes(env).includes("twint") : false,
         guestAccountsOn: guestOn,
         accountCreateAvailable: createOn,
       }}

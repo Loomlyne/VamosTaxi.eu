@@ -181,6 +181,8 @@ select has_column(
   'booking_legs.original_scheduled_at exists (D-26)'
 );
 
+-- J7 W6-02: the hours are real elapsed time (timestamptz minus timestamptz), no longer wall-clock
+-- arithmetic on two `AT TIME ZONE 'Europe/Zurich'` values. The DST proof is refund_policy_window.test.sql.
 select ok(
   exists (
     select 1
@@ -188,9 +190,10 @@ select ok(
       join pg_catalog.pg_namespace n on n.oid = p.pronamespace
      where n.nspname = 'public'
        and p.proname = 'compute_cancellation_refund'
-       and pg_catalog.pg_get_functiondef(p.oid) like '%Europe/Zurich%'
+       and pg_catalog.pg_get_functiondef(p.oid) like '%app.refund_hours_before%'
+       and pg_catalog.pg_get_functiondef(p.oid) not like '%at time zone%'
   ),
-  'compute_cancellation_refund hours use Europe/Zurich'
+  'compute_cancellation_refund hours are real elapsed time (app.refund_hours_before), no AT TIME ZONE arithmetic'
 );
 
 select ok(

@@ -6,6 +6,7 @@
 
 import { z } from "zod";
 import { isCheckoutEmail } from "./contact-validate";
+import { isMobileNumber } from "./pay-validate";
 import { parseTripQuery, type Trip } from "./trip-url";
 
 /**
@@ -21,9 +22,17 @@ export const CHECKOUT_FIELD_MAX = Object.freeze({
   email: 254,
   phone: 40,
   coupon: 64,
-  idempotencyKey: 200,
+  idempotencyKey: 128,
   lock: 16384,
 });
+
+/**
+ * J6 (W2-18, W1-12): the Pay idempotency key is a client-made token (a UUID in every page). Only URL-safe
+ * characters, 8 to 128 long: it is stored on the booking and in the Pay-press table, and reaches Stripe as
+ * `<key>:after:<cs_… or booking uuid>`, which stays under Stripe's 255 characters (128 + 7 + 100 at most).
+ */
+export const IDEMPOTENCY_KEY_RE = /^[A-Za-z0-9_-]{8,128}$/;
+export const idempotencyKeyField = z.string().regex(IDEMPOTENCY_KEY_RE);
 
 const FORBIDDEN_SERVER_FIELDS = [
   "total_rappen",
@@ -82,16 +91,25 @@ const flightNoField = z
   })
   .optional();
 
+// J6 (W2-20): the same rules the page runs before Pay (lib/checkout/pay-validate.ts), enforced on the server, on
+// the TRIMMED value that is stored: a name is not blank, the e-mail is a plausible address, the mobile has 8 to 15
+// digits (`isMobileNumber`, the page's own check).
 const contactField = z
   .object({
-    name: z.string().min(1).max(CHECKOUT_FIELD_MAX.name),
+    name: z.string().trim().min(1).max(CHECKOUT_FIELD_MAX.name),
     // The same check the page runs before Pay (lib/checkout/contact-validate.ts), now on the server.
     email: z
       .string()
+      .trim()
       .min(1)
       .max(CHECKOUT_FIELD_MAX.email)
       .refine((value) => isCheckoutEmail(value), { message: "contact.email" }),
-    phone: z.string().min(1).max(CHECKOUT_FIELD_MAX.phone),
+    phone: z
+      .string()
+      .trim()
+      .min(1)
+      .max(CHECKOUT_FIELD_MAX.phone)
+      .refine((value) => isMobileNumber(value), { message: "contact.phone" }),
   })
   .strict();
 
@@ -110,7 +128,7 @@ const checkoutIntentObject = z
     locale: localeField,
     display_currency: displayCurrencyField,
     // Required — Phase 4 D-57. Never .optional(). Never derived from quote_id.
-    idempotency_key: z.string().min(1).max(CHECKOUT_FIELD_MAX.idempotencyKey),
+    idempotency_key: z.string().min(1).max(200),
   })
   .strict();
 
@@ -187,7 +205,8 @@ const webIntentObject = z
     supersedes: z.string().uuid().optional(),
     trip: tripField,
     account: accountField.optional(),
-    idempotency_key: z.string().min(1).max(CHECKOUT_FIELD_MAX.idempotencyKey),
+    // J6 (W2-18, W1-12): URL-safe, 8 to 128 characters (the pay-link schema keeps its own looser key).
+    idempotency_key: idempotencyKeyField,
   })
   .strict();
 

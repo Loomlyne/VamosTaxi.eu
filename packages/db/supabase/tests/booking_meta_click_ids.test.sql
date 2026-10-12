@@ -71,11 +71,13 @@ select is((select count(*)::int from public.bookings where id in ('c2800000-0000
 -- trigger: the database owner cannot backfill a paid booking
 select throws_ok($$ update public.bookings set meta_fbp = 'fb.1.1727771234567.1234567890' where id = 'c2800000-0000-0000-0000-000000000002' $$, '55000', null, 'superuser update on a paid booking refused');
 select throws_ok($$ update public.bookings set meta_fbc = 'fb.1.1727771234567.abc' where id = 'c2800000-0000-0000-0000-000000000003' $$, '55000', null, 'superuser update on a confirmed booking refused');
--- trigger: a staff role cannot either (staff hold whole-table UPDATE)
+-- a staff role cannot either. J9 W5-07: staff no longer hold whole-table UPDATE on bookings (column grants on the
+-- columns the Worker writes), so the refusal is permission denied (42501) before the trigger is reached; the
+-- trigger itself is proven by the two owner-role lines above.
 set local role vamos_staff;
 select set_config('request.jwt.claims', jsonb_build_object('sub','28000000-0000-4000-a000-000000000001','role','authenticated','aal','aal2','app_metadata',jsonb_build_object('vamos_role','admin'))::text, true);
 select is((select count(*)::int from public.bookings where id = 'c2800000-0000-0000-0000-000000000002'), 1, 'staff sees the paid fixture (so the refusal below is the trigger, not row security)');
-select throws_ok($$ update public.bookings set meta_fbp = 'fb.1.1727771234567.1234567890' where id = 'c2800000-0000-0000-0000-000000000002' $$, '55000', null, 'staff update on a paid booking refused');
+select throws_ok($$ update public.bookings set meta_fbp = 'fb.1.1727771234567.1234567890' where id = 'c2800000-0000-0000-0000-000000000002' $$, '42501', null, 'staff update of a Meta click id refused (no column grant, J9 W5-07)');
 reset role;
 -- trigger: insert of a paid booking with a value
 select throws_ok($$ insert into public.bookings (id, contact_name, contact_email, status, meta_fbp) values ('c2800000-0000-0000-0000-000000000004', 'x', 'meta-d@example.test', 'paid', 'fb.1.1727771234567.1234567890') $$, '55000', null, 'insert of a paid booking with a value refused');

@@ -13,6 +13,11 @@ export const CHECKOUT_REFUSALS = {
   coupon_no_longer_valid: { status: 409, action: "requote" as const },
   quote_already_booked: { status: 409, action: null },
   payment_window_closed: { status: 409, action: null },
+  // J6 (W2-01): the pickup is re-checked at Pay. The customer changes the time, so there is no "requote" action.
+  pickup_in_past: { status: 409, action: null },
+  pickup_too_soon: { status: 409, action: null },
+  // J6 (W2-03, U19): a total under CHF 0.50 (a 100 % or larger coupon included) cannot be charged by card.
+  amount_below_minimum: { status: 409, action: null },
   invalid_request: { status: 400, action: null },
   turnstile_failed: { status: 400, action: null },
   // Pay-link open route after a hash miss (26.1-15, D-20/D-21/D-22).

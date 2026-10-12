@@ -130,7 +130,7 @@ describe("D-40 grep gates: Worker vamos, no .eu, no sk_live_, SQL does not flip 
 
   it("staging Stripe publishable is the Vamos sandbox or live key; wrangler has no sk_live_", () => {
     const wrangler = source("wrangler.jsonc");
-    expect(wrangler).not.toMatch(/sk_live_/);
+    expect(wrangler).not.toMatch(/sk_live_|rk_live_|sk_test_|rk_test_|whsec_/);
     const key = wranglerConfig().env.staging.vars?.STRIPE_PUBLISHABLE_KEY ?? "";
     // Same account pins as lib/checkout/stripe-sandbox-only.test.ts.
     // Staging has used the live publishable key since 6a5f274e. The secret stays out of the file.

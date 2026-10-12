@@ -2,7 +2,7 @@
 //
 // Authorized health body: { ok, db, payments, maps } booleans only.
 // Fail closed per dependency. SELECT 1 on HYPERDRIVE_NOCACHE via asSystem.
-// Stripe balance.retrieve is not a charge. Mapbox tokens/v2 is not geocode.
+// Stripe balance.retrieve is not a charge; `payments` is also false when the key modes disagree. Mapbox tokens/v2 is not geocode.
 // A dependency that does not answer within HEALTH_PROBE_TIMEOUT_MS reads as
 // down: worker.ts runs this in the hourly cron before the digest.
 
@@ -11,6 +11,7 @@
 export const dynamic = "force-dynamic";
 
 import { stripeFromEnv } from "@/lib/checkout/stripe";
+import { stripeKeysAgree, stripeSecretKeyMode } from "@/lib/checkout/stripe-mode";
 import { asSystem } from "@/lib/db/identity";
 
 export type HealthProbeResult = {
@@ -44,8 +45,11 @@ async function probeDb(env: CloudflareEnv): Promise<boolean> {
 
 async function probePayments(env: CloudflareEnv): Promise<boolean> {
   try {
-    await stripeFromEnv(env).balance.retrieve();
-    return true;
+    // J1 (W1-04): payments are healthy only when Stripe answers, the secret and publishable
+    // keys name the same mode, and the account Stripe reports is in that mode.
+    if (!stripeKeysAgree(env)) return false;
+    const balance = await stripeFromEnv(env).balance.retrieve();
+    return balance.livemode === (stripeSecretKeyMode(env.STRIPE_SECRET_KEY) === "live");
   } catch {
     return false;
   }

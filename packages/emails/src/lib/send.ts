@@ -382,6 +382,8 @@ export async function sendRefund(
     to: string;
     name: string;
     reference: string;
+    /** J8 (W6-17): what was refunded, in rappen. The "issued" mail names it. */
+    amountRappen?: number | null;
   },
 ): Promise<SendOutcome> {
   try {
@@ -395,6 +397,7 @@ export async function sendRefund(
     const rendered = renderRefundEmail(input.locale, input.kind, {
       name: input.name,
       reference: input.reference,
+      amountRappen: input.amountRappen ?? null,
     });
     if (hasCopySentinel(rendered.subject) || hasCopySentinel(rendered.text)) {
       return { ok: false, error: "missing-copy" };

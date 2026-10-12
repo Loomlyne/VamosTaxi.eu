@@ -45,6 +45,7 @@ vi.mock("./stripe", async (importOriginal) => {
 import {
   applyHandleResult,
   captureAllowed,
+  chargeFactsFromSession,
   handleStripeMessage,
   handleStripeMessageWithDeps,
   metaPurchaseDepFor,
@@ -128,6 +129,7 @@ function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
   retrieveSession: ReturnType<typeof vi.fn>;
   settlePayment: ReturnType<typeof vi.fn>;
   eventSettle: ReturnType<typeof vi.fn>;
+  eventClose: ReturnType<typeof vi.fn>;
   deliverConfirmation: ReturnType<typeof vi.fn>;
   provisionAccount: ReturnType<typeof vi.fn>;
   refund: ReturnType<typeof vi.fn>;
@@ -145,6 +147,7 @@ function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
   const retrieveSession = vi.fn(async () => session());
   const settlePayment = vi.fn(async () => settleRow());
   const eventSettle = vi.fn(async () => undefined);
+  const eventClose = vi.fn(async () => undefined);
   const deliverConfirmation = vi.fn(async () => undefined);
   const provisionAccount = vi.fn(async () => "created");
   const refund = vi.fn(async () => ({ id: "re_test_1" }));
@@ -157,6 +160,7 @@ function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
     retrieveSession,
     settlePayment,
     eventSettle,
+    eventClose,
     deliverConfirmation,
     provisionAccount,
     refund,
@@ -177,6 +181,7 @@ function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
     retrieveSession: ReturnType<typeof vi.fn>;
     settlePayment: ReturnType<typeof vi.fn>;
     eventSettle: ReturnType<typeof vi.fn>;
+    eventClose: ReturnType<typeof vi.fn>;
     deliverConfirmation: ReturnType<typeof vi.fn>;
     provisionAccount: ReturnType<typeof vi.fn>;
     refund: ReturnType<typeof vi.fn>;
@@ -329,7 +334,9 @@ describe("handleStripeMessageWithDeps", () => {
       }),
     });
     expect(await handleStripeMessageWithDeps(message({ type: "checkout.session.expired" }), unpaid)).toEqual({ ack: true });
-    expect(unpaid.eventSettle).toHaveBeenCalledWith("evt_1", "22023");
+    // J2 (W4-09): closed (processed, reason kept), so the sweep never re-enqueues it.
+    expect(unpaid.eventClose).toHaveBeenCalledWith("evt_1", "22023");
+    expect(unpaid.eventSettle).not.toHaveBeenCalled();
   });
 
   it("does not send a second email when already_settled is true", async () => {
@@ -463,7 +470,9 @@ describe("handleStripeMessageWithDeps", () => {
       ),
     });
     const result = await handleStripeMessageWithDeps(message(), d);
-    expect(result).toEqual({ ack: true });
+    // J2 (W4-03): a refund that failed is retried (the event stays open), never acked.
+    expect(result).toEqual({ retry: true });
+    expect(d.eventSettle).not.toHaveBeenCalled();
   });
 
   it("refund_required duplicate_charge refunds with the booking:payment:reason idempotency key, records it, sends no confirmation (D-22)", async () => {
@@ -540,7 +549,7 @@ describe("handleStripeMessageWithDeps", () => {
     );
   });
 
-  it("a refund dep throw never retries (processed_at already stamped) — alerts stuck payment and acks", async () => {
+  it("W4-03: a refund dep throw retries, leaves the event open and logs at error level (no alert mail per retry)", async () => {
     const emit = vi.fn();
     const alertStuckPayment = vi.fn(async () => undefined);
     const d = deps({
@@ -554,22 +563,87 @@ describe("handleStripeMessageWithDeps", () => {
       ),
     });
     const result = await handleStripeMessageWithDeps(message(), d);
-    expect(result).toEqual({ ack: true });
-    expect(alertStuckPayment).toHaveBeenCalledWith({
-      eventId: "evt_1",
-      type: "checkout.session.completed",
-      objectId: "cs_test_1",
-      reference: "VT-1",
-    });
+    expect(result).toEqual({ retry: true });
     expect(emit).toHaveBeenCalledWith(
       "error",
       "refund_failed",
-      expect.objectContaining({ eventId: "evt_1" }),
+      expect.objectContaining({ eventId: "evt_1", reason: "duplicate_charge" }),
     );
     expect(d.recordDuplicateRefund).not.toHaveBeenCalled();
+    // The event is NOT stamped processed: a redelivery or the sweep retries the refund.
+    expect(d.eventSettle).not.toHaveBeenCalled();
+    expect(d.eventClose).not.toHaveBeenCalled();
   });
 
-  it("a null PaymentIntent id on a refund_required row never calls Stripe — alerts stuck payment and acks", async () => {
+  it("W4-03: a failed refund is made again on the next delivery, with the same idempotency key, and the event is closed only then", async () => {
+    const refund = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("stripe 503"))
+      .mockResolvedValue({ id: "re_ok" });
+    const d = deps({
+      refund,
+      // The settle answers the same refund order on every delivery (the SQL marker keeps the event open).
+      settlePayment: vi.fn(async () =>
+        settleRow({ refund_required: true, refund_reason: "paid_after_cancel", already_settled: false }),
+      ),
+    });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true });
+    expect(d.eventSettle).not.toHaveBeenCalled();
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+    expect(refund).toHaveBeenCalledTimes(2);
+    const keys = refund.mock.calls.map((c) => c[0].idempotencyKey);
+    expect(keys[0]).toBe(keys[1]);
+    expect(keys[0]).toBe("refund:11111111-1111-1111-1111-111111111111:1:paid_after_cancel");
+    expect(d.recordDuplicateRefund).toHaveBeenCalledTimes(1);
+    expect(d.eventSettle).toHaveBeenCalledTimes(1);
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", null);
+  });
+
+  it("W4-03: a successful refund is not repeated once the event is closed (a redelivery is already_processed)", async () => {
+    const d = deps({
+      settlePayment: vi.fn(async () =>
+        settleRow({ refund_required: true, refund_reason: "duplicate_charge", duplicate: true, already_settled: true }),
+      ),
+    });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({
+      ack: true,
+      settled: { duplicate: true, revived: false },
+    });
+    expect(d.refund).toHaveBeenCalledTimes(1);
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", null);
+    // The closed event: begin answers already_processed, nothing runs.
+    d.begin.mockResolvedValueOnce({ should_process: false, reason: "already_processed" });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+    expect(d.refund).toHaveBeenCalledTimes(1);
+    expect(d.settlePayment).toHaveBeenCalledTimes(1);
+  });
+
+  it("W4-03: a refund that landed but could not be stamped retries (the repeat refund is idempotent)", async () => {
+    const d = deps({
+      eventSettle: vi.fn(async () => {
+        throw new Error("db down");
+      }),
+      settlePayment: vi.fn(async () => settleRow({ refund_required: true, refund_reason: "test_booking" })),
+    });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true });
+    expect(d.recordDuplicateRefund).toHaveBeenCalledTimes(1);
+  });
+
+  it("W4-02: a paid-after-cancel mail that did not go out is an error log, the refund stays done and the event closes", async () => {
+    const emit = vi.fn();
+    const d = deps({
+      emit,
+      alertPaidAfterCancel: vi.fn(async () => {
+        throw new Error("resend down");
+      }),
+      settlePayment: vi.fn(async () => settleRow({ refund_required: true, refund_reason: "paid_after_cancel" })),
+    });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+    expect(emit).toHaveBeenCalledWith("error", "paid_after_cancel_alert_failed", expect.objectContaining({ eventId: "evt_1" }));
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", null);
+  });
+
+  it("a null PaymentIntent id on a refund_required row never calls Stripe — alerts stuck payment, then closes the event and acks", async () => {
     const alertStuckPayment = vi.fn(async () => undefined);
     const refund = vi.fn(async () => ({ id: "re_never" }));
     const d = deps({
@@ -589,6 +663,22 @@ describe("handleStripeMessageWithDeps", () => {
       objectId: "cs_test_1",
       reference: "VT-1",
     });
+    expect(d.eventClose).toHaveBeenCalledWith("evt_1", "refund_required_no_payment_intent");
+  });
+
+  it("W4-02: a null PaymentIntent whose stuck-payment mail did not go out is NOT closed: it retries", async () => {
+    const emit = vi.fn();
+    const d = deps({
+      emit,
+      alertStuckPayment: vi.fn(async () => {
+        throw new Error("resend down");
+      }),
+      retrieveSession: vi.fn(async () => session({ payment_intent: null })),
+      settlePayment: vi.fn(async () => settleRow({ refund_required: true, refund_reason: "paid_after_cancel" })),
+    });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true });
+    expect(d.eventClose).not.toHaveBeenCalled();
+    expect(emit).toHaveBeenCalledWith("error", "stuck_payment_alert_failed", expect.objectContaining({ eventId: "evt_1" }));
   });
 });
 
@@ -699,6 +789,27 @@ describe("handleStripeMessageWithDeps — charge.refunded and charge.dispute.* (
     expect(d.begin).not.toHaveBeenCalled();
   });
 
+  // J7 W6-05: the refund-update events are in the handled set. Their ordering window is the refund id alone, so a
+  // later charge.refunded of another refund on the same PaymentIntent can never supersede (and drop) a failure.
+  it.each(["refund.failed", "refund.updated", "charge.refund.updated"])(
+    "%s is handled: the refund is re-read and a failed one is reversed (not ignored)",
+    async (type) => {
+      const recordRefundFailure = vi.fn(async () => ({ outcome: "reversed", reference: "VT-26-0101", alertPending: false }));
+      const d = deps({
+        retrieveRefund: vi.fn(async () => ({ id: "re_app_1", status: "failed", metadata: { vamos_source: "app" } }) as unknown as Stripe.Refund),
+        recordRefundFailure,
+      });
+      const result = await handleStripeMessageWithDeps(
+        message({ eventId: "evt_re_1", type, objectId: "re_app_1" }),
+        d,
+      );
+      expect(result).toEqual({ ack: true });
+      expect(d.begin).toHaveBeenCalledWith("evt_re_1", ["re_app_1"], expect.any(Date));
+      expect(recordRefundFailure).toHaveBeenCalledWith(expect.objectContaining({ stripeRefundId: "re_app_1", status: "failed" }));
+      expect(d.settlePayment).not.toHaveBeenCalled();
+    },
+  );
+
   it("other event types are still ignored (settled, acked, nothing retrieved)", async () => {
     const d = deps();
     const result = await handleStripeMessageWithDeps(
@@ -724,10 +835,16 @@ describe("applyHandleResult (worker queue loop)", () => {
     expect(m.ack).not.toHaveBeenCalled();
   });
 
-  it("a plain retry keeps the queue's default backoff", () => {
-    const m = queueMessage();
-    expect(applyHandleResult(m, { retry: true })).toBe("retry");
-    expect(m.retry).toHaveBeenCalledWith();
+  it("W4-06: a retry that names no delay waits (escalating by delivery), never an immediate redelivery", () => {
+    const first = { ack: vi.fn(), retry: vi.fn(), attempts: 1 };
+    expect(applyHandleResult(first, { retry: true })).toBe("retry");
+    expect(first.retry).toHaveBeenCalledWith({ delaySeconds: 30 });
+    const fifth = { ack: vi.fn(), retry: vi.fn(), attempts: 5 };
+    applyHandleResult(fifth, { retry: true });
+    expect(fifth.retry).toHaveBeenCalledWith({ delaySeconds: 300 });
+    const unknown = queueMessage();
+    applyHandleResult(unknown, { retry: true });
+    expect(unknown.retry).toHaveBeenCalledWith({ delaySeconds: 30 });
   });
 
   it("ack acks", () => {
@@ -743,7 +860,113 @@ describe("applyHandleResult (worker queue loop)", () => {
     const { fileURLToPath } = await import("node:url");
     const here = dirname(fileURLToPath(import.meta.url));
     const src = readFileSync(join(here, "..", "..", "worker.ts"), "utf8");
-    expect(src).toMatch(/applyHandleResult\(message, result\)/);
+    // J2: the loop moved to queue-consumers.ts (testable); the worker must still call it for every message.
+    expect(src).toMatch(/consumeStripeEventMessage\(/);
+    expect(src).toMatch(/consumeDlqMessage\(/);
+    const consumers = readFileSync(join(here, "queue-consumers.ts"), "utf8");
+    expect(consumers).toMatch(/applyHandleResult\(message, await run\(body\)\)/);
+  });
+
+  it("J2: the hourly cron runs the unprocessed-event sweep and both consumers set a retry delay", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { dirname, join } = await import("node:path");
+    const { fileURLToPath } = await import("node:url");
+    const here = dirname(fileURLToPath(import.meta.url));
+    const worker = readFileSync(join(here, "..", "..", "worker.ts"), "utf8");
+    expect(worker).toMatch(/sweepUnprocessedEvents\(env\)/);
+    // The sweep sits in the hourly path, after the 03:00 early return.
+    expect(worker.indexOf("sweepUnprocessedEvents(env)")).toBeGreaterThan(worker.indexOf('controller.cron === "0 3 * * *"'));
+    const wrangler = readFileSync(join(here, "..", "..", "wrangler.jsonc"), "utf8");
+    // staging and production, main consumer and DLQ consumer: four retry_delay entries.
+    expect(wrangler.match(/"retry_delay":\s*\d+/g)?.length).toBe(4);
+    expect(wrangler.match(/"retry_delay":\s*30\b/g)?.length).toBe(2);
+  });
+});
+
+describe("J2 W4-04: charge and dispute ids are chosen by the event type, not by a prefix", () => {
+  const chargeMsg = (objectId: string) => message({ type: "charge.refunded", objectId, eventId: "evt_ch" });
+  const disputeMsg = (objectId: string, type = "charge.dispute.created") =>
+    message({ type, objectId, eventId: "evt_dp" } as Partial<StripeQueueMessage>);
+
+  it.each(["ch_3Abc123", "py_3Abc123"])("a charge.refunded for %s is re-read from Stripe and recorded", async (id) => {
+    const d = deps();
+    const result = await handleStripeMessageWithDeps(chargeMsg(id), d);
+    expect(result).toEqual({ ack: true });
+    expect(d.retrieveCharge).toHaveBeenCalledWith(id);
+    expect(d.recordChargeRefund).toHaveBeenCalledTimes(1);
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_ch", null);
+  });
+
+  it.each(["du_1Abc", "dp_1Abc"])("a dispute event for %s is re-read from Stripe and upserted", async (id) => {
+    const d = deps();
+    const result = await handleStripeMessageWithDeps(disputeMsg(id), d);
+    expect(result).toEqual({ ack: true });
+    expect(d.retrieveDispute).toHaveBeenCalledWith(id);
+    expect(d.upsertDispute).toHaveBeenCalledTimes(1);
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_dp", null);
+  });
+
+  it.each([
+    ["charge.refunded", "re_123"],
+    ["charge.refunded", "pi_123"],
+    ["charge.refunded", ""],
+    ["charge.dispute.closed", "ch_123"],
+    ["charge.dispute.updated", "xx_123"],
+  ])("%s with the object id %j is an error that retries and alerts: never stamped processed, never acked", async (type, id) => {
+    const emit = vi.fn();
+    const d = deps({ emit });
+    const result = await handleStripeMessageWithDeps(message({ type, objectId: id, eventId: "evt_bad" } as Partial<StripeQueueMessage>), d);
+    expect(result).toEqual({ retry: true });
+    expect(emit).toHaveBeenCalledWith("error", "stripe_event_unknown_object_id", expect.objectContaining({ eventId: "evt_bad" }));
+    // The reason is written on the event (open), and it is never stamped processed or closed.
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_bad", "unknown_object_id");
+    expect(d.eventSettle).not.toHaveBeenCalledWith("evt_bad", null);
+    expect(d.eventClose).not.toHaveBeenCalled();
+    expect(d.retrieveCharge).not.toHaveBeenCalled();
+    expect(d.retrieveDispute).not.toHaveBeenCalled();
+    expect(d.begin).not.toHaveBeenCalled();
+  });
+
+  it("a poison body without an object id retries and logs; it does not throw a TypeError", async () => {
+    const d = deps();
+    const result = await handleStripeMessageWithDeps({ eventId: "evt_p", type: "charge.refunded", stripeCreated: 1 } as unknown as StripeQueueMessage, d);
+    expect(result).toEqual({ retry: true });
+  });
+});
+
+describe("J2 W4-14 / W4-02: nothing fails silently", () => {
+  it("a Stripe read that fails is logged and retried", async () => {
+    const emit = vi.fn();
+    const d = deps({
+      emit,
+      retrieveSession: vi.fn(async () => {
+        throw new Error("stripe 503");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true });
+    expect(emit).toHaveBeenCalledWith("warn", "stripe_read_failed", expect.objectContaining({ kind: "session" }));
+  });
+
+  it("a permanent database error after capture is logged at error level with its SQLSTATE", async () => {
+    const emit = vi.fn();
+    const d = deps({
+      emit,
+      settlePayment: vi.fn(async () => {
+        throw Object.assign(new Error("one_success"), { code: "23505" });
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true, delaySeconds: 300 });
+    expect(emit).toHaveBeenCalledWith("error", "settle_failed_paid", expect.objectContaining({ sqlstate: "23505", sqlstateClass: "23" }));
+  });
+
+  it("the overlap must-fix mail failing is an error log (settle rolled back, retried by the queue)", async () => {
+    // production wiring: settlePayment catches 23P01 for an extra session and logs when the mail fails.
+    const { readFileSync } = await import("node:fs");
+    const { dirname, join } = await import("node:path");
+    const { fileURLToPath } = await import("node:url");
+    const here = dirname(fileURLToPath(import.meta.url));
+    const src = readFileSync(join(here, "settle.ts"), "utf8");
+    expect(src).toMatch(/overlap_must_fix_alert_failed/);
   });
 });
 
@@ -763,14 +986,160 @@ describe("settle stores the presentment currency (D-21)", () => {
       amount_total: 8000,
       presentment_details: { presentment_amount: 9000, presentment_currency: "eur" },
     } as Partial<Stripe.Checkout.Session>);
-    expect(values.slice(-2)).toEqual([9000, "EUR"]);
+    expect(values.slice(8, 10)).toEqual([9000, "EUR"]);
   });
 
   it("passes null and null for a CHF presentment", async () => {
     const values = await settleWith({
       presentment_details: { presentment_amount: 8000, presentment_currency: "chf" },
     } as Partial<Stripe.Checkout.Session>);
-    expect(values.slice(-2)).toEqual([null, null]);
+    expect(values.slice(8, 10)).toEqual([null, null]);
+  });
+});
+
+describe("J3 W4-07 / W5-02: what Stripe collected is compared with the payment row", () => {
+  async function settleWith(patch: Partial<Stripe.Checkout.Session>) {
+    sqlCalls.length = 0;
+    retrieved.session = session(patch);
+    await handleStripeMessage({} as CloudflareEnv, message());
+    const call = sqlCalls.find((c) => c.text.includes("checkout_payment_settle"));
+    expect(call).toBeDefined();
+    return call!.values;
+  }
+
+  it("passes the session's total, its currency, the PaymentIntent's amount_received and the metadata booking id", async () => {
+    const values = await settleWith({
+      amount_total: 8000,
+      currency: "chf",
+      metadata: { booking_id: "11111111-1111-4111-8111-111111111111" },
+      payment_intent: { id: "pi_test_1", status: "succeeded", amount_received: 8000, currency: "chf" },
+    } as unknown as Partial<Stripe.Checkout.Session>);
+    expect(values.slice(10)).toEqual([8000, "CHF", 8000, "11111111-1111-4111-8111-111111111111"]);
+  });
+
+  it("an unexpanded PaymentIntent leaves amount_received null (the database skips that check)", async () => {
+    const values = await settleWith({ amount_total: 8000, currency: "chf", payment_intent: "pi_test_1" } as Partial<Stripe.Checkout.Session>);
+    expect(values.slice(10)).toEqual([8000, "CHF", null, null]);
+  });
+
+  it("a legitimate EUR presentment of a CHF charge sends the CHF facts: it is not a mismatch", async () => {
+    const values = await settleWith({
+      amount_total: 8000,
+      currency: "chf",
+      presentment_details: { presentment_amount: 9000, presentment_currency: "eur" },
+      payment_intent: { id: "pi_test_1", status: "succeeded", amount_received: 8000, currency: "chf" },
+    } as unknown as Partial<Stripe.Checkout.Session>);
+    expect(values.slice(8, 10)).toEqual([9000, "EUR"]);
+    expect(values.slice(10, 13)).toEqual([8000, "CHF", 8000]);
+  });
+
+  describe("chargeFactsFromSession", () => {
+    it("a processing PaymentIntent (amount_received 0) is not read", () => {
+      const f = chargeFactsFromSession({
+        amount_total: 8000,
+        currency: "chf",
+        payment_intent: { id: "pi_1", status: "processing", amount_received: 0, currency: "chf" },
+      } as unknown as Stripe.Checkout.Session);
+      expect(f.amountReceivedMinor).toBeNull();
+      expect(f.amountTotalMinor).toBe(8000);
+    });
+
+    it("a PaymentIntent in another currency is not compared with the session total", () => {
+      const f = chargeFactsFromSession({
+        amount_total: 8000,
+        currency: "chf",
+        payment_intent: { id: "pi_1", status: "succeeded", amount_received: 9000, currency: "eur" },
+      } as unknown as Stripe.Checkout.Session);
+      expect(f.amountReceivedMinor).toBeNull();
+    });
+
+    it("the old Adaptive Pricing shape (currency_conversion): the creation currency and total are the charge, the PaymentIntent is not read", () => {
+      const f = chargeFactsFromSession({
+        amount_total: 9000,
+        currency: "eur",
+        currency_conversion: { source_currency: "chf", amount_total: 8000, amount_subtotal: 8000, fx_rate: "1.125" },
+        payment_intent: { id: "pi_1", status: "succeeded", amount_received: 9000, currency: "eur" },
+      } as unknown as Stripe.Checkout.Session);
+      expect(f).toEqual({ amountTotalMinor: 8000, currency: "CHF", amountReceivedMinor: null, metadataBookingId: null });
+    });
+
+    it("a session without a currency or total gives nulls, never a made-up number", () => {
+      expect(chargeFactsFromSession({ metadata: {} } as unknown as Stripe.Checkout.Session)).toEqual({
+        amountTotalMinor: null,
+        currency: null,
+        amountReceivedMinor: null,
+        metadataBookingId: null,
+      });
+      expect(chargeFactsFromSession(null).amountTotalMinor).toBeNull();
+    });
+  });
+
+  it("an expired / failed event sends no amount facts (nothing was collected)", async () => {
+    sqlCalls.length = 0;
+    retrieved.session = session({ status: "expired", payment_status: "unpaid", amount_total: 8000, currency: "chf" } as Partial<Stripe.Checkout.Session>);
+    await handleStripeMessage({} as CloudflareEnv, message({ type: "checkout.session.expired" }));
+    const call = sqlCalls.find((c) => c.text.includes("checkout_payment_settle"));
+    expect(call?.values.slice(10)).toEqual([null, null, null, null]);
+  });
+
+  describe("a mismatch row", () => {
+    const mismatchRow = () => settleRow({ already_settled: true, amount_mismatch: true });
+
+    it("mails ops (ids only), closes the event, and does NOT confirm, provision, refund or send the Purchase", async () => {
+      const alertAmountMismatch = vi.fn(async () => undefined);
+      const sendMetaPurchase = vi.fn(async () => undefined);
+      const emit = vi.fn();
+      const d = deps({
+        emit,
+        alertAmountMismatch,
+        sendMetaPurchase,
+        settlePayment: vi.fn(async () => settleRow({ already_settled: true, amount_mismatch: true, other_open_session_ids: ["cs_other"] })),
+      });
+      expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+      expect(alertAmountMismatch).toHaveBeenCalledWith({
+        eventId: "evt_1",
+        type: "checkout.session.completed",
+        objectId: "cs_test_1",
+        reference: "VT-1",
+      });
+      expect(d.eventClose).toHaveBeenCalledWith("evt_1", "amount_mismatch");
+      expect(d.deliverConfirmation).not.toHaveBeenCalled();
+      expect(d.provisionAccount).not.toHaveBeenCalled();
+      expect(d.refund).not.toHaveBeenCalled();
+      expect(sendMetaPurchase).not.toHaveBeenCalled();
+      expect(emit).toHaveBeenCalledWith("error", "amount_mismatch", expect.objectContaining({ eventId: "evt_1" }));
+      // the other open pages are still expired, so nobody can pay the held booking a second time
+      expect(d.expireSession).toHaveBeenCalledWith("cs_other");
+    });
+
+    it("a mail that did not go out keeps the event OPEN and retries; the next delivery mails again", async () => {
+      const alertAmountMismatch = vi
+        .fn()
+        .mockRejectedValueOnce(new Error("resend down"))
+        .mockResolvedValue(undefined);
+      const d = deps({ alertAmountMismatch, settlePayment: vi.fn(async () => mismatchRow()) });
+      expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true });
+      expect(d.eventClose).not.toHaveBeenCalled();
+      expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+      expect(d.eventClose).toHaveBeenCalledWith("evt_1", "amount_mismatch");
+      expect(alertAmountMismatch).toHaveBeenCalledTimes(2);
+    });
+
+    it("an ordinary settled row (no mismatch) is unchanged: confirmation, no mismatch mail", async () => {
+      const alertAmountMismatch = vi.fn(async () => undefined);
+      const d = deps({ alertAmountMismatch, settlePayment: vi.fn(async () => settleRow()) });
+      expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+      expect(alertAmountMismatch).not.toHaveBeenCalled();
+      expect(d.deliverConfirmation).toHaveBeenCalledTimes(1);
+    });
+
+    it("production wiring mails through deliverAmountMismatchAlert", async () => {
+      const { readFileSync } = await import("node:fs");
+      const { dirname, join } = await import("node:path");
+      const { fileURLToPath } = await import("node:url");
+      const here = dirname(fileURLToPath(import.meta.url));
+      expect(readFileSync(join(here, "settle.ts"), "utf8")).toMatch(/alertAmountMismatch: \(input\) => deliverAmountMismatchAlert\(env, input\)/);
+    });
   });
 });
 
@@ -803,7 +1172,7 @@ describe("26.3-12 purge on expired, refund when the booking is gone (D-25, Pitfa
     expect(d.purgeOnSessionExpired).not.toHaveBeenCalled();
   });
 
-  function missing(created: number | undefined, patch: Partial<Stripe.Checkout.Session> = {}) {
+  function missing(created: number | undefined, patch: Partial<Stripe.Checkout.Session> = {}, depsPatch: Partial<SettleDeps> = {}) {
     return deps({
       retrieveSession: vi.fn(async () =>
         session({ created, metadata: { booking_id: "quote-1" }, ...patch } as Partial<Stripe.Checkout.Session>),
@@ -811,6 +1180,7 @@ describe("26.3-12 purge on expired, refund when the booking is gone (D-25, Pitfa
       settlePayment: vi.fn(async () => {
         throw Object.assign(new Error("payment_not_found"), { code: "P0002" });
       }),
+      ...depsPatch,
     });
   }
   const OLD = Math.floor(Date.now() / 1000) - 3600;
@@ -822,14 +1192,35 @@ describe("26.3-12 purge on expired, refund when the booking is gone (D-25, Pitfa
     expect(arg.paymentIntentId).toBe("pi_test_1");
     expect(arg.metadata).toEqual({ vamos_reason: "booking_missing" });
     expect(d.alertStuckPayment).toHaveBeenCalled();
-    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", "booking_missing");
+    expect(d.eventClose).toHaveBeenCalledWith("evt_1", "booking_missing");
   });
 
-  it("still acks (no infinite retry) when the refund itself fails", async () => {
+  it("W4-03: a refund that Stripe refused is retried (the event stays open), logged at error level", async () => {
     const d = missing(OLD);
     d.refund.mockRejectedValueOnce(new Error("stripe down"));
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true });
+    expect(d.eventClose).not.toHaveBeenCalled();
+    expect(d.eventSettle).not.toHaveBeenCalled();
+  });
+
+  it("W4-03: the repeat refund of a booking-missing payment uses the same stable idempotency key", async () => {
+    const d = missing(OLD);
+    d.refund.mockRejectedValueOnce(new Error("stripe down"));
+    await handleStripeMessageWithDeps(message(), d);
     expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
-    expect(d.alertStuckPayment).toHaveBeenCalled();
+    const keys = d.refund.mock.calls.map((c) => c[0].idempotencyKey);
+    expect(keys).toEqual(["refund:missing-booking:cs_test_1", "refund:missing-booking:cs_test_1"]);
+    expect(d.eventClose).toHaveBeenCalledWith("evt_1", "booking_missing");
+  });
+
+  it("W4-02: a booking-missing refund whose stuck-payment mail did not go out is not closed: it retries", async () => {
+    const d = missing(OLD, {}, {
+      alertStuckPayment: vi.fn(async () => {
+        throw new Error("resend down");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true });
+    expect(d.eventClose).not.toHaveBeenCalled();
   });
 
   it("retries a young session (intent transaction may not be committed)", async () => {
@@ -950,16 +1341,16 @@ describe("261002 settle safety: a database hiccup is retried, never acknowledged
       }),
     });
     expect(await handleStripeMessageWithDeps(expiredMsg(), d)).toEqual({ ack: true });
-    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", "22023");
+    expect(d.eventClose).toHaveBeenCalledWith("evt_1", "22023");
   });
 
-  it("settle: an expired page whose eventSettle fails retries (unchanged)", async () => {
+  it("settle: an expired page whose close fails retries (unchanged)", async () => {
     const d = deps({
       retrieveSession: vi.fn(async () => expiredSession()),
       settlePayment: vi.fn(async () => {
         throw sqlErr("22023");
       }),
-      eventSettle: vi.fn(async () => {
+      eventClose: vi.fn(async () => {
         throw new Error("db down");
       }),
     });
@@ -982,7 +1373,7 @@ describe("261002 settle safety: an unpaid difference page that belongs to no req
       }),
     });
     expect(await handleStripeMessageWithDeps(expiredMsg(), d)).toEqual({ ack: true });
-    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", "no_request");
+    expect(d.eventClose).toHaveBeenCalledWith("evt_1", "no_request");
     expect(d.alertStuckPayment).not.toHaveBeenCalled();
     expect(d.refund).not.toHaveBeenCalled();
   });
@@ -993,7 +1384,7 @@ describe("261002 settle safety: an unpaid difference page that belongs to no req
       settlePayment: vi.fn(async () => {
         throw sqlErr("P0002");
       }),
-      eventSettle: vi.fn(async () => {
+      eventClose: vi.fn(async () => {
         throw new Error("db down");
       }),
     });
@@ -1268,7 +1659,7 @@ describe("261005 U15: an expired checkout page with no payment row", () => {
   it("is recorded as no_payment and acked: nothing was charged, no stuck-payment mail, no refund", async () => {
     const d = noRow(expiredMain());
     expect(await handleStripeMessageWithDeps(expiredMsg(), d)).toEqual({ ack: true });
-    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", "no_payment");
+    expect(d.eventClose).toHaveBeenCalledWith("evt_1", "no_payment");
     expect(d.alertStuckPayment).not.toHaveBeenCalled();
     expect(d.refund).not.toHaveBeenCalled();
     expect(d.purgeOnSessionExpired).not.toHaveBeenCalled();
@@ -1282,14 +1673,14 @@ describe("261005 U15: an expired checkout page with no payment row", () => {
       }),
     });
     expect(await handleStripeMessageWithDeps(canceledMsg, d)).toEqual({ ack: true });
-    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", "no_payment");
+    expect(d.eventClose).toHaveBeenCalledWith("evt_1", "no_payment");
     expect(d.alertStuckPayment).not.toHaveBeenCalled();
     expect(d.refund).not.toHaveBeenCalled();
   });
 
   it("if recording no_payment fails the message is retried", async () => {
     const d = noRow(expiredMain(), {
-      eventSettle: vi.fn(async () => {
+      eventClose: vi.fn(async () => {
         throw new Error("db down");
       }),
     });

@@ -17,7 +17,7 @@ function json(body: unknown, status = 200): Response {
 function failStatus(code: string): number {
   if (code === "not-found") return 404;
   if (code === "not-cancellable" || code === "unpaid-use-hard-delete") return 409;
-  if (code === "stripe-failed" || code === "stripe-test-only") return 502;
+  if (code === "stripe-failed") return 502;
   if (code === "unauthorized") return 401;
   return 500;
 }

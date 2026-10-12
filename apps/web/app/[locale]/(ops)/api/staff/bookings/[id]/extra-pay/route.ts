@@ -17,6 +17,7 @@ function bookingKey(request: Request): string | null {
   return id;
 }
 
+// J7 W6-20: the dead `is-test` arm is gone; staffExtraPayUrl never answers it.
 function failStatus(code: string): number {
   if (code === "not-found") return 404;
   if (code === "csrf") return 403;
@@ -25,7 +26,6 @@ function failStatus(code: string): number {
     code === "already-paid" ||
     code === "no-session" ||
     code === "session-expired" ||
-    code === "is-test" ||
     code === "no-email"
   ) {
     return 409;

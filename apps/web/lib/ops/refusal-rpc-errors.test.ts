@@ -108,7 +108,8 @@ beforeEach(() => {
 describe("cancelBooking answers the RPC's refusal instead of throwing", () => {
   beforeEach(() => {
     // The captured-payment check: this booking was paid, so the cancel goes to ops_cancel_booking.
-    asStaff.mockImplementation(beginLike({ rows: [{ id: 1 }] }));
+    // J7 W6-09: the erase attempt answers "paid" (a payment is captured), so the cancel runs ops_cancel_booking.
+    asStaff.mockImplementation(beginLike({ rows: [{ outcome: "paid" }] }));
   });
 
   it("finished or cancelled trip → frozen", async () => {

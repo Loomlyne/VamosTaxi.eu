@@ -10,8 +10,10 @@
 // post-trip request (reason post_trip), or declines/rejects (decideRefund -> ops_refund_decide).
 // 20-10 owner rule: a booking cancelled more than 24 h ahead (pending_ops with an owed amount)
 // gets the full amount only: no lower percent, no exact amount below what is left, no decline.
-// The live-key refusal below stays until the sandbox proof (20-10 spec D.3).
+// J1 (2026-10-09): the live-key refusal is gone; the owner runs live and refunds in the app. A key that
+// is not a Stripe key is still refused before any plan or Stripe call (stripeKeyRefused).
 
+import { stripeKeyRefused } from "@/lib/checkout/stripe-mode";
 import { asStaff, asSystem, type VamosClaims } from "../db/identity";
 import {
   createRefund,
@@ -34,7 +36,6 @@ import { resolveStaffBookingId } from "./resolve-booking-id";
 export const dynamic = "force-dynamic";
 
 export type { RefundFail, RefundOk, RefundPart, RefundPartial, RefundResult } from "./refund-map";
-export { opsRefundAmount } from "./refund-map";
 
 export type RefundAmountInput = {
   /** One captured payment; absent = every captured payment. */
@@ -146,6 +147,7 @@ async function readRefundState(env: CloudflareEnv, claims: VamosClaims, bookingI
              ) as is_extra,
              coalesce((
                select sum(r.refund_rappen) from public.booking_refunds as r where r.payment_id = p.id
+                  and not exists (select 1 from public.booking_refund_reversals as x where x.refund_id = r.id)
              ), 0) as refunded,
              i.amount_rappen as open_amount,
              i.state::text as open_state
@@ -358,10 +360,8 @@ export async function refundBooking(
   const key = bookingKey.trim();
   if (!key) return { ok: false, code: "not-found" };
 
-  const secret = env.STRIPE_SECRET_KEY ?? "";
-  if (secret.startsWith("sk_live_")) {
-    return { ok: false, code: "stripe-test-only" };
-  }
+  // J1: the key must be a Stripe key of a known mode; test and live both work.
+  if (stripeKeyRefused(env)) return { ok: false, code: "stripe-failed" };
 
   const bookingId = await resolveStaffBookingId(env, claims, key);
   if (!bookingId) return { ok: false, code: "not-found" };

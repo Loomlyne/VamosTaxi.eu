@@ -32,7 +32,6 @@ export const CHANGE_FAIL_CODES = [
   // 261004 lock order (migration 20261007280000): a payment settled in the same instant; nothing written.
   "payment-changed",
   "must-fix",
-  "stripe-test-only",
   "stripe-failed",
   // 26.2 P1 Withdraw (owner sign-off 2026-10-01)
   "nothing-waiting",
@@ -132,7 +131,7 @@ export function mapChangeSqlError(err: unknown): ChangeFail {
 
 export function changeFailStatus(code: ChangeFailCode): number {
   if (code === "not-found") return 404;
-  if (code === "stripe-failed" || code === "stripe-test-only") return 502;
+  if (code === "stripe-failed") return 502;
   if (code === "temporarily-unavailable") return 503;
   if (code === "invalid-body" || code === "unknown") return 400;
   return 409;

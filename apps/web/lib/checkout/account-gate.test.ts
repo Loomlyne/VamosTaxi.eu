@@ -190,3 +190,14 @@ describe("accountGateDeps: the Turnstile idempotency key", () => {
     expect(keys[0]).not.toBe(keys[1]);
   });
 });
+
+// J6 (W2-21): the gate is advisory by decision; pin it so nobody reads it as enforcement.
+describe("decideAccount without a block (J6, W2-21)", () => {
+  it("a request with no account block is the plain guest flow, whatever the switches say", () => {
+    for (const guestOn of [true, false]) {
+      for (const createAvailable of [true, false]) {
+        expect(decideAccount({ signedIn: false, account: undefined, guestOn, createAvailable })).toEqual({ kind: "none" });
+      }
+    }
+  });
+});

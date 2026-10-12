@@ -17,11 +17,12 @@ import { useVamosLocale } from "@/lib/locale-shim";
 import { airportByName } from "@/lib/checkout/trip-editor-rules";
 import { geoLocale } from "@/lib/checkout/geo-locale";
 import { tripIsQuotable, type QuoteResult } from "@/lib/checkout/checkout-quote";
-import type { ChargeLine } from "@/lib/checkout/checkout-charge";
+import { MIN_CHARGE_RAPPEN, type ChargeLine } from "@/lib/checkout/checkout-charge";
 import { extraLabel, type ExtraNames } from "@/lib/checkout/extra-label";
 import {
   buildIntentBody,
   checkoutReturnPath,
+  freshResume,
   isStripeCheckoutUrl,
   readReturnStash,
   sameSelectionAsResumed,
@@ -57,6 +58,8 @@ export type PriceState =
   | { kind: "error"; code: string };
 
 export type PayStatus = "idle" | "loading" | "error";
+
+const SUPPORT_EMAIL = "info@vamostaxi.site";
 
 type ResumeOpen = {
   state: "open";
@@ -798,6 +801,15 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
       announce(t("updatingPrice"));
       return;
     }
+    // J6 (W2-03, U19): say so before any request when the total is too small to charge (the server refuses it
+    // too, with the same words, before Stripe and without using a press).
+    if (price.chargedRappen < MIN_CHARGE_RAPPEN) {
+      const text = t("amountBelowMinimum", { email: SUPPORT_EMAIL });
+      setPayStatus("error");
+      setPayError(text);
+      announce(text);
+      return;
+    }
     // The lock that carries the voucher the price was made with (U11-1). None yet: still pricing.
     const payLock = lockForVoucher(quote.lock, voucher, voucherLock.current);
     if (payLock === null) {
@@ -818,13 +830,13 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
     setPayStatus("loading");
     announce(t("openingPayment"));
 
-    // Back from Stripe with nothing changed: the same booking, the same Stripe page (D-24).
-    if (resume && resume.state === "open" && sameSelectionAsResumed(resume, selection, (q) => parseTripQuery(new URLSearchParams(q)).trip)) {
-      if (isStripeCheckoutUrl(resume.url)) {
-        window.location.assign(resume.url);
-        return;
-      }
-    }
+    // Back from Stripe with nothing changed: the same booking, the same Stripe page (D-24). J5 (W3-05):
+    // the stored page is asked about again at this press (it may have expired while the customer
+    // stayed on the form); a dead one is dropped and a new payment is opened below.
+    const resumed =
+      resume && resume.state === "open" && sameSelectionAsResumed(resume, selection, (q) => parseTripQuery(new URLSearchParams(q)).trip)
+        ? resume
+        : null;
 
     const sel = JSON.stringify([quote.quoteId, selectedClass, [...tickedValid].sort(), voucher, contact, company, note, trip.flight, resume?.booking_id ?? null]);
     idem.current = payIdemFor(idem.current, sel, () => crypto.randomUUID());
@@ -863,6 +875,19 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
         setPayError(text);
         announce(text);
       };
+      if (resumed) {
+        const fresh = await freshResume(fetch, resumed.quote_id);
+        if (fresh.kind === "open") {
+          window.location.assign(fresh.url);
+          return;
+        }
+        if (fresh.kind === "paid") {
+          window.location.assign(`/confirmation/${encodeURIComponent(fresh.reference)}`);
+          return;
+        }
+        const { url: _dead, ...rest } = resumed;
+        setResume({ ...rest, state: "expired" });
+      }
       try {
         const res = await fetch("/api/checkout/intent", {
           method: "POST",
@@ -929,6 +954,17 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
         }
         if (code === "quote_already_booked") {
           fail(t("quoteAlreadyBooked"));
+          return;
+        }
+        // J6 (W2-01): the pickup is checked again at Pay; the customer picks a new time.
+        if (code === "pickup_in_past" || code === "pickup_too_soon") {
+          fail(t(code === "pickup_in_past" ? "pickupPassed" : "pickupTooSoon"));
+          flow.openEditor();
+          return;
+        }
+        // J6 (W2-03, U19): a total under CHF 0.50 cannot be charged by card.
+        if (code === "amount_below_minimum") {
+          fail(t("amountBelowMinimum", { email: SUPPORT_EMAIL }));
           return;
         }
         fail(t("payStartFailed"));

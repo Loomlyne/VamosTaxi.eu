@@ -67,6 +67,12 @@ export type ConfirmationClientProps = {
   freeCancelHours: number | null;
   /** MANAGE BOOKING target, picked by the server from how it read this booking. */
   manageHref?: string;
+  /**
+   * FINISH PAYMENT target for an unpaid booking: the checkout resume of this booking's quote
+   * (J5, W3-06). Absent when the server cannot name it; the button is then not shown (a shown
+   * control must be live).
+   */
+  finishHref?: string | null;
 };
 
 function asStringField(json: object, key: string): string {
@@ -124,47 +130,100 @@ function RefLine({ reference }: { reference: string }) {
 
 /**
  * S3: after Stripe returns. Phase A shows a charcoal progress bar; phase B (after
- * ~20 s) says the payment was received. Neither shows an error, failed or retry copy.
+ * ~20 s) says the payment was received; the final phase (poll budget spent, W3-04) keeps that
+ * card and offers "Check again". None shows an error, failed or retry copy.
+ *
+ * J5 (W3-01): `checking` is the return where Stripe could not be read. Nothing then says the
+ * payment was captured: the card says "we are checking your payment", never "went through".
  */
 function LoadingScreen({
-  received,
+  phase,
+  checking,
   reference,
   locale,
+  onCheckAgain,
 }: {
-  received: boolean;
+  phase: "confirming" | "received" | "stalled";
+  checking: boolean;
   reference: string;
   locale: string;
+  onCheckAgain: () => void;
 }) {
   const t = useTranslations("checkout");
+  const busy = phase === "confirming";
+  const title = checking ? t("payCheckingTitle") : phase === "confirming" ? t("confirmingTitle") : t("receivedTitle");
+  const lede = checking
+    ? phase === "stalled"
+      ? t("payCheckingStalledBody", { email: SUPPORT_EMAIL })
+      : t("payCheckingBody")
+    : phase === "confirming"
+      ? t("confirmingBody")
+      : t("receivedBody");
   return (
     <main
       className="vt-confirmation"
       data-confirmation
-      data-confirmation-state={received ? "received" : "confirming"}
+      data-confirmation-state={checking ? "checking" : phase === "confirming" ? "confirming" : "received"}
+      data-confirmation-phase={phase}
     >
       <Card padding="lg" className="vt-confirmation__wait vt-confirmation__loading">
-        <div aria-live="polite" aria-busy={received ? "false" : "true"} className="vt-confirmation__loading-body">
-          {received ? (
-            <span className="vt-confirmation__disc" aria-hidden="true">
-              <Icon name="check" size={28} color="var(--vt-yellow)" />
-            </span>
+        <div aria-live="polite" aria-busy={busy ? "true" : "false"} className="vt-confirmation__loading-body">
+          {busy || (checking && phase !== "stalled") ? (
+            <ProgressIndicator tone="charcoal" aria-label={title} aria-valuenow={undefined} />
           ) : (
-            <ProgressIndicator tone="charcoal" aria-label={t("confirmingTitle")} aria-valuenow={undefined} />
+            <span className="vt-confirmation__disc" aria-hidden="true">
+              <Icon name={checking ? "clock" : "check"} size={28} color="var(--vt-yellow)" />
+            </span>
           )}
-          <h1 className="vt-confirmation__title">{received ? t("receivedTitle") : t("confirmingTitle")}</h1>
-          <p className="vt-confirmation__lede">{received ? t("receivedBody") : t("confirmingBody")}</p>
+          <h1 className="vt-confirmation__title">{title}</h1>
+          <p className="vt-confirmation__lede">{lede}</p>
           <RefLine reference={reference} />
         </div>
-        {received ? (
+        {phase === "confirming" ? null : (
           <>
             <div className="vt-confirmation__actions">
+              {phase === "stalled" ? (
+                <Button onClick={onCheckAgain} data-confirmation-check-again>
+                  {t("payCheckingAgain")}
+                </Button>
+              ) : null}
               <Button variant="secondary" href={`/${locale}`}>
                 {t("book-another-transfer")}
               </Button>
             </div>
             <p className="vt-confirmation__wait-ref">{t("receivedContact", { email: SUPPORT_EMAIL })}</p>
           </>
-        ) : null}
+        )}
+      </Card>
+    </main>
+  );
+}
+
+/**
+ * W3-03: a duplicate payer's charge was refunded. They have no booking to see (no cookie, no
+ * account), so this card says so plainly instead of polling for a confirmation that never comes.
+ */
+function RefundedScreen({ reference, locale }: { reference: string; locale: string }) {
+  const t = useTranslations("checkout");
+  return (
+    <main className="vt-confirmation" data-confirmation data-confirmation-state="refunded-duplicate">
+      <Card padding="lg" className="vt-confirmation__wait vt-confirmation__loading">
+        <div aria-live="polite" className="vt-confirmation__loading-body">
+          <span className="vt-confirmation__disc" aria-hidden="true">
+            <Icon name="check" size={28} color="var(--vt-yellow)" />
+          </span>
+          <h1 className="vt-confirmation__title" data-confirmation-charge-refunded>
+            {t("payLinkRaceRefundedTitle")}
+          </h1>
+          <p className="vt-confirmation__lede">{t("payLinkRaceRefundedBody")}</p>
+          <RefLine reference={reference} />
+        </div>
+        <div className="vt-confirmation__actions">
+          <Button variant="secondary" href={`/${locale}`}>
+            {t("book-another-transfer")}
+          </Button>
+        </div>
+        <p className="vt-confirmation__wait-ref">{t("receivedContact", { email: SUPPORT_EMAIL })}</p>
       </Card>
     </main>
   );
@@ -421,19 +480,21 @@ function NextSteps({ freeCancelHours }: { freeCancelHours: number | null }) {
  * unpaid booking and there is no voucher before payment.
  */
 function ActionRow({
-  locale,
   manageHref,
   unpaid,
+  finishHref,
 }: {
-  locale: string;
   manageHref: string;
   unpaid: boolean;
+  finishHref: string | null;
 }) {
   const t = useTranslations("checkout");
   if (unpaid) {
+    // W3-06: FINISH PAYMENT opens this booking's checkout (resume). With no way to name it, no button.
+    if (!finishHref) return null;
     return (
       <div className="vt-confirmation__actions vt-confirmation__actions--pair" data-confirmation-actions>
-        <Button size="lg" href={`/${locale}/checkout`}>
+        <Button size="lg" href={finishHref} data-confirmation-finish>
           {t("finishPayment")}
         </Button>
       </div>
@@ -458,12 +519,16 @@ export function ConfirmationClient({
   booking,
   freeCancelHours,
   manageHref,
+  finishHref,
 }: ConfirmationClientProps) {
   const t = useTranslations("checkout");
   const [draft] = useBookingDraft();
   // 26.1-16 (D-22): the return route adds charge=refunded when this payer's
   // charge lost the race and was refunded. Display hint only.
-  const chargeRefunded = useSearchParams()?.get("charge") === "refunded";
+  const params = useSearchParams();
+  const chargeRefunded = params?.get("charge") === "refunded";
+  // J5 (W3-01): the return route could not read Stripe; nothing may claim the payment went through.
+  const checking = params?.get("check") === "1";
   const router = useRouter();
   const [elapsedMs, setElapsedMs] = useState(0);
   const [liveStatus, setLiveStatus] = useState(booking?.status ?? "");
@@ -473,7 +538,10 @@ export function ConfirmationClient({
   const returnPhase = onReturnPath
     ? confirmationPhase({ elapsedMs, status: liveStatus, paymentStatus: livePayment })
     : null;
-  const waiting = returnPhase === "confirming" || returnPhase === "received";
+  // W3-03: a refunded duplicate payer never gets a confirmation; with no booking readable
+  // (no cookie, no account) there is nothing to wait for, so no poll and the refunded card.
+  const refundedOnly = chargeRefunded && initialPhase !== "confirmed";
+  const waiting = !refundedOnly && (returnPhase === "confirming" || returnPhase === "received");
   const refreshed = useRef(false);
 
   useEffect(() => {
@@ -604,12 +672,20 @@ export function ConfirmationClient({
     );
   }
 
-  if (waiting) {
+  if (refundedOnly) return <RefundedScreen reference={reference} locale={locale} />;
+
+  if (waiting || returnPhase === "stalled") {
     return (
       <LoadingScreen
-        received={returnPhase === "received"}
+        phase={returnPhase === "stalled" ? "stalled" : returnPhase === "received" ? "received" : "confirming"}
+        checking={checking}
         reference={reference}
         locale={locale}
+        onCheckAgain={() => {
+          // A fresh budget: the clock restarts, the poll starts again, the server re-reads the booking.
+          setElapsedMs(0);
+          router.refresh();
+        }}
       />
     );
   }
@@ -717,7 +793,7 @@ export function ConfirmationClient({
         />
       )}
 
-      <ActionRow locale={locale} manageHref={manageTo} unpaid={unpaid} />
+      <ActionRow manageHref={manageTo} unpaid={unpaid} finishHref={finishHref ?? null} />
       {booked ? <p className="vt-confirmation__hint">{t("manageHint")}</p> : null}
 
       {booked ? <NextSteps freeCancelHours={freeCancelHours} /> : null}
