@@ -1,0 +1,264 @@
+diff --git a/app/ops/OpsDetail.dc.html b/app/ops/OpsDetail.dc.html
+index 5351e4fc..634f221f 100644
+--- a/app/ops/OpsDetail.dc.html
++++ b/app/ops/OpsDetail.dc.html
+@@ -20,6 +20,11 @@
+ [data-ops-refund-label]{font-family:var(--vt-font-body);font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary)}
+ [data-ops-refund-pay]{border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);overflow:hidden}
+ [data-ops-refund-payrow]+[data-ops-refund-payrow]{border-block-start:1px solid var(--vt-border-subtle)}
++[data-ops-stripe-row]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;padding:12px 16px}
++[data-ops-stripe-row]+[data-ops-stripe-row]{border-block-start:1px solid var(--vt-border-subtle)}
++[data-ops-stripe-text]{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 180px}
++[data-ops-stripe-k]{font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)}
++[data-ops-stripe-v]{font-size:var(--vt-body-sm);color:var(--vt-text-secondary);unicode-bidi:isolate}
+ [data-ops-refund-payrow] .vt-check{display:flex;width:100%;box-sizing:border-box;min-height:44px;padding:12px 16px}
+ [data-ops-refund-payrow] .vt-check__text{min-width:0;overflow-wrap:anywhere}
+ [data-ops-refund-full]{margin:0;font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)}
+@@ -425,8 +430,24 @@
+ <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ openTakeCard }}" hint-size="130px,36px">{{ tTakeCard }}</x-import>
+ </div>
+ </sc-if>
++<!-- Phase 31 (refunds in Stripe): a paid cancel with no refund recorded is a neutral note, not a red alert. -->
+ <sc-if value="{{ showRefundDue }}" hint-placeholder-val="{{ false }}">
+-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tRefundTitle }}" hint-size="100%,70px">{{ tRefundBody }}</x-import>
++<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tCheckTitle }}" hint-size="100%,70px">{{ tCheckBody }}</x-import>
++</sc-if>
++<!-- Phase 31: several payments → one row each, each opens that payment in Stripe in a new tab. -->
++<sc-if value="{{ stripeListShown }}" hint-placeholder-val="{{ false }}">
++<div data-ops-refund-region data-ops-stripe-list ref="{{ refundRef }}">
++<span data-ops-refund-label>{{ tWhichPayment }}</span>
++<div data-ops-refund-pay>
++<sc-for list="{{ stripeRows }}" as="p" hint-placeholder-count="2">
++<div data-ops-stripe-row>
++<span data-ops-stripe-text><span data-ops-stripe-k>{{ p.label }}</span><span data-ops-stripe-v data-vt-no-i18n="1">{{ p.detail }}</span></span>
++<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" href="{{ p.url }}" target="_blank" rel="noopener noreferrer" iconEnd="external-link" hint-size="190px,44px">{{ tOpenInStripe }}</x-import>
++</div>
++</sc-for>
++</div>
++<p data-ops-decide-body>{{ tStripeNewTab }}</p>
++</div>
+ </sc-if>
+ <sc-if value="{{ isRefunded }}" hint-placeholder-val="{{ false }}">
+ <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="success" title="{{ tRefundedTitle }}" hint-size="100%,70px">{{ tRefundedBody }}</x-import>
+@@ -499,10 +520,12 @@
+ </sc-if>
+ <sc-if value="{{ refundFailedShown }}" hint-placeholder-val="{{ false }}">
+ <div data-ops-refund-region ref="{{ refundRef }}">
+-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tRefundFailedTitle }}" hint-size="100%,70px">{{ tRefundFailedBody }}</x-import>
++<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tRefundFailedTitle }}" hint-size="100%,70px">{{ tFailedStripeBody }}</x-import>
++<sc-if value="{{ stripeOneUrl }}" hint-placeholder-val="{{ true }}">
+ <div data-ops-refund-row>
+-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" disabled="{{ refundBusy }}" onClick="{{ retryRefund }}" hint-size="140px,44px">{{ tTryAgain }}</x-import>
++<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" href="{{ stripeOneUrl }}" target="_blank" rel="noopener noreferrer" iconEnd="external-link" hint-size="190px,44px">{{ tOpenInStripe }}</x-import>
+ </div>
++</sc-if>
+ </div>
+ </sc-if>
+ </div>
+@@ -874,6 +897,7 @@ const T = {
+     requestedTitle:'Refund requested', requestedBody:'Asked after the trip. Accept or reject the refund.', acceptRefund:'Accept refund', rejectRefund:'Reject refund',
+     rejectConfirmTitle:'Reject this refund?', rejectConfirmBody:'The customer is told no money will be returned for {ref}.',
+     disputeTitle:'Payment disputed', disputeManage:'Manage in the Stripe dashboard.', disputeNeedsResponse:'Needs response', disputeUnderReview:'Under review', disputeWon:'Won', disputeLost:'Lost',
++    refundInStripe:'Refund in Stripe', openInStripe:'Open in Stripe', stripeNewTab:'Stripe opens in a new tab. This page shows the refund once Stripe records it.', checkTitle:'Refund to check', checkBody:'Cancelled with a payment on file. If the cancellation policy gives money back, refund it in Stripe. This page shows it once Stripe records it.', failedStripeBody:'Stripe could not send the refund. Open the payment in Stripe to try again.', noStripePayment:'This booking has no Stripe payment to open.',
+     refundFailedTitle:'Refund failed', refundFailedBody:'Stripe did not accept the refund. You can try again.', tryAgain:'Try again',
+     dueLegacyBody:'Cancelled and paid. Nothing has been refunded yet.',
+     whichPayment:'Which payment?',
+@@ -1017,6 +1041,7 @@ const T = {
+     requestedTitle:'Rückerstattung angefragt', requestedBody:'Nach der Fahrt angefragt. Rückerstattung annehmen oder zurückweisen.', acceptRefund:'Rückerstattung annehmen', rejectRefund:'Rückerstattung zurückweisen',
+     rejectConfirmTitle:'Diese Rückerstattung zurückweisen?', rejectConfirmBody:'Der Kunde erfährt, dass für {ref} kein Geld zurückerstattet wird.',
+     disputeTitle:'Zahlung angefochten', disputeManage:'Im Stripe-Dashboard bearbeiten.', disputeNeedsResponse:'Antwort nötig', disputeUnderReview:'In Prüfung', disputeWon:'Gewonnen', disputeLost:'Verloren',
++    refundInStripe:'In Stripe rückerstatten', openInStripe:'In Stripe öffnen', stripeNewTab:'Stripe öffnet sich in einem neuen Tab. Diese Seite zeigt die Rückerstattung, sobald Stripe sie erfasst hat.', checkTitle:'Rückerstattung prüfen', checkBody:'Storniert, die Zahlung ist erfasst. Sehen die Stornierungsbedingungen eine Rückerstattung vor, erstatten Sie sie in Stripe. Diese Seite zeigt sie, sobald Stripe sie erfasst hat.', failedStripeBody:'Stripe konnte die Rückerstattung nicht senden. Öffnen Sie die Zahlung in Stripe, um es erneut zu versuchen.', noStripePayment:'Diese Buchung hat keine Stripe-Zahlung zum Öffnen.',
+     refundFailedTitle:'Rückerstattung fehlgeschlagen', refundFailedBody:'Stripe hat die Rückerstattung nicht angenommen. Sie können es erneut versuchen.', tryAgain:'Erneut versuchen',
+     dueLegacyBody:'Storniert und bezahlt. Bisher wurde nichts zurückerstattet.',
+     whichPayment:'Welche Zahlung?',
+@@ -1143,6 +1168,7 @@ const T = {
+     requestedTitle:'Remboursement demandé', requestedBody:'Demandé après la course. Acceptez ou rejetez le remboursement.', acceptRefund:'Accepter le remboursement', rejectRefund:'Rejeter le remboursement',
+     rejectConfirmTitle:'Rejeter ce remboursement ?', rejectConfirmBody:'Le client est informé qu’aucun montant ne sera remboursé pour {ref}.',
+     disputeTitle:'Paiement contesté', disputeManage:'À gérer dans le tableau de bord Stripe.', disputeNeedsResponse:'Réponse requise', disputeUnderReview:'En cours d’examen', disputeWon:'Gagné', disputeLost:'Perdu',
++    refundInStripe:'Rembourser dans Stripe', openInStripe:'Ouvrir dans Stripe', stripeNewTab:'Stripe s’ouvre dans un nouvel onglet. Cette page affiche le remboursement dès que Stripe l’enregistre.', checkTitle:'Remboursement à vérifier', checkBody:'Annulée avec un paiement enregistré. Si la politique d’annulation prévoit un remboursement, faites-le dans Stripe. Cette page l’affiche dès que Stripe l’enregistre.', failedStripeBody:'Stripe n’a pas pu envoyer le remboursement. Ouvrez le paiement dans Stripe pour réessayer.', noStripePayment:'Cette réservation n’a aucun paiement Stripe à ouvrir.',
+     refundFailedTitle:'Échec du remboursement', refundFailedBody:'Stripe n’a pas accepté le remboursement. Vous pouvez réessayer.', tryAgain:'Réessayer',
+     dueLegacyBody:'Annulée et payée. Rien n’a encore été remboursé.',
+     whichPayment:'Quel paiement ?',
+@@ -1289,6 +1315,7 @@ const T = {
+     requestedTitle:'طلب استرداد', requestedBody:'طُلب بعد الرحلة. اقبل طلب الاسترداد أو ارفضه.', acceptRefund:'قبول الاسترداد', rejectRefund:'رفض طلب الاسترداد',
+     rejectConfirmTitle:'رفض طلب الاسترداد هذا؟', rejectConfirmBody:'سيُبلَّغ العميل بأنه لن يُعاد أي مبلغ عن {ref}.',
+     disputeTitle:'دفعة متنازع عليها', disputeManage:'تُدار من لوحة تحكم Stripe.', disputeNeedsResponse:'بحاجة إلى رد', disputeUnderReview:'قيد المراجعة', disputeWon:'رابح', disputeLost:'خاسر',
++    refundInStripe:'الاسترداد في Stripe', openInStripe:'فتح في Stripe', stripeNewTab:'يُفتح Stripe في علامة تبويب جديدة. تعرض هذه الصفحة الاسترداد بمجرد أن يسجّله Stripe.', checkTitle:'استرداد للمراجعة', checkBody:'أُلغي الحجز وعليه دفعة مسجّلة. إذا كانت سياسة الإلغاء تتيح استردادًا، فنفّذه في Stripe. تعرضه هذه الصفحة بمجرد أن يسجّله Stripe.', failedStripeBody:'تعذّر على Stripe إرسال الاسترداد. افتح الدفعة في Stripe لإعادة المحاولة.', noStripePayment:'لا توجد لهذا الحجز دفعة في Stripe لفتحها.',
+     refundFailedTitle:'فشل الاسترداد', refundFailedBody:'لم تقبل Stripe الاسترداد. يمكنك المحاولة مرة أخرى.', tryAgain:'حاول مرة أخرى',
+     dueLegacyBody:'أُلغي وهو مدفوع. لم يُستردّ شيء بعد.',
+     whichPayment:'أي دفعة؟',
+@@ -1427,6 +1454,7 @@ class Component extends DCLogic {
+     this._overlayWas = overlay;
+     if (was !== overlay) { try { document.body.style.overflow = overlay ? 'hidden' : ''; } catch (e) {} }
+     this.syncRefund();
++    this.syncStripe();
+   }
+   // 260930-dash-design: at phone width the console's top bar lists this page's actions
+   // (app/vamos-ops-bar.js); the page's own Actions button is folded there ([data-ops-fold]).
+@@ -1461,6 +1489,21 @@ class Component extends DCLogic {
+     this._refundTag = tag;
+     if (want) this.loadRefund(key);
+   };
++  // Phase 31 prototype: the booking's Stripe payment links, loaded up front so REFUND opens the tab inside the click.
++  syncStripe = () => {
++    const b = this.getBooking();
++    const key = b.bookingId || b.id || '';
++    const prof = window.VamosOps && window.VamosOps.profile ? window.VamosOps.profile.get() : {};
++    const want = !!key && !!prof && prof.role === 'admin' && !!b.paid;
++    const tag = want ? key : '';
++    if (tag === this._stripeTag) return;
++    this._stripeTag = tag;
++    const client = window.VamosOpsApi;
++    if (!want || !client || typeof client.request !== 'function') return;
++    client.request('GET', '/api/staff/bookings/' + encodeURIComponent(key) + '/stripe-payments').then((json) => {
++      if (json && json.ok && Array.isArray(json.data)) this.setState({ stripePays: { key, rows: json.data } });
++    });
++  };
+   loadRefund = (key) => {
+     const client = window.VamosOpsApi;
+     if (!client || typeof client.request !== 'function' || !key) return;
+@@ -1482,6 +1525,7 @@ class Component extends DCLogic {
+     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
+     window.addEventListener('vamos:locale', this._onLocale);
+     this.syncRefund();
++    this.syncStripe();
+   }
+   bind = () => {
+     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
+@@ -1729,9 +1773,17 @@ class Component extends DCLogic {
+       'payment-changed': t.errPaymentChanged,
+       // 261001-refusal-messages: Decline / Reject refusals from ops_refund_decide.
+       'not-pending': t.errDecided, 'not-open': t.errDecided, 'not-post-trip': t.errNotPostTrip,
++      'no-stripe-payment': t.noStripePayment,
+     };
+     const refundErrorText = refundErr ? (errByCode[refundErr] || (t.refundFailed + booking.id)) : '';
+-    const refundFormShown = (fullShown || reviewNeeded || creditShown) && !refundFailedShown;
++    const refundFormShown = false; // Phase 31: the refund-decision box goes; money is refunded in Stripe.
++    const sp = this.state.stripePays && this.state.stripePays.key === refundKey ? this.state.stripePays.rows : [];
++    const stripeRows = sp.filter((p) => p && p.url).map((p) => ({
++      url: p.url, label: p.kind === 'extra' ? t.payExtra : t.payTrip,
++      detail: eventWhen(p.capturedAt) + ' · ' + chfText(p.chargedRappen),
++    }));
++    const stripeListShown = isAdmin && stripeRows.length > 1 && this.state.stripeListFor === refundKey;
++    const stripeOneUrl = stripeRows.length === 1 ? stripeRows[0].url : '';
+     const dispute = booking.dispute && typeof booking.dispute === 'object' ? booking.dispute : null;
+     const disputeWord = (status) => {
+       const st = String(status || '');
+@@ -1829,7 +1881,7 @@ class Component extends DCLogic {
+       !frozen && pickupReached ? { value: 'noShow', label: t.noShow, icon: 'circle-alert' } : null,
+       // Merge with 20-10: Refund is offered for main's refund panel (due, review, failed) as well as
+       // for an old cancelled row and a post-trip request.
+-      refundFormShown || refundFailedShown || canFullRefund || postTripEligible ? { value: 'refund', label: t.markRefund, icon: 'receipt', disabled: !!refundBusy } : null,
++      isAdmin && !!booking.paid ? { value: 'refund', label: t.refundInStripe, icon: 'external-link' } : null,
+       canCancel ? { value: 'cancel', label: booking.paid ? t.confirmCancel : t.confirmCancelUnpaid, icon: 'x', tone: 'danger' } : null,
+     ].filter(Boolean);
+     const viewing = !this.state.editing;
+@@ -2079,10 +2131,12 @@ class Component extends DCLogic {
+       tHistory: t.history, tHistoryEmpty: t.historyEmpty, historyRows, historyEmpty: historyRows.length === 0, historyHas: historyRows.length > 0,
+       historyOpen: !!this.state.historyOpen, historyClosed: !this.state.historyOpen, toggleHistory: this.toggleHistory,
+       isPending: !booking.paid && !cancelled, isCancelled: booking.status === 'cancelled', isRefunded: booking.status === 'refunded' || refundStatus === 'refunded',
+-      showRefundDue: !refundFailedShown && ((booking.status === 'cancelled' && ((refundStatus === 'pending_ops' && fullTier) || legacyDue))
+-        || (refundStatus === 'pending_ops' && creditTier && !creditShown)),
++      // Phase 31 (Q2 recommended A): until Stripe records a refund, or until the pickup time has passed.
++      showRefundDue: !refundFailedShown && booking.status === 'cancelled' && !!booking.paid && refundStatus !== 'refunded' && !(refundedBk > 0) && booking.tripPassed !== true,
+       creditShown, creditLine: fillAmounts(t.classCreditLine, { a: chfText(creditDue) }), tClassCreditBody: tripCredit ? t.tripCreditBody : t.classCreditBody,
+       canFullRefund, postTripEligible, reviewNeeded,
++      stripeListShown, stripeRows, stripeOneUrl, tOpenInStripe: t.openInStripe, tStripeNewTab: t.stripeNewTab,
++      tCheckTitle: t.checkTitle, tCheckBody: t.checkBody, tFailedStripeBody: t.failedStripeBody,
+       refundFormShown, reviewShown: reviewNeeded, decidedShown: reviewNeeded, declineShown: reviewNeeded, fullShown,
+       pickerShown: multi, payRows, fullLine: fillAmounts(t.refundFullLine, { a: chfText(fullAmount) }),
+       unitSwitchShown: reviewNeeded && exactAllowed, exactHintShown: reviewNeeded && !exactAllowed,
+@@ -2354,6 +2408,10 @@ class Component extends DCLogic {
+           if (refundBusy) return;
+           // 20-10 (main): a refund due, a review or a failed refund has its panel on this page — the
+           // menu takes the admin there; nothing is sent until he presses the panel's own button.
++          // Phase 31: one payment opens Stripe now; several show the list; none says so.
++          if (stripeRows.length === 1) { try { window.open(stripeRows[0].url, '_blank', 'noopener'); } catch (e) {} return; }
++          if (stripeRows.length > 1) { this.setState({ stripeListFor: refundKey }); this.goRefund(); return; }
++          this.setState({ refundError: { key: refundKey, code: 'no-stripe-payment' } }); return;
+           if (refundFormShown || refundFailedShown) { this.goRefund(); return; }
+           // An old cancelled row (refund_status none) keeps main's one-press full refund.
+           if (canFullRefund) { vals.markRefund(); return; }
+diff --git a/app/pages/booking-detail.dc.html b/app/pages/booking-detail.dc.html
+index 67481c48..f4922b7c 100644
+--- a/app/pages/booking-detail.dc.html
++++ b/app/pages/booking-detail.dc.html
+@@ -486,10 +486,10 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
+ 
+ <div data-refund="1" style="margin-bottom:20px">
+ <sc-if value="{{ cancelFull }}" hint-placeholder-val="{{ true }}">
+-<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. You get a full refund; our team sends it.</p>
++<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. Any refund follows the cancellation policy.</p>
+ </sc-if>
+ <sc-if value="{{ cancelOps }}" hint-placeholder-val="{{ false }}">
+-<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. Our team decides the refund and tells you by email.</p>
++<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. Any refund follows the cancellation policy.</p>
+ </sc-if>
+ </div>
+ 
+@@ -539,14 +539,14 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
+ <sc-if value="{{ refundFull }}" hint-placeholder-val="{{ false }}">
+ <div data-refund="1" style="margin-bottom:20px">
+ <p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">Refund</p>
+-<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">You will get a full refund of the amount you paid. Our team sends it; your bank may take a few days to show it.</p>
++<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Any refund follows the cancellation policy and goes back to the payment method you used. Your bank may take a few days to show it.</p>
+ </div>
+ </sc-if>
+ 
+ <sc-if value="{{ refundReview }}" hint-placeholder-val="{{ true }}">
+ <div data-refund="1" style="margin-bottom:20px">
+-<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">Refund · waiting on review</p>
+-<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Our team decides the refund and tells you by email.</p>
++<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">Refund</p>
++<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Any refund follows the cancellation policy and goes back to the payment method you used. Your bank may take a few days to show it.</p>
+ </div>
+ </sc-if>
+ 
+diff --git a/app/pages/manage-booking.dc.html b/app/pages/manage-booking.dc.html
+index 2524a844..da6d2b78 100644
+--- a/app/pages/manage-booking.dc.html
++++ b/app/pages/manage-booking.dc.html
+@@ -496,10 +496,10 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
+ 
+ <div data-refund="1" style="margin-bottom:20px">
+ <sc-if value="{{ cancelFull }}" hint-placeholder-val="{{ true }}">
+-<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. You get a full refund; our team sends it.</p>
++<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. Any refund follows the cancellation policy.</p>
+ </sc-if>
+ <sc-if value="{{ cancelOps }}" hint-placeholder-val="{{ false }}">
+-<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. Our team decides the refund and tells you by email.</p>
++<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. Any refund follows the cancellation policy.</p>
+ </sc-if>
+ </div>
+ 
+@@ -549,14 +549,14 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
+ <sc-if value="{{ refundFull }}" hint-placeholder-val="{{ false }}">
+ <div data-refund="1" style="margin-bottom:20px">
+ <p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">Refund</p>
+-<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">You will get a full refund of the amount you paid. Our team sends it; your bank may take a few days to show it.</p>
++<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Any refund follows the cancellation policy and goes back to the payment method you used. Your bank may take a few days to show it.</p>
+ </div>
+ </sc-if>
+ 
+ <sc-if value="{{ refundReview }}" hint-placeholder-val="{{ true }}">
+ <div data-refund="1" style="margin-bottom:20px">
+-<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">Refund · waiting on review</p>
+-<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Our team decides the refund and tells you by email.</p>
++<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">Refund</p>
++<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Any refund follows the cancellation policy and goes back to the payment method you used. Your bank may take a few days to show it.</p>
+ </div>
+ </sc-if>
+ 
+diff --git a/app/vamos-manage-ticket.js b/app/vamos-manage-ticket.js
+index 92193d7b..bdc201cd 100644
+--- a/app/vamos-manage-ticket.js
++++ b/app/vamos-manage-ticket.js
+@@ -266,7 +266,7 @@
+       if (bs && bs !== "cancelled" && bs !== "refunded" && bs !== "partially_cancelled") return "";
+       // Full refund owed (cancel more than 24 h ahead) reads as such; without an owed amount our team is still deciding.
+       var owed = Number(booking && booking.refundOwedRappen);
+-      return owed > 0 ? t("Full refund · sent by our team") : t("Refund under review");
++      return t("Refund follows the cancellation policy");
+     }
+     if (st === "processing") return t("Processing");
+     if (st === "refunded") return t("Refunded");

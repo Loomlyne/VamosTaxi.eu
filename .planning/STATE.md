@@ -109,6 +109,7 @@ the controller (the Claude desktop session "Vamos Taxi controller", named on the
 - Phase 26.0 main green inserted (discuss signed 2026-09-29); shipped 2026-10-01 (`6ec73c52`).
 - Phases 26.4.2 (owner booking feedback) and 26.5 (checkout guest / sign in / create account) shipped 2026-09-30.
 - Phase 30 added (2026-10-11): Vehicle class lifecycle. Discuss signed in `.planning/decisions/2026-10-11-fleet-lifecycle.md`. Next: UI-SPEC pictures, his signature, then plan.
+- Phase 31 added (2026-10-12): Refunds in Stripe. Discuss signed in `.planning/decisions/2026-10-12-refunds-in-stripe.md`; nightly refund check added by the owner the same evening. Next: UI-SPEC pictures, his signature, then plan.
 - Phase 19 closed by the owner (2026-09-30, confirmed 2026-10-01 23:59): no surge test, not a launch item.
 - Phase 27 shipped 2026-10-01 (`ce55cd75`); Phase 27.1 finish your account inserted and shipped 2026-10-01 (`96a17ab7`).
 - GSD bookkeeping B10 (2026-10-01): summaries for every finished, superseded or owner-held plan; ROADMAP rows for 5.1, 5.2, 6.1, 26.0, 26.2, 26.4.2, 26.5, 27.1; closed and replaced phases marked. Open plans keep no SUMMARY.

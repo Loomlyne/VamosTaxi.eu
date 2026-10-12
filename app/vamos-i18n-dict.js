@@ -208,6 +208,11 @@
       /* 26.2-u08 — dashboard table: write error that carries its code. */
       { re: /^Could not save \((.+)\)\.$/,
         de: 'Speichern nicht möglich ($1).', fr: 'Enregistrement impossible ($1).', ar: 'تعذّر الحفظ ($1).' },
+      /* Phase 31: dashboard class/trip change, difference refunded in Stripe ({a} = CHF amount). */
+      { re: /^Class changed\. Difference to refund: (.+)\. Refund it in Stripe\.$/,
+        de: 'Klasse geändert. Zu erstattende Differenz: $1. Erstatten Sie sie in Stripe.', fr: 'Classe modifiée. Différence à rembourser : $1. Remboursez-la dans Stripe.', ar: 'تم تغيير الفئة. الفرق المطلوب استرداده: $1. نفّذ الاسترداد في Stripe.' },
+      { re: /^Trip changed\. Difference to refund: (.+)\. Refund it in Stripe\.$/,
+        de: 'Fahrt geändert. Zu erstattende Differenz: $1. Erstatten Sie sie in Stripe.', fr: 'Trajet modifié. Différence à rembourser : $1. Remboursez-la dans Stripe.', ar: 'تم تغيير الرحلة. الفرق المطلوب استرداده: $1. نفّذ الاسترداد في Stripe.' },
     ],
 
     strings: {
@@ -2361,6 +2366,22 @@
       "until you clear it": { de: "bis Sie die letzten Orte löschen", fr: "jusqu’à ce que vous effaciez les lieux récents", ar: "إلى أن تمسح الأماكن الأخيرة" },
       "years (Swiss books) for accounting and tax.": { de: "Jahre (Schweizer Geschäftsbücher) für Buchhaltung und Steuern.", fr: "ans (livres comptables suisses) pour la comptabilité et la fiscalité.", ar: "سنوات (الدفاتر التجارية السويسرية) للمحاسبة والضرائب." },
       "Where our records show you were at the pickup point and no vehicle came, you receive a full refund.": { de: "Wenn unsere Aufzeichnungen zeigen, dass Sie am Abholpunkt waren und kein Fahrzeug kam, erhalten Sie eine volle Rückerstattung.", fr: "Si nos relevés montrent que vous étiez au point de prise en charge et qu’aucun véhicule n’est venu, vous êtes remboursé intégralement.", ar: "إذا أظهرت سجلاتنا أنك كنت في نقطة الانطلاق ولم تصل أي سيارة، تحصل على استرداد كامل للمبلغ." },
+      /* Phase 31 (refunds in Stripe, decision 2026-10-12). Customer: one policy line, no amount, never "Stripe".
+         Dashboard: REFUND opens the payment in Stripe; the site sends no refund itself. */
+      "This trip will be cancelled. Any refund follows the cancellation policy.": { de: "Diese Fahrt wird storniert. Eine allfällige Rückerstattung richtet sich nach den Stornierungsbedingungen.", fr: "Ce trajet sera annulé. Tout remboursement suit la politique d’annulation.", ar: "ستُلغى هذه الرحلة. يخضع أي استرداد لسياسة الإلغاء." },
+      "Any refund follows the cancellation policy and goes back to the payment method you used. Your bank may take a few days to show it.": { de: "Eine allfällige Rückerstattung richtet sich nach den Stornierungsbedingungen und geht an das Zahlungsmittel zurück, mit dem Sie bezahlt haben. Ihre Bank braucht vielleicht ein paar Tage, bis sie sichtbar ist.", fr: "Tout remboursement suit la politique d’annulation et revient sur le moyen de paiement utilisé. Votre banque peut mettre quelques jours à l’afficher.", ar: "يخضع أي استرداد لسياسة الإلغاء ويعود إلى وسيلة الدفع التي استخدمتها. قد يحتاج مصرفك بضعة أيام لإظهاره." },
+      "Refund follows the cancellation policy": { de: "Rückerstattung gemäss Stornierungsbedingungen", fr: "Remboursement selon la politique d’annulation", ar: "الاسترداد وفق سياسة الإلغاء" },
+      "Refund in Stripe": { de: "In Stripe rückerstatten", fr: "Rembourser dans Stripe", ar: "الاسترداد في Stripe" },
+      "Open in Stripe": { de: "In Stripe öffnen", fr: "Ouvrir dans Stripe", ar: "فتح في Stripe" },
+      "Stripe opens in a new tab. This page shows the refund once Stripe records it.": { de: "Stripe öffnet sich in einem neuen Tab. Diese Seite zeigt die Rückerstattung, sobald Stripe sie erfasst hat.", fr: "Stripe s’ouvre dans un nouvel onglet. Cette page affiche le remboursement dès que Stripe l’enregistre.", ar: "يُفتح Stripe في علامة تبويب جديدة. تعرض هذه الصفحة الاسترداد بمجرد أن يسجّله Stripe." },
+      "Refund to check": { de: "Rückerstattung prüfen", fr: "Remboursement à vérifier", ar: "استرداد للمراجعة" },
+      "Cancelled with a payment on file. If the cancellation policy gives money back, refund it in Stripe. This page shows it once Stripe records it.": { de: "Storniert, die Zahlung ist erfasst. Sehen die Stornierungsbedingungen eine Rückerstattung vor, erstatten Sie sie in Stripe. Diese Seite zeigt sie, sobald Stripe sie erfasst hat.", fr: "Annulée avec un paiement enregistré. Si la politique d’annulation prévoit un remboursement, faites-le dans Stripe. Cette page l’affiche dès que Stripe l’enregistre.", ar: "أُلغي الحجز وعليه دفعة مسجّلة. إذا كانت سياسة الإلغاء تتيح استردادًا، فنفّذه في Stripe. تعرضه هذه الصفحة بمجرد أن يسجّله Stripe." },
+      "Stripe could not send the refund. Open the payment in Stripe to try again.": { de: "Stripe konnte die Rückerstattung nicht senden. Öffnen Sie die Zahlung in Stripe, um es erneut zu versuchen.", fr: "Stripe n’a pas pu envoyer le remboursement. Ouvrez le paiement dans Stripe pour réessayer.", ar: "تعذّر على Stripe إرسال الاسترداد. افتح الدفعة في Stripe لإعادة المحاولة." },
+      "Which payment?": { de: "Welche Zahlung?", fr: "Quel paiement ?", ar: "أي دفعة؟" },
+      "Extra fare": { de: "Aufpreis", fr: "Supplément", ar: "أجرة إضافية" },
+      "This booking has no Stripe payment to open.": { de: "Diese Buchung hat keine Stripe-Zahlung zum Öffnen.", fr: "Cette réservation n’a aucun paiement Stripe à ouvrir.", ar: "لا توجد لهذا الحجز دفعة في Stripe لفتحها." },
+      "The class changes when you confirm. Refund the difference in Stripe afterwards.": { de: "Die Klasse ändert sich, wenn Sie bestätigen. Erstatten Sie die Differenz danach in Stripe.", fr: "La classe change dès votre confirmation. Remboursez ensuite la différence dans Stripe.", ar: "تتغيّر الفئة عند تأكيدك. استرد الفرق بعد ذلك في Stripe." },
+      "The trip changes when you confirm. Refund the difference in Stripe afterwards.": { de: "Die Fahrt ändert sich, wenn Sie bestätigen. Erstatten Sie die Differenz danach in Stripe.", fr: "Le trajet change dès votre confirmation. Remboursez ensuite la différence dans Stripe.", ar: "تتغيّر الرحلة عند تأكيدك. استرد الفرق بعد ذلك في Stripe." },
     },
   };
 
