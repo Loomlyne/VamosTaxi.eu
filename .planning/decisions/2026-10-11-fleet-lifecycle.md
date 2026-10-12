@@ -16,7 +16,7 @@ Source prompt: `.planning/prompts/12-fleet-lifecycle-discuss.md`. Signed by Koss
 ## Decisions
 
 1. **Retire, never delete (from now on).** The action is "Retire": the class leaves the site, the new-trip form and every new price book, moves to a Retired list, and can be brought back. Past price books keep its rows. No hard delete from the UI, no error.
-2. **States: Draft → Live → Retired.** A new class starts Draft (dashboard only, no customer sees it); "Go live" turns it on; Retired can come back as Live.
+2. **States: Draft → Live → Retired.** A new class starts Draft (dashboard only, no customer sees it); "Go live" turns it on; Retired comes back as a Draft, then Go live (amended 2026-10-12, see below).
 3. **Go-live list:** seats, bags and photo; a price row in the live price book.
    - 3a. **Name:** typed once in English, the same name used in en/de/fr/ar (D-14a, Latin everywhere). No translation service.
    - 3b. **Chauffeurs are not part of adding a class.** The link stays on the chauffeur side: each chauffeur has a class and a plate, the Assign screen filters chauffeurs by the booked class, and class and plate are sent to the customer when a chauffeur is assigned.
@@ -26,9 +26,14 @@ Source prompt: `.planning/prompts/12-fleet-lifecycle-discuss.md`. Signed by Koss
    - 6a. **Business goes too** ("its old one"). If wanted later, it is added fresh as a Draft.
    - 6b. **The 5 reviews (rv-1…rv-5) are deleted too** (test reviews). They are every review in the table, so the home Reviews section goes empty; `app/home/Reviews.dc.html` already renders nothing below 3 published rows. To check in the plan: whether the home trust bar reads anything from these rows.
 7. **No fleet page.** Classes stay on the Pricing page. Remove the word "fleet" from the dashboard (route, component name, copy, dict) and the leftover vehicle wording in the chauffeur screen.
-   - 7a. **Pricing page class rows get states:** each row shows Live / Draft / Retired; "Delete" becomes "Retire"; a Retired list under the table has "Bring back"; a Draft row lists what is missing (photo, seats, bags, price) beside "Go live", which works only when nothing is missing. Nothing else on the page moves.
+   - 7a. **Pricing page class rows get states:** each row shows Live / Draft / Retired; "Delete" becomes "Retire"; a Retired list under the table has "Bring back"; a Draft row shows a DRAFT badge; clicking it opens the list of what is missing (photo, seats, bags, price) with "Go live", which works only when nothing is missing (amended 2026-10-12, see below). Nothing else on the page moves.
    - 7b. **Chauffeurs address:** `/chauffeurs`; `/fleet/chauffeurs` (and `/fleet`) forward there.
 8. **Rules text:** the vehicle-classes and `mahaha` lines in `CLAUDE.local.md` are rewritten to this design (done 2026-10-11).
+
+## Amendments signed 2026-10-12 (owner, question form, to match the signed sheets)
+
+- Decision 2: a retired class comes back as a Draft, then Go live (sheet 4). Seats, bags, photo and price are checked again.
+- Decision 7a: a Draft row shows a DRAFT badge; clicking it opens the list of what is missing, with Go live inside (sheets 1 and 2).
 
 ## Next
 
