@@ -73,7 +73,8 @@ describe("cancelBooking expires open Stripe Checkout Sessions (D-04)", { timeout
 
   function mockPaidThenOpsCancel(sessionIds: string[]) {
     asStaff.mockImplementation(async (_env: CloudflareEnv, _claims: unknown, fn: (sql: unknown) => unknown) => {
-      const sql = async () => [{ id: 1 }];
+      // J7 W6-09: the erase attempt answers "paid" (a payment is captured, nothing erased): the paid cancel runs.
+      const sql = async () => [{ outcome: "paid" }];
       return fn(sql);
     });
     asSystem.mockImplementation(async (_env: CloudflareEnv, fn: (sql: unknown) => unknown) => {
@@ -150,13 +151,14 @@ describe("cancelBooking on an unpaid booking expires its open Stripe Checkout Se
   const CLAIMS = { sub: "staff-1", role: "authenticated" } as VamosClaims;
   const BOOKING_ID = "00000000-0000-4000-8000-000000000002";
 
-  /** No captured payment, the erase update returns the row, the system read returns the session ids. */
+  /** No captured payment: the erase function answers erased, the system read returns the session ids. */
   function mockUnpaidErase(sessionIds: string[] | Error): string[] {
     const systemSql: string[] = [];
     asStaff.mockImplementation(async (_env: CloudflareEnv, _claims: unknown, fn: (sql: unknown) => unknown) => {
       const sql = async (strings: TemplateStringsArray) => {
         const text = strings.join("?");
-        if (text.includes("erased_at = now()")) return [{ id: BOOKING_ID }];
+        // J7 W6-09: one definer function re-checks "no captured payment" under the locks and erases.
+        if (text.includes("staff_erase_unpaid_booking")) return [{ outcome: "erased" }];
         return [];
       };
       return fn(sql);
@@ -220,6 +222,67 @@ describe("cancelBooking on an unpaid booking expires its open Stripe Checkout Se
     expect(result).toMatchObject({ ok: true, erased: true });
     expect(stripeFromEnv).not.toHaveBeenCalled();
     expect(expireCheckoutSession).not.toHaveBeenCalled();
+  });
+});
+
+describe("staff erase re-checks the payment inside the erase (J7 W6-09)", { timeout: 15_000 }, () => {
+  const ENV = { STRIPE_SECRET_KEY: "sk_test_bw", STRIPE_PUBLISHABLE_KEY: "pk_test_normal" } as CloudflareEnv;
+  const CLAIMS = { sub: "staff-1", role: "authenticated" } as VamosClaims;
+  const BOOKING_ID = "00000000-0000-4000-8000-000000000003";
+
+  it("eraseBooking asks the one definer function and maps its three outcomes; there is no separate read before it", async () => {
+    const texts: string[] = [];
+    let outcome = "erased";
+    asStaff.mockReset();
+    asStaff.mockImplementation(async (_env: CloudflareEnv, _claims: unknown, fn: (sql: unknown) => unknown) => {
+      const sql = async (strings: TemplateStringsArray) => {
+        texts.push(strings.join("?"));
+        return [{ outcome }];
+      };
+      return fn(sql);
+    });
+    const { eraseBooking } = await import("./bookings-write");
+    expect(await eraseBooking(ENV, CLAIMS, "VT-3")).toBe("erased");
+    outcome = "paid";
+    expect(await eraseBooking(ENV, CLAIMS, "VT-3")).toBe("paid");
+    outcome = "not_found";
+    expect(await eraseBooking(ENV, CLAIMS, "VT-3")).toBe("not-found");
+    expect(texts.every((t) => t.includes("public.staff_erase_unpaid_booking("))).toBe(true);
+    // No plain `update public.bookings ... erased_at` from the Worker any more: that was the unguarded write.
+    expect(read("bookings-write.ts")).not.toMatch(/update public\.bookings\s+set erased_at/);
+  });
+
+  it("a payment that settles between the old read and the erase can no longer be erased: 'paid' sends cancelBooking down the paid path", async () => {
+    const calls: string[] = [];
+    asStaff.mockReset();
+    asStaff.mockImplementation(async (_env: CloudflareEnv, _claims: unknown, fn: (sql: unknown) => unknown) => {
+      const sql = async (strings: TemplateStringsArray) => {
+        calls.push(strings.join("?"));
+        return [{ outcome: "paid" }];
+      };
+      return fn(sql);
+    });
+    asSystem.mockReset();
+    asSystem.mockImplementation(async (_env: CloudflareEnv, fn: (sql: unknown) => unknown) => {
+      const sql = async (strings: TemplateStringsArray) => {
+        calls.push(strings.join("?"));
+        return [
+          { booking_id: BOOKING_ID, reference: "VT-3", email: "a@example.test", name: "Ada", locale: "en", paid: true, refund_mode: "none", refund_rappen: 0, stripe_checkout_session_ids: [] },
+        ];
+      };
+      return fn(sql);
+    });
+    const { cancelBooking } = await import("./bookings-write");
+    const result = await cancelBooking(ENV, CLAIMS, BOOKING_ID);
+    expect(result).toMatchObject({ ok: true, booking: { paid: true } });
+    expect(result).not.toMatchObject({ erased: true });
+    expect(calls.some((c) => c.includes("public.ops_cancel_booking("))).toBe(true);
+  });
+
+  it("the DELETE route answers 409 paid for a booking with a captured payment", () => {
+    const route = readFileSync(join(here, "../../app/[locale]/(ops)/api/staff/bookings/[id]/route.ts"), "utf8");
+    const del = route.slice(route.indexOf("export const DELETE"));
+    expect(del).toMatch(/outcome === "paid"\) return jsonErr\("paid", 409\)/);
   });
 });
 

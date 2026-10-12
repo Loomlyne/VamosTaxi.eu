@@ -182,6 +182,94 @@ describe("OpsMustFixEmail difference-not-applied (T1)", () => {
   });
 });
 
+describe("OpsMustFixEmail amount-mismatch (J3, W4-07)", () => {
+  const HEADLINE: Record<EmailLocale, string> = {
+    en: "Payment held: the amount does not match",
+    de: "Zahlung zurückgehalten: Betrag stimmt nicht",
+    fr: "Paiement retenu : le montant ne correspond pas",
+    ar: "دفعة معلّقة: المبلغ لا يطابق",
+  };
+  function mismatchPayload(locale: EmailLocale): OpsMustFixForEmail {
+    return {
+      locale,
+      kind: "amount-mismatch",
+      trips: [{ reference: "VT-30004", pickupText: "", dropoffText: "", scheduledLocal: "" }],
+      detail: { eventId: "evt_mm_1", eventType: "checkout.session.completed", objectId: "cs_test_mm_1" },
+    };
+  }
+
+  it.each(LOCALES)("%s: headline and body are translated, the ids are shown, no raw key, no customer data, no amount", async (locale) => {
+    const html = await render(OpsMustFixEmail({ payload: mismatchPayload(locale) }));
+    expect(html).toContain(HEADLINE[locale]);
+    expect(html).toContain("VT-30004");
+    expect(html).toContain("evt_mm_1");
+    expect(html).toContain("cs_test_mm_1");
+    expect(html).not.toMatch(/opsMustFix\./);
+    expect(html).not.toContain("CHF");
+    expect(html).not.toMatch(/@/);
+    expect(opsMustFixPlainText(mismatchPayload(locale))).toContain(HEADLINE[locale]);
+  });
+
+  it("the four bodies are different texts (no copied English)", () => {
+    const bodies = LOCALES.map((l) => opsMustFixPlainText(mismatchPayload(l)).split("\n")[1]);
+    expect(new Set(bodies).size).toBe(LOCALES.length);
+  });
+
+  it("the subject carries the reference", () => {
+    expect(opsMustFixSubject(mismatchPayload("fr"))).toContain("VT-30004");
+  });
+});
+
+// J7 (W6-05, W6-07): the two money alerts. Ids only: the booking reference, the Stripe event id and type, the
+// refund or dispute id. No name, e-mail, card or amount.
+describe("OpsMustFixEmail refund-failed and dispute (J7)", () => {
+  const WORDS: Record<"refund-failed" | "dispute", Record<EmailLocale, string>> = {
+    "refund-failed": {
+      en: "A refund was reversed by Stripe",
+      de: "Eine Rückerstattung wurde von Stripe rückgängig gemacht",
+      fr: "Un remboursement a été annulé par Stripe",
+      ar: "ألغت Stripe عملية استرداد",
+    },
+    dispute: {
+      en: "A card dispute was opened or changed",
+      de: "Eine Kartenstreitigkeit wurde eröffnet oder geändert",
+      fr: "Un litige de carte a été ouvert ou modifié",
+      ar: "فُتح نزاع على بطاقة أو تغيّرت حالته",
+    },
+  };
+
+  function alertPayload(locale: EmailLocale, kind: "refund-failed" | "dispute"): OpsMustFixForEmail {
+    return {
+      locale,
+      kind,
+      trips: [{ reference: "VT-40004", pickupText: "", dropoffText: "", scheduledLocal: "" }],
+      detail: {
+        eventId: "evt_money_1",
+        eventType: kind === "dispute" ? "charge.dispute.created" : "refund.failed",
+        objectId: kind === "dispute" ? "du_money_1" : "re_money_1",
+      },
+    };
+  }
+
+  for (const kind of ["refund-failed", "dispute"] as const) {
+    it.each(LOCALES)(`${kind}: %s plain text carries the headline, the reference and the three ids, no raw key`, (locale) => {
+      const text = opsMustFixPlainText(alertPayload(locale, kind));
+      expect(text).toContain(WORDS[kind][locale]);
+      expect(text).toContain("VT-40004");
+      expect(text).toContain("evt_money_1");
+      expect(text).not.toMatch(/opsMustFix\./);
+    });
+
+    it.each(LOCALES)(`${kind}: %s rendered mail has the ids and no customer data or amount`, async (locale) => {
+      const html = await render(OpsMustFixEmail({ payload: alertPayload(locale, kind) }));
+      expect(html).toContain("VT-40004");
+      expect(html).toContain(kind === "dispute" ? "du_money_1" : "re_money_1");
+      expect(html).not.toContain("CHF");
+      expect(html).not.toMatch(/contactEmail|contactName|customer@/i);
+    });
+  }
+});
+
 describe("send envelope", () => {
   it("uses noreply@vamostaxi.site and sendOpsMustFix", () => {
     const here = dirname(fileURLToPath(import.meta.url));

@@ -174,13 +174,13 @@ select function_privs_are(
 
 select function_privs_are(
   'public', 'checkout_extra_payment_settle',
-  '{text,text,text,text,text,numeric,text,timestamptz,int8}'::text[],
+  '{text,text,text,text,text,numeric,text,timestamptz,int8,int8,text,int8,text}'::text[],
   'anon', '{}'::text[],
   'extra settle: anon holds no EXECUTE'
 );
 select function_privs_are(
   'public', 'checkout_extra_payment_settle',
-  '{text,text,text,text,text,numeric,text,timestamptz,int8}'::text[],
+  '{text,text,text,text,text,numeric,text,timestamptz,int8,int8,text,int8,text}'::text[],
   'vamos_system', '{EXECUTE}'::text[],
   'extra settle: vamos_system holds EXECUTE'
 );

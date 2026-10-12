@@ -51,7 +51,7 @@ describe("hosted createCheckoutSession", () => {
     expect(p).not.toHaveProperty("return_url");
     expect(p.payment_method_types).toEqual(["card"]);
     expect(p.wallet_options).toEqual({ link: { display: "never" } });
-    expect(p.adaptive_pricing).toEqual({ enabled: true });
+    expect(p.adaptive_pricing).toEqual({ enabled: false });
     expect(p).not.toHaveProperty("allow_promotion_codes");
     expect(p.expires_at).toBeGreaterThanOrEqual(before + 31 * 60 - 1);
     expect(p.expires_at).toBeLessThanOrEqual(before + 31 * 60 + 3);

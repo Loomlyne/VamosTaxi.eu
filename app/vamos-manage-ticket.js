@@ -318,10 +318,10 @@
   function refundedCopy(booking) {
     if (!booking || String(booking.refundStatus).toLowerCase() !== "refunded") return "";
     var line = t("Refunded to your {country} card.").replace("{country}", countryName(booking));
-    // The day Stripe pays out, labelled like every other date on the page.
-    var day = booking.availableOn ? dayLabel(booking.availableOn) : "";
-    // A day that ends in a full stop ("mar. 6 oct.") must not leave two at the end of the sentence.
-    if (day) line += " " + t("Stripe pays out on {date}.").replace("{date}", day).replace(/\.\.$/, ".");
+    // J8 (W3-09): no payout day. `availableOn` is when Stripe makes the ORIGINAL charge available to Vamos,
+    // not when the refund reaches the customer, and by refund time it is usually in the past. Say only that
+    // it can take a few business days. The server still sends `availableOn`; nothing here reads it.
+    line += " " + t("It can take a few business days to reach your card.");
     return line;
   }
 

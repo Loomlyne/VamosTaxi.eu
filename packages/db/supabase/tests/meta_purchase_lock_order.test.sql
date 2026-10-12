@@ -44,9 +44,9 @@ select ok(pg_temp.def('public.meta_purchase_sweep()') ~ 'limit 500',
           'sweep: still at most 500 candidates per run');
 
 -- ── the settle order both follow ─────────────────────────────────────────────────────────────
-select ok(pg_temp.pos('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text)',
+select ok(pg_temp.pos('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text,int8,text,int8,text)',
                      'from public.booking_payments as bp')
-          < pg_temp.pos('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text)',
+          < pg_temp.pos('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text,int8,text,int8,text)',
                        'from public.bookings as b'),
           'settle: still locks the payment before the booking (if this changes, revisit claim and sweep)');
 

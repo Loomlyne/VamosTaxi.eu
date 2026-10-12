@@ -20,7 +20,7 @@
 - Deploy with `--env staging` (Worker `vamos`, live on vamostaxi.site). A deploy without it made the stray Worker `vamos-web` on 2026-10-01.
 - Types with the pinned CLI: `pnpm exec supabase` (2.115.0), then `db:types:check`.
 - After any seed change, re-pin `packages/db/supabase/tests/seed_idempotent.test.sql` to the counts in the seed header.
-- Next migration number: `20261012100000` (owner, 2026-10-11 20:5x +04). Files reach `20261011100000` (live stamp `20261011145105`). Reserved: `20261012100000`–`20261012190000` for the ten J1–J10 payment migrations in their current order; Phase 30 starts at `20261012200000`. `20261007320000` (REST revoke) is on main and not applied. Each job still asks the controller before it takes a number and checks every remote branch for the file name.
+- Next migration number: `20261012200000` (Phase 30; owner, 2026-10-11). `20261012100000`–`20261012190000` are taken: the ten J1–J10 migrations, live 2026-10-12 as `20261011185708` (100000), `20261012001010`, `001042`, `001056`, `001108`, `001121`, `001135`, `001841`, `001855`, `20261012001909` (190000), each body md5 read back from history. `20261007320000` (REST revoke) is on main and not applied. Each job still asks the controller before it takes a number and checks every remote branch for the file name.
 - Ship (owner, 2026-10-11): every Ship is his own answer in the question form; the 2026-10-01 standing order no longer applies. The live Stripe key, the vamostaxi.eu cutover, price book row 18 Publish, deleting test bookings and wiping data need his word every time.
 
 Kept by the control session. One page: what is live, what is being built, what waits for
@@ -28,7 +28,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-11 20:5x (+04), new controller take-over
+**Last update:** 2026-10-12 04:21 (+04), J1–J10 landed and deployed; his payment UAT open
 
 ## Take-over read, 2026-10-11 20:47 (+04)
 
@@ -55,6 +55,7 @@ main = origin/main `358a5ba6` (planning note). Last code commit `25f64c9b` (19:5
 | 10-11 | `71b6218a`, `5794309e`, `39ac7b28` | Dead grain overlays removed; Turnstile script reused in consent and contact |
 | 10-11 | `25f64c9b` | A redirect that sets the language cookie is never cached. Live Worker `c19ff672` deployed 19:56; that it is this build is not proven |
 | 10-11 | `48e08ffe`, `a5ebb8ff` | Phase 30 vehicle class lifecycle: discuss decisions, ROADMAP entry |
+| 10-12 | `bc38a031` (#75) | Stripe payments review J1–J10: ten migrations live (stamps on the migration line above), Worker `vamos` `09dbf47c-d3bf-4a8a-81ff-4b3c0aaa5f6a` deployed 2026-10-12 00:17 UTC with `--env staging`; `/`, `/de`, `/checkout`, `/contact` 200, unsigned webhook 400. Applied through the Supabase CLI Management API (connector was down; owner delegated) with the md5 guard. Gates: `pnpm gate:local` + clean-clone check (Actions blocked on billing) |
 
 ## Open work, 2026-10-11 (order is the owner's answer)
 
@@ -63,8 +64,8 @@ Work threads started 2026-10-11 by the controller: `mcp:632f5ab5-4d41-4c94-a50c-
 
 | Item | State | Next | GSD skill |
 |---|---|---|---|
-| Phase 30, vehicle class lifecycle | Discussed (`decisions/2026-10-11-fleet-lifecycle.md`, `30-CONTEXT.md` untracked); worktree `phase-30-vehicle-class-lifecycle` at `a5ebb8ff`, not on GitHub | Plan, then his plan signature, then execute in its own thread | `/gsd-plan-phase 30` → `/gsd-execute-phase 30` → `/gsd-verify-work` → `/gsd-ship` |
-| Payment jobs J1–J10 | Tag `archive/pay-j10-drop-test-mode-9d874b9c` only: 18 ahead / 21 behind main, base `0be0942f`. Round-2 review of its 10-09 main merge was cancelled (thread "Review J10 main merge", interrupted) | Branch from the tag, merge main (coupon lock #72, `20261011100000`), renumber its ten `20261009*` migrations after the live one, `pnpm gate:local`, clean-clone check, different-model review, his Ship | `/gsd-code-review` on the merge, then `/gsd-ship` |
+| Phase 30, vehicle class lifecycle | UI-SPEC rev 3 (`16a3aa40`, branch `phase-30-vehicle-class-lifecycle`) approved 2026-10-12 04:3x; amendments 2 and 7a signed (`88cd312b`); his 14 answers sent to the thread: Q1 first missing, Q2 strict, Q3 warn, Q4 count line yes, Q5/Q6 44px tap areas, Q7 Assign line yes, Q8 he publishes, Q9 About "The fleet" inside 30, Q10 Edit-panel Delete removed, Q11 draw 390 first, Q12 keep "140 / 0", Q13 copy accepted, Q14 Live only (2 / 3) | Thread draws new pictures (Q3, Q4, Q7, Q9, Q11, Q14) → his signature → `/gsd-plan-phase 30` | `/gsd-ui-phase 30` (revision) → `/gsd-plan-phase 30` |
+| Payment jobs J1–J10 | Landed `bc38a031`, live Worker `09dbf47c`. Baseline 2026-10-12 00:20 UTC: `booking_payments` succeeded = 2; two old open `payment_intent.canceled` events (`sweep_count` 0) for the J2 sweep | His UAT: 4242 (expect decline, live key), his own card small amount, dashboard refund; controller reads `booking_payments` after each. Then delete branch `pay-j1-j10-land` (tag `archive/pay-j1-j10-land-612af0c0`), worktrees, settle thread | `/gsd-verify-work` |
 | Held `20261007320000` REST revoke | Not applied. J9 `20261009160000_db_privilege_hardening` says it is independent and order-free; J9 also revokes functions from `service_role` | Controller compares both on a lab replay before either is applied; his 4242 + voucher quote + cookie choice first | `/gsd-secure-phase` (threat check) |
 | Single-leg refund on its own subtotal | Decision `decisions/2026-10-11-single-leg-refund-own-subtotal.md` | After J7/J10 land | `/gsd-quick` in its own thread, or a phase if the plan grows |
 | Stripe review findings (127) | `audits/2026-10-09-stripe-payments-REVIEW.md`, untracked, awaiting his signature per finding | His signatures; J1–J10 already cover part | `/gsd-review-backlog` |

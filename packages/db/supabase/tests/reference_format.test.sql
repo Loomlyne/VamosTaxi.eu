@@ -85,8 +85,8 @@ select matches(
 
 select function_privs_are(
   'public', 'next_booking_reference', array[]::name[],
-  'service_role', array['EXECUTE']::name[],
-  'service_role holds EXECUTE on next_booking_reference()'
+  'service_role', array[]::name[],
+  'service_role holds no EXECUTE on next_booking_reference() (J9 W5-08: the server key has EXECUTE only on the staff_digest_* functions)'
 );
 select function_privs_are(
   'public', 'next_booking_reference', array[]::name[],

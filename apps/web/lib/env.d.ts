@@ -359,7 +359,10 @@ interface CloudflareEnv {
 
   /**
    * Stripe secret key. REQUIRED. `wrangler secret put STRIPE_SECRET_KEY`.
-   * Never in wrangler.jsonc `vars`. Test mode (`sk_test_`) on staging until Phase 11.
+   * Never in wrangler.jsonc `vars`. Must be an `sk_` or `rk_` key (stripe-mode.ts); anything
+   * else is refused before a Stripe call. Worker `vamos` runs the LIVE key (owner's word,
+   * 2026-10-09). A test key is accepted only so the local lab and unit fixtures can run;
+   * it is not a production path.
    */
   STRIPE_SECRET_KEY: string;
 
@@ -371,6 +374,8 @@ interface CloudflareEnv {
 
   /**
    * Stripe publishable key. REQUIRED. wrangler.jsonc `vars` — not a secret.
+   * Must name the same mode as STRIPE_SECRET_KEY: the hourly health probe reports payments
+   * down when they differ. `pk_test_placeholder` names no mode (production until cutover).
    * Staging uses the live publishable key (6a5f274e). The secret key is a wrangler secret, never this field.
    */
   STRIPE_PUBLISHABLE_KEY: string;

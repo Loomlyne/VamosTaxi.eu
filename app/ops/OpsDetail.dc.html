@@ -894,7 +894,6 @@ const T = {
     errAlready:'Nothing is left to refund on this booking.',
     errNotPaid:'This booking has no captured payment.',
     errNothing:'There is nothing to try again. The page now shows what is due.',
-    errTestOnly:'Refunds can only be sent on the Stripe test account for now.',
     errDecided:'This refund is no longer waiting for a decision. The page now shows where it stands.',
     errNotPostTrip:'A refund can only be rejected after a completed trip or a no-show.',
     classLoading:'Working out the prices…', classCurrentTag:'current class',
@@ -1038,7 +1037,6 @@ const T = {
     errAlready:'Bei dieser Buchung ist nichts mehr zurückzuerstatten.',
     errNotPaid:'Diese Buchung hat keine erfasste Zahlung.',
     errNothing:'Es gibt nichts zu wiederholen. Die Seite zeigt jetzt, was offen ist.',
-    errTestOnly:'Rückerstattungen können vorerst nur im Stripe-Testkonto gesendet werden.',
     errDecided:'Diese Rückerstattung wartet nicht mehr auf einen Entscheid. Die Seite zeigt jetzt den aktuellen Stand.',
     errNotPostTrip:'Eine Rückerstattung kann nur nach einer abgeschlossenen Fahrt oder einem No-show zurückgewiesen werden.',
     classLoading:'Preise werden berechnet …', classCurrentTag:'aktuelle Klasse',
@@ -1165,7 +1163,6 @@ const T = {
     errAlready:'Il ne reste rien à rembourser sur cette réservation.',
     errNotPaid:'Cette réservation n’a aucun paiement capturé.',
     errNothing:'Il n’y a rien à réessayer. La page montre maintenant ce qui est dû.',
-    errTestOnly:'Les remboursements ne peuvent être envoyés que sur le compte de test Stripe pour le moment.',
     errDecided:'Ce remboursement n’attend plus de décision. La page montre maintenant où il en est.',
     errNotPostTrip:'Un remboursement ne peut être rejeté qu’après une course terminée ou une absence.',
     backToBookings:'Retour aux réservations', bookedBy:'réservé par', moreActions:'Plus d’actions', details:'Détails', history:'Historique', historyEmpty:'Aucun événement.',
@@ -1312,7 +1309,6 @@ const T = {
     errAlready:'لا يوجد ما يُسترد في هذا الحجز.',
     errNotPaid:'لا توجد دفعة محصّلة لهذا الحجز.',
     errNothing:'لا يوجد ما يُعاد. تعرض الصفحة الآن ما هو مستحق.',
-    errTestOnly:'لا يمكن إرسال المبالغ المستردة حاليًا إلا على حساب Stripe التجريبي.',
     errDecided:'لم يعد هذا الاسترداد بانتظار قرار. تعرض الصفحة الآن وضعه الحالي.',
     errNotPostTrip:'لا يمكن رفض الاسترداد إلا بعد رحلة مكتملة أو عدم الحضور.',
     backToBookings:'الرجوع إلى الحجوزات', bookedBy:'تم الحجز بواسطة', moreActions:'المزيد من الإجراءات', details:'التفاصيل', history:'السجل', historyEmpty:'لا أحداث بعد.',
@@ -1728,7 +1724,7 @@ class Component extends DCLogic {
     const refundErr = this.state.refundError && this.state.refundError.key === refundKey ? this.state.refundError.code : '';
     const errByCode = {
       'full-refund-only': t.errFullOnly, 'refund-exceeds-remaining': t.errExceeds, 'invalid-percent': t.errInvalid, 'invalid-amount': t.errInvalid,
-      'invalid-body': t.errInvalid, 'already-refunded': t.errAlready, 'not-paid': t.errNotPaid, 'nothing-to-retry': t.errNothing, 'stripe-test-only': t.errTestOnly,
+      'invalid-body': t.errInvalid, 'already-refunded': t.errAlready, 'not-paid': t.errNotPaid, 'nothing-to-retry': t.errNothing,
       // 261004 lock order: a payment settled for this booking in the same instant; nothing was written, press again.
       'payment-changed': t.errPaymentChanged,
       // 261001-refusal-messages: Decline / Reject refusals from ops_refund_decide.
@@ -1901,7 +1897,7 @@ class Component extends DCLogic {
       'price-changed': t.errClassPriceChanged, 'paid-changed': t.errClassPriceChanged, 'price-book-changed': t.errClassBook,
       // 261004 lock order: a payment settled for this booking in the same instant; nothing was changed, press again.
       'payment-changed': t.errPaymentChanged,
-      'stripe-test-only': t.errTestOnly, 'not-editable': t.errClassTooLate,
+      'not-editable': t.errClassTooLate,
       // 26.2 P6 server step: the reasons the change route can still answer, in the page's own words.
       'must-fix': t.mustFix, 'driver-overlap': t.mustFix, 'flight-needed': t.flightNeeded, 'past-time': t.errPastTime,
       // 261002 settle safety: the waiting change's page was paid in the same second; the payment applies that change.
@@ -2195,7 +2191,6 @@ class Component extends DCLogic {
           if (json && json.ok) { this.notify(t.withdrawDone); return; }
           if (code === 'already-paid') this.notifyError(t.withdrawPaid);
           else if (code === 'nothing-waiting') this.notifyError(t.withdrawNothing);
-          else if (code === 'stripe-test-only') this.notifyError(t.errTestOnly);
           else this.notifyError(t.withdrawStripe);
         }, () => {
           this.setState({ withdrawOpen: false, withdrawBusy: false });

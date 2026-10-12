@@ -7,7 +7,7 @@ import { loadCheckoutCatalog } from "@/lib/checkout/checkout-catalog";
 import { resolveActorCustomerId } from "@/lib/checkout/actor-customer";
 import { priceCheckoutWithDeps } from "@/lib/checkout/price-route";
 import { asQuote } from "@/lib/db/identity";
-import { evaluateCoupon, loadLaunchFlags } from "@/lib/db/quote";
+import { evaluateCoupon, loadLaunchFlagsStrict } from "@/lib/db/quote";
 import { csrfForbiddenPublicOrStaff } from "@/lib/security/origin";
 import { requestHasStaffSession } from "@/lib/ops/staff-origin";
 import { lockSecretMissingResponse, lockSecretPresent } from "@/lib/quote/lock-secret";
@@ -42,7 +42,8 @@ export async function POST(request: Request) {
       lockSecrets: previous ? { current, previous } : { current },
       nowIso,
       loadCatalog: () => loadCheckoutCatalog(env),
-      loadVatBps: async () => (await loadLaunchFlags(env)).vat_rate_bps,
+      // J6 (W2-04): the charge rate is read strictly: a failed read is `pricing_not_live`, never 8.1 %.
+      loadVatBps: async () => (await loadLaunchFlagsStrict(env)).vat_rate_bps,
       evaluateCoupon: (code, ids) => evaluateCoupon(env, code, ids),
       actorCustomerId: actor,
       rateLimit: async () => {

@@ -6,7 +6,7 @@
 -- (QUOTE-10). Synthetic figures, rolled back at the end of this file -- never a
 -- real CHF amount (D-34).
 begin;
-select plan(39);
+select plan(41);
 
 -- Fixtures --------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
@@ -386,6 +386,26 @@ select throws_ok(
   '23001',
   'quote_already_booked',
   '(replay f) same quote_id different idempotency_key raises quote_already_booked'
+);
+-- J6 (W2-12): a replay is the same key on the SAME quote. The key of another quote's booking is not a replay.
+select throws_ok(
+  $$
+    select * from pg_temp.crpc_call(
+      '00000000-0000-4000-8000-0000000001ff'::uuid,
+      'checkout-rpc-happy',
+      'pi_checkout_rpc_foreign',
+      'cs_checkout_rpc_foreign',
+      decode(repeat('33', 32), 'hex')
+    )
+  $$,
+  '23001',
+  'quote_already_booked',
+  '(replay g) an existing booking''s key on a different quote raises quote_already_booked, it is not answered with that booking'
+);
+select is(
+  (select count(*)::bigint from public.bookings where idempotency_key = 'checkout-rpc-happy'),
+  1::bigint,
+  '(replay h) the refused foreign key created no second booking and returned no row'
 );
 
 -- Coupon (Phase 4 D-30) -------------------------------------------------------

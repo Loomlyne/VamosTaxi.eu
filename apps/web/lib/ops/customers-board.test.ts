@@ -55,7 +55,8 @@ describe("ops customers board", () => {
     expect(item).toMatch(/eraseBooking/);
     expect(write).toMatch(/ops_cancel_booking/);
     expect(write).toMatch(/resolveStaffBookingId/);
-    expect(write).toMatch(/erased_at = now\(\)/);
+    // J7 W6-09: the tombstone is written by the definer function staff_erase_unpaid_booking (erased_at = now() inside it).
+    expect(write).toMatch(/staff_erase_unpaid_booking/);
   });
 
   it("OpsCustomers wires save, history under Notes, and remove", () => {

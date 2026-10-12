@@ -177,18 +177,20 @@ describe("U06-1 / U06-19: booking voucher", () => {
     expect(html).not.toMatch(/Transfer · Economy/);
   });
 
-  it("refund line: payout date is localised, isolated for Arabic, and no literal '. ' joiner", () => {
+  it("refund line (J8, W3-09): no payout date at all, whatever availableOn holds, only the arrival sentence, in every language", () => {
     const refunded = { ...booking, status: "refunded", refundStatus: "refunded", payoutCountry: "CH", availableOn: "2031-10-05T00:00:00Z" };
     const en = voucher(refunded, "en");
-    expect(en).not.toContain("2031-10-05");
-    expect(en).toContain("5 October 2031");
     expect(en).toContain("data-confirmation-refund-copy");
+    expect(en).toContain("It can take a few business days to reach your card.");
+    expect(en).not.toMatch(/Stripe pays out|2031-10-05|5 October 2031/);
     expect(en).not.toMatch(/\. Refunded to your/);
     const de = voucher(refunded, "de");
-    expect(de).toContain("5. Oktober 2031");
+    expect(de).toContain("Es kann einige Werktage dauern, bis der Betrag auf Ihrer Karte eintrifft.");
+    expect(de).not.toMatch(/5\. Oktober 2031|Stripe zahlt/);
+    const fr = voucher(refunded, "fr");
+    expect(fr).toContain("Cela peut prendre quelques jours ouvrés");
     const ar = voucher(refunded, "ar");
+    expect(ar).toContain("قد يستغرق وصوله إلى بطاقتك بضعة أيام عمل.");
     expect(ar).not.toContain("2031-10-05");
-    expect(ar).toContain("⁦");
-    expect(ar).toContain("⁩");
   });
 });

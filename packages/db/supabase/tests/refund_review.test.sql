@@ -140,8 +140,8 @@ select function_privs_are('public', 'ops_refund_decide', '{uuid,text}'::text[], 
   'ops_refund_decide: anon holds no EXECUTE');
 select function_privs_are('public', 'ops_refund_decide', '{uuid,text}'::text[], 'authenticated', '{}'::text[],
   'ops_refund_decide: authenticated (customer) holds no EXECUTE — D-25a: no customer refund button');
-select function_privs_are('public', 'ops_refund_record', '{uuid,int8,text,uuid,rappen,text,rappen}'::text[], 'vamos_system', '{EXECUTE}'::text[],
-  'ops_refund_record(+p_reason, +p_refund_rappen): vamos_system holds EXECUTE');
+select function_privs_are('public', 'ops_refund_record', '{uuid,int8,text,uuid,rappen,text,rappen}'::text[], 'vamos_system', '{}'::text[],
+  'ops_refund_record(+p_reason, +p_refund_rappen): vamos_system holds no EXECUTE (J7 W5-06: legacy writer, no app caller)');
 select function_privs_are('public', 'ops_refund_record', '{uuid,int8,text,uuid,rappen,text,rappen}'::text[], 'vamos_staff', '{}'::text[],
   'ops_refund_record: vamos_staff holds no EXECUTE');
 select ok(

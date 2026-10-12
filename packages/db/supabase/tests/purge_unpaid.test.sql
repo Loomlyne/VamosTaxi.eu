@@ -5,7 +5,7 @@
 -- carve-out stays closed for every other caller/row/state, and that checkout_expire_unpaid no
 -- longer cancels a pending booking that has no pay link. Synthetic rappen only.
 begin;
-select plan(29);
+select plan(34);
 
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
 values ('pu-first', 3, 3);
@@ -207,6 +207,24 @@ select is((select status::text from public.bookings where id = (select booking_i
   'expire: it stays pending until purged');
 select is((select status::text from public.bookings where id = (select booking_id from pu_explink)), 'cancelled',
   'expire: expired pay-link booking is still cancelled');
+
+-- J4 (W5-11): a booking whose Stripe session is not proved dead is never purged ----------------
+select is(public.purge_unpaid_booking((select booking_id from pu_a), 'unpaid_expired'), false,
+  'W5-11: refused while a payment row still names a Stripe session nobody has proved expired');
+set local role vamos_checkout;
+select is(public.checkout_payments_mark_dead((select booking_id from pu_a), array['cs_not_this_one']), 0,
+  'W5-11: marking dead touches only the named session ids');
+select is(public.checkout_payments_mark_dead((select booking_id from pu_a), array['cs_pu_a']), 1,
+  'W5-11: the verified session''s requires_payment row is marked dead');
+reset role;
+select is((select status from public.booking_payments where stripe_checkout_session_id = 'cs_pu_a'), 'canceled',
+  'W5-11: as canceled');
+select is(public.purge_unpaid_booking((select booking_id from pu_a), 'unpaid_expired'), false,
+  'W5-11: reason unpaid_expired is refused while the price lock is still live');
+-- the lock expires (the cron's case); replica role skips the append-only guard
+set local session_replication_role = replica;
+update public.price_snapshots set quote_lock_expires_at = now() - interval '1 minute' where booking_id = (select booking_id from pu_a);
+set local session_replication_role = origin;
 
 -- Purge of an eligible booking ------------------------------------------------------------
 set local role vamos_checkout;

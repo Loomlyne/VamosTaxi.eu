@@ -371,7 +371,7 @@ describe("customerCanCancel (261002 item 1, shared by the manage link and the si
 
   it("the manage route uses it in place of its own list", () => {
     const route = read("apps/web/app/api/manage/booking/route.ts");
-    expect(route).toMatch(/import \{ customerCancelWindow, customerCanCancel \} from "@\/lib\/checkout\/cancel-window";/);
+    expect(route).toMatch(/import \{ cancelWindowFromMode, customerCanCancel \} from "@\/lib\/checkout\/cancel-window";/);
     expect(route).toMatch(/const canCancel = customerCanCancel\(status, reviewSubmitted\);/);
     expect(route).not.toContain("HIDE_CANCEL");
   });
@@ -909,14 +909,19 @@ describe("new words exist in four languages (261002)", () => {
 
 // ── 4. the refund line's country ───────────────────────────────────────────────────────────────────────────
 
+const NOTE = {"en": "It can take a few business days to reach your card.", "de": "Es kann einige Werktage dauern, bis der Betrag auf Ihrer Karte eintrifft.", "fr": "Cela peut prendre quelques jours ouvrés avant d'arriver sur votre carte.", "ar": "قد يستغرق وصوله إلى بطاقتك بضعة أيام عمل."} as const;
+
+/** The arrival sentence (J8) is tested on its own; these checks are about the country in the first sentence. */
+const withoutNote = (s: string) => Object.values(NOTE).reduce((acc, n) => acc.replace(` ${n}`, ""), s);
+
 describe("the refund line names the country in the reader's language (261002 item 4)", () => {
   const refunded = { refundStatus: "refunded", payoutCountry: "CH", payoutCountryLabel: "Switzerland", availableOn: null as string | null };
 
   it.each([
-    ["en", "Refunded to your Switzerland card."],
-    ["de", "Erstattet auf Ihre Karte in Schweiz."],
-    ["fr", "Remboursé sur votre carte Suisse."],
-    ["ar", "أُعيد إلى بطاقتك في سويسرا."],
+    ["en", `Refunded to your Switzerland card. ${NOTE.en}`],
+    ["de", `Erstattet auf Ihre Karte in Schweiz. ${NOTE.de}`],
+    ["fr", `Remboursé sur votre carte Suisse. ${NOTE.fr}`],
+    ["ar", `أُعيد إلى بطاقتك في سويسرا. ${NOTE.ar}`],
   ])("CH in %s: %s", (lang, want) => {
     const { helper } = loadHelper();
     locale.setLang(lang);
@@ -927,54 +932,47 @@ describe("the refund line names the country in the reader's language (261002 ite
     const { helper } = loadHelper();
     const de = { ...refunded, payoutCountry: "DE", payoutCountryLabel: "Germany" };
     locale.setLang("en");
-    expect(helper.refundedCopy(de)).toBe("Refunded to your Germany card.");
+    expect(withoutNote(helper.refundedCopy(de))).toBe("Refunded to your Germany card.");
     locale.setLang("de");
-    expect(helper.refundedCopy(de)).toBe("Erstattet auf Ihre Karte in Deutschland.");
+    expect(withoutNote(helper.refundedCopy(de))).toBe("Erstattet auf Ihre Karte in Deutschland.");
     locale.setLang("fr");
-    expect(helper.refundedCopy(de)).toBe("Remboursé sur votre carte Allemagne.");
+    expect(withoutNote(helper.refundedCopy(de))).toBe("Remboursé sur votre carte Allemagne.");
     locale.setLang("ar");
-    expect(helper.refundedCopy(de)).toBe("أُعيد إلى بطاقتك في ألمانيا.");
+    expect(withoutNote(helper.refundedCopy(de))).toBe("أُعيد إلى بطاقتك في ألمانيا.");
   });
 
   it("no code means Switzerland (the account path sends none)", () => {
     const { helper } = loadHelper();
     locale.setLang("de");
-    expect(helper.refundedCopy({ refundStatus: "refunded" })).toBe("Erstattet auf Ihre Karte in Schweiz.");
-    expect(helper.refundedCopy({ refundStatus: "refunded", payoutCountry: null, payoutCountryLabel: null })).toBe("Erstattet auf Ihre Karte in Schweiz.");
+    expect(withoutNote(helper.refundedCopy({ refundStatus: "refunded" }))).toBe("Erstattet auf Ihre Karte in Schweiz.");
+    expect(withoutNote(helper.refundedCopy({ refundStatus: "refunded", payoutCountry: null, payoutCountryLabel: null }))).toBe("Erstattet auf Ihre Karte in Schweiz.");
   });
 
   it("a browser without region names falls back to the server's label through t(), then to Switzerland", () => {
     const { helper } = loadHelper({}, { DateTimeFormat: Intl.DateTimeFormat });
     locale.setLang("de");
-    expect(helper.refundedCopy({ refundStatus: "refunded", payoutCountry: "CH", payoutCountryLabel: "Switzerland" })).toBe("Erstattet auf Ihre Karte in Schweiz.");
-    expect(helper.refundedCopy({ refundStatus: "refunded", payoutCountry: "CH" })).toBe("Erstattet auf Ihre Karte in Schweiz.");
-    expect(helper.refundedCopy({ refundStatus: "refunded", payoutCountry: "DE", payoutCountryLabel: "Germany" })).toBe("Erstattet auf Ihre Karte in Germany.");
+    expect(withoutNote(helper.refundedCopy({ refundStatus: "refunded", payoutCountry: "CH", payoutCountryLabel: "Switzerland" }))).toBe("Erstattet auf Ihre Karte in Schweiz.");
+    expect(withoutNote(helper.refundedCopy({ refundStatus: "refunded", payoutCountry: "CH" }))).toBe("Erstattet auf Ihre Karte in Schweiz.");
+    expect(withoutNote(helper.refundedCopy({ refundStatus: "refunded", payoutCountry: "DE", payoutCountryLabel: "Germany" }))).toBe("Erstattet auf Ihre Karte in Germany.");
   });
 
   it("an unknown code does not print the code; the label or Switzerland is used", () => {
     const { helper } = loadHelper();
     locale.setLang("de");
-    expect(helper.refundedCopy({ refundStatus: "refunded", payoutCountry: "QQ", payoutCountryLabel: "Switzerland" })).toBe("Erstattet auf Ihre Karte in Schweiz.");
-    expect(helper.refundedCopy({ refundStatus: "refunded", payoutCountry: "ZZ" })).toBe("Erstattet auf Ihre Karte in Schweiz.");
+    expect(withoutNote(helper.refundedCopy({ refundStatus: "refunded", payoutCountry: "QQ", payoutCountryLabel: "Switzerland" }))).toBe("Erstattet auf Ihre Karte in Schweiz.");
+    expect(withoutNote(helper.refundedCopy({ refundStatus: "refunded", payoutCountry: "ZZ" }))).toBe("Erstattet auf Ihre Karte in Schweiz.");
   });
 
-  it("'Stripe pays out on {date}' uses the day label, in the reader's language", () => {
+  it("J8 (W3-09): no payout date is ever shown, whatever availableOn holds; only that it can take a few business days", () => {
     const { helper } = loadHelper();
-    const b = { ...refunded, availableOn: "2026-10-06T00:00:00.000Z" };
-    locale.setLang("en");
-    expect(helper.refundedCopy(b)).toBe("Refunded to your Switzerland card. Stripe pays out on Tue 6 Oct.");
-    locale.setLang("de");
-    expect(helper.refundedCopy(b)).toBe("Erstattet auf Ihre Karte in Schweiz. Stripe zahlt am Di. 6. Okt. aus.");
-    locale.setLang("fr");
-    // the day ends in a full stop in French; the sentence does not end in two
-    expect(helper.refundedCopy(b)).toBe("Remboursé sur votre carte Suisse. Stripe verse le mar. 6 oct.");
-    locale.setLang("ar");
-    expect(helper.refundedCopy(b)).toBe("أُعيد إلى بطاقتك في سويسرا. سترايب يدفع في الثلاثاء، 6 أكتوبر.");
-  });
-
-  it("a date that is not a date leaves the payout sentence out", () => {
-    const { helper } = loadHelper();
-    expect(helper.refundedCopy({ ...refunded, availableOn: "soon" })).toBe("Refunded to your Switzerland card.");
+    for (const availableOn of ["2026-10-06T00:00:00.000Z", "soon", null]) {
+      for (const lang of ["en", "de", "fr", "ar"] as const) {
+        locale.setLang(lang);
+        const out = helper.refundedCopy({ ...refunded, availableOn });
+        expect(out, `${lang} ${availableOn}`).toContain(NOTE[lang]);
+        expect(out, `${lang} ${availableOn}`).not.toMatch(/Stripe|سترايب|\d{4}|6 Oct|Okt|oct\./);
+      }
+    }
   });
 
   it("only a refunded booking has the line", () => {
@@ -996,9 +994,9 @@ describe.each(PAGES)("%s: after a cancel the page keeps the country code (261002
     expect(sent[0]).toMatchObject({ url: "/api/account/bookings/paid-cancel", method: "POST" });
     expect(page.state.ticket).toMatchObject({ status: "cancelled", canCancel: false, payoutCountry: "DE" });
     locale.setLang("de");
-    expect(page.renderVals().refundedCopy).toBe("Erstattet auf Ihre Karte in Deutschland. Stripe zahlt am Fr. 9. Okt. aus.");
+    expect(page.renderVals().refundedCopy).toBe(`Erstattet auf Ihre Karte in Deutschland. ${NOTE.de}`);
     locale.setLang("fr");
-    expect(page.renderVals().refundedCopy).toBe("Remboursé sur votre carte Allemagne. Stripe verse le ven. 9 oct.");
+    expect(page.renderVals().refundedCopy).toBe(`Remboursé sur votre carte Allemagne. ${NOTE.fr}`);
   });
 
   it("an answer without a code keeps what the page had (CH by default)", async () => {
@@ -1007,6 +1005,6 @@ describe.each(PAGES)("%s: after a cancel the page keeps the country code (261002
     page.confirmCancel();
     await flush();
     locale.setLang("de");
-    expect(page.renderVals().refundedCopy).toBe("Erstattet auf Ihre Karte in Schweiz.");
+    expect(page.renderVals().refundedCopy).toBe(`Erstattet auf Ihre Karte in Schweiz. ${NOTE.de}`);
   });
 });

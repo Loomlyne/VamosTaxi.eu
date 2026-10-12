@@ -296,12 +296,16 @@ describe("refundBooking across payments (20-10 B.2)", () => {
     expect(result).toMatchObject({ ok: false, code: "stripe-failed", parts: [{ paymentId: 1, state: "failed" }] });
   });
 
-  it("the sk_live_ guard stays: a live key makes no plan and no Stripe call", async () => {
+  it("J1: a key that is not a Stripe key makes no plan and no Stripe call; a live key is not refused", async () => {
     const { refundBooking } = await import("./refund");
-    const result = await refundBooking({ STRIPE_SECRET_KEY: "sk_live_x" } as CloudflareEnv, CLAIMS, "VT-26-0101", {});
-    expect(result).toEqual({ ok: false, code: "stripe-test-only" });
+    const result = await refundBooking({ STRIPE_SECRET_KEY: "sk_x" } as CloudflareEnv, CLAIMS, "VT-26-0101", {});
+    expect(result).toEqual({ ok: false, code: "stripe-failed" });
     expect(calls).toEqual([]);
     expect(createRefund).not.toHaveBeenCalled();
+    // A live key is a valid key: it gets past the early check (no stripe-test-only any more).
+    const live = await refundBooking({ STRIPE_SECRET_KEY: "sk_live_x" } as CloudflareEnv, CLAIMS, "VT-26-0101", {});
+    expect(live).not.toEqual({ ok: false, code: "stripe-failed" });
+    expect(live).not.toEqual({ ok: false, code: "stripe-test-only" });
   });
 
   it("{ retry: true } with nothing open answers nothing-to-retry and plans nothing", async () => {

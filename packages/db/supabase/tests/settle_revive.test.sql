@@ -24,6 +24,13 @@
 begin;
 select plan(85);
 
+-- J9 W5-23: checkout_cancel_unpaid trusts auth.users (a confirmed e-mail), not the JWT e-mail claim, so the
+-- two account identities used below are real, confirmed accounts.
+insert into auth.users (id, email, aud, role, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+values
+  ('20000000-0000-4000-8000-000000000003', 'rt-account@example.test', 'authenticated', 'authenticated', now(), '{}'::jsonb, '{}'::jsonb, now(), now()),
+  ('20000000-0000-4000-8000-000000000007', 'rt-past@example.test', 'authenticated', 'authenticated', now(), '{}'::jsonb, '{}'::jsonb, now(), now());
+
 -- Fixtures --------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
 values ('rt-first', 3, 3);
@@ -186,13 +193,13 @@ grant execute on function pg_temp.rt_book(
 
 -- Grants (D-07 threat T-26.1-07) ------------------------------------------------
 select function_privs_are('public', 'checkout_payment_settle',
-  '{text,text,text,text,text,numeric,text,timestamptz,int8,text}'::text[], 'anon', '{}'::text[],
+  '{text,text,text,text,text,numeric,text,timestamptz,int8,text,int8,text,int8,text}'::text[], 'anon', '{}'::text[],
   'checkout_payment_settle v2: anon holds no EXECUTE');
 select function_privs_are('public', 'checkout_payment_settle',
-  '{text,text,text,text,text,numeric,text,timestamptz,int8,text}'::text[], 'authenticated', '{}'::text[],
+  '{text,text,text,text,text,numeric,text,timestamptz,int8,text,int8,text,int8,text}'::text[], 'authenticated', '{}'::text[],
   'checkout_payment_settle v2: authenticated holds no EXECUTE');
 select function_privs_are('public', 'checkout_payment_settle',
-  '{text,text,text,text,text,numeric,text,timestamptz,int8,text}'::text[], 'vamos_system', '{EXECUTE}'::text[],
+  '{text,text,text,text,text,numeric,text,timestamptz,int8,text,int8,text,int8,text}'::text[], 'vamos_system', '{EXECUTE}'::text[],
   'checkout_payment_settle v2: vamos_system holds EXECUTE');
 select function_privs_are('public', 'checkout_duplicate_refund_record',
   '{int8,text,rappen,text}'::text[], 'anon', '{}'::text[],
@@ -591,8 +598,8 @@ select is(
   'requote: refund_reason is requote_superseded'
 );
 select ok(
-  (select processed_at is not null from public.stripe_events where id = 'evt_rt_requote'),
-  'requote: stripe_events.processed_at stamped'
+  (select processed_at is null and last_error = 'refund_required:requote_superseded' from public.stripe_events where id = 'evt_rt_requote'),
+  'requote: the event stays open with the refund_required marker until the Worker has refunded (W4-03)'
 );
 
 -- 8. Paid after cancel: pickup already passed, never revived (D-03 exception) ---
@@ -641,8 +648,8 @@ select is(
   'past: refund_reason is paid_after_cancel'
 );
 select ok(
-  (select processed_at is not null from public.stripe_events where id = 'evt_rt_past'),
-  'past: stripe_events.processed_at stamped'
+  (select processed_at is null and last_error = 'refund_required:paid_after_cancel' from public.stripe_events where id = 'evt_rt_past'),
+  'past: the event stays open with the refund_required marker until the Worker has refunded (W4-03)'
 );
 
 -- 9. is_test booking: money captured, booking untouched (D-03 exception) -------
@@ -679,8 +686,8 @@ select is(
   'succeeded', 'is_test: payment still captured'
 );
 select ok(
-  (select processed_at is not null from public.stripe_events where id = 'evt_rt_test'),
-  'is_test: stripe_events.processed_at stamped'
+  (select processed_at is null and last_error = 'refund_required:test_booking' from public.stripe_events where id = 'evt_rt_test'),
+  'is_test: the event stays open with the refund_required marker until the Worker has refunded (W4-03)'
 );
 
 -- 10. Duplicate: a second succeeded charge on an already-paid, staff-cancelled --
@@ -765,8 +772,8 @@ select is((select already_settled from rt_settle_dup2b), true, 'dup: already_set
 select is((select refund_required from rt_settle_dup2b), true, 'dup: refund_required true');
 select is((select refund_reason from rt_settle_dup2b), 'duplicate_charge', 'dup: refund_reason is duplicate_charge');
 select ok(
-  (select processed_at is not null from public.stripe_events where id = 'evt_rt_dup_2'),
-  'dup: stripe_events.processed_at stamped'
+  (select processed_at is null and last_error = 'refund_required:duplicate_charge' from public.stripe_events where id = 'evt_rt_dup_2'),
+  'dup: the event stays open with the refund_required marker until the Worker has refunded (W4-03)'
 );
 
 -- 11. checkout_duplicate_refund_record -------------------------------------------

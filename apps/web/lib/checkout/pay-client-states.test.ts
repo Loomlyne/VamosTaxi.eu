@@ -3,8 +3,6 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
-  PAY_LINK_POLL_BUDGET_MS,
-  PAY_LINK_POLL_INTERVAL_MS,
   payLinkSessionKey,
   payPollStep,
   payStateFromOpen,
@@ -138,11 +136,6 @@ describe("payPollStep (after the recipient's own payment)", () => {
     expect(payPollStep({ kind: "expired" })).toBe("wait");
     expect(payPollStep({ kind: "alert", key: "quoteAlreadyBooked" })).toBe("wait");
   });
-
-  it("uses the confirmation page's poll budget (1 s interval, 12 s)", () => {
-    expect(PAY_LINK_POLL_INTERVAL_MS).toBe(1000);
-    expect(PAY_LINK_POLL_BUDGET_MS).toBe(12_000);
-  });
 });
 
 describe("splitAroundMarker", () => {
@@ -174,7 +167,7 @@ describe("return route duplicate (D-22)", () => {
     const route = source("lib/checkout/return-settle.ts");
     expect(route).toContain('result === "duplicate"');
     expect(route).toContain("?charge=refunded");
-    expect(route).toContain("BOOKING_REFERENCE_RE.test(bookingRef)");
+    expect(route).toContain('result === "duplicate" && bookingRef');
   });
 
   it("settlePaidReturn answers duplicate through returnSettleOutcome", () => {
