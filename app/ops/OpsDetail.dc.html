@@ -228,7 +228,7 @@
 <span data-ops-pax-v style="display:flex;flex-direction:column;gap:2px"><span>{{ tNoDriver }}</span><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tNoDriverSub }}</span></span>
 </sc-if>
 <sc-if value="{{ showLeftOut }}" hint-placeholder-val="{{ false }}">
-<p data-ops-assign-leftout="1" data-ops-assign-under><span class="vt-dir-keep" data-vt-no-i18n style="white-space:nowrap">{{ leftOutN }}</span> {{ tLeftOut }}</p>
+<p data-ops-assign-leftout="1" data-ops-assign-under><sc-if value="{{ leftOutNumShow }}" hint-placeholder-val="{{ true }}"><span class="vt-dir-keep" data-vt-no-i18n style="white-space:nowrap">{{ leftOutN }}</span> </sc-if>{{ tLeftOut }}</p>
 </sc-if>
 <sc-if value="{{ showNoDrivers }}" hint-placeholder-val="{{ false }}">
 <p data-ops-assign-note data-ops-assign-under>{{ tNoDrivers }}</p>
@@ -833,6 +833,9 @@ function tripPreviewBody(booking, ed) {
   if (tf.bagsChanged && !tf.bagsBad) body.bags = Number(e.bags);
   return body;
 }
+/* Arabic count forms of the "left out" line (owner answer 2026-10-12): kept outside T because only Arabic has
+   them (T stays key-identical across languages). Chosen by arCountForm in renderVals. */
+const AR_COUNT = { assignLeftOutAr1:'سائق واحد مستبعد: فئة موقوفة', assignLeftOutAr2:'سائقان مستبعدان: فئة موقوفة', assignLeftOutArFew:'سائقين مستبعدين: فئة موقوفة', assignLeftOutArMany:'سائقًا مستبعدًا: فئة موقوفة', assignLeftOutArOther:'سائق مستبعد: فئة موقوفة' };
 const T = {
   en: { backToBookings:'Back to bookings', bookedBy:'booked by', moreActions:'More actions', details:'Details', history:'History', historyEmpty:'No events yet.',
     assignment:'Assignment', assign:'Assign driver', reassign:'Reassign', unassign:'Unassign', onShift:'On shift', noDriver:'No driver assigned', noDriverSub:'Assign before the pickup reminder goes out',
@@ -1656,6 +1659,13 @@ class Component extends DCLogic {
     const leftOutN = (booking.vehicleClassId && retiredIds[String(booking.vehicleClassId)])
       ? ((window.VamosOps.chauffeurs && window.VamosOps.chauffeurs.all() || []).filter((c) => c && c.id && String(c.vehicleClassId || '') === String(booking.vehicleClassId)).length)
       : 0;
+    // Arabic count form for the two chauffeur count lines (owner answer 2026-10-12; same rule in OpsPricing and
+    // OpsDetail, pinned by ops-dc-arabic-count-lines.test.ts): 1 and 2 in words with no numeral, 3–10 plural,
+    // 11–99 singular accusative, 100+ genitive singular (the dictionary's bags rule).
+    const arCountForm = (n) => n === 1 ? '1' : n === 2 ? '2' : (n >= 3 && n <= 10) ? 'Few' : (n >= 11 && n <= 99) ? 'Many' : 'Other';
+    const leftOutAr = this.state.lang === 'ar';
+    const leftOutNumShow = !leftOutAr || leftOutN >= 3;
+    const tLeftOut = leftOutAr ? AR_COUNT['assignLeftOutAr' + arCountForm(leftOutN)] : (leftOutN === 1 ? t.assignLeftOutOne : t.assignLeftOutMany);
     const tripClassName = String(booking.className || booking.klass || '').trim();
     const assignedDriver = booking.driver || booking.chauffeur || null;
     const frozen = ['completed','cancelled','refunded','no-show','no_show','partially_cancelled','partially_completed'].indexOf(booking.status) !== -1;
@@ -2073,7 +2083,7 @@ class Component extends DCLogic {
       showAssignPicker, assignCancelable: showAssignPicker && !!assignedDriver,
       closeAssign: () => this.setState({ assignOpen: false, pickDriver: '', assignError: '' }),
       driverOptions, noDrivers: driverOptions.length === 0,
-      leftOutN, tLeftOut: leftOutN === 1 ? t.assignLeftOutOne : t.assignLeftOutMany,
+      leftOutN, tLeftOut, leftOutNumShow,
       showLeftOut: showAssignPicker && leftOutN > 0,
       showNoDrivers: showAssignPicker && driverOptions.length === 0 && leftOutN === 0,
       // Never a disabled primary: at 42 % the yellow reads as a cream pill (law 02). No pick → the box says so.

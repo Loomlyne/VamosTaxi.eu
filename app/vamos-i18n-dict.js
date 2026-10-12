@@ -68,6 +68,30 @@
         de: '$1 Gepäckstücke', fr: '$1 bagages', ar: '$1 حقيبةً' },
       { re: /^(\d+) bags$/,
         de: '$1 Gepäckstücke', fr: '$1 bagages', ar: '$1 حقيبة' },
+      /* Phase 30 (owner answer 2026-10-12): the two chauffeur count lines take count-specific Arabic, as bags do:
+         1 and 2 in words with no numeral, 3–10 plural, 11–99 singular accusative, 100+ genitive singular; the
+         participle agrees in each form. The pages build these lines from split nodes with the same rule
+         (OpsPricing, OpsDetail); these entries carry the whole sentence for any surface that renders it in one node. */
+      { re: /^1 chauffeur is on this class$/,
+        de: '1 Chauffeur ist in dieser Klasse', fr: '1 chauffeur est dans cette classe', ar: 'سائق واحد في هذه الفئة' },
+      { re: /^2 chauffeurs are on this class$/,
+        de: '2 Chauffeure sind in dieser Klasse', fr: '2 chauffeurs sont dans cette classe', ar: 'سائقان في هذه الفئة' },
+      { re: /^([3-9]|10) chauffeurs are on this class$/,
+        de: '$1 Chauffeure sind in dieser Klasse', fr: '$1 chauffeurs sont dans cette classe', ar: '$1 سائقين في هذه الفئة' },
+      { re: /^(1[1-9]|[2-9]\d) chauffeurs are on this class$/,
+        de: '$1 Chauffeure sind in dieser Klasse', fr: '$1 chauffeurs sont dans cette classe', ar: '$1 سائقًا في هذه الفئة' },
+      { re: /^(\d+) chauffeurs are on this class$/,
+        de: '$1 Chauffeure sind in dieser Klasse', fr: '$1 chauffeurs sont dans cette classe', ar: '$1 سائق في هذه الفئة' },
+      { re: /^1 chauffeur left out: retired class$/,
+        de: '1 Chauffeur ausgeblendet: stillgelegte Klasse', fr: '1 chauffeur écarté : classe retirée', ar: 'سائق واحد مستبعد: فئة موقوفة' },
+      { re: /^2 chauffeurs left out: retired class$/,
+        de: '2 Chauffeure ausgeblendet: stillgelegte Klasse', fr: '2 chauffeurs écartés : classe retirée', ar: 'سائقان مستبعدان: فئة موقوفة' },
+      { re: /^([3-9]|10) chauffeurs left out: retired class$/,
+        de: '$1 Chauffeure ausgeblendet: stillgelegte Klasse', fr: '$1 chauffeurs écartés : classe retirée', ar: '$1 سائقين مستبعدين: فئة موقوفة' },
+      { re: /^(1[1-9]|[2-9]\d) chauffeurs left out: retired class$/,
+        de: '$1 Chauffeure ausgeblendet: stillgelegte Klasse', fr: '$1 chauffeurs écartés : classe retirée', ar: '$1 سائقًا مستبعدًا: فئة موقوفة' },
+      { re: /^(\d+) chauffeurs left out: retired class$/,
+        de: '$1 Chauffeure ausgeblendet: stillgelegte Klasse', fr: '$1 chauffeurs écartés : classe retirée', ar: '$1 سائق مستبعد: فئة موقوفة' },
       { re: /^Chauffeur (\d+)$/,
         de: 'Chauffeur $1', fr: 'Chauffeur $1', ar: 'السائق $1' },
 

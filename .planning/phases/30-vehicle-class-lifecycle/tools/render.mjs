@@ -163,6 +163,18 @@ const clickRetire = async (page, name, lang) => {
 const dialogOf = (page) => page.locator("[role=dialog]").filter({ has: page.locator("[data-retiring]") }).first().elementHandle();
 const T = (en, ar, lang) => (lang === "ar" ? ar : en);
 
+// ---------- Arabic count forms (owner answer 2026-10-12): exact text per count, spaces ignored ----------
+const AR_RETIRE = { 1: "سائق واحد في هذه الفئة", 2: "سائقان في هذه الفئة", 5: "5 سائقين في هذه الفئة", 11: "11 سائقًا في هذه الفئة" };
+const AR_LEFTOUT = { 1: "سائق واحد مستبعد: فئة موقوفة", 2: "سائقان مستبعدان: فئة موقوفة", 5: "5 سائقين مستبعدين: فئة موقوفة", 11: "11 سائقًا مستبعدًا: فئة موقوفة" };
+const squash = (x) => String(x || "").replace(/\s+/g, "");
+/** n chauffeurs on `key`, plus Luca Meier on Luxury Van; names beyond the sheet-5 three never render on these crops. */
+const crew = (n, key) => {
+  const base = ["Samir Haddad", "Marc Keller"];
+  const list = Array.from({ length: n }, (_, i) => [base[i] || `Chauffeur ${i + 1}`, key]);
+  return [...list, ["Luca Meier", "lux"]];
+};
+const AR_ONLY = process.argv.includes("--ar-only");
+
 // ---------- sheet 6 ----------
 // The close button's own box drawn as a faint dashed outline (it is the tap area; the log prints its real size).
 // For sheet 6 only: the close X's invisible 44px tap area (OpsPricing ::before, inset -6px) drawn as a faint dashed outline.
@@ -170,11 +182,12 @@ const TAP = `[role=dialog] .vt-dialog__head .vt-iconbtn::before{outline:1px dash
 const ch6a = () => S.chauffeurRows([["Samir Haddad", "van"], ["Marc Keller", "van"], ["Luca Meier", "lux"]]);
 const st6a = () => ({ status: { sedan: "retired", van: "live", lux: "draft" }, reasons: {}, chauffeurs: ch6a(), bookings: [], quoteClasses: [] });
 const st6b = () => ({ status: { sedan: "retired", van: "live", lux: "live" }, reasons: {}, chauffeurs: S.chauffeurRows([["Samir Haddad", "van"], ["Marc Keller", "lux"], ["Luca Meier", "lux"]]), bookings: [], quoteClasses: [] });
-function s6(w, lang, one) {
-  const suffix = one ? "-one" : "";
+function s6(w, lang, one, arN) {
+  const suffix = one ? "-one" : arN ? `-n${arN}` : "";
+  const state = arN ? { ...st6a(), chauffeurs: S.chauffeurRows(crew(arN, "van")) } : one ? st6b() : st6a();
   return {
-    sheet: 6, w, lang, path: "/pricing", state: one ? st6b() : st6a(), css: TAP,
-    file: `6-retire-dialog-${w}-${lang}${suffix}.png`, caption: cap(w, lang) + (one ? " · one chauffeur, another class live" : " · last live class"),
+    sheet: 6, w, lang, path: "/pricing", state, css: TAP, arN: arN || (lang === "ar" && !one ? 2 : 0),
+    file: `6-retire-dialog-${w}-${lang}${suffix}.png`, caption: cap(w, lang) + (one ? " · one chauffeur, another class live" : arN ? ` · ${arN} chauffeurs, last live class` : " · last live class"),
     prep: async (page) => { await openClassesPane(page); await clickRetire(page, "Economy Van", lang); },
     target: dialogOf,
     checks: async (page, h) => {
@@ -185,7 +198,11 @@ function s6(w, lang, one) {
       console.log(`  info close button box ${x ? x.join("x") : "none"}`);
       const tap = await page.evaluate(() => { const b = document.querySelector('[role=dialog] .vt-dialog__head .vt-iconbtn'); if (!b) return null; const c = getComputedStyle(b, '::before'); return [c.width, c.height, c.position]; });
       console.log(`  info close tap area ${tap ? tap.join(" ") : "none"}`);
-      if (lang === "ar") return [["count line present", count.length > 0], ["last-live line " + (one ? "absent" : "present"), one ? last === 0 : last === 1]];
+      if (lang === "ar") {
+        const n = arN || 2;
+        return [[`Arabic count line for ${n} = "${AR_RETIRE[n]}" (got ${JSON.stringify(count.replace(/\s+/g, " ").trim())})`, squash(count) === squash(AR_RETIRE[n])],
+          ["last-live line " + (one ? "absent" : "present"), one ? last === 0 : last === 1]];
+      }
       return one
         ? [[`count line "1 chauffeur is on this class" (got ${JSON.stringify(count.replace(/\s+/g, " "))})`, /^1\s+chauffeur is on this class$/.test(count.replace(/\s+/g, " ").trim())], ["no last-live warning", last === 0]]
         : [[`count line "2 chauffeurs are on this class" (got ${JSON.stringify(count.replace(/\s+/g, " "))})`, /^2\s+chauffeurs are on this class$/.test(count.replace(/\s+/g, " ").trim())],
@@ -202,10 +219,10 @@ const assignBlock = async (page) => {
   await page.waitForTimeout(600);
   return page.locator("[data-ops-assign]").first().elementHandle();
 };
-function s7(w, lang, one, state) {
+function s7(w, lang, one, state, arN) {
   return {
-    sheet: 7, w, lang, path: BK, withPrev: true, state, file: `7-assign-left-out-${w}-${lang}${one ? "-one" : ""}.png`,
-    caption: cap(w, lang) + (one ? " · one chauffeur left out" : ""),
+    sheet: 7, w, lang, path: BK, withPrev: true, state, file: `7-assign-left-out-${w}-${lang}${one ? "-one" : arN ? `-n${arN}` : ""}.png`,
+    caption: cap(w, lang) + (one ? " · one chauffeur left out" : arN ? ` · ${arN} chauffeurs left out` : ""),
     prep: async (page) => { await page.waitForSelector("[data-ops-assign]", { timeout: 8000 }); },
     target: assignBlock,
     // coverage on the new element only: ops screens translate their own copy through page T tables, not the dictionary
@@ -216,6 +233,10 @@ function s7(w, lang, one, state) {
       const noClass = await page.evaluate(() => /No chauffeur has the class/i.test(document.body.innerText));
       const opts = await page.evaluate(() => { const s = document.querySelector("[data-ops-assign] select"); return s ? s.options.length : -1; });
       const out = [["left-out line present", left === 1], ['no "No chauffeur has the class" sentence', !noClass], [`picker empty (options ${opts})`, opts <= 1]];
+      if (lang === "ar") {
+        const n = arN || 2;
+        out.push([`Arabic line for ${n} = "${AR_LEFTOUT[n]}" (got ${JSON.stringify(leftTxt)})`, squash(leftTxt) === squash(AR_LEFTOUT[n])]);
+      }
       if (lang === "en") out.push([`line reads "${one ? "1 chauffeur left out: retired class" : "2 chauffeurs left out: retired class"}" (got ${JSON.stringify(leftTxt)})`, leftTxt === (one ? "1 chauffeur left out: retired class" : "2 chauffeurs left out: retired class")]);
       return out;
     },
@@ -295,11 +316,12 @@ function s10(w, lang) {
 
 // ---------- run ----------
 const sheets = {
-  6: { file: "sheet-6-retire-dialog.png", title: "Sheet 6 · Retire dialog: chauffeur count and last-live warning", build: () => [s6(1440, "en"), s6(1440, "ar"), s6(390, "en"), s6(390, "ar"), s6(1440, "en", true)] },
+  6: { file: "sheet-6-retire-dialog.png", title: "Sheet 6 · Retire dialog: chauffeur count and last-live warning (Arabic: 1, 2, 5, 11 chauffeurs)", build: () => [s6(1440, "en"), s6(1440, "ar"), s6(390, "en"), s6(390, "ar"), s6(1440, "en", true), s6(1440, "ar", false, 1), s6(1440, "ar", false, 5), s6(1440, "ar", false, 11)] },
   7: { file: "sheet-7-assign-left-out.png", title: "Sheet 7 · Assign: chauffeurs left out because the class is retired", build: async () => {
     const two = [["Samir Haddad", "van"], ["Marc Keller", "van"], ["Luca Meier", "lux"]];
     const oneL = [["Samir Haddad", "van"], ["Marc Keller", "sedan"], ["Luca Meier", "lux"]];
-    return [s7(1440, "en", false, await st7(two)), s7(1440, "ar", false, await st7(two)), s7(390, "en", false, await st7(two)), s7(390, "ar", false, await st7(two)), s7(1440, "en", true, await st7(oneL))];
+    return [s7(1440, "en", false, await st7(two)), s7(1440, "ar", false, await st7(two)), s7(390, "en", false, await st7(two)), s7(390, "ar", false, await st7(two)), s7(1440, "en", true, await st7(oneL)),
+      ...[1, 5, 11].map(async (n) => s7(1440, "ar", false, await st7(crew(n, "van")), n))].map((x) => x);
   } },
   8: { file: "sheet-8-about-classes.png", title: "Sheet 8 · About: Our classes", build: () => [s8(1440, "en"), s8(1440, "ar"), s8(390, "en"), s8(390, "ar")] },
   9: { file: "sheet-9-retired-row-390.png", title: "Sheet 9 · Retired classes list at 390", build: () => [s9("en"), s9("ar")] },
@@ -310,10 +332,11 @@ try {
   for (const n of Object.keys(sheets)) {
     if (argSheet && argSheet !== n) continue;
     const sh = sheets[n];
-    const specs = await sh.build();
+    const specs = await Promise.all(await sh.build());
     const okFrames = [];
-    for (const s of specs) { if (await frame(s)) okFrames.push(s); }
-    await coverage(n, specs[0]);
+    // --ar-only re-renders only the Arabic frames and composes with the English frames already on disk.
+    for (const s of specs) { if (AR_ONLY && s.lang !== "ar") { okFrames.push(s); continue; } if (await frame(s)) okFrames.push(s); }
+    if (!AR_ONLY) await coverage(n, specs[0]);
     if (okFrames.length === specs.length) await compose(sh.file, sh.title, specs.map((s) => ({ file: s.file, w: s.w, caption: s.caption })));
     else console.log(`sheet ${sh.file}: not composed (a frame failed)`);
   }

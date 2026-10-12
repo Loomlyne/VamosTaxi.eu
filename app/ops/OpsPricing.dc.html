@@ -284,7 +284,7 @@
 <sc-if value="{{ retireNotes }}" hint-placeholder-val="{{ false }}">
 <div data-retire-notes="1">
 <sc-if value="{{ retireCountShow }}" hint-placeholder-val="{{ false }}">
-<div data-retire-count="1"><span class="vt-dir-keep" data-vt-no-i18n style="white-space:nowrap">{{ retireCountN }}</span>{{ retireCountWords }}</div>
+<div data-retire-count="1"><sc-if value="{{ retireCountNumShow }}" hint-placeholder-val="{{ true }}"><span class="vt-dir-keep" data-vt-no-i18n style="white-space:nowrap">{{ retireCountN }}</span></sc-if>{{ retireCountWords }}</div>
 </sc-if>
 <sc-if value="{{ retireLastLiveShow }}" hint-placeholder-val="{{ false }}">
 <p data-retire-lastlive="1">{{ tRetireLastLive }}</p>
@@ -392,6 +392,9 @@ const PANES = [
   { key:'surcharges', icon:'banknote', tab:'tabSurcharges', hint:'hintSurcharges' },
   { key:'coupons', icon:'ticket', tab:'tabCoupons', hint:'hintCoupons' },
 ];
+/* Arabic count forms of the chauffeur count line (owner answer 2026-10-12): kept outside T because only Arabic has
+   them (T stays key-identical across languages). Chosen by arCountForm in renderVals. */
+const AR_COUNT = { retireCountAr1:'سائق واحد في هذه الفئة', retireCountAr2:'سائقان في هذه الفئة', retireCountArFew:'سائقين في هذه الفئة', retireCountArMany:'سائقًا في هذه الفئة', retireCountArOther:'سائق في هذه الفئة' };
 const T = {
   en: { actions:'Actions', title:'Pricing & routes', subtitle:'City to city, distance rules, surcharges and coupons',
     tabRoutes:'City to city', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras', tabCoupons:'Coupons',
@@ -1375,6 +1378,12 @@ class Component extends DCLogic {
     const chaufRows = (ops && ops.chauffeurs && typeof ops.chauffeurs.peek === 'function') ? ops.chauffeurs.peek() : [];
     const retireCount = retireId ? chaufRows.filter((c) => String((c && (c.vehicleClassId || c.vehicle_class_id)) || '').trim() === retireId).length : 0;
     const retireCountShow = retireCount > 0;
+    // Arabic count form for the two chauffeur count lines (owner answer 2026-10-12; same rule in OpsPricing and
+    // OpsDetail, pinned by ops-dc-arabic-count-lines.test.ts): 1 and 2 in words with no numeral, 3–10 plural,
+    // 11–99 singular accusative, 100+ genitive singular (the dictionary's bags rule).
+    const arCountForm = (n) => n === 1 ? '1' : n === 2 ? '2' : (n >= 3 && n <= 10) ? 'Few' : (n >= 11 && n <= 99) ? 'Many' : 'Other';
+    const retireCountNumShow = lang !== 'ar' || retireCount >= 3;
+    const retireCountWords = lang === 'ar' ? AR_COUNT['retireCountAr' + arCountForm(retireCount)] : (retireCount === 1 ? t.retireCountOne : t.retireCountMany);
     const retireLastLiveShow = !!(retireId && classById[retireId] && statusOf(classById[retireId]) === 'live'
       && !classList.some((c) => c.id !== retireId && statusOf(c) === 'live'));
     const locationOptions = ((ops && ops.LOCATIONS) || []).map((l) => ({ value: l, label: l }));
@@ -1532,7 +1541,7 @@ class Component extends DCLogic {
       hideSubmitDisabled: this.state.hideBusy || (!retiring && !String(this.state.hideReason || '').trim()),
       retiringFlag: retiring ? '1' : '0',
       retireNotes: retireCountShow || retireLastLiveShow, retireCountShow: retireCountShow, retireCountN: String(retireCount),
-      retireCountWords: retireCount === 1 ? t.retireCountOne : t.retireCountMany,
+      retireCountWords: retireCountWords, retireCountNumShow: retireCountNumShow,
       retireLastLiveShow: retireLastLiveShow, tRetireLastLive: t.retireLastLive,
       hideTitle: retiring ? t.retireTitle : t.hideConflictTitle, hideBody: retiring ? t.retireBody : t.hideConflictBody,
       hideLabel: retiring ? t.retireReason : t.hideReason, hidePlaceholder: retiring ? t.retireReasonPlaceholder : t.hideReasonPlaceholder,

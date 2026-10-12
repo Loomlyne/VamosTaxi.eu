@@ -13,6 +13,18 @@ The first version was rejected as "too crowded". It had an inline checklist and 
 4. **`sheet-4-retired.png`:** a folded "Retired classes" list sits under the table. Each class takes one line: name, reason and BRING BACK, which returns the class as a Draft.
 5. **`sheet-5-chauffeurs.png`:** the chauffeur screen lives at `/chauffeurs`. A chauffeur on a retired class gets one red line, "Retired class: pick a new one". At 390 the class and the flag sit under the chauffeur's name.
 
+## Sheets 6 to 10, signed 2026-10-12
+
+Koss signed all five as drawn in the question form, relayed by T3 controller `0fbbf0c1` (2026-10-12). Pictures drawn from the prototype at `c9fe51cf` with `tools/render.mjs`.
+
+6. **`sheet-6-retire-dialog.png`:** the Retire dialog with the chauffeur count line ("2 chauffeurs are on this class") and the red last-Live warning, in the body order of the UI-SPEC; close X with a 44px tap area. Extra crop: one chauffeur, no warning.
+7. **`sheet-7-assign-left-out.png`:** booking detail Assign for a paid trip in a retired class: empty picker and only the "left out" line ("2 chauffeurs left out: retired class"); the false "No chauffeur has the class …" sentence does not show (his answer to open question 1).
+8. **`sheet-8-about-classes.png`:** public "Our classes" block with the title "Pick the class that fits." over one card per Live class.
+9. **`sheet-9-retired-row-390.png`:** Retired list at 390: name, reason under it, BRING BACK 44px below.
+10. **`sheet-10-with-a-class.png`:** `/chauffeurs` with WITH A CLASS counting only chauffeurs on a Live class (2 / 3).
+
+His answer to open question 2 (2026-10-12): the Arabic of the Retire count line and the Assign "left out" line gets count-specific forms (1, 2 dual, 3–10 plural, 11+ singular accusative), grammatical as whole sentences; de, fr, en unchanged; the rest of the dashboard is a later job. The exact strings are in `30-UI-SPEC.md`, "Arabic count forms"; the Arabic frames of sheets 6 and 7 were redrawn with them.
+
 ## Notes for the plan
 
 - The built page must show `CHF 000` in the price columns, as it does today. The "—" in the pictures comes from the demo data.
