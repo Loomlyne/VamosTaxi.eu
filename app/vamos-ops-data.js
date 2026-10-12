@@ -1135,6 +1135,34 @@
         return json;
       });
     },
+    /* Phase 30 class lifecycle. Retire never deletes: the class leaves the site, the new-trip form and
+       new price books, past books keep it. Bring back returns it as a draft; go live is refused by
+       the server until photo, seats, bags and a price in the live book are all there. */
+    classes: function () {
+      return api("GET", "/api/staff/vehicle-classes").then(function (json) {
+        return json && json.ok && Array.isArray(json.data) ? json.data : [];
+      }, function () { return []; });
+    },
+    retireClass: function (id, reason) {
+      if (id == null || id === "") return Promise.resolve({ ok: false, code: "missing-id" });
+      var body = { id: String(id) };
+      if (reason) body.reason = String(reason);
+      return api("DELETE", "/api/staff/vehicle-classes?id=" + encodeURIComponent(String(id)), body).then(function (json) {
+        json = json || { ok: false, code: "save-failed" };
+        if (json.ok) { bookFetch.loaded = false; bookFetch.json = null; }
+        return json;
+      });
+    },
+    setClassStatus: function (id, status) {
+      if (id == null || id === "") return Promise.resolve({ ok: false, code: "missing-id" });
+      return api("PATCH", "/api/staff/vehicle-classes", { id: String(id), status: status }).then(function (json) {
+        json = json || { ok: false, code: "save-failed" };
+        if (json.ok) { bookFetch.loaded = false; bookFetch.json = null; }
+        return json;
+      });
+    },
+    bringBackClass: function (id) { return window.VamosOps.setClassStatus(id, "draft"); },
+    goLiveClass: function (id) { return window.VamosOps.setClassStatus(id, "live"); },
     saveDraftVat: function (bps) {
       return api("PUT", "/api/staff/rate-book", {
         kind: "rule",

@@ -436,7 +436,7 @@
 </sc-if>
 <div data-vt-editor-foot>
 <span data-vt-foot-del="1" style="display:{{ deleteShow }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ askDeleteCurrent }}" hint-size="90px,44px">Delete</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ askDeleteCurrent }}" hint-size="90px,44px">{{ deleteBtnLabel }}</x-import>
 </span>
 <span data-vt-foot-main="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ requestClose }}" hint-size="110px,44px">Cancel</x-import>
@@ -1195,8 +1195,16 @@ class Component extends DCLogic {
     }
     this.finishWrite(run);
   };
-  askDelete = (row) => { this.lockScroll(); this.setState({ confirm: row, deleteError: '' }); };
-  askDeleteCurrent = () => { this.lockScroll(); this.setState({ confirm: this.state.draft, draft: null, deleteError: '' }); };
+  /* Phase 30: a screen may own the delete question (Pricing classes ask "Retire?" in its own dialog):
+     with onAskDelete the row goes to the screen and the built-in confirm stays closed. */
+  askDelete = (row) => {
+    if (typeof this.props.onAskDelete === 'function') { this.props.onAskDelete(row); return; }
+    this.lockScroll(); this.setState({ confirm: row, deleteError: '' });
+  };
+  askDeleteCurrent = () => {
+    if (typeof this.props.onAskDelete === 'function') { const row = this.state.draft; this.setState({ draft: null }); this.props.onAskDelete(row); return; }
+    this.lockScroll(); this.setState({ confirm: this.state.draft, draft: null, deleteError: '' });
+  };
   cancelDelete = () => { this.unlockScroll(); this.setState({ confirm: null, deleteError: '' }); };
   confirmDelete = () => {
     const row = this.state.confirm;
@@ -1494,7 +1502,7 @@ class Component extends DCLogic {
     if (!DS.IconButton) return null;
     return React.createElement('span', { style:{ display:'flex', gap:6, justifyContent:'flex-end' } },
       ib('pencil', t.editLabel || 'Edit', () => this.startEdit(row)),
-      this.rowCanDelete(row) ? ib('trash-2', t.deleteLabel || 'Delete', () => this.askDelete(row), 'ghost') : null);
+      this.rowCanDelete(row) ? ib(t.deleteIcon || 'trash-2', t.deleteLabel || 'Delete', () => this.askDelete(row), 'ghost') : null);
   }
 
   renderVals() {
@@ -1762,6 +1770,7 @@ class Component extends DCLogic {
       listSaveFailed: !!(this.state.saveError) && !this.state.draft,
       deleteError: this.state.deleteError || '',
       deleteFailed: !!(this.state.deleteError),
+      deleteBtnLabel: this.props.deleteLabel || 'Delete',
       deleteShow: (this.state.isNew || !this.rowCanDelete(d)) ? 'none' : 'inline-flex',
       formFields: editorFields, closeEditor: this.closeEditor, save: this.save,
       requestClose: this.requestClose, keepEditing: this.keepEditing, discardClose: this.discardClose,

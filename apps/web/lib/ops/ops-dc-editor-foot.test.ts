@@ -78,7 +78,8 @@ describe("editor dialog footer (OpsTable): one row at the bottom", () => {
     expect(all).toHaveLength(3);
     const [d, c, s] = all as [string, string, string];
     expect(d).toContain('onClick="{{ askDeleteCurrent }}"');
-    expect(d).toContain(">Delete<");
+    // Phase 30: the label is a prop (Pricing classes say "Retire"); the default stays Delete.
+    expect(d).toContain(">{{ deleteBtnLabel }}<");
     // A text button: no icon (it also keeps the French row on one line in the 512 px footer).
     expect(d).not.toContain("icon=");
     expect(c).toContain('onClick="{{ requestClose }}"');

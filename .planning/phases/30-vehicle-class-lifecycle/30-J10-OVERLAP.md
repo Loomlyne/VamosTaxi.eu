@@ -1,10 +1,26 @@
-# Phase 30 vs payment chain J1–J10: file overlap
+# Phase 30 vs payment chain J1–J10: files already on main
 
-Source: `git diff --name-only origin/main...archive/pay-j10-drop-test-mode-9d874b9c`, read 2026-10-11 21:35 +0400, origin/main `20c8a371`, tag `9d874b9c`. 190 files.
+J1–J10 landed on main as `bc38a031` (PR #75, "feat(pay): Stripe payments review J1-J10"). This is no longer parallel work: these files are on main and Phase 30 builds on top of them. Source: `git diff --name-only bc38a031^1 bc38a031`, read 2026-10-12 11:15 +0400; phase branch merged origin/main `65c0b285` as `3245594c`. 191 files.
 
-Every Phase 30 plan lists its exact files; the planner checks each against this list. A file on both lists is SHARED: Phase 30 appends its own keys only, never reorders, and merges origin/main (with J1–J10 landed) before hand-over.
+Rule for the planner: every Phase 30 plan lists its exact files. A plan file that is also on the list below is SHARED: Phase 30 appends its own keys or lines only, never reorders or rewrites J1–J10 lines, and merges origin/main again before hand-over.
 
-## Files J1–J10 touch
+## Migrations
+
+J1–J10 own `20261012100000` to `20261012190000` (all on main). Phase 30 starts at `20261012200000`; no number collides.
+
+## Shared files Phase 30 is expected to touch
+
+| File | Why Phase 30 touches it | Rule |
+|------|------|------|
+| `app/vamos-i18n-dict.js` | dashboard class strings; public About "The fleet" (open question 9) | append own keys; edit only the About fleet entry |
+| `app/ops/OpsDetail.dc.html` | Assign picker: retired-class chauffeurs left out, muted count line (open question 7) | touch the Assign block only |
+| `apps/web/i18n/messages/{ar,de,en,fr}.json` | only if a Next route or API message needs new keys (class retire/go-live errors) | append own keys; run `db:seed:gen` |
+| `packages/db/supabase/seed.sql`, `packages/db/supabase/tests/seed_idempotent.test.sql` | only if the class state column or seeded classes change | re-pin seed header counts after any change |
+| `packages/db/supabase/tests/class_change_reprice.test.sql` | read for class-change behaviour; edit only if the class state breaks it | do not weaken J1–J10 assertions |
+
+Shared but not expected to be touched: `packages/emails/src/messages/*.json`, `apps/web/lib/pricing/public-chf.test.ts`, `apps/web/lib/checkout/pay-refusal-messages.test.ts`, `app/vamos-manage-ticket.js`.
+
+## All files J1–J10 changed (on main)
 
 - `.planning/audits/2026-10-09-stripe-J1-HANDOVER.md`
 - `.planning/audits/2026-10-09-stripe-J10-HANDOVER.md`
@@ -17,6 +33,7 @@ Every Phase 30 plan lists its exact files; the planner checks each against this 
 - `.planning/audits/2026-10-09-stripe-J7-HANDOVER.md`
 - `.planning/audits/2026-10-09-stripe-J8-HANDOVER.md`
 - `.planning/audits/2026-10-09-stripe-J9-HANDOVER.md`
+- `.planning/handoff/2026-10-11-pay-j1-j10-land.md`
 - `app/ops/OpsDetail.dc.html`
 - `app/vamos-i18n-dict.js`
 - `app/vamos-manage-ticket.js`
@@ -146,16 +163,16 @@ Every Phase 30 plan lists its exact files; the planner checks each against this 
 - `apps/web/wrangler.jsonc`
 - `docs/runbooks/stripe-webhook.md`
 - `packages/db/database.types.ts`
-- `packages/db/supabase/migrations/20261009100000_settle_never_stuck.sql`
-- `packages/db/supabase/migrations/20261009110000_amount_state_verify.sql`
-- `packages/db/supabase/migrations/20261009115000_late_paylink_settle.sql`
-- `packages/db/supabase/migrations/20261009120000_guest_resume_quote.sql`
-- `packages/db/supabase/migrations/20261009130000_checkout_replay_by_quote.sql`
-- `packages/db/supabase/migrations/20261009140000_refund_policy_window.sql`
-- `packages/db/supabase/migrations/20261009150000_refund_ledger_mirroring.sql`
-- `packages/db/supabase/migrations/20261009160000_db_privilege_hardening.sql`
-- `packages/db/supabase/migrations/20261009170000_purge_keeps_late_refusals.sql`
-- `packages/db/supabase/migrations/20261009180000_duplicate_out_of_cancel_basis.sql`
+- `packages/db/supabase/migrations/20261012100000_settle_never_stuck.sql`
+- `packages/db/supabase/migrations/20261012110000_amount_state_verify.sql`
+- `packages/db/supabase/migrations/20261012120000_late_paylink_settle.sql`
+- `packages/db/supabase/migrations/20261012130000_guest_resume_quote.sql`
+- `packages/db/supabase/migrations/20261012140000_checkout_replay_by_quote.sql`
+- `packages/db/supabase/migrations/20261012150000_refund_policy_window.sql`
+- `packages/db/supabase/migrations/20261012160000_refund_ledger_mirroring.sql`
+- `packages/db/supabase/migrations/20261012170000_db_privilege_hardening.sql`
+- `packages/db/supabase/migrations/20261012180000_purge_keeps_late_refusals.sql`
+- `packages/db/supabase/migrations/20261012190000_duplicate_out_of_cancel_basis.sql`
 - `packages/db/supabase/seed.sql`
 - `packages/db/supabase/tests/amount_state_verify.test.sql`
 - `packages/db/supabase/tests/booking_edit_requests.test.sql`

@@ -61,7 +61,7 @@ describe("fleet persist — 08-03", () => {
     expect(ops).toMatch(/path\.indexOf\('\/fleet\/chauffeurs\/'\) === 0/);
     expect(ops).toMatch(/chauffeur-id="\{\{ chauffeurId \}\}"/);
     const fleet = read("app/ops/OpsFleet.dc.html");
-    expect(fleet).toMatch(/\/fleet\/chauffeurs\/' \+ encodeURIComponent/);
+    expect(fleet).toMatch(/\/chauffeurs\/' \+ encodeURIComponent/);
     expect(fleet).toMatch(/cannotAssignNoEmail/);
     expect(fleet).not.toMatch(/\bonAssign\b/);
     expect(fleet).not.toMatch(/>Assign</);

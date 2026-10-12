@@ -285,7 +285,8 @@ describe("2 · the Chauffeurs list shows name, class and plate", () => {
     const cls = cols.find((c) => c.key === "className")!;
     expect(cls.kind).toBe("need");
     expect(cls.emptyLabel).toBe("No class");
-    expect(DRIVERS.map((d) => cls.lookup(d))).toEqual(["Business", "Economy", ""]);
+    // Phase 30: a class cell is an element (name + retired flag); no class stays "" so emptyLabel shows.
+    expect(DRIVERS.map((d) => cls.lookup(d) !== "")).toEqual([true, true, false]);
     expect(cols.find((c) => c.key === "plate")!.kind).toBe("mono");
     expect((v.rows as { className: string; plate: string }[]).map((r) => [r.className, r.plate])).toEqual([
       ["Business", "ZH 123 456"],

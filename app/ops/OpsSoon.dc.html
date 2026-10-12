@@ -29,10 +29,10 @@ const SECTIONS = {
   settings: { icon:'settings', en:'Settings', de:'Einstellungen', fr:'Réglages', ar:'الإعدادات' },
 };
 const T = {
-  en: (label) => ({ title: label + ' is not in this design freeze yet.', blurb:'V1 covers the dashboard, the bookings board, the fleet and pricing & routes — ' + label.toLowerCase() + ' is on the sidebar for navigational truth, not built out yet.', back:'Back to bookings' }),
-  de: (label) => ({ title: label + ' ist in diesem Design-Freeze noch nicht enthalten.', blurb:'V1 deckt die Übersicht, das Buchungsboard, die Flotte sowie Preise & Routen ab — ' + label + ' steht der Vollständigkeit halber in der Seitenleiste, ist aber noch nicht umgesetzt.', back:'Zurück zu Buchungen' }),
-  fr: (label) => ({ title: label + ' n’est pas encore dans ce gel de design.', blurb:'La V1 couvre le tableau de bord, les réservations, la flotte et les tarifs & trajets — ' + label.toLowerCase() + ' figure dans la barre latérale par souci d’exactitude, mais n’est pas encore construit.', back:'Retour aux réservations' }),
-  ar: (label) => ({ title: label + ' غير مشمول بعد في هذا الإصدار.', blurb:'يغطي الإصدار الأول لوحة المعلومات ولوحة الحجوزات والأسطول والأسعار والمسارات — أما ' + label + ' فيظهر في الشريط الجانبي للدقة، ولم يُبنَ بعد.', back:'العودة إلى الحجوزات' }),
+  en: (label) => ({ title: label + ' is not in this design freeze yet.', blurb:'V1 covers the dashboard, the bookings board, the chauffeurs and pricing & routes — ' + label.toLowerCase() + ' is on the sidebar for navigational truth, not built out yet.', back:'Back to bookings' }),
+  de: (label) => ({ title: label + ' ist in diesem Design-Freeze noch nicht enthalten.', blurb:'V1 deckt die Übersicht, das Buchungsboard, die Chauffeure sowie Preise & Routen ab — ' + label + ' steht der Vollständigkeit halber in der Seitenleiste, ist aber noch nicht umgesetzt.', back:'Zurück zu Buchungen' }),
+  fr: (label) => ({ title: label + ' n’est pas encore dans ce gel de design.', blurb:'La V1 couvre le tableau de bord, les réservations, les chauffeurs et les tarifs & trajets — ' + label.toLowerCase() + ' figure dans la barre latérale par souci d’exactitude, mais n’est pas encore construit.', back:'Retour aux réservations' }),
+  ar: (label) => ({ title: label + ' غير مشمول بعد في هذا الإصدار.', blurb:'يغطي الإصدار الأول لوحة المعلومات ولوحة الحجوزات والسائقين والأسعار والمسارات — أما ' + label + ' فيظهر في الشريط الجانبي للدقة، ولم يُبنَ بعد.', back:'العودة إلى الحجوزات' }),
 };
 /** Active language from the shared store; raw storage only before vamos-locale.js has loaded (26.2 audit U08-9). */
 function vtLang() {

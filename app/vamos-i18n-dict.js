@@ -962,6 +962,27 @@
       'Off duty': { de: 'Ausser Dienst', fr: 'Hors service', ar: 'خارج الدوام' },
       'seats': { de: 'Plätze', fr: 'places', ar: 'مقاعد' },
 
+      /* ── Ops · class lifecycle (phase 30) ──────────────────────────── */
+      'Seats': { de: 'Plätze', fr: 'Places', ar: 'المقاعد' },
+      'Photo': { de: 'Foto', fr: 'Photo', ar: 'صورة' },
+      'Price in the live price book': { de: 'Preis im aktuellen Preisbuch', fr: 'Prix dans le livre de prix en vigueur', ar: 'سعر في كتاب الأسعار المباشر' },
+      'Go live': { de: 'Live schalten', fr: 'Mettre en ligne', ar: 'تشغيل مباشر' },
+      'Before this class goes live': { de: 'Bevor diese Klasse live geht', fr: 'Avant la mise en ligne de cette classe', ar: 'قبل تشغيل هذه الفئة مباشرة' },
+      'Add a photo first': { de: 'Zuerst ein Foto hinzufügen', fr: 'Ajoutez d’abord une photo', ar: 'أضف صورة أولاً' },
+      'Add the seats first': { de: 'Zuerst die Plätze eintragen', fr: 'Ajoutez d’abord les places', ar: 'أضف المقاعد أولاً' },
+      'Add the bags first': { de: 'Zuerst das Gepäck eintragen', fr: 'Ajoutez d’abord les bagages', ar: 'أضف الحقائب أولاً' },
+      'Add a price in the live price book first': { de: 'Zuerst einen Preis im aktuellen Preisbuch eintragen', fr: 'Ajoutez d’abord un prix dans le livre de prix en vigueur', ar: 'أضف سعراً في كتاب الأسعار المباشر أولاً' },
+      'Retired classes': { de: 'Stillgelegte Klassen', fr: 'Classes retirées', ar: 'الفئات الموقوفة' },
+      'Retire': { de: 'Stilllegen', fr: 'Retirer', ar: 'إيقاف' },
+      'Retire this class?': { de: 'Diese Klasse stilllegen?', fr: 'Retirer cette classe ?', ar: 'إيقاف هذه الفئة؟' },
+      'The class leaves the site, the new-trip form and new price books. Past price books keep it. You can bring it back.': { de: 'Die Klasse verschwindet von der Website, aus dem Formular für neue Fahrten und aus neuen Preisbüchern. Frühere Preisbücher behalten sie. Sie können sie zurückholen.', fr: 'La classe quitte le site, le formulaire de nouvelle course et les nouveaux livres de prix. Les anciens livres de prix la gardent. Vous pouvez la remettre.', ar: 'تغادر الفئة الموقع ونموذج الرحلة الجديدة وكتب الأسعار الجديدة. تحتفظ بها كتب الأسعار السابقة. يمكنك إعادتها.' },
+      'Reason (optional)': { de: 'Grund (optional)', fr: 'Motif (facultatif)', ar: 'السبب (اختياري)' },
+      'Why it is retired, for example: no longer offered': { de: 'Warum sie stillgelegt wird, zum Beispiel: nicht mehr angeboten', fr: 'Pourquoi elle est retirée, par exemple : plus proposée', ar: 'سبب الإيقاف، مثلاً: لم تعد متاحة' },
+      'Bring back': { de: 'Zurückholen', fr: 'Remettre', ar: 'إعادة' },
+      'Retired class: pick a new one': { de: 'Stillgelegte Klasse: neue wählen', fr: 'Classe retirée : en choisir une autre', ar: 'فئة موقوفة: اختر فئة جديدة' },
+      'Retired': { de: 'Stillgelegt', fr: 'Retirée', ar: 'موقوفة' },
+      'Assign lists only the chauffeurs of the trip’s class. A chauffeur without a class, or on a retired class, cannot be given a transfer.': { de: 'Beim Zuweisen erscheinen nur die Chauffeure der Klasse der Fahrt. Ein Chauffeur ohne Klasse oder in einer stillgelegten Klasse kann keinen Transfer bekommen.', fr: 'L’attribution ne montre que les chauffeurs de la classe de la course. Un chauffeur sans classe, ou dans une classe retirée, ne peut pas recevoir de transfert.', ar: 'عند الإسناد يظهر فقط سائقو فئة الرحلة. السائق بلا فئة، أو في فئة موقوفة، لا يمكن إسناد رحلة إليه.' },
+
       /* ── Ops · booking detail ──────────────────────────────────────── */
       'Back to bookings': { de: 'Zurück zu Buchungen', fr: 'Retour aux réservations', ar: 'العودة إلى الحجوزات' },
       'booked by': { de: 'gebucht von', fr: 'réservé par', ar: 'حجزها' },

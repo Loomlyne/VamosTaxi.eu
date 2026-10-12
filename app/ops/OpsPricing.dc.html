@@ -21,6 +21,24 @@
 [data-hide-conflict]{display:flex;flex-direction:column;gap:var(--vt-space-3);min-width:0}
 [data-hide-conflict] p{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);overflow-wrap:anywhere}
 [data-hide-conflict] [data-hide-class]{font-weight:600;color:var(--vt-text-primary)}
+[data-retired]{display:flex;flex-direction:column;min-width:0;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);overflow:hidden}
+[data-retired-head]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:var(--vt-space-2);min-height:44px;padding:10px 16px;cursor:pointer;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-text-primary)}
+[data-retired-head]:hover{background:var(--vt-grey-50)}
+[data-retired-head]:focus-visible{box-shadow:var(--vt-ring)}
+[data-retired-count]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);color:var(--vt-text-muted)}
+[data-retired-row]{box-sizing:border-box;display:flex;flex-wrap:wrap;align-items:center;gap:var(--vt-space-3);padding:8px 16px;border-block-start:1px solid var(--vt-border-subtle)}
+[data-retired-main]{flex:1 1 200px;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:var(--vt-space-3);row-gap:2px}
+[data-retired-name]{font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);color:var(--vt-text-primary);overflow-wrap:anywhere}
+[data-retired-reason]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-muted);overflow-wrap:anywhere}
+[data-class-cell]{display:flex;align-items:center;column-gap:8px;min-width:0}
+[data-class-name]{min-width:0;white-space:nowrap}
+@media (max-width:680px){[data-class-cell]{flex-direction:column;align-items:flex-start;max-width:78px}[data-class-name]{white-space:normal;overflow-wrap:anywhere}}
+[data-golive]{display:flex;flex-direction:column;gap:var(--vt-space-3);min-width:0}
+[data-golive] p{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);overflow-wrap:anywhere}
+[data-golive] [data-hide-class]{font-weight:600;color:var(--vt-text-primary)}
+[data-golive-list]{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--vt-space-2)}
+[data-golive-item]{display:flex;align-items:center;gap:var(--vt-space-2);font-family:var(--vt-font-body);font-size:var(--vt-body-md);min-width:0}
+[data-golive] [data-golive-why]{font-size:var(--vt-body-sm);color:var(--vt-text-muted)}
 [data-hide-actions]{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--vt-space-2);margin-top:var(--vt-space-2)}
 [data-hide-actions] > *{min-width:0}
 [data-vt-date-btn]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 14px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);cursor:pointer;overflow:hidden}
@@ -136,7 +154,27 @@
 
 <sc-if value="{{ isDistance }}" hint-placeholder-val="{{ false }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
-<dc-import name="OpsTable" fill="1" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-title="{{ tDeleteClassTitle }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" delete-body="{{ tDeleteClassBody }}" edit-id="{{ distanceEditId }}" edit-tick="{{ distanceEditTick }}" onReorder="{{ reorderDistance }}" hint-size="100%,420px"></dc-import>
+<dc-import name="OpsTable" fill="1" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-title="{{ tDeleteClassTitle }}" delete-label="{{ tRetire }}" delete-icon="eye-off" onAskDelete="{{ askRetire }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" delete-body="{{ tDeleteClassBody }}" edit-id="{{ distanceEditId }}" edit-tick="{{ distanceEditTick }}" onReorder="{{ reorderDistance }}" hint-size="100%,420px"></dc-import>
+<sc-if value="{{ hasRetired }}" hint-placeholder-val="{{ false }}">
+<section data-retired="1">
+<button type="button" data-retired-head="1" aria-expanded="{{ retiredOpen }}" onClick="{{ toggleRetired }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ retiredChevron }}" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span>{{ tRetiredTitle }}</span>
+<span data-retired-count="1" data-vt-no-i18n="1">{{ retiredCount }}</span>
+</button>
+<sc-if value="{{ retiredOpen }}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{ retiredItems }}" as="c" hint-placeholder-count="1">
+<div data-retired-row="1">
+<span data-retired-main="1">
+<span data-retired-name="1" data-vt-no-i18n="1">{{ c.name }}</span>
+<span data-retired-reason="1" data-vt-no-i18n="1">{{ c.reason }}</span>
+</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" onClick="{{ c.bring }}" hint-size="130px,36px">{{ tBringBack }}</x-import>
+</div>
+</sc-for>
+</sc-if>
+</section>
+</sc-if>
 </div>
 </sc-if>
 
@@ -205,15 +243,38 @@
 </x-import>
 </sc-if>
 
+<sc-if value="{{ goLiveOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ tGoLiveTitle }}" onClose="{{ closeGoLive }}" hint-size="440px,360px">
+<div data-golive="1">
+<p data-hide-class="1" data-vt-no-i18n="1">{{ goLiveName }}</p>
+<ul data-golive-list="1">
+<sc-for list="{{ goLiveItems }}" as="i" hint-placeholder-count="4">
+<li data-golive-item="1" style="color:{{ i.textColor }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ i.icon }}" size="{{ n16 }}" color="{{ i.color }}" hint-size="16px,16px"></x-import>
+<span>{{ i.label }}</span>
+</li>
+</sc-for>
+</ul>
+<sc-if value="{{ goLiveBlocked }}" hint-placeholder-val="{{ true }}">
+<p data-golive-why="1">{{ goLiveWhy }}</p>
+</sc-if>
+<div data-hide-actions="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ editFromGoLive }}" hint-size="150px,44px">{{ tEditClassBtn }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" onClick="{{ confirmGoLive }}" disabled="{{ goLiveBlocked }}" hint-size="150px,44px">{{ tGoLive }}</x-import>
+</div>
+</div>
+</x-import>
+</sc-if>
+
 <sc-if value="{{ hideOpen }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ tHideConflictTitle }}" onClose="{{ keepVisible }}" hint-size="440px,380px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ hideTitle }}" onClose="{{ keepVisible }}" hint-size="440px,380px">
 <div data-hide-conflict="1">
 <p data-hide-class="1" data-vt-no-i18n="1">{{ hideClassName }}</p>
-<p data-hide-body="1">{{ tHideConflictBody }}</p>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tHideReason }}" aria-label="{{ tHideReason }}" rows="{{ n3 }}" max-length="{{ hideReasonMax }}" value="{{ hideReason }}" onChange="{{ setHideReason }}" placeholder="{{ tHideReasonPlaceholder }}" error="{{ hideErrorText }}" hint="{{ hideReasonCount }}" hint-size="100%,130px"></x-import>
+<p data-hide-body="1">{{ hideBody }}</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ hideLabel }}" aria-label="{{ hideLabel }}" rows="{{ n3 }}" max-length="{{ hideReasonMax }}" value="{{ hideReason }}" onChange="{{ setHideReason }}" placeholder="{{ hidePlaceholder }}" error="{{ hideErrorText }}" hint="{{ hideReasonCount }}" hint-size="100%,130px"></x-import>
 <div data-hide-actions="1">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ keepVisible }}" hint-size="150px,44px">{{ tHideConflictKeepVisible }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" onClick="{{ submitHide }}" disabled="{{ hideSubmitDisabled }}" hint-size="180px,44px">{{ tHideWithReason }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ keepVisible }}" hint-size="150px,44px">{{ hideCancelLabel }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" onClick="{{ submitHide }}" disabled="{{ hideSubmitDisabled }}" hint-size="180px,44px">{{ hideSubmitLabel }}</x-import>
 </div>
 </div>
 </x-import>
@@ -324,6 +385,12 @@ const T = {
     searchRoutes:'From, to or ID', nounRoute:'route', nounRoutes:'routes',
     hRoutePrice:'Leave empty if this class is not offered on this route.',
     addClass:'Add class', editClass:'Edit class', saveClass:'Save class', deleteClassTitle:'Delete this class from the draft?', deleteClassBody:'Delete this class from the draft? Public does not change until Publish.',
+    statusLive:'Live', statusDraft:'Draft', statusRetired:'Retired', colStatus:'Status',
+    retire:'Retire', retireTitle:'Retire this class?', retireBody:'The class leaves the site, the new-trip form and new price books. Past price books keep it. You can bring it back.',
+    retireReason:'Reason (optional)', retireReasonPlaceholder:'Why it is retired, for example: no longer offered', retireCancel:'Cancel',
+    retiredTitle:'Retired classes', bringBack:'Bring back',
+    needPhoto:'Photo', needSeats:'Seats', needBags:'Bags', needPrice:'Price in the live price book', goLive:'Go live', goLiveTitle:'Before this class goes live',
+    goLiveNeedsPhoto:'Add a photo first', goLiveNeedsSeats:'Add the seats first', goLiveNeedsBags:'Add the bags first', goLiveNeedsPrice:'Add a price in the live price book first',
     hideReason:'Reason', hideReasonPlaceholder:'Why it is hidden, for example: no longer offered', hideConflictTitle:'Can’t delete — still in use', hideConflictBody:'This class has bookings against it. Hide it instead, and say why.', hideConflictKeepVisible:'Keep it visible', hideWithReason:'Hide with a reason', hideError:'The class could not be hidden. Try again.',
     emptyClassesTitle:'No vehicle classes yet', emptyClassesBody:'Add a class with photo, name, start fare, per-kilometre rate, max passengers and max bags.',
     searchDistance:'Class', nounClass:'class', nounClasses:'classes',
@@ -411,6 +478,12 @@ const T = {
     searchRoutes:'Von, nach oder ID', nounRoute:'Route', nounRoutes:'Routen',
     hRoutePrice:'Leer lassen, wenn diese Klasse auf dieser Route nicht angeboten wird.',
     addClass:'Klasse hinzufügen', editClass:'Klasse bearbeiten', saveClass:'Klasse speichern', deleteClassTitle:'Diese Klasse aus dem Entwurf löschen?', deleteClassBody:'Diese Klasse aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
+    statusLive:'Live', statusDraft:'Entwurf', statusRetired:'Stillgelegt', colStatus:'Status',
+    retire:'Stilllegen', retireTitle:'Diese Klasse stilllegen?', retireBody:'Die Klasse verschwindet von der Website, aus dem Formular für neue Fahrten und aus neuen Preisbüchern. Frühere Preisbücher behalten sie. Sie können sie zurückholen.',
+    retireReason:'Grund (optional)', retireReasonPlaceholder:'Warum sie stillgelegt wird, zum Beispiel: nicht mehr angeboten', retireCancel:'Abbrechen',
+    retiredTitle:'Stillgelegte Klassen', bringBack:'Zurückholen',
+    needPhoto:'Foto', needSeats:'Plätze', needBags:'Gepäck', needPrice:'Preis im aktuellen Preisbuch', goLive:'Live schalten', goLiveTitle:'Bevor diese Klasse live geht',
+    goLiveNeedsPhoto:'Zuerst ein Foto hinzufügen', goLiveNeedsSeats:'Zuerst die Plätze eintragen', goLiveNeedsBags:'Zuerst das Gepäck eintragen', goLiveNeedsPrice:'Zuerst einen Preis im aktuellen Preisbuch eintragen',
     hideReason:'Grund', hideReasonPlaceholder:'Warum sie verborgen ist, zum Beispiel: nicht mehr angeboten', hideConflictTitle:'Löschen nicht möglich — noch in Gebrauch', hideConflictBody:'Diese Klasse hat Buchungen. Verbergen Sie sie stattdessen und nennen Sie den Grund.', hideConflictKeepVisible:'Sichtbar lassen', hideWithReason:'Mit Grund verbergen', hideError:'Die Klasse konnte nicht verborgen werden. Versuchen Sie es erneut.',
     emptyClassesTitle:'Noch keine Fahrzeugklassen', emptyClassesBody:'Klasse mit Foto, Name, Startpreis, Kilometersatz, max. Passagieren und max. Gepäckstücken hinzufügen.',
     searchDistance:'Klasse', nounClass:'Klasse', nounClasses:'Klassen',
@@ -500,6 +573,12 @@ const T = {
     searchRoutes:'De, vers ou ID', nounRoute:'trajet', nounRoutes:'trajets',
     hRoutePrice:'Laissez vide si cette classe n’est pas proposée sur ce trajet.',
     addClass:'Ajouter une classe', editClass:'Modifier la classe', saveClass:'Enregistrer la classe', deleteClassTitle:'Supprimer cette classe du brouillon ?', deleteClassBody:'Supprimer cette classe du brouillon ? Le public ne change qu’après Publier.',
+    statusLive:'En ligne', statusDraft:'Brouillon', statusRetired:'Retirée', colStatus:'Statut',
+    retire:'Retirer', retireTitle:'Retirer cette classe ?', retireBody:'La classe quitte le site, le formulaire de nouvelle course et les nouveaux livres de prix. Les anciens livres de prix la gardent. Vous pouvez la remettre.',
+    retireReason:'Motif (facultatif)', retireReasonPlaceholder:'Pourquoi elle est retirée, par exemple : plus proposée', retireCancel:'Annuler',
+    retiredTitle:'Classes retirées', bringBack:'Remettre',
+    needPhoto:'Photo', needSeats:'Places', needBags:'Bagages', needPrice:'Prix dans le livre de prix en vigueur', goLive:'Mettre en ligne', goLiveTitle:'Avant la mise en ligne de cette classe',
+    goLiveNeedsPhoto:'Ajoutez d’abord une photo', goLiveNeedsSeats:'Ajoutez d’abord les places', goLiveNeedsBags:'Ajoutez d’abord les bagages', goLiveNeedsPrice:'Ajoutez d’abord un prix dans le livre de prix en vigueur',
     hideReason:'Motif', hideReasonPlaceholder:'Pourquoi elle est masquée, par exemple : plus proposée', hideConflictTitle:'Suppression impossible — encore utilisée', hideConflictBody:'Cette classe a des réservations. Masquez-la plutôt, et indiquez pourquoi.', hideConflictKeepVisible:'La laisser visible', hideWithReason:'Masquer avec un motif', hideError:'La classe n’a pas pu être masquée. Réessayez.',
     emptyClassesTitle:'Pas encore de classes', emptyClassesBody:'Ajoutez une classe avec photo, nom, tarif de départ, tarif au kilomètre, passagers max. et bagages max.',
     searchDistance:'Classe', nounClass:'classe', nounClasses:'classes',
@@ -589,6 +668,12 @@ const T = {
     searchRoutes:'من أو إلى أو المعرّف', nounRoute:'مسار', nounRoutes:'مسارات',
     hRoutePrice:'اتركه فارغًا إن لم تُعرض هذه الفئة على هذا المسار.',
     addClass:'إضافة فئة', editClass:'تعديل الفئة', saveClass:'حفظ الفئة', deleteClassTitle:'حذف هذه الفئة من المسودة؟', deleteClassBody:'حذف هذه الفئة من المسودة؟ لا يتغير العام حتى النشر.',
+    statusLive:'مباشرة', statusDraft:'مسودة', statusRetired:'موقوفة', colStatus:'الحالة',
+    retire:'إيقاف', retireTitle:'إيقاف هذه الفئة؟', retireBody:'تغادر الفئة الموقع ونموذج الرحلة الجديدة وكتب الأسعار الجديدة. تحتفظ بها كتب الأسعار السابقة. يمكنك إعادتها.',
+    retireReason:'السبب (اختياري)', retireReasonPlaceholder:'سبب الإيقاف، مثلاً: لم تعد متاحة', retireCancel:'إلغاء',
+    retiredTitle:'الفئات الموقوفة', bringBack:'إعادة',
+    needPhoto:'صورة', needSeats:'المقاعد', needBags:'الحقائب', needPrice:'سعر في كتاب الأسعار المباشر', goLive:'تشغيل مباشر', goLiveTitle:'قبل تشغيل هذه الفئة مباشرة',
+    goLiveNeedsPhoto:'أضف صورة أولاً', goLiveNeedsSeats:'أضف المقاعد أولاً', goLiveNeedsBags:'أضف الحقائب أولاً', goLiveNeedsPrice:'أضف سعراً في كتاب الأسعار المباشر أولاً',
     hideReason:'السبب', hideReasonPlaceholder:'سبب الإخفاء، مثلاً: لم تعد متاحة', hideConflictTitle:'لا يمكن الحذف — ما زالت مستخدمة', hideConflictBody:'لهذه الفئة حجوزات. أخفِها بدلاً من ذلك، واذكر السبب.', hideConflictKeepVisible:'إبقاؤها ظاهرة', hideWithReason:'إخفاء مع ذكر السبب', hideError:'تعذّر إخفاء الفئة. حاول مرة أخرى.',
     emptyClassesTitle:'لا توجد فئات مركبات بعد', emptyClassesBody:'أضف فئة بالصورة والاسم وأجرة البداية وسعر الكيلومتر وأقصى عدد مسافرين وأقصى حقائب.',
     searchDistance:'الفئة', nounClass:'فئة', nounClasses:'فئات',
@@ -684,6 +769,9 @@ class Component extends DCLogic {
     couponUses: [],
     publishOpen: false,
     discardOpen: false,
+    classes: null,
+    retiredOpen: false,
+    goLiveTarget: null,
     hideTarget: null,
     hideReason: '',
     hideBusy: false,
@@ -716,6 +804,7 @@ class Component extends DCLogic {
     this.loadDraft();
     this.loadVat();
     this.loadCouponUses();
+    this.loadClasses();
     this.forceUpdate();
   };
   _datePopRef = (el) => { this._datePop = el; };
@@ -888,6 +977,45 @@ class Component extends DCLogic {
       return json;
     });
   };
+  /* Phase 30 class lifecycle: the screen asks "Retire?" in the hide dialog (reason optional), lists
+     retired classes under the table, and moves a class between Draft and Live. */
+  loadClasses() {
+    const ops = window.VamosOps;
+    if (!ops || typeof ops.classes !== 'function') return Promise.resolve();
+    return ops.classes().then((rows) => this.setState({ classes: rows }));
+  }
+  askRetire = (row) => {
+    const id = row && row.vehicleClassId;
+    if (!id) return;
+    this.setState({
+      hideTarget: { id: id, klass: String(row.klass || row.name || ''), retire: true },
+      hideReason: '', hideBusy: false, hideError: false,
+    });
+  };
+  openGoLive = (id, rowId) => this.setState({ goLiveTarget: { id: id, rowId: rowId } });
+  closeGoLive = () => this.setState({ goLiveTarget: null });
+  editFromGoLive = () => {
+    const g = this.state.goLiveTarget;
+    if (!g) return;
+    this.setState({ goLiveTarget: null, distanceEditId: g.rowId || '', distanceEditTick: (this.state.distanceEditTick || 0) + 1 });
+  };
+  confirmGoLive = () => {
+    const g = this.state.goLiveTarget;
+    if (!g) return;
+    const run = this.goLive(g.id);
+    if (run && run.then) run.then((json) => { if (json && json.ok) this.setState({ goLiveTarget: null }); });
+  };
+  toggleRetired = () => this.setState({ retiredOpen: !this.state.retiredOpen });
+  moveClass(id, call) {
+    const ops = window.VamosOps;
+    if (!ops || typeof ops[call] !== 'function') return null;
+    return ops[call](id).then((json) => {
+      if (json && json.ok) { ops.rates.reset(); this.loadClasses(); }
+      return json;
+    });
+  }
+  bringBack = (id) => this.moveClass(id, 'bringBackClass');
+  goLive = (id) => this.moveClass(id, 'goLiveClass');
   setHideReason = (e) => {
     const v = e && e.target ? e.target.value : e;
     this.setState({ hideReason: String(v == null ? '' : v).slice(0, 140), hideError: false });
@@ -897,11 +1025,14 @@ class Component extends DCLogic {
     const ops = window.VamosOps;
     const target = this.state.hideTarget;
     const reason = String(this.state.hideReason || '').trim();
-    if (!ops || !ops.deleteClass || !target || !reason || this.state.hideBusy) return;
+    const retire = !!(target && target.retire);
+    if (!ops || !target || this.state.hideBusy) return;
+    if (retire ? !ops.retireClass : (!ops.deleteClass || !reason)) return;
     this.setState({ hideBusy: true, hideError: false });
-    ops.deleteClass(target.id, reason).then((json) => {
+    (retire ? ops.retireClass(target.id, reason || null) : ops.deleteClass(target.id, reason)).then((json) => {
       if (json && json.ok) {
         ops.rates.reset();
+        this.loadClasses();
         this.setState({ hideTarget: null, hideReason: '', hideBusy: false, hideError: false });
         return;
       }
@@ -1170,6 +1301,49 @@ class Component extends DCLogic {
     const hasDraft = this.state.draftId != null;
     const hasGaps = rawGaps.length > 0;
     const completenessBody = !hasDraft ? t.completenessEmpty : hasGaps ? t.completenessGaps(rawGaps.length) : t.completenessReady;
+    // Phase 30: status comes from /api/staff/vehicle-classes (status, or active / hiddenAt as the fallback).
+    const DSx = window.VamosTaxiDesignSystem_245af1 || {};
+    const h = React.createElement;
+    const classList = Array.isArray(this.state.classes) ? this.state.classes : [];
+    const statusOf = (c) => c.status || ((c.active === false || c.hiddenAt || c.hidden_at) ? 'retired' : 'live');
+    const classById = {};
+    classList.forEach((c) => { classById[c.id] = c; });
+    const retiredClasses = classList.filter((c) => statusOf(c) === 'retired');
+    const retiredIds = {};
+    retiredClasses.forEach((c) => { retiredIds[c.id] = 1; });
+    const checklistOf = (c) => [
+      { key: 'Photo', label: t.needPhoto, done: !!String(c.photoPath || c.photo || '').trim() },
+      { key: 'Seats', label: t.needSeats, done: Number(c.passengerCapacity) > 0 },
+      { key: 'Bags', label: t.needBags, done: c.luggageCapacity != null && c.luggageCapacity !== '' },
+      { key: 'Price', label: t.needPrice, done: c.inLiveBook === true },
+    ];
+    // One small badge in the class cell: LIVE (inverse) or DRAFT (outline, opens the go-live checklist).
+    const classCell = (row) => {
+      const c = classById[row.vehicleClassId];
+      const draft = !!c && statusOf(c) === 'draft';
+      const badge = draft
+        ? h('button', { type: 'button', 'data-class-badge': 'draft', title: t.goLiveTitle,
+            onClick: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.openGoLive(c.id, row.id); },
+            style: { all: 'unset', boxSizing: 'border-box', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', minHeight: 32 } },
+            h(DSx.Badge, { tone: 'outline' }, t.statusDraft))
+        : h(DSx.Badge, { tone: 'inverse' }, t.statusLive);
+      return h('span', { 'data-class-cell': '1' },
+        h('span', { 'data-class-name': '1', 'data-vt-no-i18n': '1' }, row.klass),
+        draft ? badge : h('span', { style: { display: 'inline-flex' } }, badge));
+    };
+    const goLiveTarget = this.state.goLiveTarget;
+    const goLiveClass = goLiveTarget ? classById[goLiveTarget.id] : null;
+    const goLiveList = goLiveClass ? checklistOf(goLiveClass) : [];
+    const goLiveMissing = goLiveList.filter((i) => !i.done);
+    const ratedIds = {};
+    uniqueByClass(ops ? ops.rates.all() : []).forEach((r) => { if (r.vehicleClassId) ratedIds[r.vehicleClassId] = 1; });
+    const draftOnlyRows = classList.filter((c) => statusOf(c) === 'draft' && !ratedIds[c.id]).map((c) => ({
+      id: 'class:' + c.id, klass: c.name || c.klass, name: c.name || c.klass, vehicleClassId: c.id, slug: c.slug || '',
+      photo: c.photoPath || c.photo || '', photoPath: c.photoPath || c.photo || '', sortOrder: Number(c.sortOrder) || 0,
+      baseFare: '', perKm: '', airportStart: '', maxPax: c.passengerCapacity || 0, maxBags: c.luggageCapacity || 0,
+      available: true, hideFromPublic: false, hiddenReason: '',
+    }));
+    const retiring = this.state.hideTarget && this.state.hideTarget.retire;
     const locationOptions = ((ops && ops.LOCATIONS) || []).map((l) => ({ value: l, label: l }));
     const rates = uniqueByClass(ops ? ops.rates.all() : []);
     const ratedClasses = rates.map((r) => ({
@@ -1322,7 +1496,10 @@ class Component extends DCLogic {
       openDiscard: this.openDiscard, closeDiscard: this.closeDiscard,
       hideOpen: !!this.state.hideTarget, hideReason: this.state.hideReason, hideReasonMax: 140,
       setHideReason: this.setHideReason, keepVisible: this.keepVisible, submitHide: this.submitHide,
-      hideSubmitDisabled: !String(this.state.hideReason || '').trim() || this.state.hideBusy,
+      hideSubmitDisabled: this.state.hideBusy || (!retiring && !String(this.state.hideReason || '').trim()),
+      hideTitle: retiring ? t.retireTitle : t.hideConflictTitle, hideBody: retiring ? t.retireBody : t.hideConflictBody,
+      hideLabel: retiring ? t.retireReason : t.hideReason, hidePlaceholder: retiring ? t.retireReasonPlaceholder : t.hideReasonPlaceholder,
+      hideCancelLabel: retiring ? t.retireCancel : t.hideConflictKeepVisible, hideSubmitLabel: retiring ? t.retire : t.hideWithReason,
       n3: 3, hideErrorText: this.state.hideError ? t.hideError : '',
       hideReasonCount: String(String(this.state.hideReason || '').length) + ' / 140',
       tHideReason: t.hideReason, tHideReasonPlaceholder: t.hideReasonPlaceholder,
@@ -1409,7 +1586,7 @@ class Component extends DCLogic {
       tSearchRoutes: t.searchRoutes, routeSearchKeys: ['id', 'from', 'to'],
       tEmptyRoutesTitle: t.emptyRoutesTitle, tEmptyRoutesBody: t.emptyRoutesBody,
 
-      distanceRows: byClassOrder(uniqueByClass(rates).map((r) => ({
+      distanceRows: byClassOrder(uniqueByClass(rates).filter((r) => !retiredIds[r.vehicleClassId]).map((r) => ({
         id: r.id,
         klass: r.name || r.klass,
         name: r.name || r.klass,
@@ -1426,11 +1603,11 @@ class Component extends DCLogic {
         available: r.available !== false,
         hideFromPublic: !!r.hideFromPublic,
         hiddenReason: String(r.hiddenReason || ''),
-      }))),
+      })).concat(draftOnlyRows)),
       distanceColumns: [
         { key:'__order', header:'', width:'44px', kind:'order', upLabel: t.moveClassUp, downLabel: t.moveClassDown },
         { key:'photo', header: t.colPhoto, width:'64px', kind:'photo' },
-        { key:'klass', header: t.colClass, width:'120px' },
+        { key:'klass', header: t.colClass, width:'190px', lookup: classCell },
         { key:'baseFare', header: t.startFare, lookup:(r) => moneyOrDash(r.baseFare) },
         { key:'perKm', header: t.perKm, lookup:(r) => moneyOrDash(r.perKm) },
         { key:'airportStart', header: t.airportStart, lookup:(r) => moneyOrDash(r.airportStart) },
@@ -1493,7 +1670,17 @@ class Component extends DCLogic {
       },
       tNounClass: t.nounClass, tNounClasses: t.nounClasses,
       tAddClass: t.addClass, tEditClass: t.editClass, tSaveClass: t.saveClass,
-      tDeleteClassTitle: t.deleteClassTitle, tDeleteClassBody: t.deleteClassBody,
+      tDeleteClassTitle: t.retireTitle, tDeleteClassBody: t.retireBody, tRetire: t.retire,
+      goLiveOpen: !!goLiveClass, goLiveName: goLiveClass ? (goLiveClass.name || goLiveClass.klass) : '',
+      goLiveItems: goLiveList.map((i) => ({ label: i.label, icon: i.done ? 'circle-check' : 'circle-alert', color: i.done ? 'var(--vt-success)' : 'var(--vt-danger)', textColor: i.done ? 'var(--vt-text-secondary)' : 'var(--vt-danger)' })),
+      goLiveBlocked: goLiveMissing.length > 0, goLiveWhy: goLiveMissing.length ? t['goLiveNeeds' + (goLiveMissing.filter((i) => i.key === 'Price')[0] || goLiveMissing[0]).key] : '',
+      closeGoLive: this.closeGoLive, confirmGoLive: this.confirmGoLive, editFromGoLive: this.editFromGoLive,
+      tGoLiveTitle: t.goLiveTitle, tGoLive: t.goLive, tEditClassBtn: t.editClass, n16: 16,
+      askRetire: this.askRetire, toggleRetired: this.toggleRetired,
+      hasRetired: retiredClasses.length > 0, retiredOpen: this.state.retiredOpen,
+      retiredChevron: this.state.retiredOpen ? 'chevron-up' : 'chevron-down',
+      retiredCount: String(retiredClasses.length), tRetiredTitle: t.retiredTitle, tBringBack: t.bringBack,
+      retiredItems: retiredClasses.map((c) => ({ name: c.name || c.klass, reason: String(c.retiredReason || ''), bring: () => this.bringBack(c.id) })),
       tSearchDistance: t.searchDistance, distanceSearchKeys: ['klass'],
       tEmptyClassesTitle: t.emptyClassesTitle, tEmptyClassesBody: t.emptyClassesBody,
 
