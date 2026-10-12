@@ -982,6 +982,11 @@
       'Retired class: pick a new one': { de: 'Stillgelegte Klasse: neue wählen', fr: 'Classe retirée : en choisir une autre', ar: 'فئة موقوفة: اختر فئة جديدة' },
       'Retired': { de: 'Stillgelegt', fr: 'Retirée', ar: 'موقوفة' },
       'Assign lists only the chauffeurs of the trip’s class. A chauffeur without a class, or on a retired class, cannot be given a transfer.': { de: 'Beim Zuweisen erscheinen nur die Chauffeure der Klasse der Fahrt. Ein Chauffeur ohne Klasse oder in einer stillgelegten Klasse kann keinen Transfer bekommen.', fr: 'L’attribution ne montre que les chauffeurs de la classe de la course. Un chauffeur sans classe, ou dans une classe retirée, ne peut pas recevoir de transfert.', ar: 'عند الإسناد يظهر فقط سائقو فئة الرحلة. السائق بلا فئة، أو في فئة موقوفة، لا يمكن إسناد رحلة إليه.' },
+      'chauffeurs are on this class': { de: 'Chauffeure sind in dieser Klasse', fr: 'chauffeurs sont dans cette classe', ar: 'سائقين في هذه الفئة' },
+      'chauffeur is on this class': { de: 'Chauffeur ist in dieser Klasse', fr: 'chauffeur est dans cette classe', ar: 'سائق في هذه الفئة' },
+      'This is your last live class. Customers cannot book until another class is live.': { de: 'Das ist Ihre letzte Klasse, die live ist. Kunden können erst wieder buchen, wenn eine andere Klasse live ist.', fr: 'C’est votre dernière classe en ligne. Les clients ne pourront plus réserver tant qu’une autre classe n’est pas en ligne.', ar: 'هذه آخر فئة مباشرة لديك. لن يتمكن العملاء من الحجز حتى تصبح فئة أخرى مباشرة.' },
+      'chauffeurs left out: retired class': { de: 'Chauffeure ausgeblendet: stillgelegte Klasse', fr: 'chauffeurs écartés : classe retirée', ar: 'سائقين مستبعدين: فئة موقوفة' },
+      'chauffeur left out: retired class': { de: 'Chauffeur ausgeblendet: stillgelegte Klasse', fr: 'chauffeur écarté : classe retirée', ar: 'سائق مستبعد: فئة موقوفة' },
 
       /* ── Ops · booking detail ──────────────────────────────────────── */
       'Back to bookings': { de: 'Zurück zu Buchungen', fr: 'Retour aux réservations', ar: 'العودة إلى الحجوزات' },
@@ -2422,7 +2427,7 @@
   (function () {
     var S = DICT.strings, P = DICT.patterns;
     S["Our classes"] = { de: "Unsere Klassen", fr: "Nos classes", ar: "فئاتنا" };
-    S["Three classes. Pick the one that fits."] = { de: "Drei Klassen. Wählen Sie, was passt.", fr: "Trois classes. Choisissez la bonne.", ar: "ثلاث فئات. اختر ما يناسبك." };
+    S["Pick the class that fits."] = { de: "Wählen Sie die Klasse, die passt.", fr: "Choisissez la classe qui vous convient.", ar: "اختر الفئة التي تناسبك." };
     S["Seats and bags are set per class. The price for your route shows once you enter it."] = { de: "Plätze und Gepäck sind je Klasse festgelegt. Den Preis für Ihre Strecke sehen Sie, sobald Sie sie eingeben.", fr: "Places et bagages sont fixés par classe. Le prix de votre trajet s’affiche dès que vous le saisissez.", ar: "عدد المقاعد والحقائب محدد لكل فئة. يظهر سعر مسارك بمجرد إدخاله." };
     S["One to three travellers with a suitcase each."] = { de: "Eine bis drei Personen mit je einem Koffer.", fr: "Un à trois voyageurs, une valise chacun.", ar: "من راكب إلى ثلاثة ركاب مع حقيبة لكل منهم." };
     S["Business trips and families with more luggage."] = { de: "Geschäftsreisen und Familien mit mehr Gepäck.", fr: "Voyages d’affaires et familles avec plus de bagages.", ar: "رحلات العمل والعائلات مع أمتعة أكثر." };

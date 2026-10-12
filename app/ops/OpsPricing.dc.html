@@ -25,6 +25,14 @@
 [data-retired-head]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:var(--vt-space-2);min-height:44px;padding:10px 16px;cursor:pointer;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-text-primary)}
 [data-retired-head]:hover{background:var(--vt-grey-50)}
 [data-retired-head]:focus-visible{box-shadow:var(--vt-ring)}
+/* 44px tap area on the 32px dialog close X (spec Tap areas); invisible, the drawn size stays 32px */
+.vt-dialog__head .vt-iconbtn{position:relative}
+.vt-dialog__head .vt-iconbtn::before{content:'';position:absolute;inset:calc((100% - 44px) / 2)}
+[data-retire-notes]{display:flex;flex-direction:column;gap:8px;margin-block:-4px 4px;min-width:0}
+[data-retire-count]{display:flex;flex-wrap:wrap;column-gap:4px;font-family:var(--vt-font-body);font-size:13px;line-height:1.5;color:var(--vt-text-muted)}
+[data-retire-lastlive]{margin:0;font-family:var(--vt-font-body);font-size:14px;line-height:1.5;color:var(--vt-danger);overflow-wrap:anywhere}
+.vt-dialog__scrim:has([data-retiring="1"]){padding:16px}
+.vt-dialog:has([data-retiring="1"]){max-height:calc(100dvh - 32px);overflow:auto;overscroll-behavior:contain}
 [data-retired-count]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);color:var(--vt-text-muted)}
 [data-retired-row]{box-sizing:border-box;display:flex;flex-wrap:wrap;align-items:center;gap:var(--vt-space-3);padding:8px 16px;border-block-start:1px solid var(--vt-border-subtle)}
 [data-retired-main]{flex:1 1 200px;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:var(--vt-space-3);row-gap:2px}
@@ -32,6 +40,8 @@
 [data-retired-reason]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-muted);overflow-wrap:anywhere}
 [data-class-cell]{display:flex;align-items:center;column-gap:8px;min-width:0}
 [data-class-name]{min-width:0;white-space:nowrap}
+@media (max-width:1080px){[data-retired-row] .vt-btn{height:44px}}
+@media (max-width:680px){[data-retired-head]{width:100%;min-height:44px}[data-retired-row]{flex-direction:column;flex-wrap:nowrap;align-items:flex-start;gap:12px;padding:16px}[data-retired-main]{flex:0 0 auto;width:100%;flex-direction:column;align-items:flex-start;row-gap:4px}[data-retired-name]{font-size:14px;font-weight:600}[data-retired-reason]{min-width:0;font-size:14px}[data-retired-row] > *{min-width:0}}
 @media (max-width:680px){[data-class-cell]{flex-direction:column;align-items:flex-start;max-width:78px}[data-class-name]{white-space:normal;overflow-wrap:anywhere}}
 [data-golive]{display:flex;flex-direction:column;gap:var(--vt-space-3);min-width:0}
 [data-golive] p{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);overflow-wrap:anywhere}
@@ -268,9 +278,19 @@
 
 <sc-if value="{{ hideOpen }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ hideTitle }}" onClose="{{ keepVisible }}" hint-size="440px,380px">
-<div data-hide-conflict="1">
+<div data-hide-conflict="1" data-retiring="{{ retiringFlag }}">
 <p data-hide-class="1" data-vt-no-i18n="1">{{ hideClassName }}</p>
 <p data-hide-body="1">{{ hideBody }}</p>
+<sc-if value="{{ retireNotes }}" hint-placeholder-val="{{ false }}">
+<div data-retire-notes="1">
+<sc-if value="{{ retireCountShow }}" hint-placeholder-val="{{ false }}">
+<div data-retire-count="1"><span class="vt-dir-keep" data-vt-no-i18n style="white-space:nowrap">{{ retireCountN }}</span>{{ retireCountWords }}</div>
+</sc-if>
+<sc-if value="{{ retireLastLiveShow }}" hint-placeholder-val="{{ false }}">
+<p data-retire-lastlive="1">{{ tRetireLastLive }}</p>
+</sc-if>
+</div>
+</sc-if>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ hideLabel }}" aria-label="{{ hideLabel }}" rows="{{ n3 }}" max-length="{{ hideReasonMax }}" value="{{ hideReason }}" onChange="{{ setHideReason }}" placeholder="{{ hidePlaceholder }}" error="{{ hideErrorText }}" hint="{{ hideReasonCount }}" hint-size="100%,130px"></x-import>
 <div data-hide-actions="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ keepVisible }}" hint-size="150px,44px">{{ hideCancelLabel }}</x-import>
@@ -388,6 +408,7 @@ const T = {
     statusLive:'Live', statusDraft:'Draft', statusRetired:'Retired', colStatus:'Status',
     retire:'Retire', retireTitle:'Retire this class?', retireBody:'The class leaves the site, the new-trip form and new price books. Past price books keep it. You can bring it back.',
     retireReason:'Reason (optional)', retireReasonPlaceholder:'Why it is retired, for example: no longer offered', retireCancel:'Cancel',
+    retireCountMany:'chauffeurs are on this class', retireCountOne:'chauffeur is on this class', retireLastLive:'This is your last live class. Customers cannot book until another class is live.',
     retiredTitle:'Retired classes', bringBack:'Bring back',
     needPhoto:'Photo', needSeats:'Seats', needBags:'Bags', needPrice:'Price in the live price book', goLive:'Go live', goLiveTitle:'Before this class goes live',
     goLiveNeedsPhoto:'Add a photo first', goLiveNeedsSeats:'Add the seats first', goLiveNeedsBags:'Add the bags first', goLiveNeedsPrice:'Add a price in the live price book first',
@@ -481,6 +502,7 @@ const T = {
     statusLive:'Live', statusDraft:'Entwurf', statusRetired:'Stillgelegt', colStatus:'Status',
     retire:'Stilllegen', retireTitle:'Diese Klasse stilllegen?', retireBody:'Die Klasse verschwindet von der Website, aus dem Formular für neue Fahrten und aus neuen Preisbüchern. Frühere Preisbücher behalten sie. Sie können sie zurückholen.',
     retireReason:'Grund (optional)', retireReasonPlaceholder:'Warum sie stillgelegt wird, zum Beispiel: nicht mehr angeboten', retireCancel:'Abbrechen',
+    retireCountMany:'Chauffeure sind in dieser Klasse', retireCountOne:'Chauffeur ist in dieser Klasse', retireLastLive:'Das ist Ihre letzte Klasse, die live ist. Kunden können erst wieder buchen, wenn eine andere Klasse live ist.',
     retiredTitle:'Stillgelegte Klassen', bringBack:'Zurückholen',
     needPhoto:'Foto', needSeats:'Plätze', needBags:'Gepäck', needPrice:'Preis im aktuellen Preisbuch', goLive:'Live schalten', goLiveTitle:'Bevor diese Klasse live geht',
     goLiveNeedsPhoto:'Zuerst ein Foto hinzufügen', goLiveNeedsSeats:'Zuerst die Plätze eintragen', goLiveNeedsBags:'Zuerst das Gepäck eintragen', goLiveNeedsPrice:'Zuerst einen Preis im aktuellen Preisbuch eintragen',
@@ -576,6 +598,7 @@ const T = {
     statusLive:'En ligne', statusDraft:'Brouillon', statusRetired:'Retirée', colStatus:'Statut',
     retire:'Retirer', retireTitle:'Retirer cette classe ?', retireBody:'La classe quitte le site, le formulaire de nouvelle course et les nouveaux livres de prix. Les anciens livres de prix la gardent. Vous pouvez la remettre.',
     retireReason:'Motif (facultatif)', retireReasonPlaceholder:'Pourquoi elle est retirée, par exemple : plus proposée', retireCancel:'Annuler',
+    retireCountMany:'chauffeurs sont dans cette classe', retireCountOne:'chauffeur est dans cette classe', retireLastLive:'C’est votre dernière classe en ligne. Les clients ne pourront plus réserver tant qu’une autre classe n’est pas en ligne.',
     retiredTitle:'Classes retirées', bringBack:'Remettre',
     needPhoto:'Photo', needSeats:'Places', needBags:'Bagages', needPrice:'Prix dans le livre de prix en vigueur', goLive:'Mettre en ligne', goLiveTitle:'Avant la mise en ligne de cette classe',
     goLiveNeedsPhoto:'Ajoutez d’abord une photo', goLiveNeedsSeats:'Ajoutez d’abord les places', goLiveNeedsBags:'Ajoutez d’abord les bagages', goLiveNeedsPrice:'Ajoutez d’abord un prix dans le livre de prix en vigueur',
@@ -671,6 +694,7 @@ const T = {
     statusLive:'مباشرة', statusDraft:'مسودة', statusRetired:'موقوفة', colStatus:'الحالة',
     retire:'إيقاف', retireTitle:'إيقاف هذه الفئة؟', retireBody:'تغادر الفئة الموقع ونموذج الرحلة الجديدة وكتب الأسعار الجديدة. تحتفظ بها كتب الأسعار السابقة. يمكنك إعادتها.',
     retireReason:'السبب (اختياري)', retireReasonPlaceholder:'سبب الإيقاف، مثلاً: لم تعد متاحة', retireCancel:'إلغاء',
+    retireCountMany:'سائقين في هذه الفئة', retireCountOne:'سائق في هذه الفئة', retireLastLive:'هذه آخر فئة مباشرة لديك. لن يتمكن العملاء من الحجز حتى تصبح فئة أخرى مباشرة.',
     retiredTitle:'الفئات الموقوفة', bringBack:'إعادة',
     needPhoto:'صورة', needSeats:'المقاعد', needBags:'الحقائب', needPrice:'سعر في كتاب الأسعار المباشر', goLive:'تشغيل مباشر', goLiveTitle:'قبل تشغيل هذه الفئة مباشرة',
     goLiveNeedsPhoto:'أضف صورة أولاً', goLiveNeedsSeats:'أضف المقاعد أولاً', goLiveNeedsBags:'أضف الحقائب أولاً', goLiveNeedsPrice:'أضف سعراً في كتاب الأسعار المباشر أولاً',
@@ -805,6 +829,7 @@ class Component extends DCLogic {
     this.loadVat();
     this.loadCouponUses();
     this.loadClasses();
+    if (window.VamosOps.chauffeurs && typeof window.VamosOps.chauffeurs.all === 'function') window.VamosOps.chauffeurs.all();
     this.forceUpdate();
   };
   _datePopRef = (el) => { this._datePop = el; };
@@ -1344,6 +1369,14 @@ class Component extends DCLogic {
       available: true, hideFromPublic: false, hiddenReason: '',
     }));
     const retiring = this.state.hideTarget && this.state.hideTarget.retire;
+    // Retire dialog notes: chauffeurs on the class (store rows only, unloaded or failed reads stay empty and hide the line)
+    // and the last-Live warning (the class is Live and no other class is).
+    const retireId = retiring ? String(this.state.hideTarget.id || '') : '';
+    const chaufRows = (ops && ops.chauffeurs && typeof ops.chauffeurs.peek === 'function') ? ops.chauffeurs.peek() : [];
+    const retireCount = retireId ? chaufRows.filter((c) => String((c && (c.vehicleClassId || c.vehicle_class_id)) || '').trim() === retireId).length : 0;
+    const retireCountShow = retireCount > 0;
+    const retireLastLiveShow = !!(retireId && classById[retireId] && statusOf(classById[retireId]) === 'live'
+      && !classList.some((c) => c.id !== retireId && statusOf(c) === 'live'));
     const locationOptions = ((ops && ops.LOCATIONS) || []).map((l) => ({ value: l, label: l }));
     const rates = uniqueByClass(ops ? ops.rates.all() : []);
     const ratedClasses = rates.map((r) => ({
@@ -1497,6 +1530,10 @@ class Component extends DCLogic {
       hideOpen: !!this.state.hideTarget, hideReason: this.state.hideReason, hideReasonMax: 140,
       setHideReason: this.setHideReason, keepVisible: this.keepVisible, submitHide: this.submitHide,
       hideSubmitDisabled: this.state.hideBusy || (!retiring && !String(this.state.hideReason || '').trim()),
+      retiringFlag: retiring ? '1' : '0',
+      retireNotes: retireCountShow || retireLastLiveShow, retireCountShow: retireCountShow, retireCountN: String(retireCount),
+      retireCountWords: retireCount === 1 ? t.retireCountOne : t.retireCountMany,
+      retireLastLiveShow: retireLastLiveShow, tRetireLastLive: t.retireLastLive,
       hideTitle: retiring ? t.retireTitle : t.hideConflictTitle, hideBody: retiring ? t.retireBody : t.hideConflictBody,
       hideLabel: retiring ? t.retireReason : t.hideReason, hidePlaceholder: retiring ? t.retireReasonPlaceholder : t.hideReasonPlaceholder,
       hideCancelLabel: retiring ? t.retireCancel : t.hideConflictKeepVisible, hideSubmitLabel: retiring ? t.retire : t.hideWithReason,

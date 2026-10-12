@@ -297,9 +297,17 @@ describe("2 · the Chauffeurs list shows name, class and plate", () => {
     expect(v.searchKeys).not.toContain("carClassName");
   });
 
-  it("the third count is the chauffeurs with a class (no vehicle words)", () => {
-    const counts = fleet().vals().counts as { label: string; value: string; of: string }[];
-    expect(counts[2]).toMatchObject({ label: "With a class", value: "2", of: "/ 3" });
+  it("the third count is the chauffeurs on a Live class (no vehicle words)", () => {
+    // Phase 30, owner answer 14: WITH A CLASS counts only chauffeurs whose class is Live. Marco is on a
+    // Live class, Luca on a retired one, Nina has none: 1 / 3. Before the class list loads it reads 0.
+    const f = fleet();
+    expect((f.vals().counts as { value: string }[])[2]!.value).toBe("0");
+    (f.logic as unknown as { state: Record<string, unknown> }).state = {
+      ...(f.logic as unknown as { state: Record<string, unknown> }).state,
+      classRows: [{ id: BUSINESS, status: "live" }, { id: ECONOMY, status: "retired" }, { id: VAN, status: "draft" }],
+    };
+    const counts = f.vals().counts as { label: string; value: string; of: string }[];
+    expect(counts[2]).toMatchObject({ label: "With a class", value: "1", of: "/ 3" });
     const de = fleet("de").vals().counts as { label: string }[];
     expect(de[2]!.label).toBe("Mit Klasse");
   });

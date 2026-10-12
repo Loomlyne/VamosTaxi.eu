@@ -414,7 +414,11 @@ class Component extends DCLogic {
       const name = classLabel(c);
       if (name) chauffeurClassOptions.push({ value: id, label: retiredIds[id] ? name + ' · ' + t.retiredTag : name });
     });
-    const withClass = chauffeurs.filter((c) => !!classIdOf(c)).length;
+    const liveIds = {};
+    (Array.isArray(this.state.classRows) ? this.state.classRows : []).forEach((c) => {
+      if ((c.status || ((c.active === false || c.hiddenAt || c.hidden_at) ? 'retired' : 'live')) === 'live') liveIds[c.id] = 1;
+    });
+    const withClass = chauffeurs.filter((c) => !!liveIds[classIdOf(c)]).length;
     // The server sends language names ("German, English"); the Languages select holds codes, so an
     // existing chauffeur's languages read "—" in the edit box (found 2026-10-01). Hand it the codes.
     const nameToCode = { german:'de', french:'fr', italian:'it', english:'en', arabic:'ar', de:'de', fr:'fr', it:'it', en:'en', ar:'ar' };
@@ -428,7 +432,7 @@ class Component extends DCLogic {
       const name = classLabel(r);
       if (!name) return [];
       return [
-        React.createElement('span', { key:'c' }, name),
+        React.createElement('span', { key:'c', className:'vt-dir-keep', 'data-vt-no-i18n':'' }, name),
         isRetiredClass(r) ? React.createElement('span', { key:'f', 'data-class-retired':'1', style: { display:'inline-flex', alignItems:'center', gap:4, fontSize:'var(--vt-body-xs)', lineHeight:1.35, color:'var(--vt-danger)', fontWeight:500, whiteSpace: narrow ? 'normal' : 'nowrap' } },
           React.createElement(window.VamosTaxiDesignSystem_245af1.Icon, { name:'circle-alert', size:14, color:'currentColor' }),
           t.retiredClassFlag) : null,

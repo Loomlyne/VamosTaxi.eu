@@ -92,8 +92,8 @@ Button labels, badges, kickers: UPPERCASE through the kit (`--vt-label-sm` track
 
 | Role | Value | Usage |
 |------|-------|-------|
-| Dominant (60%) | `#F6F6F6` page ground, `--vt-bg-surface` white panels | Pricing page ground, table, dialog surface, Retired list |
-| Secondary (30%) | Charcoal `#1E1F1F` | Ops sidebar, LIVE badge (`Badge tone="inverse"`), secondary buttons (EDIT CLASS, CANCEL; kit `secondary` renders charcoal, as on the signed sheets), BRING BACK, `--vt-border-subtle` hairlines |
+| Dominant (60%) | `#F6F6F6` page ground, `--vt-bg-surface` white panels, `--vt-border-subtle` grey hairlines | Pricing page ground, table, dialog surface, Retired list, row hairlines |
+| Secondary (30%) | Charcoal `#1E1F1F` | Ops sidebar, LIVE badge (`Badge tone="inverse"`), secondary buttons (EDIT CLASS, CANCEL; kit `secondary` renders charcoal, as on the signed sheets), BRING BACK |
 | Accent (10%) | Yellow `#FDC20B` | See reserved list |
 | Destructive / semantic | `--vt-danger` | Chauffeur "Retired class" flag, missing items in the Go live checklist, failed-action error text, the last-Live warning line in the Retire dialog |
 | Positive | `--vt-success` | Done items in the Go live checklist only |
@@ -327,7 +327,7 @@ Every element, every state. "Kit" means the kit component's own style, never res
 | Disabled | GO LIVE is `disabled` while anything is missing. The why-line sits directly above the buttons so the reason is visible without hover. EDIT CLASS is always enabled and closes the dialog and opens the class editor. When nothing is missing there is no line and GO LIVE is enabled. |
 | Loading | GO LIVE shows `loading` with "Going live…". Both buttons and close X are disabled until the request settles. |
 | Empty | Not applicable (the list is always four rows). |
-| Error | `goLiveError` in `--vt-danger` 14px above the buttons. Dialog stays open. The checklist re-reads the server state, so an item that turned missing changes to `circle-alert`. |
+| Error | `goLiveError` in `--vt-danger` 14px above the buttons; when the why-line also shows, the error line sits above the why-line (why-line stays directly above the buttons). Dialog stays open. The checklist re-reads the server state, so an item that turned missing changes to `circle-alert`. |
 | Success | Dialog closes, focus returns to the row, the badge changes to LIVE. |
 
 Checklist row: 20px `circle-check` (`--vt-success`) or `circle-alert` (`--vt-danger`) icon, label 14px/600 (as on sheet 2: missing labels in `--vt-danger`, done labels in the primary text colour), `sr-only` Done/Missing text. Row min-height 32px, gap 8px between rows.
@@ -419,7 +419,7 @@ Checklist row: 20px `circle-check` (`--vt-success`) or `circle-alert` (`--vt-dan
 - Kit `Dialog` size `sm` (400px max). At 390 it is full width minus 16px each side (`margin-inline:16px`), max-height `calc(100dvh - 32px)` with `overflow:auto` and `overscroll-behavior:contain`. The Retire dialog with both optional lines (sheet 6) is the tallest state and must still fit or scroll inside that limit in en, de, fr, ar.
 - Footer buttons: a row of two at every width where both fit (sheets 2 and 3 show a row at 390 en and ar). If a longer German or French label does not fit ("KLASSE BEARBEITEN", "MODIFIER LA CLASSE"), the kit footer wraps onto a second row (`flex-wrap:wrap`, each button `min-width:0`). Nothing is cut off.
 - Title wraps (no ellipsis). Subtitle is the class name.
-- Retire body stack: sentence, 8px, count line, 8px, last-Live warning, 16px, reason block. Count line and warning wrap freely (`overflow-wrap:anywhere` only on the number-free text is not needed; the number span is `white-space:nowrap`).
+- Retire body stack: sentence, 8px, count line, 8px, last-Live warning, 16px, reason block. Count line and warning wrap normally; the number span is `white-space:nowrap`.
 
 ### Retired section
 
@@ -518,14 +518,14 @@ Both corrections proposed in rev 3 are now signed and on main as `88cd312b` (`.p
 
 Rev 3: gsd-ui-checker (Haiku), 2026-10-11 22:55 (+04): UI-SPEC VERIFIED.
 
-Rev 4 (2026-10-12): dimension results below are pending re-check by the checker.
+Rev 4: gsd-ui-checker, 2026-10-12: APPROVED, no BLOCK, 7 FLAGs (flags 4 and 7 fixed in this file the same day).
 
-- [ ] Dimension 1 Copywriting: pending re-check rev 4
-- [ ] Dimension 2 Visuals: pending re-check rev 4 (flag from rev 3 still stands: the class table scrolls inside its pane at 390, as signed on sheet 1)
-- [ ] Dimension 3 Color: pending re-check rev 4
-- [ ] Dimension 4 Typography: pending re-check rev 4
-- [ ] Dimension 5 Spacing: pending re-check rev 4 (the 44px tap-area questions are now binding in the contract)
-- [ ] Dimension 6 Registry Safety: pending re-check rev 4
+- [x] Dimension 1 Copywriting: FLAG (open question 1 still open; Arabic plural after 2 and after 11+, see open question 2)
+- [x] Dimension 2 Visuals: PASS (rev 3 flag stands: the class table scrolls inside its pane at 390, as signed on sheet 1)
+- [x] Dimension 3 Color: FLAG fixed (`--vt-border-subtle` moved to the dominant row)
+- [x] Dimension 4 Typography: FLAG accepted (13px and 14px adjacent, kit-inherited)
+- [x] Dimension 5 Spacing: FLAG accepted (12px is project token `--vt-space-3` on the 4px scale)
+- [x] Dimension 6 Registry Safety: PASS
 
 **Approval:** owner signed rev 3 on 2026-10-12 (sheets 1 to 5); rev 4 elements pending sheets 6 to 10. Checker approval is not his.
 
@@ -533,8 +533,10 @@ Rev 4 (2026-10-12): dimension results below are pending re-check by the checker.
 
 ## Open questions for the owner
 
-All 14 questions of rev 3 are answered and recorded above. Nothing is open beyond the picture signatures (sheets 6 to 10), except the one item below. It has a recommended answer first and is drawn on its sheet.
+All 14 questions of rev 3 are answered and recorded above. Nothing is open beyond the picture signatures (sheets 6 to 10), except the two items below. Each has a recommended answer first; item 1 is drawn on sheet 7.
 
 1. Assign, retired-class trip: when the trip's class is retired, the picker is empty and the existing line reads "No chauffeur has the class Economy Van yet", which is false while two chauffeurs are on that class. Recommended: when the "left out" count is above 0 and the picker is empty, show the "left out" line instead of that sentence (sheet 7 draws this). Alternative: keep both lines (your answer 7 literally adds a line and changes nothing else).
+
+2. Arabic count lines (sheets 6 and 7): the dictionary's `سائقين` is used after every number above 1. Arabic grammar uses the dual `سائقان` for exactly 2 and the singular `سائقًا` for 11 and more, so "2 سائقين" on the sheets is the dictionary's word, not strict grammar. Recommended: keep the dictionary word now (one term across the dashboard, as the spec rule says) and fix Arabic plurals dashboard-wide in one later job. Alternative: add count-specific Arabic forms (2, 3–10, 11+) for these two lines only.
 
 The About title wording ("Pick the class that fits." and its de, fr, ar lines) awaits your signature on sheet 8; it is not a separate question.
