@@ -45,3 +45,11 @@ His answer to open question 2 (2026-10-12): the Arabic of the Retire count line 
 Checks on this state:
 - `vitest run lib/ops`: 132 files and 1613 tests pass. This needs `node scripts/sync-dc-mock-to-public.mjs` first.
 - `check-i18n-coverage` passes.
+
+## Sheets 11a and 11b, signed 2026-10-12 ~20:05 (+04)
+
+Koss signed both sheets in the question form (relayed by the controller, T3 thread 0fbbf0c1). Drawn from the committed prototype (6888c7ac).
+
+- sheet-11a signed 2026-10-12 by Koss: `screens/sheet-11a-seats-bags-empty.png` (1480 x 3428). Decision 6: ADD CLASS opens with Seats and Bags empty ('—'), the class table shows '—' for an empty count, Go live lists Seats and Bags as missing ("Add the seats first"), GO LIVE disabled. 1440 and 390, en and ar.
+- sheet-11b signed 2026-10-12 by Koss: `screens/sheet-11b-retire-unassigned.png` (1480 x 2412). Decision 3: the grey line under the chauffeur line in the Retire dialog, "1 paid trip ahead has no chauffeur yet" / "N paid trips ahead have no chauffeur yet", in en, de, fr and ar, Arabic forms 1, 2, 3–10, 11–99, 100+ (rendered: 1, 2, 5, 11).
+

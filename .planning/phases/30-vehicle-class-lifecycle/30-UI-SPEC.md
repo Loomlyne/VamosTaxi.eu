@@ -141,6 +141,15 @@ Label exceptions, recorded: CANCEL and RETIRE are owner-signed labels (sheet 3).
 
 Signing status used below: **signed 2026-10-11** (on a sheet), **signed 2026-10-12** (the owner's answers, and sheets 6 to 10 for elements new in rev 4).
 
+**Sheets 11a and 11b signed 2026-10-12 ~20:05 (+04)** (question form, recorded in `30-DESIGN-SIGNED.md`):
+- Decision 6: Seats and Bags start empty. ADD CLASS shows '—' in both steppers until the first + press; the class table shows '—'; Go live keeps the signed rows and why-lines ("Add the seats first", "Add the bags first") as real gates. No new strings.
+- Decision 3: Retire dialog line `retireUnassignedOne` / `retireUnassignedMany` under the chauffeur count line, same 13px muted style.
+
+| Key | en | de | fr | ar (count forms) |
+|-----|----|----|----|----|
+| retireUnassignedOne (signed 2026-10-12, sheet 11b) | paid trip ahead has no chauffeur yet | kommende bezahlte Fahrt hat noch keinen Chauffeur | course payée à venir n’a pas encore de chauffeur | 1: رحلة واحدة مدفوعة قادمة بلا سائق بعد |
+| retireUnassignedMany (signed 2026-10-12, sheet 11b) | paid trips ahead have no chauffeur yet | kommende bezahlte Fahrten haben noch keinen Chauffeur | courses payées à venir n’ont pas encore de chauffeur | 2: رحلتان مدفوعتان قادمتان بلا سائق بعد · 3–10: N رحلات مدفوعة قادمة بلا سائق بعد · 11–99: N رحلةً مدفوعةً قادمةً بلا سائق بعد · 100+: N رحلة مدفوعة قادمة بلا سائق بعد |
+
 ### State and row strings
 
 | Key | en | de | fr | ar |
