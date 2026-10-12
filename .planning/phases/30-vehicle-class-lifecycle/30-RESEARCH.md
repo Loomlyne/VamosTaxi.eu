@@ -336,18 +336,20 @@ commit;
 | A6 | The Next page `/[locale]/about` reaches no customer (middleware maps `/about` to the DC page) | Pitfall 1 | If wrong, the old fleet copy is customer-visible and the seed/messages task becomes mandatory |
 | A7 | No customer copy is needed for the server `class-retired` / `class-retired` slug refusals (generic errors) | Code Examples | Owner may want a sentence; would need signing in 4 languages |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Backfill or order for the five ghost Draft rows** (Pitfall 3)
+Each question is answered by a numbered decision in `30-01-PLAN.md` ("Decisions for the owner's plan signature"). Decision 7 (bookings in flight for a retired class) comes from Pitfall 8, not from a question here.
+
+1. **Backfill or order for the five ghost Draft rows** (Pitfall 3) RESOLVED → 30-01 decision 1 (recommended default, owner signs with the plan).
    - Known: derived model reads them as Draft. Unclear: controller preference (migration backfill to Retired vs run script first).
    - Recommendation: option A, stated in the hand-over; controller re-verifies live rows first.
-2. **Retire and the open draft price book** (Pitfall 5)
+2. **Retire and the open draft price book** (Pitfall 5) RESOLVED → 30-01 decision 2 (recommended default, owner signs with the plan).
    - Recommendation: remove the retired class's rows from draft versions inside the RPC; mention in the Retire dialog? No copy is signed, so say it in the hand-over only.
-3. **Seats/Bags gates** (Pitfall 2) - leave as always-done (matches today's form), or stop pre-filling in ADD CLASS? Recommend leave, list in hand-over so Koss knows two of four checklist items cannot currently fail.
-4. **Chauffeur editor: show the current retired class (tagged) or blank?** Spec says Live only; decision 5 says keep. Recommend: no retired option; editor omits `vehicleClassId` unless changed; flag text covers the explanation.
-5. **Next about page + `messages/*.json` fleet keys** - leave (recommended) or clean with seed regen (Pitfall 1).
-6. **Drop the old `ops_vehicle_class_delete_or_hide` RPC?** Recommend keep, unreachable from the Worker; one fewer live change.
-7. **Draft class priced only via fixed routes** (A4).
+3. **Seats/Bags gates** (Pitfall 2) - leave as always-done (matches today's form), or stop pre-filling in ADD CLASS? Recommend leave, list in hand-over so Koss knows two of four checklist items cannot currently fail. RESOLVED → 30-01 decision 3 (recommended default, owner signs with the plan).
+4. **Chauffeur editor: show the current retired class (tagged) or blank?** Spec says Live only; decision 5 says keep. Recommend: no retired option; editor omits `vehicleClassId` unless changed; flag text covers the explanation. RESOLVED → 30-01 decision 4 (recommended default, owner signs with the plan).
+5. **Next about page + `messages/*.json` fleet keys** - leave (recommended) or clean with seed regen (Pitfall 1). RESOLVED → 30-01 decision 5 (recommended default, owner signs with the plan).
+6. **Drop the old `ops_vehicle_class_delete_or_hide` RPC?** Recommend keep, unreachable from the Worker; one fewer live change. RESOLVED → 30-01 decision 6 (recommended default, owner signs with the plan).
+7. **Draft class priced only via fixed routes** (A4). RESOLVED → 30-01 decision 8 (recommended default, owner signs with the plan).
 
 ## Environment Availability
 
