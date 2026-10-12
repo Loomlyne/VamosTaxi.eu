@@ -34,6 +34,8 @@
 [data-vt-unsaved]{box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:8px 8px 8px 14px;margin-bottom:16px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface)}
 [data-vt-unsaved]>span[data-vt-unsaved-msg]{flex:1 1 auto;min-width:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 [data-vt-unsaved-act]{display:flex;gap:6px;flex:0 0 auto}
+/* tapArea: a 32px row control gets a 44px hit area without padding, so the row height stays. */
+[data-vt-tap44] button{position:relative}[data-vt-tap44] button::after{content:'';position:absolute;inset:-6px}
 [data-vt-table-scroll]{box-sizing:border-box;max-width:100%;min-width:0;width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
 [data-vt-table-scroll] .vt-tablewrap{overflow:visible;max-inline-size:none;min-inline-size:720px;width:max-content;min-width:100%}
 [data-vt-table-scroll][data-fill="1"] .vt-tablewrap{min-inline-size:0;width:max-content;min-width:100%;max-inline-size:none}
@@ -436,7 +438,7 @@
 </sc-if>
 <div data-vt-editor-foot>
 <span data-vt-foot-del="1" style="display:{{ deleteShow }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ askDeleteCurrent }}" hint-size="90px,44px">{{ deleteBtnLabel }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ askDeleteCurrent }}" hint-size="90px,44px">Delete</x-import>
 </span>
 <span data-vt-foot-main="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ requestClose }}" hint-size="110px,44px">Cancel</x-import>
@@ -499,7 +501,7 @@
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1100,&quot;height&quot;:640},&quot;rows&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;any[]&quot;},&quot;columns&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;TableColumn[]&quot;},&quot;fields&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;FieldSchema[]&quot;},&quot;blank&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;any&quot;},&quot;onSave&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(rec:any)=&gt;void&quot;},&quot;onDelete&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(id:string)=&gt;void&quot;},&quot;noun&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;row&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;nounPlural&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;labelKey&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;name&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;addLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Add&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;searchPlaceholder&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Search&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;searchKeys&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string[]&quot;},&quot;emptyTitle&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;emptyBody&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1100,&quot;height&quot;:640},&quot;rows&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;any[]&quot;},&quot;columns&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;TableColumn[]&quot;},&quot;fields&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;FieldSchema[]&quot;},&quot;blank&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;any&quot;},&quot;onSave&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(rec:any)=&gt;void&quot;},&quot;onDelete&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(id:string)=&gt;void&quot;},&quot;noun&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;row&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;nounPlural&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;labelKey&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;name&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;addLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Add&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;searchPlaceholder&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Search&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;searchKeys&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string[]&quot;},&quot;emptyTitle&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;emptyBody&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;footDelete&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;actionsGap&quot;:{&quot;editor&quot;:&quot;number&quot;,&quot;default&quot;:6,&quot;tsType&quot;:&quot;number&quot;},&quot;tapArea&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
 /* One table for the whole console. Every list screen — vehicles, chauffeurs,
    bookings, customers, coupons, routes, surcharges — is this component with a
    different column set and field schema, so add / edit / delete behaves the same
@@ -1500,7 +1502,7 @@ class Component extends DCLogic {
       onClick: (e) => { if (e && e.stopPropagation) e.stopPropagation(); onClick(); },
     });
     if (!DS.IconButton) return null;
-    return React.createElement('span', { style:{ display:'flex', gap:6, justifyContent:'flex-end' } },
+    return React.createElement('span', { 'data-vt-tap44': t.tapArea ? '1' : undefined, style:{ display:'flex', gap: t.actionsGap || 6, justifyContent:'flex-end' } },
       ib('pencil', t.editLabel || 'Edit', () => this.startEdit(row)),
       this.rowCanDelete(row) ? ib(t.deleteIcon || 'trash-2', t.deleteLabel || 'Delete', () => this.askDelete(row), 'ghost') : null);
   }
@@ -1772,8 +1774,8 @@ class Component extends DCLogic {
       listSaveFailed: !!(this.state.saveError) && !this.state.draft,
       deleteError: this.state.deleteError || '',
       deleteFailed: !!(this.state.deleteError),
-      deleteBtnLabel: this.props.deleteLabel || 'Delete',
-      deleteShow: (this.state.isNew || !this.rowCanDelete(d)) ? 'none' : 'inline-flex',
+      // footDelete={false}: the Edit class foot shows Cancel and Save only; the row icon still asks through onAskDelete.
+      deleteShow: (this.props.footDelete === false || this.state.isNew || !this.rowCanDelete(d)) ? 'none' : 'inline-flex',
       formFields: editorFields, closeEditor: this.closeEditor, save: this.save,
       requestClose: this.requestClose, keepEditing: this.keepEditing, discardClose: this.discardClose,
       closeAttempted: this.state.closeAttempted,
