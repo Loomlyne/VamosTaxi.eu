@@ -53,7 +53,7 @@ Plan column = plans whose frontmatter lists the requirement. Status is "covered"
 | QUOTE-08 | Landing-time precedence, 400/404/503 leave pickup editable | 14 | n/a | `pnpm --filter web exec vitest run lib/flight/no-provider.test.ts lib/flight/format.test.ts lib/checkout/flight-no.test.ts` | ✅ | superseded (see below), not a gap |
 | QUOTE-09 | 4/60 bare vs 8/60 verified cookie; unsigned/rotated cookie never buys a bucket; Turnstile from 3rd; breaker | 05, 09, 15 | unit | `pnpm --filter web exec vitest run lib/abuse/vamos-qs.test.ts lib/abuse/rate-limit.test.ts lib/abuse/quote-turnstile-live.test.ts lib/abuse/turnstile-grace-and-count.test.ts lib/abuse/breaker.test.ts` | ✅ | covered |
 | QUOTE-10 | No live version: null totals, `pricing_not_live` 409, direct payment insert raises, `CHF 000` | 06, 07, 10, 11, 13, 16 | unit + pgTAP + Playwright | `pnpm --filter web exec vitest run lib/pricing/public-chf.test.ts lib/pricing/booking-board-null.test.ts lib/quote/intent.test.ts lib/checkout/charge-gate.test.ts` · `supabase test db packages/db/supabase/tests/charge_gate.test.sql packages/db/supabase/tests/rate_version_publish.test.sql` · `pnpm --filter web exec playwright test tests/visual/quote-flow.spec.ts` | ✅ | covered |
-| QUOTE-11 | Child seat, extra stop, oversize each own line; return duplicates child seat/oversize on both legs; single-leg cancel reconstructs from row | 02, 04, 09, 11 | unit | `pnpm --filter web exec vitest run lib/pricing/lines.test.ts lib/pricing/priceQuote.test.ts lib/quote/no-extra-stop.test.ts lib/checkout/extras-g6.test.ts` | ✅ | covered (single-leg cancel reconstruction: only indirect, see GAP-3) |
+| QUOTE-11 | Child seat, extra stop, oversize each own line; return duplicates child seat/oversize on both legs; single-leg cancel reconstructs from row | 02, 04, 09, 11 | unit | `pnpm --filter web exec vitest run lib/pricing/lines.test.ts lib/pricing/priceQuote.test.ts lib/quote/no-extra-stop.test.ts lib/checkout/extras-g6.test.ts` | ✅ | covered (single-leg cancel: `single_leg_refund_own_subtotal.test.sql`, GAP-3) |
 
 ---
 
@@ -74,7 +74,7 @@ Plan column = plans whose frontmatter lists the requirement. Status is "covered"
 |----|-------------|-----|--------|
 | GAP-1 (CLOSED 2026-10-11) | QUOTE-06 | No test runs two parallel PaymentIntent creations on a `global_limit = 1` coupon and asserts one 200, one 409, one `coupon_redemptions` row (`FOR UPDATE` serialisation). `coupon_evaluate.test.sql` is sequential only. | Add `coupon_race.test.sql` (needs two sessions; may need a Vitest DB test against the lab) |
 | GAP-2 (CLOSED 2026-10-11: `lib/pricing/priceQuote.property.test.ts`, 9 properties) | QUOTE-03 | The research plan asks for property tests (percent-basis commutativity, pipeline order) with `fast-check`; no `fast-check` test was found under `lib/pricing`. Example-based cases exist. | Confirm with `grep -rn fast-check apps/web/lib`; add or accept example-based coverage |
-| GAP-3 (OPEN: real bug, decision `.planning/decisions/2026-10-11-single-leg-refund-own-subtotal.md`, waits for jobs j7/j10) | QUOTE-11 | "Single-leg cancellation reconstructs its amounts from the row alone" has no test named for it in the Phase 4 files; related behavior sits in Phase 7/10 refund tests (`packages/db/supabase/tests/cancellation_refund_d02.test.sql`, `fare_line_reads.test.sql`), not verified against this claim. | Read those tests; if they assert per-leg amounts, cite them, else add one |
+| GAP-3 (BUILT 2026-10-12 on branch `fix-single-leg-refund`, migration `20261013100000_single_leg_refund_own_subtotal.sql`; closes when it lands on `main`) | QUOTE-11 | Was: cancelling one leg refunded at booking level (legs 4000 + 6000, 10000 captured, cancel the 6000 leg: owed 10000). Now the leg's own `price_snapshot_legs.leg_subtotal_rappen` (discount pro rata), window from its own `original_scheduled_at`, capped at captured and summed over cancelled legs; the Refund click sends exactly that. | `packages/db/supabase/tests/single_leg_refund_own_subtotal.test.sql` (42 assertions: decision case, rate book change, discount, window, cap, two legs, no stored amount, whole-booking unchanged, Refund click) |
 
 Superseded, not a gap: QUOTE-08 (flight status lookup). Owner decision 2026-10-05 removed the provider and `/api/flight` ("we just need flight number not tracking"); `lib/flight/no-provider.test.ts` pins that it stays removed. The requirement text in REQUIREMENTS.md should be updated by the planner.
 
@@ -95,7 +95,7 @@ Superseded, not a gap: QUOTE-08 (flight status lookup). Owner decision 2026-10-0
 ## Validation Sign-Off
 
 - [x] Every requirement has an automated command or an explicit supersession
-- [ ] No gaps open (GAP-3 still open; GAP-1 and GAP-2 closed)
+- [ ] No gaps open (GAP-3 built on branch `fix-single-leg-refund`, closes when it lands; GAP-1 and GAP-2 closed)
 - [ ] Mapped commands re-run green in one session (not done when this file was written)
 - [ ] `nyquist_compliant: true` only after the gaps close
 
