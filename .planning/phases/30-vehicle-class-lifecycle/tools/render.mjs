@@ -25,8 +25,8 @@ execFileSync("node", ["scripts/sync-dc-mock-to-public.mjs"], { cwd: repo, stdio:
 const { server, base } = await serve();
 const browser = await chromium.launch();
 
-const LANGNAME = { en: "English", ar: "العربية" };
-const RETIRE = { en: "Retire", ar: "إيقاف" };
+const LANGNAME = { en: "English", de: "Deutsch", fr: "Français", ar: "العربية" };
+const RETIRE = { en: "Retire", de: "Stilllegen", fr: "Retirer", ar: "إيقاف" };
 const BRING = { en: "Bring back", ar: "إعادة" };
 const reason140 = S.REASON_140;
 if (reason140.length !== 140) { console.log(`FAIL setup: reason is ${reason140.length} characters, not 140`); process.exit(1); }
@@ -314,6 +314,75 @@ function s10(w, lang) {
   };
 }
 
+// ---------- sheet 11 (decisions 3 and 6, signed 2026-10-12) ----------
+const ADD = { en: "Add class", ar: "إضافة فئة" };
+const UNASSIGNED = {
+  en: { 1: "1 paid trip ahead has no chauffeur yet", 2: "2 paid trips ahead have no chauffeur yet", 5: "5 paid trips ahead have no chauffeur yet", 11: "11 paid trips ahead have no chauffeur yet" },
+  de: { 1: "1 kommende bezahlte Fahrt hat noch keinen Chauffeur", 2: "2 kommende bezahlte Fahrten haben noch keinen Chauffeur" },
+  fr: { 1: "1 course payée à venir n’a pas encore de chauffeur", 2: "2 courses payées à venir n’ont pas encore de chauffeur" },
+  ar: { 1: "رحلة واحدة مدفوعة قادمة بلا سائق بعد", 2: "رحلتان مدفوعتان قادمتان بلا سائق بعد", 5: "5 رحلات مدفوعة قادمة بلا سائق بعد", 11: "11 رحلةً مدفوعةً قادمةً بلا سائق بعد" },
+};
+const COUNT2 = { en: "2 chauffeurs are on this class", de: "2 Chauffeure sind in dieser Klasse", fr: "2 chauffeurs sont dans cette classe", ar: "سائقان في هذه الفئة" };
+/** Luxury Van is a new Draft: photo in, priced, seats and bags empty. */
+const st11draft = () => ({ status: { sedan: "live", van: "live", lux: "draft" }, reasons: {}, over: { lux: { passengerCapacity: null, luggageCapacity: null, inLiveBook: true } }, chauffeurs: [], bookings: [], quoteClasses: [] });
+function s11golive(w, lang) {
+  return {
+    sheet: 11, w, lang, path: "/pricing", state: st11draft(), file: `11-golive-${w}-${lang}.png`, caption: cap(w, lang) + " · Go live: seats and bags missing",
+    prep: async (page) => { await openClassesPane(page); await page.locator('[data-class-badge="draft"]').first().click(); await page.waitForSelector("[data-golive]", { timeout: 5000 }); },
+    target: (page) => page.locator("[role=dialog]").filter({ has: page.locator("[data-golive]") }).first().elementHandle(),
+    checks: async (page) => {
+      const items = await page.evaluate(() => [...document.querySelectorAll("[data-golive-item]")].map((li) => ({ t: li.innerText.trim(), miss: /danger/.test(li.getAttribute("style") || "") })));
+      const why = await page.locator("[data-golive-why]").first().innerText().catch(() => "");
+      const btnOff = await page.evaluate(() => { const d = document.querySelector("[data-golive]").closest("[role=dialog]"); const b = [...d.querySelectorAll("button")].pop(); return !!(b && (b.disabled || b.getAttribute("aria-disabled") === "true")); });
+      const L = lang === "ar" ? { p: "صورة", s: "المقاعد", b: "الحقائب", w: "أضف المقاعد أولاً" } : { p: "Photo", s: "Seats", b: "Bags", w: "Add the seats first" };
+      const find = (x) => items.find((i) => i.t.includes(x)) || {};
+      return [["4 checklist rows", items.length === 4], [`${L.p} done`, find(L.p).miss === false], [`${L.s} missing`, find(L.s).miss === true], [`${L.b} missing`, find(L.b).miss === true],
+        ["Price done", items.filter((i) => !i.miss).length === 2], [`why-line "${L.w}" (got ${JSON.stringify(why.trim())})`, why.trim() === L.w], ["GO LIVE disabled", btnOff]];
+    },
+  };
+}
+function s11table(w, lang) {
+  return {
+    sheet: 11, w, lang, path: "/pricing", state: st11draft(), file: `11-table-draft-${w}-${lang}.png`, caption: cap(w, lang) + " · class table: Draft seats and bags show a dash",
+    prep: async (page) => { await openClassesPane(page); },
+    target: (page) => page.locator("[data-vt-table-scroll]").first().elementHandle(),
+    checks: async (page) => {
+      const row = await page.evaluate(() => { const c = [...document.querySelectorAll("[data-class-name]")].find((e) => e.textContent.trim() === "Luxury Van"); const tr = c && c.closest("tr"); return tr ? [...tr.querySelectorAll("td")].map((td) => td.innerText.trim()) : []; });
+      return [[`Luxury Van row has two dashes for seats and bags (got ${JSON.stringify(row.slice(-3))})`, row.filter((x) => x === "—").length >= 2]];
+    },
+  };
+}
+function s11add(w, lang) {
+  return {
+    sheet: 11, w, lang, path: "/pricing", state: st11draft(), file: `11-add-class-${w}-${lang}.png`, caption: cap(w, lang) + " · ADD CLASS: seats and bags start empty",
+    prep: async (page) => { await openClassesPane(page); await page.getByRole("button", { name: ADD[lang] }).first().click(); await page.waitForSelector("[role=dialog] [data-vt-step]", { timeout: 5000 }); },
+    target: (page) => page.locator("[role=dialog]").filter({ has: page.locator("[data-vt-step]") }).first().elementHandle(),
+    checks: async (page) => {
+      const vals = await page.evaluate(() => [...document.querySelectorAll("[role=dialog] [data-vt-step]")].map((s) => s.querySelector("[data-vt-step-val]").textContent.trim()));
+      return [[`seats and bags show a dash (got ${JSON.stringify(vals)})`, vals.length === 2 && vals.every((v) => v === "—")]];
+    },
+  };
+}
+function s11retire(w, lang, n, notesOnly) {
+  const state = { status: { sedan: "live", van: "live", lux: "live" }, reasons: {}, over: { van: { unassignedPaidTrips: n } }, chauffeurs: S.chauffeurRows(crew(2, "van")), bookings: [], quoteClasses: [] };
+  return {
+    sheet: 11, w, lang, path: "/pricing", state, file: `11-retire-unassigned-${w}-${lang}-n${n}${notesOnly ? "-line" : ""}.png`,
+    caption: cap(w, lang) + ` · Retire: ${n} paid trip${n === 1 ? "" : "s"} with no chauffeur`,
+    prep: async (page) => { await openClassesPane(page); await clickRetire(page, "Economy Van", lang); await page.waitForSelector("[data-retire-unassigned]", { timeout: 5000 }); },
+    target: notesOnly ? (page) => page.locator("[data-retire-notes]").first().elementHandle() : dialogOf,
+    covTargets: async (page) => [await page.locator("[data-retire-unassigned]").first().elementHandle()],
+    checks: async (page) => {
+      const line = (await page.locator("[data-retire-unassigned]").first().innerText()).replace(/\s+/g, " ").trim();
+      const count = (await page.locator("[data-retire-count]").first().innerText()).replace(/\s+/g, " ").trim();
+      const order = await page.evaluate(() => { const a = document.querySelector("[data-retire-count]"), b = document.querySelector("[data-retire-unassigned]"); return !!(a && b && (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)); });
+      const muted = await page.evaluate(() => { const a = getComputedStyle(document.querySelector("[data-retire-count]")).color, b = getComputedStyle(document.querySelector("[data-retire-unassigned]")).color; return a === b; });
+      const want = UNASSIGNED[lang][n];
+      return [[`line = "${want}" (got ${JSON.stringify(line)})`, squash(line) === squash(want)], ["sits under the chauffeur line", order], ["same grey as the chauffeur line", muted],
+        [`chauffeur line still "${COUNT2[lang]}"`, squash(count) === squash(COUNT2[lang])], ["no last-live line (another class is live)", (await page.locator("[data-retire-lastlive]").count()) === 0]];
+    },
+  };
+}
+
 // ---------- run ----------
 const sheets = {
   6: { file: "sheet-6-retire-dialog.png", title: "Sheet 6 · Retire dialog: chauffeur count and last-live warning (Arabic: 1, 2, 5, 11 chauffeurs)", build: () => [s6(1440, "en"), s6(1440, "ar"), s6(390, "en"), s6(390, "ar"), s6(1440, "en", true), s6(1440, "ar", false, 1), s6(1440, "ar", false, 5), s6(1440, "ar", false, 11)] },
@@ -325,6 +394,16 @@ const sheets = {
   } },
   8: { file: "sheet-8-about-classes.png", title: "Sheet 8 · About: Our classes", build: () => [s8(1440, "en"), s8(1440, "ar"), s8(390, "en"), s8(390, "ar")] },
   9: { file: "sheet-9-retired-row-390.png", title: "Sheet 9 · Retired classes list at 390", build: () => [s9("en"), s9("ar")] },
+  "11a": { file: "sheet-11a-seats-bags-empty.png", title: "Sheet 11a · Seats and Bags start empty; Go live waits for both (decision 6)", build: () => [
+    s11golive(1440, "en"), s11golive(1440, "ar"), s11golive(390, "en"), s11golive(390, "ar"),
+    s11add(1440, "en"), s11add(1440, "ar"), s11add(390, "en"), s11add(390, "ar"),
+    s11table(1440, "en"), s11table(1440, "ar"),
+  ] },
+  "11b": { file: "sheet-11b-retire-unassigned.png", title: "Sheet 11b · Retire: paid trips ahead with no chauffeur yet (decision 3), en / de / fr / ar", build: () => [
+    s11retire(1440, "en", 2), s11retire(1440, "ar", 2), s11retire(390, "en", 2), s11retire(390, "ar", 2),
+    s11retire(1440, "en", 1, true), s11retire(1440, "de", 2, true), s11retire(1440, "de", 1, true), s11retire(1440, "fr", 2, true), s11retire(1440, "fr", 1, true),
+    s11retire(1440, "ar", 1, true), s11retire(1440, "ar", 5, true), s11retire(1440, "ar", 11, true),
+  ] },
   10: { file: "sheet-10-with-a-class.png", title: "Sheet 10 · Chauffeurs: WITH A CLASS counts live classes only", build: () => [s10(1440, "en"), s10(1440, "ar"), s10(390, "en"), s10(390, "ar")] },
 };
 
@@ -336,7 +415,7 @@ try {
     const okFrames = [];
     // --ar-only re-renders only the Arabic frames and composes with the English frames already on disk.
     for (const s of specs) { if (AR_ONLY && s.lang !== "ar") { okFrames.push(s); continue; } if (await frame(s)) okFrames.push(s); }
-    if (!AR_ONLY) await coverage(n, specs[0]);
+    if (!AR_ONLY) await coverage(n, specs[sh.cov || 0]);
     if (okFrames.length === specs.length) await compose(sh.file, sh.title, specs.map((s) => ({ file: s.file, w: s.w, caption: s.caption })));
     else console.log(`sheet ${sh.file}: not composed (a frame failed)`);
   }

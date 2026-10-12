@@ -34,12 +34,12 @@ export const REASON_140 = "Replaced by a newer van next season, so this class is
  * `status` = { sedan, van, lux } each 'live' | 'draft' | 'retired'; `reasons` = { key: text }.
  * Row shape = presentVehicleClass + status + retiredReason (editors' contract).
  */
-export function classRows(status, reasons = {}) {
-  return ["sedan", "van", "lux"].map((k) => ({
+export function classRows(status, reasons = {}, over = {}) {
+  return ["sedan", "van", "lux"].map((k) => Object.assign({
     id: ID[k], slug: SLUG[k], klass: NAME[k], name: NAME[k], passengerCapacity: 3, luggageCapacity: 3, sortOrder: ORDER[k],
     active: status[k] === "live", status: status[k], retiredReason: reasons[k] || "", vehicleCount: 0,
-    inLiveBook: true, photoPath: `site/${SLUG[k]}.jpg`, photo: `site/${SLUG[k]}.jpg`,
-  }));
+    inLiveBook: true, photoPath: `site/${SLUG[k]}.jpg`, photo: `site/${SLUG[k]}.jpg`, unassignedPaidTrips: 0,
+  }, over[k] || {}));
 }
 
 const money = { CHF: "0", EUR: "0", USD: "0", AED: "0" };
@@ -88,7 +88,7 @@ export async function installStubs(page, state, log = []) {
     if (path === "/api/staff/me") return ok(ME);
     if (path === "/api/quote" && method === "GET") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, classes: state.quoteClasses || [] }) });
     if (method !== "GET") return ok({});
-    if (path === "/api/staff/vehicle-classes") return ok(classRows(state.status, state.reasons));
+    if (path === "/api/staff/vehicle-classes") return ok(classRows(state.status, state.reasons, state.over));
     if (path === "/api/staff/chauffeurs") return ok(state.chauffeurs || []);
     if (path === "/api/staff/bookings") return ok(state.bookings || []);
     if (path === "/api/staff/rate-book") return ok(rateBook(state.status));

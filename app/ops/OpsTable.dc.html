@@ -243,7 +243,7 @@
 <span data-fld-l="1">{{ f.label }}</span>
 <div data-vt-step-wrap="1">
 <button type="button" data-vt-step-btn="1" aria-label="Decrease" onClick="{{ f.dec }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="minus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
-<span data-vt-step-val="1">{{ f.value }}</span>
+<span data-vt-step-val="1">{{ f.stepValue }}</span>
 <button type="button" data-vt-step-btn="1" aria-label="Increase" onClick="{{ f.inc }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
 </div>
 <span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
@@ -1609,6 +1609,8 @@ class Component extends DCLogic {
         pickKind: (v) => this.setField(kindKey, v),
         setAmount: (e) => this.setField(f.key, e && e.target ? e.target.value : e),
         value: String(val),
+        // allowEmpty: a stepper may stay empty (shown as a dash) until the first press, e.g. a new class's seats and bags.
+        stepValue: f.allowEmpty && isNaN(num) ? '—' : String(val),
         dateLabel: parts ? boardDate(parts) : (f.placeholder || 'dd / mm / yyyy'),
         dateEmpty: parts ? '0' : '1',
         dateOpen: dateOn,
@@ -1627,8 +1629,8 @@ class Component extends DCLogic {
         setYearDigits: (e) => this.setField(f.key, maskYear(e.target.value)),
         setPhone: (e) => this.setField(f.key, maskPhone(e.target.value)),
         setLicence: (e) => this.setField(f.key, maskLicence(e && e.target ? e.target.value : e)),
-        inc: () => this.setField(f.key, Math.min(maxN, nVal + 1)),
-        dec: () => this.setField(f.key, Math.max(minN, nVal - 1)),
+        inc: () => this.setField(f.key, f.allowEmpty && isNaN(num) ? minN : Math.min(maxN, nVal + 1)),
+        dec: () => { if (f.allowEmpty && isNaN(num)) return; this.setField(f.key, Math.max(minN, nVal - 1)); },
         checked: !!raw,
         hasAdd: !!f.addLabel,
         addLabel: f.addLabel || '',

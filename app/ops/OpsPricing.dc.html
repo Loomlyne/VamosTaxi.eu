@@ -30,6 +30,7 @@
 .vt-dialog__head .vt-iconbtn::before{content:'';position:absolute;inset:calc((100% - 44px) / 2)}
 [data-retire-notes]{display:flex;flex-direction:column;gap:8px;margin-block:-4px 4px;min-width:0}
 [data-retire-count]{display:flex;flex-wrap:wrap;column-gap:4px;font-family:var(--vt-font-body);font-size:13px;line-height:1.5;color:var(--vt-text-muted)}
+[data-retire-unassigned]{display:flex;flex-wrap:wrap;column-gap:4px;font-family:var(--vt-font-body);font-size:13px;line-height:1.5;color:var(--vt-text-muted)}
 [data-retire-lastlive]{margin:0;font-family:var(--vt-font-body);font-size:14px;line-height:1.5;color:var(--vt-danger);overflow-wrap:anywhere}
 .vt-dialog__scrim:has([data-retiring="1"]){padding:16px}
 .vt-dialog:has([data-retiring="1"]){max-height:calc(100dvh - 32px);overflow:auto;overscroll-behavior:contain}
@@ -286,6 +287,9 @@
 <sc-if value="{{ retireCountShow }}" hint-placeholder-val="{{ false }}">
 <div data-retire-count="1"><sc-if value="{{ retireCountNumShow }}" hint-placeholder-val="{{ true }}"><span class="vt-dir-keep" data-vt-no-i18n style="white-space:nowrap">{{ retireCountN }}</span></sc-if>{{ retireCountWords }}</div>
 </sc-if>
+<sc-if value="{{ retireUnassignedShow }}" hint-placeholder-val="{{ false }}">
+<div data-retire-unassigned="1"><sc-if value="{{ retireUnassignedNumShow }}" hint-placeholder-val="{{ true }}"><span class="vt-dir-keep" data-vt-no-i18n style="white-space:nowrap">{{ retireUnassignedN }}</span></sc-if>{{ retireUnassignedWords }}</div>
+</sc-if>
 <sc-if value="{{ retireLastLiveShow }}" hint-placeholder-val="{{ false }}">
 <p data-retire-lastlive="1">{{ tRetireLastLive }}</p>
 </sc-if>
@@ -394,7 +398,8 @@ const PANES = [
 ];
 /* Arabic count forms of the chauffeur count line (owner answer 2026-10-12): kept outside T because only Arabic has
    them (T stays key-identical across languages). Chosen by arCountForm in renderVals. */
-const AR_COUNT = { retireCountAr1:'سائق واحد في هذه الفئة', retireCountAr2:'سائقان في هذه الفئة', retireCountArFew:'سائقين في هذه الفئة', retireCountArMany:'سائقًا في هذه الفئة', retireCountArOther:'سائق في هذه الفئة' };
+const AR_COUNT = { retireCountAr1:'سائق واحد في هذه الفئة', retireCountAr2:'سائقان في هذه الفئة', retireCountArFew:'سائقين في هذه الفئة', retireCountArMany:'سائقًا في هذه الفئة', retireCountArOther:'سائق في هذه الفئة',
+  retireUnassignedAr1:'رحلة واحدة مدفوعة قادمة بلا سائق بعد', retireUnassignedAr2:'رحلتان مدفوعتان قادمتان بلا سائق بعد', retireUnassignedArFew:'رحلات مدفوعة قادمة بلا سائق بعد', retireUnassignedArMany:'رحلةً مدفوعةً قادمةً بلا سائق بعد', retireUnassignedArOther:'رحلة مدفوعة قادمة بلا سائق بعد' };
 const T = {
   en: { actions:'Actions', title:'Pricing & routes', subtitle:'City to city, distance rules, surcharges and coupons',
     tabRoutes:'City to city', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras', tabCoupons:'Coupons',
@@ -411,7 +416,7 @@ const T = {
     statusLive:'Live', statusDraft:'Draft', statusRetired:'Retired', colStatus:'Status',
     retire:'Retire', retireTitle:'Retire this class?', retireBody:'The class leaves the site, the new-trip form and new price books. Past price books keep it. You can bring it back.',
     retireReason:'Reason (optional)', retireReasonPlaceholder:'Why it is retired, for example: no longer offered', retireCancel:'Cancel',
-    retireCountMany:'chauffeurs are on this class', retireCountOne:'chauffeur is on this class', retireLastLive:'This is your last live class. Customers cannot book until another class is live.',
+    retireCountMany:'chauffeurs are on this class', retireCountOne:'chauffeur is on this class', retireUnassignedMany:'paid trips ahead have no chauffeur yet', retireUnassignedOne:'paid trip ahead has no chauffeur yet', retireLastLive:'This is your last live class. Customers cannot book until another class is live.',
     retiredTitle:'Retired classes', bringBack:'Bring back',
     needPhoto:'Photo', needSeats:'Seats', needBags:'Bags', needPrice:'Price in the live price book', goLive:'Go live', goLiveTitle:'Before this class goes live',
     goLiveNeedsPhoto:'Add a photo first', goLiveNeedsSeats:'Add the seats first', goLiveNeedsBags:'Add the bags first', goLiveNeedsPrice:'Add a price in the live price book first',
@@ -505,7 +510,7 @@ const T = {
     statusLive:'Live', statusDraft:'Entwurf', statusRetired:'Stillgelegt', colStatus:'Status',
     retire:'Stilllegen', retireTitle:'Diese Klasse stilllegen?', retireBody:'Die Klasse verschwindet von der Website, aus dem Formular für neue Fahrten und aus neuen Preisbüchern. Frühere Preisbücher behalten sie. Sie können sie zurückholen.',
     retireReason:'Grund (optional)', retireReasonPlaceholder:'Warum sie stillgelegt wird, zum Beispiel: nicht mehr angeboten', retireCancel:'Abbrechen',
-    retireCountMany:'Chauffeure sind in dieser Klasse', retireCountOne:'Chauffeur ist in dieser Klasse', retireLastLive:'Das ist Ihre letzte Klasse, die live ist. Kunden können erst wieder buchen, wenn eine andere Klasse live ist.',
+    retireCountMany:'Chauffeure sind in dieser Klasse', retireCountOne:'Chauffeur ist in dieser Klasse', retireUnassignedMany:'kommende bezahlte Fahrten haben noch keinen Chauffeur', retireUnassignedOne:'kommende bezahlte Fahrt hat noch keinen Chauffeur', retireLastLive:'Das ist Ihre letzte Klasse, die live ist. Kunden können erst wieder buchen, wenn eine andere Klasse live ist.',
     retiredTitle:'Stillgelegte Klassen', bringBack:'Zurückholen',
     needPhoto:'Foto', needSeats:'Plätze', needBags:'Gepäck', needPrice:'Preis im aktuellen Preisbuch', goLive:'Live schalten', goLiveTitle:'Bevor diese Klasse live geht',
     goLiveNeedsPhoto:'Zuerst ein Foto hinzufügen', goLiveNeedsSeats:'Zuerst die Plätze eintragen', goLiveNeedsBags:'Zuerst das Gepäck eintragen', goLiveNeedsPrice:'Zuerst einen Preis im aktuellen Preisbuch eintragen',
@@ -601,7 +606,7 @@ const T = {
     statusLive:'En ligne', statusDraft:'Brouillon', statusRetired:'Retirée', colStatus:'Statut',
     retire:'Retirer', retireTitle:'Retirer cette classe ?', retireBody:'La classe quitte le site, le formulaire de nouvelle course et les nouveaux livres de prix. Les anciens livres de prix la gardent. Vous pouvez la remettre.',
     retireReason:'Motif (facultatif)', retireReasonPlaceholder:'Pourquoi elle est retirée, par exemple : plus proposée', retireCancel:'Annuler',
-    retireCountMany:'chauffeurs sont dans cette classe', retireCountOne:'chauffeur est dans cette classe', retireLastLive:'C’est votre dernière classe en ligne. Les clients ne pourront plus réserver tant qu’une autre classe n’est pas en ligne.',
+    retireCountMany:'chauffeurs sont dans cette classe', retireCountOne:'chauffeur est dans cette classe', retireUnassignedMany:'courses payées à venir n’ont pas encore de chauffeur', retireUnassignedOne:'course payée à venir n’a pas encore de chauffeur', retireLastLive:'C’est votre dernière classe en ligne. Les clients ne pourront plus réserver tant qu’une autre classe n’est pas en ligne.',
     retiredTitle:'Classes retirées', bringBack:'Remettre',
     needPhoto:'Photo', needSeats:'Places', needBags:'Bagages', needPrice:'Prix dans le livre de prix en vigueur', goLive:'Mettre en ligne', goLiveTitle:'Avant la mise en ligne de cette classe',
     goLiveNeedsPhoto:'Ajoutez d’abord une photo', goLiveNeedsSeats:'Ajoutez d’abord les places', goLiveNeedsBags:'Ajoutez d’abord les bagages', goLiveNeedsPrice:'Ajoutez d’abord un prix dans le livre de prix en vigueur',
@@ -697,7 +702,7 @@ const T = {
     statusLive:'مباشرة', statusDraft:'مسودة', statusRetired:'موقوفة', colStatus:'الحالة',
     retire:'إيقاف', retireTitle:'إيقاف هذه الفئة؟', retireBody:'تغادر الفئة الموقع ونموذج الرحلة الجديدة وكتب الأسعار الجديدة. تحتفظ بها كتب الأسعار السابقة. يمكنك إعادتها.',
     retireReason:'السبب (اختياري)', retireReasonPlaceholder:'سبب الإيقاف، مثلاً: لم تعد متاحة', retireCancel:'إلغاء',
-    retireCountMany:'سائقين في هذه الفئة', retireCountOne:'سائق في هذه الفئة', retireLastLive:'هذه آخر فئة مباشرة لديك. لن يتمكن العملاء من الحجز حتى تصبح فئة أخرى مباشرة.',
+    retireCountMany:'سائقين في هذه الفئة', retireCountOne:'سائق في هذه الفئة', retireUnassignedMany:'رحلات مدفوعة قادمة بلا سائق بعد', retireUnassignedOne:'رحلة مدفوعة قادمة بلا سائق بعد', retireLastLive:'هذه آخر فئة مباشرة لديك. لن يتمكن العملاء من الحجز حتى تصبح فئة أخرى مباشرة.',
     retiredTitle:'الفئات الموقوفة', bringBack:'إعادة',
     needPhoto:'صورة', needSeats:'المقاعد', needBags:'الحقائب', needPrice:'سعر في كتاب الأسعار المباشر', goLive:'تشغيل مباشر', goLiveTitle:'قبل تشغيل هذه الفئة مباشرة',
     goLiveNeedsPhoto:'أضف صورة أولاً', goLiveNeedsSeats:'أضف المقاعد أولاً', goLiveNeedsBags:'أضف الحقائب أولاً', goLiveNeedsPrice:'أضف سعراً في كتاب الأسعار المباشر أولاً',
@@ -1368,7 +1373,7 @@ class Component extends DCLogic {
     const draftOnlyRows = classList.filter((c) => statusOf(c) === 'draft' && !ratedIds[c.id]).map((c) => ({
       id: 'class:' + c.id, klass: c.name || c.klass, name: c.name || c.klass, vehicleClassId: c.id, slug: c.slug || '',
       photo: c.photoPath || c.photo || '', photoPath: c.photoPath || c.photo || '', sortOrder: Number(c.sortOrder) || 0,
-      baseFare: '', perKm: '', airportStart: '', maxPax: c.passengerCapacity || 0, maxBags: c.luggageCapacity || 0,
+      baseFare: '', perKm: '', airportStart: '', maxPax: c.passengerCapacity == null ? '' : c.passengerCapacity, maxBags: c.luggageCapacity == null ? '' : c.luggageCapacity,
       available: true, hideFromPublic: false, hiddenReason: '',
     }));
     const retiring = this.state.hideTarget && this.state.hideTarget.retire;
@@ -1384,6 +1389,12 @@ class Component extends DCLogic {
     const arCountForm = (n) => n === 1 ? '1' : n === 2 ? '2' : (n >= 3 && n <= 10) ? 'Few' : (n >= 11 && n <= 99) ? 'Many' : 'Other';
     const retireCountNumShow = lang !== 'ar' || retireCount >= 3;
     const retireCountWords = lang === 'ar' ? AR_COUNT['retireCountAr' + arCountForm(retireCount)] : (retireCount === 1 ? t.retireCountOne : t.retireCountMany);
+    // Decision 3 (signed 2026-10-12): paid trips ahead in this class with no chauffeur yet. The server sends the
+    // count on the class row (30-04, same frozen-status + captured-payment rule as Assign); the prototype reads it.
+    const retireUnassigned = retireId && classById[retireId] ? (Number(classById[retireId].unassignedPaidTrips) || 0) : 0;
+    const retireUnassignedShow = retireUnassigned > 0;
+    const retireUnassignedNumShow = lang !== 'ar' || retireUnassigned >= 3;
+    const retireUnassignedWords = lang === 'ar' ? AR_COUNT['retireUnassignedAr' + arCountForm(retireUnassigned)] : (retireUnassigned === 1 ? t.retireUnassignedOne : t.retireUnassignedMany);
     const retireLastLiveShow = !!(retireId && classById[retireId] && statusOf(classById[retireId]) === 'live'
       && !classList.some((c) => c.id !== retireId && statusOf(c) === 'live'));
     const locationOptions = ((ops && ops.LOCATIONS) || []).map((l) => ({ value: l, label: l }));
@@ -1540,8 +1551,9 @@ class Component extends DCLogic {
       setHideReason: this.setHideReason, keepVisible: this.keepVisible, submitHide: this.submitHide,
       hideSubmitDisabled: this.state.hideBusy || (!retiring && !String(this.state.hideReason || '').trim()),
       retiringFlag: retiring ? '1' : '0',
-      retireNotes: retireCountShow || retireLastLiveShow, retireCountShow: retireCountShow, retireCountN: String(retireCount),
+      retireNotes: retireCountShow || retireUnassignedShow || retireLastLiveShow, retireCountShow: retireCountShow, retireCountN: String(retireCount),
       retireCountWords: retireCountWords, retireCountNumShow: retireCountNumShow,
+      retireUnassignedShow: retireUnassignedShow, retireUnassignedN: String(retireUnassigned), retireUnassignedWords: retireUnassignedWords, retireUnassignedNumShow: retireUnassignedNumShow,
       retireLastLiveShow: retireLastLiveShow, tRetireLastLive: t.retireLastLive,
       hideTitle: retiring ? t.retireTitle : t.hideConflictTitle, hideBody: retiring ? t.retireBody : t.hideConflictBody,
       hideLabel: retiring ? t.retireReason : t.hideReason, hidePlaceholder: retiring ? t.retireReasonPlaceholder : t.hideReasonPlaceholder,
@@ -1657,8 +1669,8 @@ class Component extends DCLogic {
         { key:'baseFare', header: t.startFare, lookup:(r) => moneyOrDash(r.baseFare) },
         { key:'perKm', header: t.perKm, lookup:(r) => moneyOrDash(r.perKm) },
         { key:'airportStart', header: t.airportStart, lookup:(r) => moneyOrDash(r.airportStart) },
-        { key:'maxPax', header: t.maxPax, width:'90px' },
-        { key:'maxBags', header: t.maxBags, width:'90px' },
+        { key:'maxPax', header: t.maxPax, width:'90px', lookup:(r) => (r.maxPax === '' || r.maxPax == null ? '—' : r.maxPax) },
+        { key:'maxBags', header: t.maxBags, width:'90px', lookup:(r) => (r.maxBags === '' || r.maxBags == null ? '—' : r.maxBags) },
         { key:'hideFromPublic', header: t.hidePublic, kind:'bool', toggle:true, onLabel:t.hiddenPublic, offLabel:t.shownPublic, subKey:'hiddenReason' },
       ],
       distanceFields: [
@@ -1667,12 +1679,13 @@ class Component extends DCLogic {
         { key:'baseFare', label:t.startFare, half:true, placeholder:'000', icon:'banknote', suffix:'CHF' },
         { key:'airportStart', label:t.airportStart, half:true, placeholder:'000', icon:'banknote', suffix:'CHF' },
         { key:'perKm', label:t.perKm, half:true, placeholder:'0.00', icon:'navigation', suffix:'CHF' },
-        { key:'maxPax', label:t.maxPax, editor:'number', min:1, half:true, icon:'users' },
-        { key:'maxBags', label:t.maxBags, editor:'number', min:0, half:true, icon:'luggage' },
+        { key:'maxPax', label:t.maxPax, editor:'number', min:1, half:true, icon:'users', allowEmpty:true },
+        { key:'maxBags', label:t.maxBags, editor:'number', min:0, half:true, icon:'luggage', allowEmpty:true },
       ],
       distanceBlank: () => {
         const blank = ops ? ops.rates.blank() : { klass:'', baseFare:{}, perKm:{}, maxPax:3, maxBags:3, hideFromPublic:false, photo:'' };
-        return Object.assign({}, blank, { baseFare:'', perKm:'', airportStart:'', photo:'', maxBags: blank.maxBags || 3 });
+        // Decision 6 (signed 2026-10-12): a new class starts with seats and bags empty; Go live waits for both.
+        return Object.assign({}, blank, { baseFare:'', perKm:'', airportStart:'', photo:'', maxPax:'', maxBags:'' });
       },
       saveDistance: (rec) => {
         if (!ops) return null;

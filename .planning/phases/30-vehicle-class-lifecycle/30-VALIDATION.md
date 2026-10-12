@@ -83,6 +83,8 @@ Requirement level (task IDs are filled by the planner in each PLAN.md `<verify>`
 
 ## Validation Sign-Off
 
+> `nyquist_compliant` stays `false` and these boxes stay unticked until the plan checker passes the revised plans; only then are they set.
+
 - [ ] All tasks have `<automated>` verify or Wave 0 dependencies
 - [ ] Sampling continuity: no 3 consecutive tasks without automated verify
 - [ ] Wave 0 covers all MISSING references

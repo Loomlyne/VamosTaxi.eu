@@ -1219,10 +1219,10 @@ Plans:
 **Plans:** 11 plans
 
 Plans:
-- [ ] 30-01-PLAN.md — DB: class state RPC + missing function, assign guard, pgTAP, types (controller confirms numbers; owner decisions list)
+- [ ] 30-01-PLAN.md — DB: class state RPC + missing function, test-classes guard (no backfill), empty seats/bags until Go live, assign guard + shared paid rule, pgTAP, types (owner decisions signed 2026-10-12)
 - [ ] 30-02-PLAN.md — Dictionary for all Phase 30 strings, About title pin, dead fleet strings removed
-- [ ] 30-03-PLAN.md — Server guards: clone skips retired, assign class-retired, chauffeur write refusal
-- [ ] 30-04-PLAN.md — Class status API: GET state/missing, PATCH status, DELETE removed, Draft birth
+- [ ] 30-03-PLAN.md — Server guards: clone skips retired, assign class-retired, chauffeur write refusal, no date change in a retired class, null seats never public
+- [ ] 30-04-PLAN.md — Class status API: GET state/missing/unassigned count, PATCH status, DELETE removed, Draft birth with empty seats/bags
 - [ ] 30-05-PLAN.md — /chauffeurs route, /fleet forwards (console-paths module)
 - [ ] 30-06-PLAN.md — Ops data store PATCH contract, Live-only pickers, OpsTable props
 - [ ] 30-07-PLAN.md — Chauffeurs screen flag/select/count and Assign left-out line
