@@ -1,7 +1,8 @@
 ---
 phase: 31
 slug: refunds-in-stripe
-status: draft
+status: signed
+signed: 2026-10-12 19:05 (+04), owner, question form (via the controller)
 shadcn_initialized: false
 preset: none
 created: 2026-10-12
@@ -13,7 +14,14 @@ created: 2026-10-12
 >
 > This phase changes four existing surfaces. It adds **no new page, no new component file and no new design token**. Everything composes from the bound Vamos design system.
 
-## Open owner questions (pictures use the recommended answer)
+## Owner answers (signed 2026-10-12 ~19:05 +04)
+
+- Sheets 1, 2 and 3 signed as drawn. Customer wording (cancel sheet line, Refund row, cancellation email line, en/de/fr/ar) signed as written.
+- **Q1 = A**: when he refunds in Stripe, the customer gets a Vamos email in their language with the amount Stripe sent back (amount from the Stripe refund event, never computed). Its subject and body are NEW copy, drafted in the plan for his signature; not signed yet.
+- **Q2 = A**: "Refund to check" shows until Stripe records a refund or the pickup time has passed. No NO REFUND button.
+- The checker's suggestion of a next step for "This booking has no Stripe payment to open." is left out (owner).
+
+## Questions as they were asked
 
 | Q | Question | Recommended (used in the pictures) | Effect on this spec |
 |---|----------|------------------------------------|---------------------|
@@ -292,7 +300,7 @@ The owner signs the pictures and the copy before any code. Offline renders from 
 | 2 | `.planning/phases/31-refunds-in-stripe/screens/sheet-2-customer-cancel.png` (1840 x 3357) | Customer cancel sheet: before (early window), before (late window), after (one policy line) |
 | 3 | `.planning/phases/31-refunds-in-stripe/screens/sheet-3-customer-account.png` (1840 x 1968) | Customer account Refund row, before and after |
 
-Owner signs: (a) the three sheets, (b) every string in the Copywriting Contract in en, de, fr and ar (the customer lines first: they are the legal-adjacent ones, and he wants drafts to approve), (c) Q1 and Q2. Signature is his own answer in the question form; this file does not record it until he gives it.
+Owner signs: (a) the three sheets, (b) every string in the Copywriting Contract in en, de, fr and ar (the customer lines first: they are the legal-adjacent ones, and he wants drafts to approve), (c) Q1 and Q2. Signed 2026-10-12 ~19:05 (+04) in the question form: (a) the three sheets as drawn, (b) the customer strings as written, (c) Q1 = A, Q2 = A. The Q1 refund email copy is signed separately at plan time.
 
 Verification after build (not part of signing): Chromium run against the local Worker for the single-payment tab open, the several-payment list, the none error, "Refund to check" shown and hidden (refund recorded, pickup passed), and a check at 1440, 1024, 768 and 390 in en and ar, with no sideways scroll at 390.
 
@@ -300,11 +308,11 @@ Verification after build (not part of signing): Chromium run against the local W
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: FLAG (no next step on "no Stripe payment": left out by the owner)
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: FLAG (existing `[data-ops-refund-row]` gap 10px, untouched; one child, gap never renders)
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** gsd-ui-checker VERIFIED 2026-10-12 (revision 1); owner signed 2026-10-12 ~19:05 (+04)

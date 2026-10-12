@@ -1225,7 +1225,7 @@ Plans:
 
 **Goal:** Money goes back to customers from the Stripe Dashboard only. On dashboard booking detail, REFUND opens that booking's payment in Stripe in a new tab; the site sends no refund itself except the automatic duplicate-charge refund. The refund-decision box goes. Refunds Stripe makes keep reaching the booking, the dashboard totals and the customer's account through the existing webhook. A paid trip that is cancelled shows one policy line (no amount, never the word Stripe) in en, de, fr and ar. A nightly read-only check mails him when a Stripe refund of the last 48 h is missing on its booking or differs.
 **Decisions:** `.planning/decisions/2026-10-12-refunds-in-stripe.md` (signed 2026-10-12); context `.planning/phases/31-refunds-in-stripe/31-CONTEXT.md`
-**Requirements**: TBD
+**Requirements**: R31-01, R31-02, R31-03, R31-04, R31-05, R31-06, R31-07, R31-08, R31-09, R31-10
 **Depends on:** Phase 29 (no code dependency on Phase 30; shares only `app/vamos-i18n-dict.js`)
 **Plans:** 0 plans
 

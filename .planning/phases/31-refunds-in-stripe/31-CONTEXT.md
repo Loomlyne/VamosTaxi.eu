@@ -146,7 +146,15 @@ KEEP = unchanged · REMOVE = goes · CHANGE = edited.
 
 Not checked by the map (planner reads): webhook route body, `manage_money_for` body, `record_booking_refund` callers, `docs/runbook/refunds.md`.
 
-## Open questions (owner, plain choices; recommended first)
+## Owner signatures (question form, 2026-10-12 ~19:05 +04, via the controller)
+
+- **S-01** Sheets 1, 2 and 3 (`screens/`) signed as drawn.
+- **S-02** Customer wording signed as written, en/de/fr/ar: cancel sheet line, Refund row, cancellation email line (`31-UI-SPEC.md` Copywriting Contract).
+- **S-03** Q1 = A. When he refunds in Stripe, the customer gets a Vamos email in their language with the amount Stripe sent back. New customer copy (subject + body, en/de/fr/ar, Swiss German "ss") is drafted in the plan for his signature; not signed yet. The amount comes from the Stripe refund event; never computed or invented.
+- **S-04** Q2 = A. "Refund to check" shows until Stripe records a refund or the pickup time has passed. No NO REFUND button.
+- **S-05** No next-step line for "This booking has no Stripe payment to open." (ui-checker suggestion left out).
+
+## Open questions as asked (answered above)
 
 - **Q1 — When you refund in Stripe, does the customer get an email from Vamos?**
   - A (recommended) Yes: when Stripe reports the refund, the site emails the customer in their language with
@@ -168,3 +176,32 @@ Phase 30 (`phase-30-vehicle-class-lifecycle`, `origin` at `3245594c`) plans `app
 Phase 31 shares only `app/vamos-i18n-dict.js` (new keys, different places) and the planning files
 (`ROADMAP.md`, `STATE.md`). No code dependency: Phase 31 depends on nothing in Phase 30; whichever lands second
 merges `origin/main` and resolves the dictionary by keeping both sets of keys.
+
+## Planning inputs (2026-10-12 evening, after 31-RESEARCH.md; controller-relayed signatures above)
+
+**Corrections to the sections above**
+- **C-01 (D-06)** The live site (Worker `vamos`, wrangler `env.staging`) runs the **live** Stripe key: `pk_live_51UIZmAQbJiSLxJfu…` (`apps/web/wrangler.jsonc:75`). `env.staging.vars.STRIPE_ACCOUNT_ID` is therefore the live account, `acct_1UIZmAQbJiSLxJfu` (read from the live publishable key; the controller confirms it in the Stripe Dashboard before ship). The sandbox account `acct_1UIZmqHcNp9GZYjz` goes only in `.dev.vars.example` for the lab. `env.production` stays unset. Unset or malformed → link without the account segment (regex-checked), never passed through.
+- **C-02 (D-07)** The nightly check needs one migration after all: the cron role `vamos_system` has no SELECT on `bookings`, `booking_payments`, `booking_refunds`, and no existing definer reads a refund by Stripe id (31-RESEARCH "Migrations wanted"). Number not reserved: the controller asks the owner. No migration file is written until then.
+- **C-03 (Phase 30 overlap)** Phase 30 (`origin/phase-30-vehicle-class-lifecycle` at `63fbc003`) also edits `app/ops/OpsDetail.dc.html` (assign area and its T-table keys, +46 lines) and shared DC tests (`ops-dc-p4.test.ts`, `ops-dc-editor-foot.test.ts`), plus `database.types.ts` in 30-01. Phase 31 touches the refund area of the same file: different regions, conflicts are in the T-table key lines only. Whichever lands second merges `origin/main` and keeps both.
+- **C-04** Live `booking_notifications_kind_check` (read 2026-10-12): `confirmation, reminder_24h, assignment, cancellation, refund, review_request, manage_link_resend`, same as the files. `refund` is allowed. Outside this phase: `apps/web/lib/lifecycle/notify-lifecycle.ts:42-50` claims `refund_failed`, `assignment_customer`, `time_change`, `flight_no`, which that check refuses (23514). Reported to the controller, not fixed here.
+
+**Defaults taken (code choices, recorded so the planner does not re-ask)**
+- **D-10 Customer refund mail, exactly once (S-03):** mail only when `stripe_charge_refunded_record` returns `'recorded'` (never for app-made refunds: duplicate charge, paid after cancel), claimed through a new definer `notification_claim_refund(booking, stripe_refund_id, …)` writing `booking_notifications` kind `'refund'` with dedupe `booking:refund:<re_id>`, sent and retried by the existing notification send/settle/sweep path. Rides in the same migration file as the reader (one apply). Resend idempotency key `refund-mail:<re_id>` as a second guard. A send failure never changes the webhook answer.
+- **D-11 Amount** in the customer mail = that Stripe refund's `amount` from the event (rappen, CHF only), never computed and never the booking total.
+- **D-12 Nightly mail** (internal, English, to info@) lists references, CHF amounts and Stripe ids; never names or e-mails; logs carry counts only. Excludes in-flight refunds (pending/requires_action), `booking_missing` app refunds, refunds on `duplicate` payment rows from the booking-total test, reversed refunds; "truncated" when the 500 cap is hit.
+- **D-13** No `is_test` filter on the customer mail (the pre-ship real payment should show it).
+- **D-14** Staff route `GET /api/staff/bookings/[id]/stripe-payments`: `withAdmin`, both mounts, `asStaff` reads, payments `status='succeeded'` with a `pi_` id, newest first, `leftRappen` = charged − non-reversed refunds; list hides fully refunded payments, and when all are fully refunded REFUND opens the newest (UI-SPEC).
+
+**Customer refund mail, DRAFT for the owner's signature (not signed; S-03).** Placeholders: `{name}` contact name, `{amount}` e.g. `CHF 40.00` (from the Stripe refund event, isolated LTR in Arabic), `{reference}` e.g. `VT-26-0753` (isolated LTR in Arabic).
+
+| | Subject | Body |
+|---|---|---|
+| en | Your refund for {reference} | Hello {name}, / We have sent {amount} back to the payment method you used for {reference}. Your bank may take a few days to show it. / Questions? Write to us at info@vamostaxi.site. |
+| de | Ihre Rückerstattung für {reference} | Guten Tag {name} / Wir haben {amount} an das Zahlungsmittel zurückerstattet, mit dem Sie {reference} bezahlt haben. Ihre Bank braucht vielleicht ein paar Tage, bis die Rückerstattung sichtbar ist. / Fragen? Schreiben Sie uns an info@vamostaxi.site. |
+| fr | Votre remboursement pour {reference} | Bonjour {name}, / Nous avons remboursé {amount} sur le moyen de paiement utilisé pour {reference}. Votre banque peut mettre quelques jours à l’afficher. / Une question ? Écrivez-nous à info@vamostaxi.site. |
+| ar | استرداد مبلغ حجزك {reference} | مرحبًا {name}، / أعدنا {amount} إلى وسيلة الدفع التي استخدمتها في الحجز {reference}. قد يحتاج مصرفك بضعة أيام لإظهاره. / لديك سؤال؟ راسلنا على info@vamostaxi.site. |
+
+**Owner question still open (O-1), recommended first.** Two customer lines under "Cancel this transfer" still talk about a refund amount: "See the refund you are due before anything is confirmed." and "See what comes back at this notice before you decide." (`booking-detail.dc.html:1158-1160`, `manage-booking.dc.html:1187-1189`).
+- A (recommended): one line for both: "Read the cancellation policy before anything is confirmed." / de "Lesen Sie die Stornierungsbedingungen, bevor etwas bestätigt wird." / fr "Consultez la politique d’annulation avant toute confirmation." / ar "اطّلع على سياسة الإلغاء قبل تأكيد أي شيء."
+- B: keep both lines as they are.
+Until he answers, the plan keeps the lines unchanged and carries A as a gated task.
