@@ -116,13 +116,15 @@
     liveBook.status = "loading";
     var names = api("GET", "/api/staff/vehicle-classes").then(function (json) {
       var map = {};
+      var state = {};
       var rows = json && json.ok && Array.isArray(json.data) ? json.data : [];
       rows.forEach(function (c) {
         var id = str(c && c.id);
         var name = str(c && (c.name || c.klass)).trim();
         if (id && name) map[id] = name;
+        if (id) state[id] = str(c && c.status);
       });
-      return map;
+      return { names: map, status: state };
     });
     var live = api("GET", "/api/staff/rate-versions").then(function (json) {
       var versions = json && json.ok && json.data && Array.isArray(json.data.versions) ? json.data.versions : null;
@@ -144,10 +146,14 @@
     });
     Promise.all([names, live]).then(function (both) {
       var res = both[1] || { failed: true };
+      var info = both[0] || { names: {}, status: {} };
+      /* CLS-07: pickers offer Live classes only. The server field status decides (never
+         derived from active); a class the price book still rates as Draft or Retired is left out. */
+      var classes = res.failed ? [] : res.classes.filter(function (c) { return info.status[c.id] === "live"; });
       liveBook = {
-        status: res.failed ? "failed" : (res.classes.length ? "ok" : "none"),
-        classes: res.failed ? [] : res.classes,
-        names: both[0] || {}
+        status: res.failed ? "failed" : (classes.length ? "ok" : "none"),
+        classes: classes,
+        names: info.names || {}
       };
       emit("liveClasses");
     }, function () {
@@ -620,6 +626,8 @@
   function id(prefix) { return prefix + "-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
   function str(v) { return v === undefined || v === null ? "" : String(v); }
   function num(v, d) { var n = parseInt(v, 10); return isNaN(n) ? (d || 0) : n; }
+  /* Decision 6 (sheet-11a): an empty seat or bag count stays null, never a made-up 3. */
+  function numOrNull(v) { if (v == null || v === "") return null; var n = parseInt(v, 10); return isNaN(n) ? null : n; }
 
   var CURRENCIES = ["CHF", "EUR", "USD", "AED"];
   function cleanMoneySet(v, fallback) {
@@ -894,8 +902,8 @@
       photoPath: photo,
       baseFare: cleanMoneySet(r.baseFare), perKm: cleanMoneySet(r.perKm), minFare: cleanMoneySet(r.minFare),
       airportStart: cleanMoneySet(r.airportStart),
-      maxPax: num(r.maxPax, 3),
-      maxBags: num(r.maxBags || r.luggageCapacity, 3),
+      maxPax: numOrNull(r.maxPax),
+      maxBags: numOrNull(r.maxBags != null && r.maxBags !== "" ? r.maxBags : r.luggageCapacity),
       available: r.available === false ? false : true,
       hideFromPublic: !!r.hideFromPublic,
       hiddenReason: str(r.hiddenReason),
@@ -1119,25 +1127,11 @@
         return json;
       });
     },
-    /* 26.1-19 D-15: delete a class. Nothing but draft rows references it -> deleted.
-       Still in use -> { ok:false, code:"in-use" } without a reason; with a reason it is
-       hidden everywhere. Callers re-read the rate book (rates.reset()). */
-    deleteClass: function (id, reason) {
-      if (id == null || id === "") return Promise.resolve({ ok: false, code: "missing-id" });
-      var body = { id: String(id) };
-      if (reason) body.reason = String(reason);
-      return api("DELETE", "/api/staff/vehicle-classes?id=" + encodeURIComponent(String(id)), body).then(function (json) {
-        json = json || { ok: false, code: "save-failed" };
-        if (json.ok) {
-          bookFetch.loaded = false;
-          bookFetch.json = null;
-        }
-        return json;
-      });
-    },
     /* Phase 30 class lifecycle. Retire never deletes: the class leaves the site, the new-trip form and
        new price books, past books keep it. Bring back returns it as a draft; go live is refused by
-       the server until photo, seats, bags and a price in the live book are all there. */
+       the server until photo, seats, bags and a price in the live book are all there. Every state
+       change is a PATCH {id, status, reason?}; the state is the server field `status`, never derived
+       from `active`. There is no client DELETE for a class. */
     classes: function () {
       return api("GET", "/api/staff/vehicle-classes").then(function (json) {
         return json && json.ok && Array.isArray(json.data) ? json.data : [];
@@ -1145,9 +1139,7 @@
     },
     retireClass: function (id, reason) {
       if (id == null || id === "") return Promise.resolve({ ok: false, code: "missing-id" });
-      var body = { id: String(id) };
-      if (reason) body.reason = String(reason);
-      return api("DELETE", "/api/staff/vehicle-classes?id=" + encodeURIComponent(String(id)), body).then(function (json) {
+      return api("PATCH", "/api/staff/vehicle-classes", { id: String(id), status: "retired", reason: reason ? String(reason) : null }).then(function (json) {
         json = json || { ok: false, code: "save-failed" };
         if (json.ok) { bookFetch.loaded = false; bookFetch.json = null; }
         return json;

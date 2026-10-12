@@ -4,6 +4,7 @@
 // table (D-11 D-12 D-17 D-25). Dual-DC byte-equal. May stay red until 18-03.
 
 import { existsSync, readFileSync } from "node:fs";
+import vm from "node:vm";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -208,7 +209,6 @@ describe("OpsPricing class delete-or-hide (26.1-19 D-15, UI-SPEC §6)", () => {
   it("deleting a class goes through the class delete-or-hide door, not the draft row delete", () => {
     const src = html();
     expect(src).toMatch(/deleteDistance: \(id, row\) =>/);
-    expect(src).toContain("ops.deleteClass(");
     expect(src).toContain("'in-use'");
   });
 
@@ -224,9 +224,35 @@ describe("OpsPricing class delete-or-hide (26.1-19 D-15, UI-SPEC §6)", () => {
     expect(html()).toContain("hiddenReason");
   });
 
-  it("VamosOps.deleteClass calls DELETE /api/staff/vehicle-classes with the reason", () => {
-    const src = readFileSync(OPS_DATA, "utf8");
-    expect(src).toMatch(/deleteClass: function \(id, reason\)/);
-    expect(src).toContain('"/api/staff/vehicle-classes?id="');
+  it("VamosOps.retireClass sends PATCH {id, status:'retired', reason}; deleteClass is gone", async () => {
+    const calls: Array<{ method: string; path: string; body?: unknown }> = [];
+    const windowStub: Record<string, unknown> = {
+      VamosOpsApi: {
+        request: (method: string, path: string, body?: unknown) => {
+          calls.push({ method, path, body });
+          return Promise.resolve({ ok: true, data: { id: "c1" } });
+        },
+      },
+      dispatchEvent: () => true,
+      addEventListener: () => undefined,
+    };
+    const context = vm.createContext({
+      window: windowStub,
+      CustomEvent: class {},
+      setTimeout: () => 0,
+      clearTimeout: () => undefined,
+      console,
+    });
+    vm.runInContext(readFileSync(OPS_DATA, "utf8"), context);
+    const ops = windowStub.VamosOps as Record<string, any>;
+    await ops.retireClass("c1", "No longer offered");
+    expect(calls).toEqual([
+      {
+        method: "PATCH",
+        path: "/api/staff/vehicle-classes",
+        body: { id: "c1", status: "retired", reason: "No longer offered" },
+      },
+    ]);
+    expect(ops.deleteClass).toBeUndefined();
   });
 });
