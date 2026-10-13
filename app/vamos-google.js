@@ -198,7 +198,8 @@
       window.gtag('consent', 'update', {
         ad_storage: 'granted',
         ad_user_data: 'granted',
-        ad_personalization: 'granted',
+        /* Owner 2026-10-12: remarketing off until he adopts its wording. Measurement only. */
+        ad_personalization: 'denied',
         analytics_storage: analyticsOn ? 'granted' : 'denied',
       });
       var page = scrub(location.href, document.referrer);

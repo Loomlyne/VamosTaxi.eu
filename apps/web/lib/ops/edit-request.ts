@@ -520,7 +520,12 @@ export async function pendingEditHasTimeChange(
   }
 }
 
-/** D-25 confirm: customer + bookings@ + chauffeur. Refuse: customer only. */
+/**
+ * D-25 confirm: customer + bookings@ + chauffeur. Refuse: customer only.
+ * Best effort: the decision is already saved when this runs, so a failed read, claim or send is logged
+ * and never thrown. Until 20261012230000 the ledger refused 'time_change' (23514) and the throw turned
+ * a saved decision into a 500 on the dashboard.
+ */
 export async function notifyTimeChangeOutcome(
   env: CloudflareEnv,
   bookingId: string,
@@ -528,25 +533,29 @@ export async function notifyTimeChangeOutcome(
 ): Promise<void> {
   const id = bookingId.trim();
   if (!id) return;
-  const row = await loadTripForMail(env, id);
-  if (!row?.contact_email) return;
-  const scheduledLocal =
-    row.scheduled_local instanceof Date
-      ? row.scheduled_local.toISOString()
-      : String(row.scheduled_local ?? "");
-  const mailOpts = { includeOps: outcome === "confirmed" };
-  await notifyTimeChange(env, {
-    bookingId: id,
-    customerEmail: row.contact_email,
-    locale: checkoutLocale(row.locale || "en"),
-    reference: row.reference,
-    pickupText: row.pickup_text || "",
-    dropoffText: row.dropoff_text || "",
-    scheduledLocal,
-    outcome,
-    chauffeurEmail: mailOpts.includeOps ? row.chauffeur_email || undefined : undefined,
-    bookingLegId: row.booking_leg_id,
-  });
+  try {
+    const row = await loadTripForMail(env, id);
+    if (!row?.contact_email) return;
+    const scheduledLocal =
+      row.scheduled_local instanceof Date
+        ? row.scheduled_local.toISOString()
+        : String(row.scheduled_local ?? "");
+    const mailOpts = { includeOps: outcome === "confirmed" };
+    await notifyTimeChange(env, {
+      bookingId: id,
+      customerEmail: row.contact_email,
+      locale: checkoutLocale(row.locale || "en"),
+      reference: row.reference,
+      pickupText: row.pickup_text || "",
+      dropoffText: row.dropoff_text || "",
+      scheduledLocal,
+      outcome,
+      chauffeurEmail: mailOpts.includeOps ? row.chauffeur_email || undefined : undefined,
+      bookingLegId: row.booking_leg_id,
+    });
+  } catch (err) {
+    console.error("notifyTimeChangeOutcome", id, outcome, err instanceof Error ? err.message : String(err));
+  }
 }
 
 export type WriteFlightResult =
@@ -580,8 +589,7 @@ export async function writeCustomerFlightNo(
         : String(trip.scheduled_local ?? "");
     // The flight number is saved before the notice goes out; a notice that fails must not turn a
     // saved number into "Could not save" on the page. Found 2026-10-01 (P6, D19): the mail ledger's
-    // kind list (booking_notifications_kind_check) still refuses 'flight_no' (open since 09-06), so
-    // the claim raises 23514 on every save.
+    // kind list refused 'flight_no' and the claim raised 23514 on every save (fixed in 20261012230000).
     try {
       await notifyFlightNumber(env, {
         bookingId: trip.booking_id,

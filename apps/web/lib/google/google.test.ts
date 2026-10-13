@@ -192,7 +192,7 @@ describe("flag open", () => {
     expect(h.appended).toHaveLength(1);
   });
 
-  it("accepted: the script, js, consent granted, config with the scrubbed page, no page_view, in that order", async () => {
+  it("accepted: the script, js, consent update with ad_personalization denied, config with the scrubbed page, no page_view, in that order", async () => {
     const h = load({ open: true, href: "https://vamostaxi.site/confirmation/VT-26-07331?session=cs_1#top", referrer: "https://l.facebook.com/l.php?u=x&h=y" });
     await h.settle();
     expect(h.fetchCalls).toEqual(["/api/consent/state"]);
@@ -202,7 +202,7 @@ describe("flag open", () => {
     expect(calls[2]).toEqual([
       "consent",
       "update",
-      { ad_storage: "granted", ad_user_data: "granted", ad_personalization: "granted", analytics_storage: "granted" },
+      { ad_storage: "granted", ad_user_data: "granted", ad_personalization: "denied", analytics_storage: "granted" },
     ]);
     expect(calls[3]).toEqual([
       "config",
