@@ -56,7 +56,7 @@
 <sc-if value="{{ contentOpen }}" hint-placeholder-val="{{ false }}">
 <div style="display:flex;flex-direction:column;gap:2px;padding:2px 0 6px;margin-inline-start:21px;border-inline-start:1px solid var(--vt-border-inverse)">
 <sc-for list="{{ contentItems }}" as="c" hint-placeholder-count="3">
-<a href="{{ c.href }}" title="{{ c.label }}" onClick="{{ goPath }}" style="text-decoration:none;box-sizing:border-box;display:flex;align-items:center;gap:10px;height:40px;margin-inline-start:8px;padding:0 12px;border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:{{ c.weight }};color:{{ c.color }};background:{{ c.bg }}">
+<a href="{{ c.href }}" title="{{ c.label }}" onClick="{{ goPath }}" style="text-decoration:none;box-sizing:border-box;display:flex;align-items:center;gap:10px;height:44px;margin-inline-start:8px;padding:0 12px;border-radius:999px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:{{ c.weight }};color:{{ c.color }};background:{{ c.bg }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ c.icon }}" size="{{ n16 }}" color="{{ c.color }}" hint-size="16px,16px"></x-import><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.label }}</span>
 </a>
 </sc-for>
@@ -114,7 +114,7 @@
 </aside>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:236,&quot;height&quot;:860},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;pages&quot;,&quot;legal&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:236,&quot;height&quot;:860},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
 /* One rail for the whole console. The bottom row collapses it to icons and remembers
    that choice; Content is a group; the profile row is a menu, not a link. */
 const NAV_TOP = [
@@ -133,8 +133,6 @@ const NAV_ADMIN = [
 ];
 /* Content — what the public site shows, edited here. */
 const CONTENT = [
-  { key:'pages', href:'/pages', icon:'globe', en:'Pages', de:'Seiten', fr:'Pages', ar:'الصفحات' },
-  { key:'legal', href:'/legal', icon:'shield-check', en:'Legal', de:'Rechtliches', fr:'Mentions légales', ar:'المستندات القانونية' },
   { key:'reviews', href:'/reviews', icon:'star', en:'Reviews', de:'Bewertungen', fr:'Avis', ar:'التقييمات' },
 ];
 function avatarUrl(avatar) {

@@ -88,7 +88,8 @@
       verified: !!r.verified,
       published: r.published === false ? false : true,
       locked: r.locked === true || isImported(src),
-      sortOrder: typeof r.sortOrder === "number" ? r.sortOrder : 0
+      sortOrder: typeof r.sortOrder === "number" ? r.sortOrder : 0,
+      lang: r.language ? String(r.language).slice(0, 2).toLowerCase() : ""
     };
   }
 
@@ -302,6 +303,13 @@
         afterWrite(json, previous, previous);
       });
       return previous.slice();
+    },
+    /* Translate on tap (public): the server answers from its cache when it can. Resolves { ok, text }. */
+    translate: function (id, lang) {
+      return api("GET", "/api/reviews/" + encodeURIComponent(id) + "/translation?lang=" + encodeURIComponent(lang)).then(function (json) {
+        var d = json && json.ok ? json.data : null;
+        return d && d.text ? { ok: true, text: String(d.text) } : { ok: false };
+      }, function () { return { ok: false }; });
     },
     reset: function () { list = []; loaded = false; pending = false; retryAfter = 0; emit(); hydrate(); return list.slice(); },
     onChange: function (fn) {
