@@ -496,10 +496,10 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <div data-refund="1" style="margin-bottom:20px">
 <sc-if value="{{ cancelFull }}" hint-placeholder-val="{{ true }}">
-<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. You get a full refund; our team sends it.</p>
+<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. Any refund follows the cancellation policy.</p>
 </sc-if>
 <sc-if value="{{ cancelOps }}" hint-placeholder-val="{{ false }}">
-<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. Our team decides the refund and tells you by email.</p>
+<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. Any refund follows the cancellation policy.</p>
 </sc-if>
 </div>
 
@@ -546,17 +546,10 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 </div>
 
-<sc-if value="{{ refundFull }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ refundPolicyCard }}" hint-placeholder-val="{{ true }}">
 <div data-refund="1" style="margin-bottom:20px">
 <p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">Refund</p>
-<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">You will get a full refund of the amount you paid. Our team sends it; your bank may take a few days to show it.</p>
-</div>
-</sc-if>
-
-<sc-if value="{{ refundReview }}" hint-placeholder-val="{{ true }}">
-<div data-refund="1" style="margin-bottom:20px">
-<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">Refund · waiting on review</p>
-<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Our team decides the refund and tells you by email.</p>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Any refund follows the cancellation policy and goes back to the payment method you used. Your bank may take a few days to show it.</p>
 </div>
 </sc-if>
 
@@ -962,7 +955,6 @@ class Component extends DCLogic {
         status: 'cancelled',
         canCancel: false,
         refundStatus,
-        refundOwedRappen: result.body.refundRappen || null,
         // 261002: the cancel routes answer the ISO code (payoutCountry), never a label; the helper names the country.
         payoutCountry: result.body.payoutCountry || ticket.payoutCountry,
         availableOn: result.body.availableOn || null,
@@ -1201,8 +1193,7 @@ class Component extends DCLogic {
       confirmModify: this.confirmModify, resetChanges: this.resetChanges,
 
       earlyTier: windowKind === 'auto_full', lateTier: windowKind === 'pending_ops',
-      refundReview: String(ticket.refundStatus || '').toLowerCase() === 'pending_ops' && !(Number(ticket.refundOwedRappen) > 0),
-      refundFull: String(ticket.refundStatus || '').toLowerCase() === 'pending_ops' && Number(ticket.refundOwedRappen) > 0,
+      refundPolicyCard: String(ticket.refundStatus || '').toLowerCase() === 'pending_ops',
       confirmCancel: this.confirmCancel,
 
       voucherOpen: s.voucher, voucherClosed: !s.voucher,

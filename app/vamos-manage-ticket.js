@@ -264,9 +264,8 @@
       // team's Refund; the cancel line below would promise a full refund that is not owed.
       var bs = String((booking && booking.status) || "").toLowerCase();
       if (bs && bs !== "cancelled" && bs !== "refunded" && bs !== "partially_cancelled") return "";
-      // Full refund owed (cancel more than 24 h ahead) reads as such; without an owed amount our team is still deciding.
-      var owed = Number(booking && booking.refundOwedRappen);
-      return owed > 0 ? t("Full refund · sent by our team") : t("Refund under review");
+      // Phase 31 D-04: one policy line for a cancelled paid trip; Stripe-recorded refunds read Refunded.
+      return t("Refund follows the cancellation policy");
     }
     if (st === "processing") return t("Processing");
     if (st === "refunded") return t("Refunded");
