@@ -101,7 +101,7 @@ describe("ops customers board", () => {
     expect(html).toMatch(/value: 'resend'/);
     expect(html).toMatch(/\/voucher'/);
     expect(html).toMatch(/saveEdit/);
-    const save = html.slice(html.indexOf("saveEdit: () =>"), html.indexOf("markRefund: ()"));
+    const save = html.slice(html.indexOf("saveEdit: () =>"), html.indexOf("      canCancel,"));
     expect(save).toMatch(/'PATCH'/);
     expect(save).toMatch(/\/api\/staff\/bookings\/' \+ encodeURIComponent\(id\)/);
     expect(save).not.toMatch(/edit-accept/);

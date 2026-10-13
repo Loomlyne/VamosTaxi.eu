@@ -49,7 +49,7 @@ describe("Edit: the class is a list of today's classes, not a free text or the c
 });
 
 describe("Saving: nothing is written before the confirm step; the class never rides on the PATCH", () => {
-  const save = between(dc, "      saveEdit: () => {", "      markRefund:");
+  const save = between(dc, "      saveEdit: () => {", "      canCancel,");
 
   it("a changed class (or any trip field, 26.2 P6) opens the confirm step first", () => {
     expect(save).toMatch(/if \(tripChanged && !this\._classConfirmed\)/);
