@@ -1,8 +1,8 @@
 ---
-worktree: /Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/phase-30-vehicle-class-lifecycle
+worktree: /Users/koss/.vamos-scratch/p30-clean
 branch: phase-30-vehicle-class-lifecycle
-commit: 91c038dc
-lab: p30
+commit: c23c7800
+lab: p30c
 evidence: /Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/phase-30-vehicle-class-lifecycle/.planning/phases/30-vehicle-class-lifecycle/evidence
 ---
 
@@ -16,11 +16,11 @@ The owner now runs each vehicle class through three states on the dashboard Pric
 
 ## Gates
 
-Skip `lab.sh gates`: the lead ran the full gates (pgTAP, `pnpm gate:local`, the OpenNext build) once before this brief. Bring the lab up with `scripts/test-lab/lab.sh up p30` (it builds the Worker when needed; a first build may take several minutes: run it in its own call as the runbook says).
+Skip `lab.sh gates`: the lead ran the full gates (pgTAP, `pnpm gate:local`, the OpenNext build) in this clean clone before this brief. Run everything from the clean clone `/Users/koss/.vamos-scratch/p30-clean` (branch `phase-30-vehicle-class-lifecycle` at `c23c7800`, own lockfile install, Worker already built there). Do not run the lab from the Phase 30 worktree: its `node_modules` are links into the main checkout and its Worker build fails on `sharp`. Bring the lab up with `scripts/test-lab/lab.sh up p30c` (it rebuilds only if a source file is newer than the built Worker). Write screenshots, `results.json` and the step script into the evidence folder named in the header (the worktree's), not into the clone.
 
 ## Setup beyond the lab
 
-Lab p30 only. Run once after `up`, with the lab's own psql: `eval "$(scripts/test-lab/lab.sh env p30)"` then `"$LAB_PSQL" "$LAB_DB_URL" -v ON_ERROR_STOP=1 -f .planning/phases/30-vehicle-class-lifecycle/evidence/lab-setup.sql`. It refuses to run on anything but a throwaway lab stack and is safe to run twice. Paste its three read-back tables into the run. Expected read-back (checked by the lead on lab p30, 2026-10-13):
+Lab p30c only. Run once after `up`, from the clean clone, with the lab's own psql: `eval "$(scripts/test-lab/lab.sh env p30c)"` then `"$LAB_PSQL" "$LAB_DB_URL" -v ON_ERROR_STOP=1 -f .planning/phases/30-vehicle-class-lifecycle/evidence/lab-setup.sql`. It refuses to run on anything but a throwaway lab stack and is safe to run twice. Paste its three read-back tables into the run. Expected read-back (checked by the lead on lab p30 from the same file, 2026-10-13):
 
 - classes: `economy` Economy, `business` Business, `van` Van luxury all Live; `lab-old` Lab old class retired.
 - trips: `VT-26-0001` (`p30-biz@example.test`, class business) and `VT-26-0002` (`p30-old@example.test`, class lab-old), both no chauffeur, payment `succeeded`. Use the references the read-back prints if they differ.
@@ -61,4 +61,4 @@ The live site, staging, any hosted database, the live price book. Design judgeme
 
 ## Stop conditions
 
-Report BLOCKED and stop when: the lab does not come up, or `lab-setup.sql` errors; a step cannot be run as written (for example the booking detail of a setup trip does not open: report it, do not make a booking another way); a Worker keeps dropping after one `down` / `up`. A step blocked by an earlier failure is BLOCKED, not FAIL. Run `lab.sh down p30` at the end; leave the stack for the lead.
+Report BLOCKED and stop when: the lab does not come up, or `lab-setup.sql` errors; a step cannot be run as written (for example the booking detail of a setup trip does not open: report it, do not make a booking another way); a Worker keeps dropping after one `down` / `up`. A step blocked by an earlier failure is BLOCKED, not FAIL. Run `lab.sh down p30c` at the end; leave the stack for the lead.
