@@ -619,3 +619,94 @@ describe("handleRefundUpdateWithDeps (J7 W6-05)", () => {
     expect(d.recordRefundFailure).not.toHaveBeenCalled();
   });
 });
+
+// Phase 31 (S-03, D-02, D-03, D-10, D-11): the customer refund mail starts only after a 'recorded'
+// Stripe refund that the app did not make, with that refund's own amount, and never changes the answer.
+describe("handleChargeRefundedWithDeps: customer refund mail (Phase 31)", () => {
+  const recorded = (bookingId: string | null = "b1") => vi.fn(async () => ({ outcome: "recorded", bookingId }));
+
+  it("a recorded Stripe refund mails the customer once with that refund's id and amount", async () => {
+    const mailCustomerRefund = vi.fn(async () => undefined);
+    const d = deps({ recordChargeRefund: recorded("b1"), mailCustomerRefund });
+    const result = await handleChargeRefundedWithDeps(message(), charge([refund({ id: "re_1", amount: 4000 })]), d);
+    expect(result).toEqual({ ack: true });
+    expect(mailCustomerRefund).toHaveBeenCalledTimes(1);
+    expect(mailCustomerRefund).toHaveBeenCalledWith({ bookingId: "b1", stripeRefundId: "re_1", refundRappen: 4000 });
+  });
+
+  it("'already' sends nothing", async () => {
+    const mailCustomerRefund = vi.fn(async () => undefined);
+    const d = deps({ recordChargeRefund: vi.fn(async () => ({ outcome: "already", bookingId: "b1" })), mailCustomerRefund });
+    expect(await handleChargeRefundedWithDeps(message(), charge([refund({ id: "re_1" })]), d)).toEqual({ ack: true });
+    expect(mailCustomerRefund).not.toHaveBeenCalled();
+  });
+
+  it("an app refund (duplicate charge, paid after cancel) never mails, even if the recorder said 'recorded'", async () => {
+    const mailCustomerRefund = vi.fn(async () => undefined);
+    const d = deps({ recordChargeRefund: recorded("b1"), mailCustomerRefund });
+    const result = await handleChargeRefundedWithDeps(
+      message(),
+      charge([refund({ id: "re_app_1", metadata: { vamos_source: "app" } })]),
+      d,
+    );
+    expect(result).toEqual({ ack: true });
+    expect(mailCustomerRefund).not.toHaveBeenCalled();
+  });
+
+  it("no booking id from the recorder sends nothing", async () => {
+    const mailCustomerRefund = vi.fn(async () => undefined);
+    const d = deps({ recordChargeRefund: recorded(null), mailCustomerRefund });
+    expect(await handleChargeRefundedWithDeps(message(), charge([refund({ id: "re_1" })]), d)).toEqual({ ack: true });
+    expect(mailCustomerRefund).not.toHaveBeenCalled();
+  });
+
+  it("two events for the same refund (recorded, then already) mail once in total", async () => {
+    const mailCustomerRefund = vi.fn(async () => undefined);
+    const recordChargeRefund = vi
+      .fn()
+      .mockResolvedValueOnce({ outcome: "recorded", bookingId: "b1" })
+      .mockResolvedValueOnce({ outcome: "already", bookingId: "b1" });
+    const d = deps({ recordChargeRefund, mailCustomerRefund });
+    await handleChargeRefundedWithDeps(message(), charge([refund({ id: "re_1" })]), d);
+    await handleChargeRefundedWithDeps(message({ eventId: "evt_ch_2" }), charge([refund({ id: "re_1" })]), d);
+    expect(recordChargeRefund).toHaveBeenCalledTimes(2);
+    expect(mailCustomerRefund).toHaveBeenCalledTimes(1);
+  });
+
+  it("a mail that rejects leaves the answer exactly as without a mail and logs ids only", async () => {
+    const without = deps({ recordChargeRefund: recorded("b1") });
+    const expected = await handleChargeRefundedWithDeps(message(), charge([refund({ id: "re_1", amount: 4000 })]), without);
+
+    const mailCustomerRefund = vi.fn(async () => {
+      throw new Error("Resend down for someone@example.test");
+    });
+    const d = deps({ recordChargeRefund: recorded("b1"), mailCustomerRefund });
+    const result = await handleChargeRefundedWithDeps(message(), charge([refund({ id: "re_1", amount: 4000 })]), d);
+    expect(result).toEqual(expected);
+    expect(result).toEqual({ ack: true });
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_ch_1", null);
+    expect(d.emit).toHaveBeenCalledWith("error", "customer_refund_mail_failed", { eventId: "evt_ch_1", refundId: "re_1" });
+    const failed = d.emit.mock.calls.find((c) => c[1] === "customer_refund_mail_failed");
+    const text = JSON.stringify(failed?.[2]);
+    expect(text).not.toMatch(/4000|@|amount|email/i);
+  });
+
+  it("without the mail dep the handler behaves as before", async () => {
+    const d = deps({ recordChargeRefund: recorded("b1") });
+    expect("mailCustomerRefund" in d).toBe(false);
+    expect(await handleChargeRefundedWithDeps(message(), charge([refund({ id: "re_1" })]), d)).toEqual({ ack: true });
+    expect(d.emit).not.toHaveBeenCalledWith("error", "customer_refund_mail_failed", expect.anything());
+  });
+
+  it("non-CHF and pending refunds never mail", async () => {
+    const mailCustomerRefund = vi.fn(async () => undefined);
+    const d = deps({ recordChargeRefund: recorded("b1"), mailCustomerRefund });
+    await handleChargeRefundedWithDeps(
+      message(),
+      charge([refund({ id: "re_eur", currency: "eur" }), refund({ id: "re_p", status: "pending" })]),
+      d,
+    );
+    expect(d.recordChargeRefund).not.toHaveBeenCalled();
+    expect(mailCustomerRefund).not.toHaveBeenCalled();
+  });
+});
