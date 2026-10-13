@@ -37,7 +37,7 @@ import {
 } from "../OpsMustFixEmail";
 import { renderRefundEmail, type RefundKind } from "../refund";
 import { escapeHtml } from "../escape";
-import { layoutHtml, layoutText } from "../layout";
+import { layoutHtml, layoutText, ltrHtml, PHONE_DISPLAY } from "../layout";
 import {
   CancellationEmail,
   cancellationPlainText,
@@ -616,8 +616,9 @@ export async function sendRefundMailAlert(
       from: FROM,
       to: recipient,
       subject,
-      html: layoutHtml("en", `<p>${escapeHtml(body)}</p>`),
-      text: layoutText(body),
+      // Phone-only footer, as refund.ts / refund-check.ts: the layouts' default is the sign-in link line.
+      html: layoutHtml("en", `<p>${escapeHtml(body)}</p>`, { footer: ltrHtml(PHONE_DISPLAY) }),
+      text: layoutText(body, { footer: PHONE_DISPLAY }),
     };
     const resend = new Resend(env.RESEND_API_KEY);
     const result = idempotencyKey

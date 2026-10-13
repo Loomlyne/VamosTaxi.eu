@@ -9,6 +9,9 @@ Out-of-scope findings logged by executors. Not fixed in the plan that found them
   "This link works once and expires after 1 hour." (the layouts' default `auth.email-footer-link`). The
   31-06 refund check mails pass the phone-only footer that `refund.ts` uses. Suggested fix (one line each, in
   31-04's file): pass `{ footer: ltrHtml(PHONE_DISPLAY) }` / `{ footer: PHONE_DISPLAY }`. For the 31-13 hand-over.
+  - **FIXED in 31-13 (2026-10-13):** `sendRefundMailAlert` now passes `{ footer: ltrHtml(PHONE_DISPLAY) }` to
+    `layoutHtml` and `{ footer: PHONE_DISPLAY }` to `layoutText`; pinned by `packages/emails/src/lib/send.test.ts`
+    "ends with the phone-only footer, never the sign-in link line" (failed before the fix, 13/13 pass after).
 
 ## From 31-10 (2026-10-13)
 

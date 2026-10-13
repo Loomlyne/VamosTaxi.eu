@@ -190,6 +190,19 @@ describe("sendRefundMailAlert (Phase 31)", () => {
     expect(sendMock.mock.calls[0]).toHaveLength(1);
   });
 
+  // 31-06 deferred item, fixed in 31-13: the layouts' default footer is the sign-in link line; this
+  // internal mail ends with the phone only, the way refund.ts and refund-check.ts do.
+  it("ends with the phone-only footer, never the sign-in link line", async () => {
+    await sendRefundMailAlert({ RESEND_API_KEY: "re_test" }, { reference: "VT-26-0753", stripeRefundId: "re_1" }, "ops@example.test");
+    const [payload] = sendMock.mock.calls[0] as [{ html: string; text: string }];
+    expect(payload.text.endsWith("\n\n+41 79 626 70 82")).toBe(true);
+    expect(payload.html).toContain("+41 79 626 70 82");
+    for (const out of [payload.html, payload.text]) {
+      expect(out).not.toContain("This link works once");
+      expect(out).not.toContain("expires after 1 hour");
+    }
+  });
+
   it("maps a Resend error or a throw to ok:false", async () => {
     sendMock.mockResolvedValueOnce({ data: null, error: { message: "rate limited" } });
     expect(
