@@ -29,7 +29,8 @@ function failStatus(code: string): number {
     code === "no-email" ||
     code === "no-class" ||
     code === "capacity" ||
-    code === "class-mismatch"
+    code === "class-mismatch" ||
+    code === "class-retired"
   ) {
     return 409;
   }
@@ -64,6 +65,14 @@ export const POST = withStaff(async (claims, request) => {
     // No cars (owner, 2026-10-01): the page words the refusal from the driver's name and classes.
     if (result.code === "class-mismatch") {
       return jsonErr("class-mismatch", 409, {
+        driverName: result.driverName ?? "",
+        driverClass: result.driverClass ?? "",
+        tripClass: result.tripClass ?? "",
+      });
+    }
+    // Phase 30 CLS-09: the driver's class is retired; the DC shows its generic assign-failed line.
+    if (result.code === "class-retired") {
+      return jsonErr("class-retired", 409, {
         driverName: result.driverName ?? "",
         driverClass: result.driverClass ?? "",
         tripClass: result.tripClass ?? "",

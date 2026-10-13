@@ -27,7 +27,7 @@ vi.mock("../lifecycle/notify-lifecycle", () => ({
   notifyAssignmentCustomer: vi.fn(async () => undefined),
 }));
 
-import { assignClassRefusal } from "./assign-map";
+import { assignClassRefusal, mapAssignSqlError } from "./assign-map";
 import { assignBooking, loadAssignClassFacts } from "./assign";
 
 const BOOKING = "b0000000-0000-4000-8000-000000000016";
@@ -104,6 +104,7 @@ describe("loadAssignClassFacts reads the driver's class and the trip's class —
       driverClassName: "Economy",
       tripClassId: BUSINESS,
       tripClassName: "Business",
+      driverClassRetired: false,
     });
   });
 
@@ -198,5 +199,50 @@ describe("the assign route hands the refusal to the page", () => {
   it("no-class is a 409 with the driver's name; no-vehicle is gone", () => {
     expect(route()).toMatch(/jsonErr\("no-class", 409, \{[\s\S]*driverName: result\.driverName/);
     expect(route()).not.toMatch(/no-vehicle/);
+  });
+});
+
+describe("Phase 30 CLS-09: a chauffeur whose class is retired is refused", () => {
+  it("same class, retired -> class-retired with the names", () => {
+    expect(
+      assignClassRefusal(facts({ driverClassId: BUSINESS, driverClassName: "Business", driverClassRetired: true })),
+    ).toEqual({
+      ok: false,
+      code: "class-retired",
+      driverName: "Marco",
+      driverClass: "Business",
+      tripClass: "Business",
+    });
+  });
+
+  it("different class, retired -> class-mismatch first (the database order)", () => {
+    expect(assignClassRefusal(facts({ driverClassRetired: true }))).toMatchObject({ ok: false, code: "class-mismatch" });
+  });
+
+  it("same class, not retired -> null", () => {
+    expect(
+      assignClassRefusal(facts({ driverClassId: BUSINESS, driverClassName: "Business", driverClassRetired: false })),
+    ).toBeNull();
+  });
+
+  it("the RPC's own class-retired refusal maps to the same code", () => {
+    expect(mapAssignSqlError({ code: "P0001", message: "class-retired" })).toEqual({ ok: false, code: "class-retired" });
+  });
+
+  it("a refused assign calls no asSystem write", async () => {
+    asStaff.mockResolvedValueOnce(facts({ driverClassId: BUSINESS, driverClassName: "Business", driverClassRetired: true }));
+    await expect(assignBooking(env, claims, BOOKING, CHAUFFEUR)).resolves.toMatchObject({ ok: false, code: "class-retired" });
+    expect(asSystem).not.toHaveBeenCalled();
+  });
+
+  it("the facts read selects hidden_at of the driver's class; the route answers 409", () => {
+    const src = readFileSync(fileURLToPath(new URL("./assign.ts", import.meta.url)), "utf8");
+    expect(src).toMatch(/driver_cls\.hidden_at is not null\) as driver_class_retired/);
+    const route = readFileSync(
+      fileURLToPath(new URL("../../app/[locale]/(ops)/api/staff/bookings/[id]/assign/route.ts", import.meta.url)),
+      "utf8",
+    );
+    expect(route).toMatch(/code === "class-retired"/);
+    expect(route).toMatch(/jsonErr\("class-retired", 409/);
   });
 });

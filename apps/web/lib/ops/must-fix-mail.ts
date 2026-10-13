@@ -2,7 +2,7 @@
 //
 // 08-09: ops must-fix mail (D-55 / D-75). Server-side only. Recipient is the
 // existing SUPPORT_EMAIL inbox. Do not cancel the trip. Do not send from
-// OpsFleet browser JS.
+// OpsChauffeurs browser JS.
 
 import {
   renderRefundCheckDidNotRun,

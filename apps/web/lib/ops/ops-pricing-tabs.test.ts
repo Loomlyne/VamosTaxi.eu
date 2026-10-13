@@ -4,6 +4,7 @@
 // table (D-11 D-12 D-17 D-25). Dual-DC byte-equal. May stay red until 18-03.
 
 import { existsSync, readFileSync } from "node:fs";
+import vm from "node:vm";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -183,11 +184,11 @@ describe("OpsPricing tabs (D-11 D-12 D-17 D-25)", () => {
   });
 });
 
-describe("OpsPricing class delete-or-hide (26.1-19 D-15, UI-SPEC §6)", () => {
+describe("OpsPricing class Retire only (phase 30)", () => {
   const html = () => readFileSync(CANONICAL, "utf8");
   const OPS_DATA = join(repoRoot, "app/vamos-ops-data.js");
 
-  it("carries the six hide-conflict keys in all four languages", () => {
+  it("none of the six old hide-conflict keys is left in any T block", () => {
     const src = html();
     for (const key of [
       "hideReason",
@@ -197,36 +198,61 @@ describe("OpsPricing class delete-or-hide (26.1-19 D-15, UI-SPEC §6)", () => {
       "hideConflictKeepVisible",
       "hideWithReason",
     ]) {
-      const hits = src.match(new RegExp(`\\b${key}:'`, "g")) ?? [];
-      expect(hits.length, key).toBe(4);
+      expect(src.match(new RegExp(`\\b${key}:'`, "g")) ?? [], key).toHaveLength(0);
     }
-    expect(src).toContain("hideConflictTitle:'Can’t delete — still in use'");
-    expect(src).toContain("hideWithReason:'Hide with a reason'");
-    expect(src).toContain("hideConflictKeepVisible:'Keep it visible'");
   });
 
-  it("deleting a class goes through the class delete-or-hide door, not the draft row delete", () => {
+  it("the page has no class delete path: no ops.deleteClass( and no deleteClassRow", () => {
     const src = html();
-    expect(src).toMatch(/deleteDistance: \(id, row\) =>/);
-    expect(src).toContain("ops.deleteClass(");
-    expect(src).toContain("'in-use'");
+    expect(src).not.toContain("ops.deleteClass(");
+    expect(src).not.toContain("deleteClassRow");
+    expect(src).toMatch(/deleteDistance: \(id, row\) => this\.askRetire\(row\)/);
   });
 
-  it("opens a second small dialog with a required 140-character reason", () => {
+  it("the page retires through VamosOps.retireClass", () => {
+    expect(html()).toMatch(/(ops|VamosOps)\.retireClass\(|ops\[call\]\(/);
+    expect(html()).toContain("retireClass");
+  });
+
+  it("the Retire Textarea carries a 140 max length", () => {
     const src = html();
-    expect(src).toContain('data-hide-conflict="1"');
-    expect(src).toContain('max-length="{{ hideReasonMax }}"');
-    expect(src).toContain("hideReasonMax: 140");
-    expect(src).toContain("disabled=\"{{ hideSubmitDisabled }}\"");
+    expect(src).toContain('max-length="{{ retireReasonMax }}"');
+    expect(src).toContain("retireReasonMax: 140");
   });
 
-  it("a hidden class shows its reason under the Hidden from public chip", () => {
-    expect(html()).toContain("hiddenReason");
+  it("retireTitle is in all four T blocks", () => {
+    expect(html().match(/\bretireTitle:'/g) ?? []).toHaveLength(4);
   });
 
-  it("VamosOps.deleteClass calls DELETE /api/staff/vehicle-classes with the reason", () => {
-    const src = readFileSync(OPS_DATA, "utf8");
-    expect(src).toMatch(/deleteClass: function \(id, reason\)/);
-    expect(src).toContain('"/api/staff/vehicle-classes?id="');
+  it("VamosOps.retireClass sends PATCH {id, status:'retired', reason}; deleteClass is gone", async () => {
+    const calls: Array<{ method: string; path: string; body?: unknown }> = [];
+    const windowStub: Record<string, unknown> = {
+      VamosOpsApi: {
+        request: (method: string, path: string, body?: unknown) => {
+          calls.push({ method, path, body });
+          return Promise.resolve({ ok: true, data: { id: "c1" } });
+        },
+      },
+      dispatchEvent: () => true,
+      addEventListener: () => undefined,
+    };
+    const context = vm.createContext({
+      window: windowStub,
+      CustomEvent: class {},
+      setTimeout: () => 0,
+      clearTimeout: () => undefined,
+      console,
+    });
+    vm.runInContext(readFileSync(OPS_DATA, "utf8"), context);
+    const ops = windowStub.VamosOps as Record<string, any>;
+    await ops.retireClass("c1", "No longer offered");
+    expect(calls).toEqual([
+      {
+        method: "PATCH",
+        path: "/api/staff/vehicle-classes",
+        body: { id: "c1", status: "retired", reason: "No longer offered" },
+      },
+    ]);
+    expect(ops.deleteClass).toBeUndefined();
   });
 });

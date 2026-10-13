@@ -1214,12 +1214,22 @@ Plans:
 
 **Goal:** A class is added as Draft, goes live only with seats, bags, photo and a price in the live price book, and is retired (never deleted) and can be brought back, all on the dashboard Pricing page. New price books skip retired classes. The word "fleet" leaves the dashboard (`/chauffeurs`). One-off: the 5 test classes and reviews rv-1…rv-5 are removed by a script Koss runs himself.
 **Decisions:** `.planning/decisions/2026-10-11-fleet-lifecycle.md` (signed 2026-10-11)
-**Requirements**: TBD
+**Requirements**: CLS-01, CLS-02, CLS-03, CLS-04, CLS-05, CLS-06, CLS-07, CLS-08, CLS-09, CLS-10, CLS-11, CLS-12, CLS-13, CLS-14 (INT-08 superseded by CLS-04/05)
 **Depends on:** Phase 29
-**Plans:** 0 plans
+**Plans:** 11/11 plans executed
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 30 to break down)
+- [x] 30-01-PLAN.md — DB: class state RPC + missing function, test-classes guard (no backfill), empty seats/bags until Go live, assign guard + shared paid rule, pgTAP, types (owner decisions signed 2026-10-12)
+- [x] 30-02-PLAN.md — Dictionary for all Phase 30 strings, About title pin, dead fleet strings removed
+- [x] 30-03-PLAN.md — Server guards: clone skips retired, assign class-retired, chauffeur write refusal, no date change in a retired class, null seats never public
+- [x] 30-04-PLAN.md — Class status API: GET state/missing/unassigned count, PATCH status, DELETE removed, Draft birth with empty seats/bags
+- [x] 30-05-PLAN.md — /chauffeurs route, /fleet forwards (console-paths module)
+- [x] 30-06-PLAN.md — Ops data store PATCH contract, Live-only pickers, OpsTable props
+- [x] 30-07-PLAN.md — Chauffeurs screen flag/select/count and Assign left-out line
+- [x] 30-08-PLAN.md — Pricing: badges, Go live dialog, Retire dialog, Retired list
+- [x] 30-09-PLAN.md — Owner-run removal script for 5 test classes + rv-1..rv-5, native-lab proof
+- [x] 30-11-PLAN.md — Atomic rename OpsFleet -> OpsChauffeurs with every reference and the moved integration spec
+- [x] 30-10-PLAN.md — Merge main, sweep, full gates, lab brief, REQUIREMENTS, hand-over
 
 ### Phase 31: Refunds in Stripe
 

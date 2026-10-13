@@ -91,7 +91,7 @@ function loadLogic(file: string, win: Record<string, unknown>, lang = "en", prop
     doc,
     { pushState() {} },
     { getItem: (k: string) => (k === "vamosLang" ? lang : null), setItem() {} },
-    { pathname: "/fleet/chauffeurs", href: "https://dashboard.vamostaxi.site/fleet/chauffeurs" },
+    { pathname: "/chauffeurs", href: "https://dashboard.vamostaxi.site/chauffeurs" },
     class {},
   ) as new (p: Record<string, unknown>) => Logic;
   const logic = new Component(props);
@@ -137,6 +137,7 @@ function fleetWindow(over: { request?: ReturnType<typeof vi.fn>; drivers?: unkno
       bookings: { all: () => [] },
     },
     VamosOpsApi: { request },
+    VamosTaxiDesignSystem_245af1: { Icon: "Icon" },
     addEventListener() {},
     removeEventListener() {},
   };
@@ -144,7 +145,7 @@ function fleetWindow(over: { request?: ReturnType<typeof vi.fn>; drivers?: unkno
 }
 function fleet(lang = "en", props: Record<string, unknown> = {}, over: Parameters<typeof fleetWindow>[0] = {}) {
   const w = fleetWindow(over);
-  const logic = loadLogic("OpsFleet.dc.html", w.win, lang, props);
+  const logic = loadLogic("OpsChauffeurs.dc.html", w.win, lang, props);
   return { ...w, logic, vals: () => logic.renderVals() };
 }
 type Field = { key: string; label: string; editor?: string; half?: boolean; required?: boolean; options?: { value: string; label: string }[]; emptyLabel?: string; placeholder?: string };
@@ -236,10 +237,13 @@ describe("1 · the chauffeur form", () => {
     expect(src).toMatch(/\/api\/staff\/rate-book\?versionId=/);
   });
 
-  it("a driver whose class left the live book keeps it in the list, by its own name", () => {
+  it("a retired or draft class is never an option: the select offers Live classes only", () => {
+    // Phase 30 (signed 2026-10-12): no "Retired" option, no retired name appended. A chauffeur on a class
+    // that left the live book keeps it because onSave leaves the untouched key out, not because the list shows it.
     const drivers = [{ ...DRIVERS[0], vehicleClassId: OLD, vehicleClassName: "" }];
     const opts = (fleet("en", {}, { drivers }).vals().fields as Field[]).find((x) => x.key === "vehicleClassId")!.options!;
-    expect(opts.map((o) => o.label)).toEqual(["No class", "Economy", "Business", "Van luxury", "Old class"]);
+    expect(opts.map((o) => o.label)).toEqual(["No class", "Economy", "Business", "Van luxury"]);
+    expect(opts.some((o) => o.value === OLD)).toBe(false);
   });
 
   it("labels in four languages (Swiss German)", () => {
@@ -261,17 +265,32 @@ describe("1 · the chauffeur form", () => {
     expect(v.searchKeys).toContain("languageText");
   });
 
-  it("Save sends the class and the trimmed plate, and no car", async () => {
+  it("Save sends a changed class and the trimmed plate, and no car", async () => {
     const f = fleet();
-    await f.vals().onSave({ id: MARCO, name: "Marco Rossi", vehicleClassId: BUSINESS, plate: "  ZH 123 456 ", defaultVehicleId: "87a4578f-0000-4000-8000-000000000013", vehicle: "87a4578f-0000-4000-8000-000000000013" });
+    await f.vals().onSave({ id: MARCO, name: "Marco Rossi", vehicleClassId: VAN, plate: "  ZH 123 456 ", defaultVehicleId: "87a4578f-0000-4000-8000-000000000013", vehicle: "87a4578f-0000-4000-8000-000000000013" });
     const sent = f.upsert.mock.calls.at(-1)?.[0] as Record<string, unknown>;
-    expect(sent).toMatchObject({ vehicleClassId: BUSINESS, plate: "ZH 123 456", defaultVehicleId: null, vehicle: null });
+    expect(sent).toMatchObject({ vehicleClassId: VAN, plate: "ZH 123 456", defaultVehicleId: null, vehicle: null });
     await f.vals().onSave({ id: MARCO, name: "Marco Rossi", vehicleClassId: "", plate: "" });
     expect(f.upsert.mock.calls.at(-1)?.[0]).toMatchObject({ vehicleClassId: null, plate: "" });
   });
 
+  it("Save of an untouched class posts no vehicleClassId key (a retired class is kept, never cleared)", async () => {
+    const drivers = [{ ...DRIVERS[0], vehicleClassId: OLD, vehicleClassName: "Old class" }, DRIVERS[1]!];
+    const f = fleet("en", {}, { drivers });
+    await f.vals().onSave({ id: MARCO, name: "Marco Rossi", vehicleClassId: OLD, plate: "ZH 123 456" });
+    const kept = f.upsert.mock.calls.at(-1)?.[0] as Record<string, unknown>;
+    expect(Object.prototype.hasOwnProperty.call(kept, "vehicleClassId")).toBe(false);
+    expect(kept).toMatchObject({ plate: "ZH 123 456" });
+    // Changing it to a Live class sends the new id.
+    await f.vals().onSave({ id: MARCO, name: "Marco Rossi", vehicleClassId: ECONOMY, plate: "ZH 123 456" });
+    expect(f.upsert.mock.calls.at(-1)?.[0]).toMatchObject({ vehicleClassId: ECONOMY });
+    // A live class left alone is not sent either; the server keeps it.
+    await f.vals().onSave({ id: LUCA, name: "Luca Bianchi", vehicleClassId: ECONOMY, plate: "ZH 654 321" });
+    expect(Object.prototype.hasOwnProperty.call(f.upsert.mock.calls.at(-1)?.[0] as object, "vehicleClassId")).toBe(false);
+  });
+
   it("two chauffeurs may carry the same plate: no plate-taken words are left", () => {
-    expect(scriptOf(readDc("OpsFleet.dc.html"))).not.toMatch(/plateTaken|chauffeurs-plate-taken/);
+    expect(scriptOf(readDc("OpsChauffeurs.dc.html"))).not.toMatch(/plateTaken|chauffeurs-plate-taken/);
   });
 });
 
@@ -285,7 +304,8 @@ describe("2 · the Chauffeurs list shows name, class and plate", () => {
     const cls = cols.find((c) => c.key === "className")!;
     expect(cls.kind).toBe("need");
     expect(cls.emptyLabel).toBe("No class");
-    expect(DRIVERS.map((d) => cls.lookup(d))).toEqual(["Business", "Economy", ""]);
+    // Phase 30: a class cell is an element (name + retired flag); no class stays "" so emptyLabel shows.
+    expect(DRIVERS.map((d) => cls.lookup(d) !== "")).toEqual([true, true, false]);
     expect(cols.find((c) => c.key === "plate")!.kind).toBe("mono");
     expect((v.rows as { className: string; plate: string }[]).map((r) => [r.className, r.plate])).toEqual([
       ["Business", "ZH 123 456"],
@@ -296,11 +316,101 @@ describe("2 · the Chauffeurs list shows name, class and plate", () => {
     expect(v.searchKeys).not.toContain("carClassName");
   });
 
-  it("the third count is the chauffeurs with a class (no vehicle words)", () => {
-    const counts = fleet().vals().counts as { label: string; value: string; of: string }[];
-    expect(counts[2]).toMatchObject({ label: "With a class", value: "2", of: "/ 3" });
+  it("the third count is the chauffeurs on a Live class (no vehicle words)", () => {
+    // Phase 30, owner answer 14: WITH A CLASS counts only chauffeurs whose class is Live. Marco is on a
+    // Live class, Luca on a retired one, Nina has none: 1 / 3. Before the class list loads it reads 0.
+    const f = fleet();
+    expect((f.vals().counts as { value: string }[])[2]!.value).toBe("0");
+    (f.logic as unknown as { state: Record<string, unknown> }).state = {
+      ...(f.logic as unknown as { state: Record<string, unknown> }).state,
+      classRows: [{ id: BUSINESS, status: "live" }, { id: ECONOMY, status: "retired" }, { id: VAN, status: "draft" }],
+    };
+    const counts = f.vals().counts as { label: string; value: string; of: string }[];
+    expect(counts[2]).toMatchObject({ label: "With a class", value: "1", of: "/ 3" });
     const de = fleet("de").vals().counts as { label: string }[];
     expect(de[2]!.label).toBe("Mit Klasse");
+  });
+
+  it("WITH A CLASS reads 2 / 3 when one of three chauffeurs is on a retired class (sheet 10)", () => {
+    const drivers = [
+      { id: MARCO, name: "Marc Keller", vehicleClassId: BUSINESS, vehicleClassName: "Business", plate: "ZH 1" },
+      { id: LUCA, name: "Samir Haddad", vehicleClassId: ECONOMY, vehicleClassName: "Economy", plate: "ZH 2" },
+      { id: NINA, name: "Luca Meier", vehicleClassId: VAN, vehicleClassName: "Van luxury", plate: "ZH 3" },
+    ];
+    const f = fleet("en", {}, { drivers });
+    (f.logic as unknown as { state: Record<string, unknown> }).state = {
+      ...(f.logic as unknown as { state: Record<string, unknown> }).state,
+      classRows: [{ id: BUSINESS, status: "live" }, { id: ECONOMY, status: "retired" }, { id: VAN, status: "live" }],
+    };
+    expect((f.vals().counts as { value: string; of: string }[])[2]).toMatchObject({ value: "2", of: "/ 3" });
+  });
+
+  it("a chauffeur on a retired class shows the red flag in four languages; Draft and Live show none", () => {
+    const text: Record<string, string> = {
+      en: "Retired class: pick a new one",
+      de: "Stillgelegte Klasse: neue wählen",
+      fr: "Classe retirée : en choisir une autre",
+      ar: "فئة موقوفة: اختر فئة جديدة",
+    };
+    const flatten = (node: unknown): string => {
+      if (node == null || node === false) return "";
+      if (typeof node === "string") return node;
+      if (Array.isArray(node)) return node.map(flatten).join("|");
+      const args = (node as { args?: unknown[] }).args;
+      return args ? args.slice(2).map(flatten).join("|") : "";
+    };
+    const hasFlag = (node: unknown): boolean => {
+      if (node == null || typeof node !== "object") return false;
+      if (Array.isArray(node)) return node.some(hasFlag);
+      const args = (node as { args?: unknown[] }).args;
+      if (!args) return false;
+      const props = args[1] as Record<string, unknown> | null;
+      return !!(props && props["data-class-retired"]) || args.slice(2).some(hasFlag);
+    };
+    for (const lang of ["en", "de", "fr", "ar"]) {
+      const f = fleet(lang);
+      const setRows = (status: string) => {
+        (f.logic as unknown as { state: Record<string, unknown> }).state = {
+          ...(f.logic as unknown as { state: Record<string, unknown> }).state,
+          classRows: [{ id: BUSINESS, status }, { id: ECONOMY, status: "live" }],
+        };
+      };
+      const cell = () => {
+        const cols = f.vals().columns as { key: string; lookup: (r: unknown) => unknown }[];
+        return cols.find((c) => c.key === "className")!.lookup(DRIVERS[0]);
+      };
+      setRows("retired");
+      expect(hasFlag(cell()), lang).toBe(true);
+      expect(flatten(cell()), lang).toContain(text[lang]!);
+      expect(flatten(cell()), lang).toContain("Business");
+      setRows("draft");
+      expect(hasFlag(cell()), lang).toBe(false);
+      setRows("live");
+      expect(hasFlag(cell()), lang).toBe(false);
+    }
+  });
+
+  it("the flag is in the name column too on a phone (680 px and below)", () => {
+    const f = fleet();
+    (f.logic as unknown as { state: Record<string, unknown> }).state = {
+      ...(f.logic as unknown as { state: Record<string, unknown> }).state,
+      narrow: true,
+      classRows: [{ id: BUSINESS, status: "retired" }],
+    };
+    const cols = f.vals().columns as { key: string }[];
+    expect(cols.map((c) => c.key)).toEqual(["name", "plate", "licence"]);
+  });
+
+  it("the source: no retiredTag, no weight 500, none of the ten vehicle keys, state read from status only", () => {
+    const src = readDc("OpsChauffeurs.dc.html");
+    expect(src).not.toMatch(/retiredTag/);
+    expect(src).not.toMatch(/fontWeight: ?500|vt-weight-medium/);
+    expect(src).not.toMatch(/\b(vehicles|vSub|footFleet|delVBody|cntVehicles|cntInService|cntSeats|cntWithVehicle|nounVs?)\s*:/);
+    expect(src).toMatch(/status === 'retired'/);
+    expect(src).not.toMatch(/active === false/);
+    expect(src).toMatch(/--vt-shadow-accent:none/);
+    expect(src).toMatch(/\.vt-input--focus\{box-shadow:none\}/);
+    expect(scriptOf(src)).toMatch(/\/chauffeurs/);
   });
 
   it("no car or vehicle words on the page any more", () => {
@@ -403,7 +513,7 @@ describe("4 · the chauffeur's bookings history (read-only)", () => {
     expect(facts.find((x) => x.label === "Plate")!.value).toBe("ZH 123 456");
     const nina = fleet("en", { chauffeurId: NINA }).vals().profileFacts as { label: string; value: string }[];
     expect(nina.find((x) => x.label === "Class")!.value).toBe("No class");
-    const tpl = templateOf(readDc("OpsFleet.dc.html"));
+    const tpl = templateOf(readDc("OpsChauffeurs.dc.html"));
     expect(tpl).toMatch(/<sc-for list="\{\{ historyRows \}\}"/);
     expect(tpl).not.toMatch(/liveTrips|pastBookings/);
     // Read-only: rows are links to the booking, no buttons.

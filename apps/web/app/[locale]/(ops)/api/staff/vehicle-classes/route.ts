@@ -1,31 +1,29 @@
 // apps/web/app/[locale]/(ops)/api/staff/vehicle-classes/route.ts
 //
-// GET list + PATCH capacities / draft hide+max pax+name + POST on the draft.
-// DELETE: hard delete when unreferenced; in use -> 409 in-use, or hidden with a
-// { reason } (26.1-19 D-15, public.ops_vehicle_class_delete_or_hide).
+// GET list (with server-computed state) + PATCH status (draft/live/retired through
+// public.ops_vehicle_class_set_status) or capacities / draft hide+max pax+name + POST on the draft.
+// Phase 30: there is no DELETE; a class is retired, never deleted.
 // Dual-mounted at app/api/staff/vehicle-classes.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import type { VamosClaims } from "@/lib/db/identity";
 import { assertVehicleClassInput, loadVehicleClasses } from "@/lib/ops/fleet";
 import {
   fleetJsonError,
+  parseClassCount,
   parseVehicleClassPatch,
   presentVehicleClass,
   readJsonBody,
 } from "@/lib/ops/fleet-http";
 import {
-  deleteVehicleClassIfUnreferenced,
   insertVehicleClassOnDraft,
   patchDraftClass,
+  setVehicleClassStatus,
   updateVehicleClassCapacities,
 } from "@/lib/ops/fleet-write";
 import { resolveWritableDraftId } from "@/lib/ops/rate-book";
-import {
-  classDeleteReply,
-  parseClassDeleteReason,
-} from "@/lib/ops/vehicle-class-write";
+import { parseClassRetireReason, parseClassStatus } from "@/lib/ops/vehicle-class-write";
 import { jsonErr, jsonOk, withAdmin, withStaff } from "@/lib/ops/staff-json";
-import { removeUnusedClassPhotos } from "@/lib/ops/class-photo-sweep";
 
 export const dynamic = "force-dynamic";
 
@@ -42,11 +40,59 @@ function slugFromName(value: unknown): string {
   return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
+/**
+ * Decision 6: a seat or bag count in a PATCH body under any of `keys`. Undefined = not named
+ * (leave it); null = emptied (null or ""); an integer = set. Anything else is not a change.
+ */
+function countPatch(rec: Record<string, unknown>, keys: string[]): number | null | undefined {
+  const key = keys.find((k) => Object.prototype.hasOwnProperty.call(rec, k));
+  if (!key) return undefined;
+  const value = rec[key];
+  if (value === null || (typeof value === "string" && value.trim() === "")) return null;
+  return typeof value === "number" && Number.isInteger(value) ? value : undefined;
+}
+
 export const GET = withStaff(async (claims) => {
   const { env } = getCloudflareContext();
   const rows = await loadVehicleClasses(env, claims);
   return jsonOk(rows.map(presentVehicleClass));
 });
+
+/**
+ * Phase 30 CLS-01: move a class between Draft, Live and Retired. Reads only id, status and
+ * reason from the body (no mass assignment). The database decides (admin, transition,
+ * Go-live checklist); its refusals are read here, outside the asStaff callback.
+ */
+async function patchStatus(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  rec: Record<string, unknown>,
+): Promise<Response> {
+  const to = parseClassStatus(rec.status);
+  if (!to) return jsonErr("invalid", 400);
+  const id = typeof rec.id === "string" ? rec.id : "";
+  if (!ANY_UUID.test(id)) return jsonErr("invalid", 400);
+  const reason = parseClassRetireReason(rec.reason);
+  if (!reason.ok) return jsonErr("invalid-reason", 400);
+  try {
+    await setVehicleClassStatus(env, claims, id, to, reason.reason);
+  } catch (err) {
+    const e = err as { code?: unknown; message?: unknown; detail?: unknown } | null;
+    const message = typeof e?.message === "string" ? e.message : "";
+    if (e?.code === "42501") return jsonErr("not-admin", 403);
+    if (e?.code === "P0002") return jsonErr("not-found", 404);
+    if (e?.code === "P0001" && message === "incomplete") {
+      return jsonErr("incomplete", 409, { missing: typeof e.detail === "string" ? e.detail : "" });
+    }
+    if (e?.code === "P0001" && message === "bad-transition") return jsonErr("bad-transition", 409);
+    if (e?.code === "22023") return jsonErr("invalid", 400);
+    if (e?.code === "22001") return jsonErr("invalid-reason", 400);
+    return fleetJsonError(err);
+  }
+  const rows = await loadVehicleClasses(env, claims);
+  const updated = rows.find((row) => row.id === id);
+  return jsonOk(updated ? presentVehicleClass(updated) : { id, status: to });
+}
 
 export const PATCH = withAdmin(async (claims, request) => {
   try {
@@ -56,19 +102,23 @@ export const PATCH = withAdmin(async (claims, request) => {
     const id = typeof rec.id === "string" ? rec.id : "";
     if (!id) return jsonErr("invalid", 400);
     const { env } = getCloudflareContext();
-    const hasCapacities =
-      rec.passengerCapacity != null || rec.luggageCapacity != null;
-    if (hasCapacities && !Object.prototype.hasOwnProperty.call(rec, "slug")) {
+    if (rec.status !== undefined) return await patchStatus(env, claims, rec);
+    const own = (k: string) => Object.prototype.hasOwnProperty.call(rec, k);
+    const hasCapacities = own("passengerCapacity") || own("luggageCapacity");
+    const draftId = await resolveWritableDraftId(env, claims);
+    if (hasCapacities && !own("slug")) {
       const parsed = parseVehicleClassPatch(body);
       const input = assertVehicleClassInput(parsed.input);
-      await updateVehicleClassCapacities(env, claims, parsed.id, input);
+      // A 23514 (vehicle_classes_live_has_seats_bags) from this write is the second wall behind
+      // the Draft-only check in the writer; fleetJsonError answers it 400.
+      await updateVehicleClassCapacities(env, claims, parsed.id, input, {
+        present: parsed.present,
+        draftVersionId: draftId,
+      });
     }
-    const draftId = await resolveWritableDraftId(env, claims);
     if (draftId != null) {
       const hideRaw = rec.hideFromPublic ?? rec.hide_from_public;
-      const maxRaw = rec.maxPax ?? rec.max_pax;
       const name = typeof rec.name === "string" ? rec.name : "";
-      const bagsRaw = rec.maxBags ?? rec.luggageCapacity ?? rec.luggage_capacity;
       const photoRaw = rec.photoPath ?? rec.photo;
       const photoPath =
         photoRaw === null
@@ -78,11 +128,10 @@ export const PATCH = withAdmin(async (claims, request) => {
             : undefined;
       await patchDraftClass(env, claims, id, draftId, {
         hideFromPublic: typeof hideRaw === "boolean" ? hideRaw : undefined,
-        maxPax: typeof maxRaw === "number" && Number.isInteger(maxRaw) ? maxRaw : undefined,
+        maxPax: countPatch(rec, ["maxPax", "max_pax"]),
         name: name || undefined,
         photoPath,
-        luggageCapacity:
-          typeof bagsRaw === "number" && Number.isInteger(bagsRaw) ? bagsRaw : undefined,
+        luggageCapacity: countPatch(rec, ["maxBags", "luggageCapacity", "luggage_capacity"]),
       });
     }
     const rows = await loadVehicleClasses(env, claims);
@@ -100,19 +149,10 @@ export const POST = withAdmin(async (claims, request) => {
     if (!rec) return jsonErr("invalid", 400);
     const slug = slugFromName(rec.slug ?? rec.name ?? rec.klass);
     if (!CLASS_SLUG.test(slug)) return jsonErr("invalid", 400);
+    // Decision 6: empty seats and bags are stored as null, never 3 and never 0.
     const input = assertVehicleClassInput({
-      passengerCapacity:
-        typeof rec.passengerCapacity === "number"
-          ? rec.passengerCapacity
-          : typeof rec.maxPax === "number"
-            ? rec.maxPax
-            : 3,
-      luggageCapacity:
-        typeof rec.luggageCapacity === "number"
-          ? rec.luggageCapacity
-          : typeof rec.maxBags === "number"
-            ? rec.maxBags
-            : 3,
+      passengerCapacity: parseClassCount(rec.passengerCapacity ?? rec.maxPax),
+      luggageCapacity: parseClassCount(rec.luggageCapacity ?? rec.maxBags),
     });
     const { env } = getCloudflareContext();
     const draftId = await resolveWritableDraftId(env, claims);
@@ -131,34 +171,6 @@ export const POST = withAdmin(async (claims, request) => {
     const created = rows.find((row) => row.id === id);
     return jsonOk(created ? presentVehicleClass(created) : { id }, 201);
   } catch (err) {
-    return fleetJsonError(err);
-  }
-});
-
-export const DELETE = withAdmin(async (claims, request) => {
-  try {
-    const url = new URL(request.url);
-    let rec = asRecord(null);
-    try {
-      rec = asRecord(await request.json());
-    } catch {
-      rec = null;
-    }
-    const idRaw = (rec && typeof rec.id === "string" && rec.id) || url.searchParams.get("id") || "";
-    if (!ANY_UUID.test(idRaw)) return jsonErr("invalid", 400);
-    // 26.1-19 D-15: optional reason; with one, a class still in use is hidden instead.
-    const parsed = parseClassDeleteReason(rec ? rec.reason : url.searchParams.get("reason"));
-    if (!parsed.ok) return jsonErr("invalid-reason", 400);
-    const { env } = getCloudflareContext();
-    const result = await deleteVehicleClassIfUnreferenced(env, claims, idRaw, parsed.reason);
-    // Quick 260930-cpr: a class deleted for good takes its photo with it. Hidden or in use: nothing goes.
-    if (result === "deleted") await removeUnusedClassPhotos(env, claims, "class-deleted", idRaw);
-    const reply = classDeleteReply(idRaw, result);
-    return reply.body.ok ? jsonOk(reply.body.data) : jsonErr(String(reply.body.code), reply.status);
-  } catch (err) {
-    const code = (err as { code?: unknown } | null)?.code;
-    if (code === "P0002") return jsonErr("not-found", 404);
-    if (code === "42501") return jsonErr("not-admin", 403);
     return fleetJsonError(err);
   }
 });

@@ -18,9 +18,50 @@
 [data-price-hist-filters]{display:flex;align-items:center;max-width:220px;min-width:0}
 [data-price-hist-filters] [data-vt-date]{width:100%;gap:0}
 [data-vt-date]{display:flex;flex-direction:column;gap:6px;min-width:0}
-[data-hide-conflict]{display:flex;flex-direction:column;gap:var(--vt-space-3);min-width:0}
-[data-hide-conflict] p{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);overflow-wrap:anywhere}
-[data-hide-conflict] [data-hide-class]{font-weight:600;color:var(--vt-text-primary)}
+[data-retire-dialog]{display:flex;flex-direction:column;gap:var(--vt-space-3);min-width:0}
+[data-retire-dialog] p{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);overflow-wrap:anywhere}
+[data-retire-dialog] [data-hide-class]{font-weight:600;color:var(--vt-text-primary)}
+[data-retired]{display:flex;flex-direction:column;min-width:0;margin-block-start:var(--vt-space-6);background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);overflow:hidden}
+[data-retired-head]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:var(--vt-space-2);min-height:44px;padding-block:var(--vt-space-2);padding-inline:var(--vt-space-4);cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary)}
+[data-retired-head]:hover{background:var(--vt-bg-inset)}
+[data-retired-head]:focus-visible{box-shadow:var(--vt-ring)}
+/* 44px tap area on the 32px dialog close X (spec Tap areas); invisible, the drawn size stays 32px */
+.vt-dialog__head .vt-iconbtn{position:relative}
+.vt-dialog__head .vt-iconbtn::before{content:'';position:absolute;inset:calc((100% - 44px) / 2)}
+[data-retire-notes]{display:flex;flex-direction:column;gap:8px;margin-block:-4px 4px;min-width:0}
+[data-retire-count]{display:flex;flex-wrap:wrap;column-gap:4px;font-family:var(--vt-font-body);font-size:13px;line-height:1.5;color:var(--vt-text-muted)}
+[data-retire-unassigned]{display:flex;flex-wrap:wrap;column-gap:4px;font-family:var(--vt-font-body);font-size:13px;line-height:1.5;color:var(--vt-text-muted)}
+[data-retire-lastlive]{margin:0;font-family:var(--vt-font-body);font-size:14px;line-height:1.5;color:var(--vt-danger);overflow-wrap:anywhere}
+[data-retire-counter]{font-family:var(--vt-font-body);font-size:13px;color:var(--vt-text-muted)}
+[data-dialog-err]{margin:0;font-family:var(--vt-font-body);font-size:14px;line-height:1.5;color:var(--vt-danger);overflow-wrap:anywhere}
+.vt-dialog__scrim:has([data-dialog-box="1"]){padding:16px}
+.vt-dialog:has([data-dialog-box="1"]){max-height:calc(100dvh - 32px);overflow:auto;overscroll-behavior:contain}
+[data-retired-count]{font-family:var(--vt-font-body);font-size:13px;font-weight:var(--vt-weight-regular);color:var(--vt-text-muted)}
+[data-retired-row]{box-sizing:border-box;display:flex;align-items:center;gap:var(--vt-space-3);padding:16px;border-block-start:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface)}
+[data-retired-main]{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:var(--vt-space-3);row-gap:2px}
+[data-retired-name]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary);overflow-wrap:anywhere;unicode-bidi:isolate}
+[data-retired-reason]{flex:1 1 0;min-width:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-muted);overflow-wrap:anywhere}
+[data-retired-err]{margin:0;padding-inline:16px;padding-block-end:12px;font-family:var(--vt-font-body);font-size:14px;line-height:1.5;color:var(--vt-danger)}
+[data-bb-narrow]{display:none}
+@media (max-width:1080px){[data-bb-wide]{display:none}[data-bb-narrow]{display:inline-flex}}
+@media (max-width:680px){[data-retired-head]{width:100%}[data-retired-row]{flex-direction:column;align-items:flex-start;gap:12px}[data-retired-main]{flex:0 0 auto;width:100%;flex-direction:column;align-items:flex-start;row-gap:4px}[data-retired-reason]{flex:0 0 auto;width:100%}[data-retired-row] > *{min-width:0}}
+[data-sr-only]{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+[data-class-cell]{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;min-width:156px}
+[data-class-name]{min-width:0;overflow-wrap:anywhere;unicode-bidi:isolate}
+[data-draft-btn]{all:unset;box-sizing:border-box;position:relative;display:inline-flex;align-items:center;min-height:32px;border:1px solid transparent;border-radius:var(--vt-radius-pill);cursor:pointer}
+[data-draft-btn]::after{content:'';position:absolute;inset:-6px}
+[data-draft-btn]:hover{border-color:var(--vt-border-strong)}
+[data-draft-btn]:active{transform:translateY(1px)}
+[data-draft-btn]:focus-visible{box-shadow:var(--vt-ring)}
+[data-draft-btn][aria-disabled="true"]{cursor:default;pointer-events:none}
+[data-live-badge]{display:inline-flex;align-items:center;min-height:32px}
+[data-live-badge]:focus{outline:none}
+[data-golive]{display:flex;flex-direction:column;gap:var(--vt-space-3);min-width:0}
+[data-golive] p{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);overflow-wrap:anywhere}
+[data-golive] [data-hide-class]{font-weight:600;color:var(--vt-text-primary)}
+[data-golive-list]{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--vt-space-2)}
+[data-golive-item]{display:flex;align-items:center;gap:var(--vt-space-2);min-height:32px;font-family:var(--vt-font-body);font-size:14px;font-weight:600;min-width:0}
+[data-golive] p[data-golive-why]{font-size:14px;color:var(--vt-text-primary)}
 [data-hide-actions]{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--vt-space-2);margin-top:var(--vt-space-2)}
 [data-hide-actions] > *{min-width:0}
 [data-vt-date-btn]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 14px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);cursor:pointer;overflow:hidden}
@@ -136,7 +177,42 @@
 
 <sc-if value="{{ isDistance }}" hint-placeholder-val="{{ false }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
-<dc-import name="OpsTable" fill="1" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-title="{{ tDeleteClassTitle }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" delete-body="{{ tDeleteClassBody }}" edit-id="{{ distanceEditId }}" edit-tick="{{ distanceEditTick }}" onReorder="{{ reorderDistance }}" hint-size="100%,420px"></dc-import>
+<dc-import name="OpsTable" fill="1" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-label="{{ tRetire }}" delete-icon="eye-off" onAskDelete="{{ askRetire }}" footDelete="{{ no }}" actionsGap="{{ n12 }}" tapArea="{{ yes }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" edit-id="{{ distanceEditId }}" edit-tick="{{ distanceEditTick }}" onReorder="{{ reorderDistance }}" hint-size="100%,420px"></dc-import>
+<sc-if value="{{ hasRetired }}" hint-placeholder-val="{{ false }}">
+<section data-retired="1">
+<button type="button" data-retired-head="1" aria-expanded="{{ retiredOpen }}" aria-controls="vt-retired-list" aria-label="{{ retiredToggleLabel }}" onClick="{{ toggleRetired }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ retiredChevron }}" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<span>{{ tRetiredTitle }}</span>
+<span data-retired-count="1" class="vt-dir-keep" data-vt-no-i18n="1">{{ retiredCount }}</span>
+</button>
+<div id="vt-retired-list">
+<sc-if value="{{ retiredOpen }}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{ retiredItems }}" as="c" hint-placeholder-count="1">
+<div data-retired-row-wrap="1">
+<div data-retired-row="1">
+<span data-retired-main="1">
+<span data-retired-name="1" data-vt-no-i18n="1">{{ c.name }}</span>
+<sc-if value="{{ c.hasReason }}" hint-placeholder-val="{{ false }}">
+<span data-retired-reason="1" data-vt-no-i18n="1">{{ c.reason }}</span>
+</sc-if>
+</span>
+<span data-bb-wide="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" onClick="{{ c.bring }}" disabled="{{ c.busy }}" hint-size="130px,36px">{{ c.label }}</x-import>
+</span>
+<span data-bb-narrow="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ c.bring }}" disabled="{{ c.busy }}" hint-size="130px,44px">{{ c.label }}</x-import>
+</span>
+</div>
+<sc-if value="{{ c.error }}" hint-placeholder-val="{{ false }}">
+<p data-retired-err="1" role="alert">{{ tBringBackError }}</p>
+</sc-if>
+</div>
+</sc-for>
+</sc-if>
+</div>
+</section>
+</sc-if>
+<div data-sr-only="1" aria-live="polite" role="status">{{ announceText }}</div>
 </div>
 </sc-if>
 
@@ -205,15 +281,55 @@
 </x-import>
 </sc-if>
 
-<sc-if value="{{ hideOpen }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ tHideConflictTitle }}" onClose="{{ keepVisible }}" hint-size="440px,380px">
-<div data-hide-conflict="1">
-<p data-hide-class="1" data-vt-no-i18n="1">{{ hideClassName }}</p>
-<p data-hide-body="1">{{ tHideConflictBody }}</p>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tHideReason }}" aria-label="{{ tHideReason }}" rows="{{ n3 }}" max-length="{{ hideReasonMax }}" value="{{ hideReason }}" onChange="{{ setHideReason }}" placeholder="{{ tHideReasonPlaceholder }}" error="{{ hideErrorText }}" hint="{{ hideReasonCount }}" hint-size="100%,130px"></x-import>
+<sc-if value="{{ goLiveOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ tGoLiveTitle }}" onClose="{{ closeGoLive }}" hint-size="440px,360px">
+<div data-golive="1" data-dialog-box="1">
+<p data-hide-class="1" data-vt-no-i18n="1">{{ goLiveName }}</p>
+<ul data-golive-list="1">
+<sc-for list="{{ goLiveItems }}" as="i" hint-placeholder-count="4">
+<li data-golive-item="1" data-state="{{ i.state }}" style="color:{{ i.textColor }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ i.icon }}" size="{{ n20 }}" color="{{ i.color }}" hint-size="20px,20px"></x-import>
+<span>{{ i.label }}</span>
+<span data-sr-only="1">{{ i.stateLabel }}</span>
+</li>
+</sc-for>
+</ul>
+<sc-if value="{{ goLiveFailed }}" hint-placeholder-val="{{ false }}">
+<p data-dialog-err="1" role="alert">{{ tGoLiveError }}</p>
+</sc-if>
+<sc-if value="{{ goLiveBlocked }}" hint-placeholder-val="{{ true }}">
+<p data-golive-why="1">{{ goLiveWhy }}</p>
+</sc-if>
 <div data-hide-actions="1">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ keepVisible }}" hint-size="150px,44px">{{ tHideConflictKeepVisible }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" onClick="{{ submitHide }}" disabled="{{ hideSubmitDisabled }}" hint-size="180px,44px">{{ tHideWithReason }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ editFromGoLive }}" disabled="{{ goLiveBusy }}" hint-size="150px,44px">{{ tEditClassBtn }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" onClick="{{ confirmGoLive }}" disabled="{{ goLiveDisabled }}" hint-size="150px,44px">{{ goLiveButtonLabel }}</x-import>
+</div>
+</div>
+</x-import>
+</sc-if>
+
+<sc-if value="{{ retireOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ tRetireTitle }}" onClose="{{ closeRetire }}" hint-size="440px,380px">
+<div data-retire-dialog="1" data-dialog-box="1">
+<p data-hide-class="1" data-vt-no-i18n="1">{{ retireClassName }}</p>
+<p data-hide-body="1">{{ tRetireBody }}</p>
+<sc-if value="{{ retireNotes }}" hint-placeholder-val="{{ false }}">
+<div data-retire-notes="1">
+<sc-if value="{{ retireCountShow }}" hint-placeholder-val="{{ false }}">
+<div data-retire-count="1"><sc-if value="{{ retireCountNumShow }}" hint-placeholder-val="{{ true }}"><span class="vt-dir-keep" data-vt-no-i18n style="white-space:nowrap">{{ retireCountN }}</span></sc-if>{{ retireCountWords }}</div>
+</sc-if>
+<sc-if value="{{ retireUnassignedShow }}" hint-placeholder-val="{{ false }}">
+<div data-retire-unassigned="1"><sc-if value="{{ retireUnassignedNumShow }}" hint-placeholder-val="{{ true }}"><span class="vt-dir-keep" data-vt-no-i18n style="white-space:nowrap">{{ retireUnassignedN }}</span></sc-if>{{ retireUnassignedWords }}</div>
+</sc-if>
+<sc-if value="{{ retireLastLiveShow }}" hint-placeholder-val="{{ false }}">
+<p data-retire-lastlive="1">{{ tRetireLastLive }}</p>
+</sc-if>
+</div>
+</sc-if>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tRetireReason }}" aria-label="{{ tRetireReason }}" rows="{{ n3 }}" max-length="{{ retireReasonMax }}" readOnly="{{ retireBusy }}" value="{{ retireReason }}" onChange="{{ setRetireReason }}" placeholder="{{ tRetireReasonPlaceholder }}" error="{{ retireErrorText }}" hint="{{ retireReasonCount }}" hint-size="100%,130px"></x-import>
+<div data-hide-actions="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ closeRetire }}" disabled="{{ retireBusy }}" hint-size="150px,44px">{{ tRetireCancel }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" onClick="{{ submitRetire }}" disabled="{{ retireBusy }}" hint-size="180px,44px">{{ retireSubmitLabel }}</x-import>
 </div>
 </div>
 </x-import>
@@ -311,6 +427,10 @@ const PANES = [
   { key:'surcharges', icon:'banknote', tab:'tabSurcharges', hint:'hintSurcharges' },
   { key:'coupons', icon:'ticket', tab:'tabCoupons', hint:'hintCoupons' },
 ];
+/* Arabic count forms of the chauffeur count line (owner answer 2026-10-12): kept outside T because only Arabic has
+   them (T stays key-identical across languages). Chosen by arCountForm in renderVals. */
+const AR_COUNT = { retireCountAr1:'سائق واحد في هذه الفئة', retireCountAr2:'سائقان في هذه الفئة', retireCountArFew:'سائقين في هذه الفئة', retireCountArMany:'سائقًا في هذه الفئة', retireCountArOther:'سائق في هذه الفئة',
+  retireUnassignedAr1:'رحلة واحدة مدفوعة قادمة بلا سائق بعد', retireUnassignedAr2:'رحلتان مدفوعتان قادمتان بلا سائق بعد', retireUnassignedArFew:'رحلات مدفوعة قادمة بلا سائق بعد', retireUnassignedArMany:'رحلةً مدفوعةً قادمةً بلا سائق بعد', retireUnassignedArOther:'رحلة مدفوعة قادمة بلا سائق بعد' };
 const T = {
   en: { actions:'Actions', title:'Pricing & routes', subtitle:'City to city, distance rules, surcharges and coupons',
     tabRoutes:'City to city', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras', tabCoupons:'Coupons',
@@ -323,8 +443,15 @@ const T = {
     emptyRoutesTitle:'No city-to-city pairs yet', emptyRoutesBody:'Add a city to city, or a canton to canton. One row covers A to B and B to A. Public stays on the last published book until you publish.',
     searchRoutes:'From, to or ID', nounRoute:'route', nounRoutes:'routes',
     hRoutePrice:'Leave empty if this class is not offered on this route.',
-    addClass:'Add class', editClass:'Edit class', saveClass:'Save class', deleteClassTitle:'Delete this class from the draft?', deleteClassBody:'Delete this class from the draft? Public does not change until Publish.',
-    hideReason:'Reason', hideReasonPlaceholder:'Why it is hidden, for example: no longer offered', hideConflictTitle:'Can’t delete — still in use', hideConflictBody:'This class has bookings against it. Hide it instead, and say why.', hideConflictKeepVisible:'Keep it visible', hideWithReason:'Hide with a reason', hideError:'The class could not be hidden. Try again.',
+    addClass:'Add class', editClass:'Edit class', saveClass:'Save class', 
+    statusLive:'Live', statusDraft:'Draft', statusRetired:'Retired', colStatus:'Status',
+    retire:'Retire', retireTitle:'Retire this class?', retireBody:'The class leaves the site, the new-trip form and new price books. Past price books keep it. You can bring it back.',
+    retireReason:'Reason (optional)', retireReasonPlaceholder:'Why it is retired, for example: no longer offered', retireCancel:'Cancel',
+    retireCountMany:'chauffeurs are on this class', retireCountOne:'chauffeur is on this class', retireUnassignedMany:'paid trips ahead have no chauffeur yet', retireUnassignedOne:'paid trip ahead has no chauffeur yet', retireLastLive:'This is your last live class. Customers cannot book until another class is live.',
+    retiredTitle:'Retired classes', bringBack:'Bring back', draftBtnLabel:'Draft: see what is missing', itemDone:'Done', itemMissing:'Missing', goingLive:'Going live…', goLiveError:'Could not go live. Check the list and try again.', retiring:'Retiring…', retireError:'Could not retire this class. Try again.', retiredToggleOpen:'Hide retired classes', retiredToggleClosed:'Show retired classes', bringingBack:'Bringing back…', bringBackAnnounce:'Back as a Draft. Add a price in the price book, then go live.', bringBackError:'Could not bring this class back. Try again.',
+    needPhoto:'Photo', needSeats:'Seats', needBags:'Bags', needPrice:'Price in the live price book', goLive:'Go live', goLiveTitle:'Before this class goes live',
+    goLiveNeedsPhoto:'Add a photo first', goLiveNeedsSeats:'Add the seats first', goLiveNeedsBags:'Add the bags first', goLiveNeedsPrice:'Add a price in the live price book first',
+    
     emptyClassesTitle:'No vehicle classes yet', emptyClassesBody:'Add a class with photo, name, start fare, per-kilometre rate, max passengers and max bags.',
     searchDistance:'Class', nounClass:'class', nounClasses:'classes',
     addRule:'Add rule', editRule:'Edit rule', saveRule:'Save rule', deleteRuleTitle:'Delete this rule from the draft?', deleteRuleBody:'Delete this rule from the draft? Public does not change until Publish.',
@@ -410,8 +537,15 @@ const T = {
     emptyRoutesTitle:'Noch keine Stadt-zu-Stadt-Paare', emptyRoutesBody:'Stadt zu Stadt oder Kanton zu Kanton hinzufügen. Eine Zeile gilt für A nach B und B nach A. Die Öffentlichkeit bleibt auf dem letzten veröffentlichten Buch, bis du veröffentlichst.',
     searchRoutes:'Von, nach oder ID', nounRoute:'Route', nounRoutes:'Routen',
     hRoutePrice:'Leer lassen, wenn diese Klasse auf dieser Route nicht angeboten wird.',
-    addClass:'Klasse hinzufügen', editClass:'Klasse bearbeiten', saveClass:'Klasse speichern', deleteClassTitle:'Diese Klasse aus dem Entwurf löschen?', deleteClassBody:'Diese Klasse aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
-    hideReason:'Grund', hideReasonPlaceholder:'Warum sie verborgen ist, zum Beispiel: nicht mehr angeboten', hideConflictTitle:'Löschen nicht möglich — noch in Gebrauch', hideConflictBody:'Diese Klasse hat Buchungen. Verbergen Sie sie stattdessen und nennen Sie den Grund.', hideConflictKeepVisible:'Sichtbar lassen', hideWithReason:'Mit Grund verbergen', hideError:'Die Klasse konnte nicht verborgen werden. Versuchen Sie es erneut.',
+    addClass:'Klasse hinzufügen', editClass:'Klasse bearbeiten', saveClass:'Klasse speichern', 
+    statusLive:'Live', statusDraft:'Entwurf', statusRetired:'Stillgelegt', colStatus:'Status',
+    retire:'Stilllegen', retireTitle:'Diese Klasse stilllegen?', retireBody:'Die Klasse verschwindet von der Website, aus dem Formular für neue Fahrten und aus neuen Preisbüchern. Frühere Preisbücher behalten sie. Sie können sie zurückholen.',
+    retireReason:'Grund (optional)', retireReasonPlaceholder:'Warum sie stillgelegt wird, zum Beispiel: nicht mehr angeboten', retireCancel:'Abbrechen',
+    retireCountMany:'Chauffeure sind in dieser Klasse', retireCountOne:'Chauffeur ist in dieser Klasse', retireUnassignedMany:'kommende bezahlte Fahrten haben noch keinen Chauffeur', retireUnassignedOne:'kommende bezahlte Fahrt hat noch keinen Chauffeur', retireLastLive:'Das ist Ihre letzte Klasse, die live ist. Kunden können erst wieder buchen, wenn eine andere Klasse live ist.',
+    retiredTitle:'Stillgelegte Klassen', bringBack:'Zurückholen', draftBtnLabel:'Entwurf: Fehlendes anzeigen', itemDone:'Erledigt', itemMissing:'Fehlt', goingLive:'Wird live geschaltet…', goLiveError:'Live schalten ist fehlgeschlagen. Liste prüfen und erneut versuchen.', retiring:'Wird stillgelegt…', retireError:'Stilllegen ist fehlgeschlagen. Bitte erneut versuchen.', retiredToggleOpen:'Stillgelegte Klassen ausblenden', retiredToggleClosed:'Stillgelegte Klassen anzeigen', bringingBack:'Wird zurückgeholt…', bringBackAnnounce:'Wieder als Entwurf da. Preis im Preisbuch ergänzen, dann live schalten.', bringBackError:'Zurückholen ist fehlgeschlagen. Bitte erneut versuchen.',
+    needPhoto:'Foto', needSeats:'Plätze', needBags:'Gepäck', needPrice:'Preis im aktuellen Preisbuch', goLive:'Live schalten', goLiveTitle:'Bevor diese Klasse live geht',
+    goLiveNeedsPhoto:'Zuerst ein Foto hinzufügen', goLiveNeedsSeats:'Zuerst die Plätze eintragen', goLiveNeedsBags:'Zuerst das Gepäck eintragen', goLiveNeedsPrice:'Zuerst einen Preis im aktuellen Preisbuch eintragen',
+    
     emptyClassesTitle:'Noch keine Fahrzeugklassen', emptyClassesBody:'Klasse mit Foto, Name, Startpreis, Kilometersatz, max. Passagieren und max. Gepäckstücken hinzufügen.',
     searchDistance:'Klasse', nounClass:'Klasse', nounClasses:'Klassen',
     addRule:'Regel hinzufügen', editRule:'Regel bearbeiten', saveRule:'Regel speichern', deleteRuleTitle:'Diese Regel aus dem Entwurf löschen?', deleteRuleBody:'Diese Regel aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
@@ -499,8 +633,15 @@ const T = {
     emptyRoutesTitle:'Pas encore de paires de ville en ville', emptyRoutesBody:'Ajoutez une ville à ville, ou un canton à canton. Une ligne vaut pour A vers B et B vers A. Le public reste sur le dernier livre publié jusqu’à la publication.',
     searchRoutes:'De, vers ou ID', nounRoute:'trajet', nounRoutes:'trajets',
     hRoutePrice:'Laissez vide si cette classe n’est pas proposée sur ce trajet.',
-    addClass:'Ajouter une classe', editClass:'Modifier la classe', saveClass:'Enregistrer la classe', deleteClassTitle:'Supprimer cette classe du brouillon ?', deleteClassBody:'Supprimer cette classe du brouillon ? Le public ne change qu’après Publier.',
-    hideReason:'Motif', hideReasonPlaceholder:'Pourquoi elle est masquée, par exemple : plus proposée', hideConflictTitle:'Suppression impossible — encore utilisée', hideConflictBody:'Cette classe a des réservations. Masquez-la plutôt, et indiquez pourquoi.', hideConflictKeepVisible:'La laisser visible', hideWithReason:'Masquer avec un motif', hideError:'La classe n’a pas pu être masquée. Réessayez.',
+    addClass:'Ajouter une classe', editClass:'Modifier la classe', saveClass:'Enregistrer la classe', 
+    statusLive:'En ligne', statusDraft:'Brouillon', statusRetired:'Retirée', colStatus:'Statut',
+    retire:'Retirer', retireTitle:'Retirer cette classe ?', retireBody:'La classe quitte le site, le formulaire de nouvelle course et les nouveaux livres de prix. Les anciens livres de prix la gardent. Vous pouvez la remettre.',
+    retireReason:'Motif (facultatif)', retireReasonPlaceholder:'Pourquoi elle est retirée, par exemple : plus proposée', retireCancel:'Annuler',
+    retireCountMany:'chauffeurs sont dans cette classe', retireCountOne:'chauffeur est dans cette classe', retireUnassignedMany:'courses payées à venir n’ont pas encore de chauffeur', retireUnassignedOne:'course payée à venir n’a pas encore de chauffeur', retireLastLive:'C’est votre dernière classe en ligne. Les clients ne pourront plus réserver tant qu’une autre classe n’est pas en ligne.',
+    retiredTitle:'Classes retirées', bringBack:'Remettre', draftBtnLabel:'Brouillon : voir ce qui manque', itemDone:'Fait', itemMissing:'Manquant', goingLive:'Mise en ligne…', goLiveError:'La mise en ligne a échoué. Vérifiez la liste et réessayez.', retiring:'Retrait…', retireError:'Le retrait a échoué. Réessayez.', retiredToggleOpen:'Masquer les classes retirées', retiredToggleClosed:'Afficher les classes retirées', bringingBack:'Remise en cours…', bringBackAnnounce:'De retour en brouillon. Ajoutez un prix dans le livre de prix, puis mettez en ligne.', bringBackError:'La remise a échoué. Réessayez.',
+    needPhoto:'Photo', needSeats:'Places', needBags:'Bagages', needPrice:'Prix dans le livre de prix en vigueur', goLive:'Mettre en ligne', goLiveTitle:'Avant la mise en ligne de cette classe',
+    goLiveNeedsPhoto:'Ajoutez d’abord une photo', goLiveNeedsSeats:'Ajoutez d’abord les places', goLiveNeedsBags:'Ajoutez d’abord les bagages', goLiveNeedsPrice:'Ajoutez d’abord un prix dans le livre de prix en vigueur',
+    
     emptyClassesTitle:'Pas encore de classes', emptyClassesBody:'Ajoutez une classe avec photo, nom, tarif de départ, tarif au kilomètre, passagers max. et bagages max.',
     searchDistance:'Classe', nounClass:'classe', nounClasses:'classes',
     addRule:'Ajouter une règle', editRule:'Modifier la règle', saveRule:'Enregistrer la règle', deleteRuleTitle:'Supprimer cette règle du brouillon ?', deleteRuleBody:'Supprimer cette règle du brouillon ? Le public ne change qu’après Publier.',
@@ -588,8 +729,15 @@ const T = {
     emptyRoutesTitle:'لا توجد أزواج بين المدن بعد', emptyRoutesBody:'أضف مدينة إلى مدينة أو كانتون إلى كانتون. صفّ واحد يغطي من أ إلى ب ومن ب إلى أ. يبقى العام على آخر كتاب منشور حتى تنشر.',
     searchRoutes:'من أو إلى أو المعرّف', nounRoute:'مسار', nounRoutes:'مسارات',
     hRoutePrice:'اتركه فارغًا إن لم تُعرض هذه الفئة على هذا المسار.',
-    addClass:'إضافة فئة', editClass:'تعديل الفئة', saveClass:'حفظ الفئة', deleteClassTitle:'حذف هذه الفئة من المسودة؟', deleteClassBody:'حذف هذه الفئة من المسودة؟ لا يتغير العام حتى النشر.',
-    hideReason:'السبب', hideReasonPlaceholder:'سبب الإخفاء، مثلاً: لم تعد متاحة', hideConflictTitle:'لا يمكن الحذف — ما زالت مستخدمة', hideConflictBody:'لهذه الفئة حجوزات. أخفِها بدلاً من ذلك، واذكر السبب.', hideConflictKeepVisible:'إبقاؤها ظاهرة', hideWithReason:'إخفاء مع ذكر السبب', hideError:'تعذّر إخفاء الفئة. حاول مرة أخرى.',
+    addClass:'إضافة فئة', editClass:'تعديل الفئة', saveClass:'حفظ الفئة', 
+    statusLive:'مباشرة', statusDraft:'مسودة', statusRetired:'موقوفة', colStatus:'الحالة',
+    retire:'إيقاف', retireTitle:'إيقاف هذه الفئة؟', retireBody:'تغادر الفئة الموقع ونموذج الرحلة الجديدة وكتب الأسعار الجديدة. تحتفظ بها كتب الأسعار السابقة. يمكنك إعادتها.',
+    retireReason:'السبب (اختياري)', retireReasonPlaceholder:'سبب الإيقاف، مثلاً: لم تعد متاحة', retireCancel:'إلغاء',
+    retireCountMany:'سائقين في هذه الفئة', retireCountOne:'سائق في هذه الفئة', retireUnassignedMany:'رحلات مدفوعة قادمة بلا سائق بعد', retireUnassignedOne:'رحلة مدفوعة قادمة بلا سائق بعد', retireLastLive:'هذه آخر فئة مباشرة لديك. لن يتمكن العملاء من الحجز حتى تصبح فئة أخرى مباشرة.',
+    retiredTitle:'الفئات الموقوفة', bringBack:'إعادة', draftBtnLabel:'مسودة: عرض الناقص', itemDone:'تم', itemMissing:'ناقص', goingLive:'جارٍ التشغيل…', goLiveError:'تعذّر التشغيل. راجع القائمة وحاول مجددًا.', retiring:'جارٍ الإيقاف…', retireError:'تعذّر إيقاف الفئة. حاول مجددًا.', retiredToggleOpen:'إخفاء الفئات الموقوفة', retiredToggleClosed:'عرض الفئات الموقوفة', bringingBack:'جارٍ الإعادة…', bringBackAnnounce:'عادت كمسودة. أضف سعرًا في كتاب الأسعار ثم شغّلها.', bringBackError:'تعذّر إعادة الفئة. حاول مجددًا.',
+    needPhoto:'صورة', needSeats:'المقاعد', needBags:'الحقائب', needPrice:'سعر في كتاب الأسعار المباشر', goLive:'تشغيل مباشر', goLiveTitle:'قبل تشغيل هذه الفئة مباشرة',
+    goLiveNeedsPhoto:'أضف صورة أولاً', goLiveNeedsSeats:'أضف المقاعد أولاً', goLiveNeedsBags:'أضف الحقائب أولاً', goLiveNeedsPrice:'أضف سعراً في كتاب الأسعار المباشر أولاً',
+    
     emptyClassesTitle:'لا توجد فئات مركبات بعد', emptyClassesBody:'أضف فئة بالصورة والاسم وأجرة البداية وسعر الكيلومتر وأقصى عدد مسافرين وأقصى حقائب.',
     searchDistance:'الفئة', nounClass:'فئة', nounClasses:'فئات',
     addRule:'إضافة قاعدة', editRule:'تعديل القاعدة', saveRule:'حفظ القاعدة', deleteRuleTitle:'حذف هذه القاعدة من المسودة؟', deleteRuleBody:'حذف هذه القاعدة من المسودة؟ لا يتغير العام حتى النشر.',
@@ -684,10 +832,19 @@ class Component extends DCLogic {
     couponUses: [],
     publishOpen: false,
     discardOpen: false,
-    hideTarget: null,
-    hideReason: '',
-    hideBusy: false,
-    hideError: false,
+    classes: null,
+    retiredOpen: false,
+    goLiveTarget: null,
+    goLiveBusy: false,
+    goLiveLoading: false,
+    goLiveFailed: false,
+    retireTarget: null,
+    retireReason: '',
+    retireBusy: false,
+    retireError: false,
+    bringBusy: {},
+    bringError: {},
+    announce: false,
     changesOpen: false,
     changesBody: '',
     previewFrom: '',
@@ -716,6 +873,8 @@ class Component extends DCLogic {
     this.loadDraft();
     this.loadVat();
     this.loadCouponUses();
+    this.loadClasses();
+    if (window.VamosOps.chauffeurs && typeof window.VamosOps.chauffeurs.all === 'function') window.VamosOps.chauffeurs.all();
     this.forceUpdate();
   };
   _datePopRef = (el) => { this._datePop = el; };
@@ -734,6 +893,25 @@ class Component extends DCLogic {
     this._dateEsc = (e) => { if (e.key === 'Escape' && this.state.dateOpen) this.setState({ dateOpen: null }); };
     document.addEventListener('mousedown', this._dateAway);
     document.addEventListener('keydown', this._dateEsc);
+    // Phase 30 dialogs: Escape closes (not while saving) and Tab stays inside the dialog.
+    this._dlgKey = (e) => {
+      const st = this.state;
+      const which = st.goLiveTarget ? 'golive' : st.retireTarget ? 'retire' : '';
+      if (!which) return;
+      if (e.key === 'Escape') { if (which === 'golive') this.closeGoLive(); else this.closeRetire(); return; }
+      if (e.key !== 'Tab' || typeof document.querySelector !== 'function') return;
+      const box = document.querySelector('[role="dialog"]');
+      if (!box) return;
+      const f = Array.prototype.slice.call(box.querySelectorAll('button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),a[href]'));
+      if (!f.length) return;
+      const first = f[0];
+      const last = f[f.length - 1];
+      const a = document.activeElement;
+      if (!box.contains(a)) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && a === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', this._dlgKey);
   }
   // 260930-dash-design: hand the header's buttons to the phone bar after every render.
   publishBar = () => {
@@ -746,6 +924,17 @@ class Component extends DCLogic {
   };
   componentDidUpdate() {
     this.publishBar();
+    const goLiveOpen = !!this.state.goLiveTarget;
+    const retireOpen = !!this.state.retireTarget;
+    if (goLiveOpen && !this._goLiveWasOpen) this.focusSoon('[data-golive] [data-hide-actions] button');
+    if (retireOpen && !this._retireWasOpen) this.focusSoon('[data-retire-dialog] [data-hide-actions] button');
+    this._goLiveWasOpen = goLiveOpen;
+    this._retireWasOpen = retireOpen;
+    if (this._pendingFocus && !goLiveOpen && !retireOpen) {
+      const sel = this._pendingFocus.sel;
+      this._pendingFocus = null;
+      this.focusSoon(sel);
+    }
   }
   componentWillUnmount() {
     if (window.VamosOpsBar && typeof window.VamosOpsBar.clear === 'function') window.VamosOpsBar.clear('pricing');
@@ -753,7 +942,9 @@ class Component extends DCLogic {
     if (this._off) this._off();
     if (this._dateAway) document.removeEventListener('mousedown', this._dateAway);
     if (this._dateEsc) document.removeEventListener('keydown', this._dateEsc);
+    if (this._dlgKey) document.removeEventListener('keydown', this._dlgKey);
     clearTimeout(this._retry);
+    (this._focusTimers || []).forEach(clearTimeout);
     clearTimeout(this._toastT);
     clearTimeout(this._okT);
   }
@@ -869,45 +1060,139 @@ class Component extends DCLogic {
   };
   closePublish = () => this.setState({ publishOpen: false });
   openDiscard = () => this.setState({ discardOpen: true });
-  /* 26.1-19 D-15: delete a class. Unreferenced -> deleted. Still in use -> this second
-     dialog asks for a reason and hides it everywhere; "Keep it visible" changes nothing. */
-  deleteClassRow = (id, row) => {
+  /* Phase 30 class lifecycle (UI-SPEC rev 4): Go live and Retire are dialogs, the Retired list sits under the table.
+     Every state comes from the server row (status, missing, unassignedPaidTrips); nothing here deletes a class or
+     writes a price. */
+  loadClasses() {
     const ops = window.VamosOps;
-    if (!ops) return null;
-    const classId = row && row.vehicleClassId;
-    if (!classId || !ops.deleteClass) return ops.rates.remove(id);
-    return ops.deleteClass(classId, null).then((json) => {
-      if (json && json.ok === false && json.code === 'in-use') {
-        this.setState({
-          hideTarget: { id: classId, klass: String((row && (row.klass || row.name)) || '') },
-          hideReason: '', hideBusy: false, hideError: false,
-        });
-        return { ok: true };
-      }
-      if (json && json.ok) ops.rates.reset();
-      return json;
+    if (!ops || typeof ops.classes !== 'function') return Promise.resolve();
+    return ops.classes().then((rows) => this.setState({ classes: rows }));
+  }
+  askRetire = (row) => {
+    const id = row && row.vehicleClassId;
+    if (!id) return;
+    this.setState({
+      retireTarget: { id: id, klass: String(row.klass || row.name || '') },
+      retireReason: '', retireBusy: false, retireError: false,
     });
   };
-  setHideReason = (e) => {
-    const v = e && e.target ? e.target.value : e;
-    this.setState({ hideReason: String(v == null ? '' : v).slice(0, 140), hideError: false });
+  closeRetire = () => {
+    if (this.state.retireBusy) return;
+    this.setState({ retireTarget: null, retireReason: '', retireError: false });
   };
-  keepVisible = () => this.setState({ hideTarget: null, hideReason: '', hideBusy: false, hideError: false });
-  submitHide = () => {
+  setRetireReason = (e) => {
+    const v = e && e.target ? e.target.value : e;
+    this.setState({ retireReason: String(v == null ? '' : v).slice(0, 140), retireError: false });
+  };
+  submitRetire = () => {
     const ops = window.VamosOps;
-    const target = this.state.hideTarget;
-    const reason = String(this.state.hideReason || '').trim();
-    if (!ops || !ops.deleteClass || !target || !reason || this.state.hideBusy) return;
-    this.setState({ hideBusy: true, hideError: false });
-    ops.deleteClass(target.id, reason).then((json) => {
+    const target = this.state.retireTarget;
+    if (!ops || !target || this.state.retireBusy || typeof ops.retireClass !== 'function') return;
+    const reason = String(this.state.retireReason || '').trim();
+    this.setState({ retireBusy: true, retireError: false });
+    const fail = () => this.setState({ retireBusy: false, retireError: true });
+    ops.retireClass(target.id, reason || null).then((json) => {
       if (json && json.ok) {
         ops.rates.reset();
-        this.setState({ hideTarget: null, hideReason: '', hideBusy: false, hideError: false });
+        this._pendingFocus = { sel: '[data-retired-head]' };
+        this.loadClasses().then(() => {
+          this.setState({ retireTarget: null, retireReason: '', retireBusy: false, retireError: false });
+        }, () => {
+          this.setState({ retireTarget: null, retireReason: '', retireBusy: false, retireError: false });
+        });
         return;
       }
-      this.setState({ hideBusy: false, hideError: true });
-    }, () => this.setState({ hideBusy: false, hideError: true }));
+      fail();
+    }, fail);
   };
+  /* The checklist reads the server row, so every open re-reads the rows; GO LIVE stays off until that settles. */
+  openGoLive = (id, rowId) => {
+    this.setState({ goLiveTarget: { id: id, rowId: rowId }, goLiveBusy: false, goLiveFailed: false, goLiveLoading: true });
+    const done = () => this.setState({ goLiveLoading: false });
+    this.loadClasses().then(done, done);
+  };
+  closeGoLive = () => {
+    const g = this.state.goLiveTarget;
+    if (this.state.goLiveBusy) return;
+    if (g) this._pendingFocus = { sel: '[data-class-id="' + g.id + '"]' };
+    this.setState({ goLiveTarget: null, goLiveFailed: false });
+  };
+  editFromGoLive = () => {
+    const g = this.state.goLiveTarget;
+    if (!g || this.state.goLiveBusy) return;
+    this.setState({ goLiveTarget: null, goLiveFailed: false, distanceEditId: g.rowId || '', distanceEditTick: (this.state.distanceEditTick || 0) + 1 });
+  };
+  confirmGoLive = () => {
+    const g = this.state.goLiveTarget;
+    if (!g || this.state.goLiveBusy || this.state.goLiveLoading) return;
+    const c = (Array.isArray(this.state.classes) ? this.state.classes : []).filter((x) => x.id === g.id)[0];
+    if (!c || this.missingOf(c).length) return;
+    this.setState({ goLiveBusy: true, goLiveFailed: false });
+    const fail = () => {
+      this.setState({ goLiveBusy: false, goLiveFailed: true });
+      this.loadClasses();
+    };
+    const run = this.moveClass(g.id, 'goLiveClass');
+    if (!run || !run.then) { fail(); return; }
+    run.then((json) => {
+      if (json && json.ok) {
+        this._pendingFocus = { sel: '[data-class-id="' + g.id + '"]' };
+        this.setState({ goLiveTarget: null, goLiveBusy: false, goLiveFailed: false });
+        return;
+      }
+      fail();
+    }, fail);
+  };
+  /* The server's list of what a Draft still lacks (comma string photo,seats,bags,price); a row with no list is
+     treated as missing everything, never guessed complete. */
+  missingOf(c) {
+    const m = c ? c.missing : null;
+    if (m == null) return ['photo', 'seats', 'bags', 'price'];
+    const list = Array.isArray(m) ? m : String(m).split(',');
+    return list.map((x) => String(x).trim().toLowerCase()).filter(Boolean);
+  }
+  toggleRetired = () => this.setState({ retiredOpen: !this.state.retiredOpen });
+  moveClass(id, call) {
+    const ops = window.VamosOps;
+    if (!ops || typeof ops[call] !== 'function') return null;
+    return ops[call](id).then((json) => {
+      if (json && json.ok) {
+        ops.rates.reset();
+        return this.loadClasses().then(() => json, () => json);
+      }
+      return json;
+    });
+  }
+  bringBack = (id) => {
+    if (this.state.bringBusy[id]) return null;
+    const remaining = (Array.isArray(this.state.classes) ? this.state.classes : []).filter((c) => c.status === 'retired' && c.id !== id).length;
+    this.setState({ announce: false, bringBusy: Object.assign({}, this.state.bringBusy, { [id]: true }), bringError: Object.assign({}, this.state.bringError, { [id]: false }) });
+    const fail = () => this.setState({ bringBusy: Object.assign({}, this.state.bringBusy, { [id]: false }), bringError: Object.assign({}, this.state.bringError, { [id]: true }) });
+    const run = this.moveClass(id, 'bringBackClass');
+    if (!run || !run.then) { fail(); return null; }
+    return run.then((json) => {
+      if (json && json.ok) {
+        this._pendingFocus = { sel: remaining ? '[data-retired-head]' : '[data-class-id="' + id + '"]' };
+        this.setState({ announce: true, bringBusy: Object.assign({}, this.state.bringBusy, { [id]: false }) });
+        return json;
+      }
+      fail();
+      return json;
+    }, fail);
+  };
+  /* Focus: a dialog opens on its safe button; closing returns to the element named in _pendingFocus. */
+  focusSoon(sel) {
+    if (typeof document === 'undefined' || typeof document.querySelector !== 'function') return;
+    /* The table re-renders after Go live, so the target may not exist yet: retry, but never take focus the user moved (only body/none allows a retry). */
+    (this._focusTimers || []).forEach(clearTimeout);
+    this._focusTimers = [0, 80, 200, 450, 900, 1500].map((ms, i) => setTimeout(() => {
+      const el = document.querySelector(sel);
+      const cur = document.activeElement;
+      if (el && cur === el) { (this._focusTimers || []).forEach(clearTimeout); return; }
+      if (i > 0 && cur && cur !== document.body) { (this._focusTimers || []).forEach(clearTimeout); return; }
+      if (el && typeof el.focus === 'function') el.focus();
+    }, ms));
+  }
   closeDiscard = () => this.setState({ discardOpen: false });
   closeChanges = () => this.setState({ changesOpen: false, changesBody: '' });
   closeToast = () => this.setState({ showToast: false });
@@ -952,6 +1237,7 @@ class Component extends DCLogic {
       this.setState({ publishing: false, publishCode: '', gaps: [], publishOpen: false });
       this.notifyPublishOk(t.publishOk);
       this.loadDraft();
+      this.loadClasses();
       return;
     }
     const gaps = (json && Array.isArray(json.gaps)) ? json.gaps : this.state.gaps;
@@ -1170,6 +1456,75 @@ class Component extends DCLogic {
     const hasDraft = this.state.draftId != null;
     const hasGaps = rawGaps.length > 0;
     const completenessBody = !hasDraft ? t.completenessEmpty : hasGaps ? t.completenessGaps(rawGaps.length) : t.completenessReady;
+    // Phase 30: the state of a class is the server's `status` (live, draft, retired); a row without one shows no badge.
+    const DSx = window.VamosTaxiDesignSystem_245af1 || {};
+    const h = React.createElement;
+    const classList = Array.isArray(this.state.classes) ? this.state.classes : [];
+    const classById = {};
+    classList.forEach((c) => { classById[c.id] = c; });
+    const retiredClasses = classList.filter((c) => c.status === 'retired');
+    const retiredIds = {};
+    retiredClasses.forEach((c) => { retiredIds[c.id] = 1; });
+    // Go live checklist, always in this order (UI-SPEC rev 4): done or missing comes from the server `missing` list.
+    const NEEDS = [['photo', 'Photo', t.needPhoto], ['seats', 'Seats', t.needSeats], ['bags', 'Bags', t.needBags], ['price', 'Price', t.needPrice]];
+    const checklistOf = (c) => {
+      const miss = this.missingOf(c);
+      return NEEDS.map((n) => ({ key: n[1], label: n[2], done: miss.indexOf(n[0]) === -1 }));
+    };
+    // One small badge in the class cell: LIVE (charcoal, not a control) or DRAFT (outline button that opens the Go live list).
+    const classCell = (row) => {
+      const c = classById[row.vehicleClassId];
+      const nameNode = h('span', { 'data-class-name': '1', 'data-vt-no-i18n': '1' }, row.klass);
+      if (c && c.status === 'draft') {
+        const saving = !!(this.state.goLiveBusy && this.state.goLiveTarget && this.state.goLiveTarget.id === c.id);
+        return h('span', { 'data-class-cell': '1' }, nameNode,
+          h('button', { type: 'button', 'data-draft-btn': '1', 'data-class-id': c.id, 'aria-haspopup': 'dialog', 'aria-label': t.draftBtnLabel,
+            'aria-disabled': saving ? 'true' : undefined,
+            onClick: (e) => { if (e && e.stopPropagation) e.stopPropagation(); if (saving) return; this.openGoLive(c.id, row.id); } },
+          h(DSx.Badge, { tone: 'outline' }, t.statusDraft)));
+      }
+      if (c && c.status === 'live') {
+        return h('span', { 'data-class-cell': '1' }, nameNode,
+          h('span', { 'data-live-badge': '1', 'data-class-id': c.id, tabIndex: -1 }, h(DSx.Badge, { tone: 'inverse' }, t.statusLive)));
+      }
+      return h('span', { 'data-class-cell': '1' }, nameNode);
+    };
+    const goLiveTarget = this.state.goLiveTarget;
+    const goLiveClass = goLiveTarget ? classById[goLiveTarget.id] : null;
+    const goLiveList = goLiveClass ? checklistOf(goLiveClass) : [];
+    const goLiveMissing = goLiveList.filter((i) => !i.done);
+    // A count the class row or its rate row does not hold stays '' (shown as a dash); never a made-up 3 (decision 6).
+    const countOf = (v) => (v === null || v === undefined || v === '' || !Number.isFinite(Number(v)) ? '' : Number(v));
+    const firstCount = (list) => { for (let i = 0; i < list.length; i++) { const n = countOf(list[i]); if (n !== '') return n; } return ''; };
+    const ratedIds = {};
+    uniqueByClass(ops ? ops.rates.all() : []).forEach((r) => { if (r.vehicleClassId) ratedIds[r.vehicleClassId] = 1; });
+    const draftOnlyRows = classList.filter((c) => c.status === 'draft' && !ratedIds[c.id]).map((c) => ({
+      id: 'class:' + c.id, klass: c.name || c.klass, name: c.name || c.klass, vehicleClassId: c.id, slug: c.slug || '',
+      photo: c.photoPath || c.photo || '', photoPath: c.photoPath || c.photo || '', sortOrder: Number(c.sortOrder) || 0,
+      baseFare: '', perKm: '', airportStart: '', maxPax: countOf(c.passengerCapacity), maxBags: countOf(c.luggageCapacity),
+      available: true, hideFromPublic: false, hiddenReason: '',
+    }));
+    const retiring = !!this.state.retireTarget;
+    // Retire dialog notes: chauffeurs on the class (store rows only, unloaded or failed reads stay empty and hide the line)
+    // and the last-Live warning (the class is Live and no other class is).
+    const retireId = retiring ? String(this.state.retireTarget.id || '') : '';
+    const chaufRows = (ops && ops.chauffeurs && typeof ops.chauffeurs.peek === 'function') ? ops.chauffeurs.peek() : [];
+    const retireCount = retireId ? chaufRows.filter((c) => String((c && (c.vehicleClassId || c.vehicle_class_id)) || '').trim() === retireId).length : 0;
+    const retireCountShow = retireCount > 0;
+    // Arabic count form for the two chauffeur count lines (owner answer 2026-10-12; same rule in OpsPricing and
+    // OpsDetail, pinned by ops-dc-arabic-count-lines.test.ts): 1 and 2 in words with no numeral, 3–10 plural,
+    // 11–99 singular accusative, 100+ genitive singular (the dictionary's bags rule).
+    const arCountForm = (n) => n === 1 ? '1' : n === 2 ? '2' : (n >= 3 && n <= 10) ? 'Few' : (n >= 11 && n <= 99) ? 'Many' : 'Other';
+    const retireCountNumShow = lang !== 'ar' || retireCount >= 3;
+    const retireCountWords = lang === 'ar' ? AR_COUNT['retireCountAr' + arCountForm(retireCount)] : (retireCount === 1 ? t.retireCountOne : t.retireCountMany);
+    // Decision 3 (signed 2026-10-12): paid trips ahead in this class with no chauffeur yet. The server sends the
+    // count on the class row (30-04, same frozen-status + captured-payment rule as Assign); the prototype reads it.
+    const retireUnassigned = retireId && classById[retireId] ? (Number(classById[retireId].unassignedPaidTrips) || 0) : 0;
+    const retireUnassignedShow = retireUnassigned > 0;
+    const retireUnassignedNumShow = lang !== 'ar' || retireUnassigned >= 3;
+    const retireUnassignedWords = lang === 'ar' ? AR_COUNT['retireUnassignedAr' + arCountForm(retireUnassigned)] : (retireUnassigned === 1 ? t.retireUnassignedOne : t.retireUnassignedMany);
+    const retireLastLiveShow = !!(retireId && classById[retireId] && classById[retireId].status === 'live'
+      && !classList.some((c) => c.id !== retireId && c.status === 'live'));
     const locationOptions = ((ops && ops.LOCATIONS) || []).map((l) => ({ value: l, label: l }));
     const rates = uniqueByClass(ops ? ops.rates.all() : []);
     const ratedClasses = rates.map((r) => ({
@@ -1320,15 +1675,17 @@ class Component extends DCLogic {
       publish: this.publish, discard: this.discard,
       openPublish: this.openPublish, closePublish: this.closePublish,
       openDiscard: this.openDiscard, closeDiscard: this.closeDiscard,
-      hideOpen: !!this.state.hideTarget, hideReason: this.state.hideReason, hideReasonMax: 140,
-      setHideReason: this.setHideReason, keepVisible: this.keepVisible, submitHide: this.submitHide,
-      hideSubmitDisabled: !String(this.state.hideReason || '').trim() || this.state.hideBusy,
-      n3: 3, hideErrorText: this.state.hideError ? t.hideError : '',
-      hideReasonCount: String(String(this.state.hideReason || '').length) + ' / 140',
-      tHideReason: t.hideReason, tHideReasonPlaceholder: t.hideReasonPlaceholder,
-      tHideConflictTitle: t.hideConflictTitle, tHideConflictBody: t.hideConflictBody,
-      tHideConflictKeepVisible: t.hideConflictKeepVisible, tHideWithReason: t.hideWithReason,
-      hideClassName: this.state.hideTarget ? this.state.hideTarget.klass : '',
+      retireOpen: retiring, retireReason: this.state.retireReason, retireReasonMax: 140, retireBusy: this.state.retireBusy,
+      setRetireReason: this.setRetireReason, closeRetire: this.closeRetire, submitRetire: this.submitRetire,
+      retireNotes: retireCountShow || retireUnassignedShow || retireLastLiveShow, retireCountShow: retireCountShow, retireCountN: String(retireCount),
+      retireCountWords: retireCountWords, retireCountNumShow: retireCountNumShow,
+      retireUnassignedShow: retireUnassignedShow, retireUnassignedN: String(retireUnassigned), retireUnassignedWords: retireUnassignedWords, retireUnassignedNumShow: retireUnassignedNumShow,
+      retireLastLiveShow: retireLastLiveShow, tRetireLastLive: t.retireLastLive,
+      tRetireTitle: t.retireTitle, tRetireBody: t.retireBody, tRetireReason: t.retireReason, tRetireReasonPlaceholder: t.retireReasonPlaceholder,
+      tRetireCancel: t.retireCancel, retireSubmitLabel: this.state.retireBusy ? t.retiring : t.retire,
+      n3: 3, retireErrorText: this.state.retireError ? t.retireError : '',
+      retireReasonCount: String(String(this.state.retireReason || '').length) + ' / 140',
+      retireClassName: this.state.retireTarget ? this.state.retireTarget.klass : '',
       publishOpen: this.state.publishOpen, discardOpen: this.state.discardOpen,
       tCompletenessBody: completenessBody,
       tBandOverlapWarn: t.bandOverlapWarn,
@@ -1409,7 +1766,7 @@ class Component extends DCLogic {
       tSearchRoutes: t.searchRoutes, routeSearchKeys: ['id', 'from', 'to'],
       tEmptyRoutesTitle: t.emptyRoutesTitle, tEmptyRoutesBody: t.emptyRoutesBody,
 
-      distanceRows: byClassOrder(uniqueByClass(rates).map((r) => ({
+      distanceRows: byClassOrder(uniqueByClass(rates).filter((r) => !retiredIds[r.vehicleClassId]).map((r) => ({
         id: r.id,
         klass: r.name || r.klass,
         name: r.name || r.klass,
@@ -1421,21 +1778,21 @@ class Component extends DCLogic {
         baseFare: chfOf(r.baseFare),
         perKm: chfOf(r.perKm),
         airportStart: chfOf(r.airportStart),
-        maxPax: r.maxPax || 3,
-        maxBags: r.maxBags || r.luggageCapacity || 3,
+        maxPax: firstCount([r.maxPax, (classById[r.vehicleClassId] || {}).passengerCapacity]),
+        maxBags: firstCount([r.maxBags, r.luggageCapacity, (classById[r.vehicleClassId] || {}).luggageCapacity]),
         available: r.available !== false,
         hideFromPublic: !!r.hideFromPublic,
         hiddenReason: String(r.hiddenReason || ''),
-      }))),
+      })).concat(draftOnlyRows)),
       distanceColumns: [
         { key:'__order', header:'', width:'44px', kind:'order', upLabel: t.moveClassUp, downLabel: t.moveClassDown },
         { key:'photo', header: t.colPhoto, width:'64px', kind:'photo' },
-        { key:'klass', header: t.colClass, width:'120px' },
+        { key:'klass', header: t.colClass, width:'190px', lookup: classCell },
         { key:'baseFare', header: t.startFare, lookup:(r) => moneyOrDash(r.baseFare) },
         { key:'perKm', header: t.perKm, lookup:(r) => moneyOrDash(r.perKm) },
         { key:'airportStart', header: t.airportStart, lookup:(r) => moneyOrDash(r.airportStart) },
-        { key:'maxPax', header: t.maxPax, width:'90px' },
-        { key:'maxBags', header: t.maxBags, width:'90px' },
+        { key:'maxPax', header: t.maxPax, width:'90px', lookup:(r) => (r.maxPax === '' || r.maxPax == null ? '—' : r.maxPax) },
+        { key:'maxBags', header: t.maxBags, width:'90px', lookup:(r) => (r.maxBags === '' || r.maxBags == null ? '—' : r.maxBags) },
         { key:'hideFromPublic', header: t.hidePublic, kind:'bool', toggle:true, onLabel:t.hiddenPublic, offLabel:t.shownPublic, subKey:'hiddenReason' },
       ],
       distanceFields: [
@@ -1444,12 +1801,13 @@ class Component extends DCLogic {
         { key:'baseFare', label:t.startFare, half:true, placeholder:'000', icon:'banknote', suffix:'CHF' },
         { key:'airportStart', label:t.airportStart, half:true, placeholder:'000', icon:'banknote', suffix:'CHF' },
         { key:'perKm', label:t.perKm, half:true, placeholder:'0.00', icon:'navigation', suffix:'CHF' },
-        { key:'maxPax', label:t.maxPax, editor:'number', min:1, half:true, icon:'users' },
-        { key:'maxBags', label:t.maxBags, editor:'number', min:0, half:true, icon:'luggage' },
+        { key:'maxPax', label:t.maxPax, editor:'number', min:1, half:true, icon:'users', allowEmpty:true },
+        { key:'maxBags', label:t.maxBags, editor:'number', min:0, half:true, icon:'luggage', allowEmpty:true },
       ],
       distanceBlank: () => {
-        const blank = ops ? ops.rates.blank() : { klass:'', baseFare:{}, perKm:{}, maxPax:3, maxBags:3, hideFromPublic:false, photo:'' };
-        return Object.assign({}, blank, { baseFare:'', perKm:'', airportStart:'', photo:'', maxBags: blank.maxBags || 3 });
+        const blank = ops ? ops.rates.blank() : { klass:'', baseFare:{}, perKm:{}, maxPax:'', maxBags:'', hideFromPublic:false, photo:'' };
+        // Decision 6 (signed 2026-10-12): a new class starts with seats and bags empty; Go live waits for both.
+        return Object.assign({}, blank, { baseFare:'', perKm:'', airportStart:'', photo:'', maxPax:'', maxBags:'' });
       },
       saveDistance: (rec) => {
         if (!ops) return null;
@@ -1480,7 +1838,7 @@ class Component extends DCLogic {
         if (out && typeof out.then === 'function') out.then(() => this.loadDraft());
         return out;
       },
-      deleteDistance: (id, row) => ops ? this.deleteClassRow(id, row) : null,
+      deleteDistance: (id, row) => this.askRetire(row),
       reorderDistance: (rows) => {
         if (!ops || !ops.rates || typeof ops.rates.reorder !== 'function') return null;
         const order = [];
@@ -1493,7 +1851,31 @@ class Component extends DCLogic {
       },
       tNounClass: t.nounClass, tNounClasses: t.nounClasses,
       tAddClass: t.addClass, tEditClass: t.editClass, tSaveClass: t.saveClass,
-      tDeleteClassTitle: t.deleteClassTitle, tDeleteClassBody: t.deleteClassBody,
+      tRetire: t.retire, no: false, n12: 12, n20: 20,
+      goLiveOpen: !!goLiveClass, goLiveName: goLiveClass ? (goLiveClass.name || goLiveClass.klass) : '',
+      goLiveItems: goLiveList.map((i) => ({
+        label: i.label, state: i.done ? 'done' : 'missing', stateLabel: i.done ? t.itemDone : t.itemMissing,
+        icon: i.done ? 'circle-check' : 'circle-alert', color: i.done ? 'var(--vt-success)' : 'var(--vt-danger)',
+        textColor: i.done ? 'var(--vt-text-primary)' : 'var(--vt-danger)',
+      })),
+      goLiveBlocked: goLiveMissing.length > 0, goLiveWhy: goLiveMissing.length ? t['goLiveNeeds' + goLiveMissing[0].key] : '',
+      goLiveBusy: this.state.goLiveBusy, goLiveFailed: this.state.goLiveFailed, tGoLiveError: t.goLiveError,
+      goLiveDisabled: goLiveMissing.length > 0 || this.state.goLiveBusy || this.state.goLiveLoading,
+      goLiveButtonLabel: this.state.goLiveBusy ? t.goingLive : t.goLive,
+      closeGoLive: this.closeGoLive, confirmGoLive: this.confirmGoLive, editFromGoLive: this.editFromGoLive,
+      tGoLiveTitle: t.goLiveTitle, tGoLive: t.goLive, tEditClassBtn: t.editClass,
+      askRetire: this.askRetire, toggleRetired: this.toggleRetired,
+      hasRetired: retiredClasses.length > 0, retiredOpen: this.state.retiredOpen,
+      retiredChevron: this.state.retiredOpen ? 'chevron-up' : 'chevron-down',
+      retiredToggleLabel: this.state.retiredOpen ? t.retiredToggleOpen : t.retiredToggleClosed,
+      retiredCount: Array.isArray(this.state.classes) ? String(retiredClasses.length) : '…', tRetiredTitle: t.retiredTitle,
+      tBringBackError: t.bringBackError, announceText: this.state.announce ? t.bringBackAnnounce : '',
+      retiredItems: retiredClasses.map((c) => {
+        const busy = !!this.state.bringBusy[c.id];
+        const reason = String(c.retiredReason || '').trim();
+        return { name: c.name || c.klass, reason: reason, hasReason: reason !== '', bring: () => this.bringBack(c.id),
+          busy: busy, label: busy ? t.bringingBack : t.bringBack, error: !!this.state.bringError[c.id] };
+      }),
       tSearchDistance: t.searchDistance, distanceSearchKeys: ['klass'],
       tEmptyClassesTitle: t.emptyClassesTitle, tEmptyClassesBody: t.emptyClassesBody,
 

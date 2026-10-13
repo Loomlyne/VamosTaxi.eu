@@ -1,0 +1,37 @@
+import { start, open, goPricing, signIn, dlgText, S, db, goLiveInfo, gl, jpeg, EV } from "./lib.mjs";
+await start({ evidenceDir: process.argv[2] });
+const s = await open({ viewport: 1440, name: "s1440" });
+await signIn(s);
+await goPricing(s);
+const badgeBtn = () => s.page.locator("[data-draft-btn]").first();
+const seatsBags = async () => (await dlgText(s.page)).match(/Max passengers \| (\S+) \| Max bags \| (\S+)/)?.slice(1).join("/");
+const openEditFromBadge = async () => { await badgeBtn().click(); await s.page.waitForTimeout(700); await s.page.locator('[role="dialog"] button', { hasText: /^edit class$/i }).click(); await s.page.waitForTimeout(900); };
+const save = async () => { await s.page.locator('[role="dialog"] button', { hasText: /^save class$/i }).click(); await s.page.waitForTimeout(3000); };
+await S("S2b", "photo then seats", async () => {
+  const jp = await jpeg(s.page, `${EV}/lab-photo.jpg`);
+  await openEditFromBadge();
+  console.log("editor:", await dlgText(s.page));
+  await s.page.locator('[role="dialog"] input[type=file]').setInputFiles(jp);
+  await s.page.waitForTimeout(1500);
+  console.log("after pick:", await dlgText(s.page));
+  await save();
+  console.log("after save, dialog:", await dlgText(s.page));
+  await badgeBtn().click(); await s.page.waitForTimeout(800);
+  const a = await goLiveInfo(s.page);
+  await s.shot("S2b-after-photo");
+  // close dialog, open editor, seats
+  await s.page.locator('[role="dialog"] button', { hasText: /^edit class$/i }).click(); await s.page.waitForTimeout(900);
+  const inc = s.page.locator('[role="dialog"] button[aria-label="Increase"]');
+  const before = await seatsBags();
+  await inc.nth(0).click(); const one = await seatsBags();
+  await inc.nth(0).click(); await inc.nth(0).click();
+  const three = await seatsBags();
+  await save();
+  await badgeBtn().click(); await s.page.waitForTimeout(800);
+  const b = await goLiveInfo(s.page);
+  await s.shot("S2b-after-seats");
+  const dbr = db("select passenger_capacity, luggage_capacity, active, (select count(*) from public.vehicle_class_photos p where p.vehicle_class_id = vc.id) from public.vehicle_classes vc where name = 'Lab Draft Class'");
+  const ok = a.items[0].startsWith("Photo=done") && a.why === "Add the seats first" && /go live:disabled/i.test(a.btns.join()) && b.items[1].startsWith("Seats=done") && b.items[0].startsWith("Photo=done") && b.why === "Add the bags first" && /go live:disabled/i.test(b.btns.join());
+  return { s, ok, evidence: `after photo: ${gl(a)} || steppers ${before} -> first click ${one} -> ${three}; after seats: ${gl(b)}; db ${dbr}` };
+}, { s });
+process.exit(0);

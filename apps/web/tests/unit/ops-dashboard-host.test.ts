@@ -97,6 +97,7 @@ describe("dashboard redirects are never cached (26.2 audit U07-1)", () => {
     const host = middleware.slice(middleware.indexOf("async function dashboardHostMiddleware"));
     const body = host.slice(0, host.indexOf("\nfunction opsRedirectUrl"));
     expect(body).not.toMatch(/NextResponse\.redirect\(/);
-    expect(body.match(/dashboardRedirect\(/g)).toHaveLength(4);
+    // 4 + the two Phase 30 /fleet -> /chauffeurs forwards (ops-changes and signed-in branches)
+    expect(body.match(/dashboardRedirect\(/g)).toHaveLength(6);
   });
 });

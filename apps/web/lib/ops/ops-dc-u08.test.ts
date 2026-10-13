@@ -22,12 +22,12 @@ function grab(src: string, re: RegExp, label: string): string {
   return m[1];
 }
 
-describe("OpsFleet chauffeur delete", () => {
+describe("OpsChauffeurs chauffeur delete", () => {
   it("onDelete hands the store's answer back to OpsTable as a promise (else the dialog reports a failure)", async () => {
     // 261001-chauffeur-car: onDelete now names the trips that went back to unassigned (decision 7)
     // before OpsTable closes, so it hands back a promise of the store's answer, not the same object.
-    const src = readDc("OpsFleet.dc.html");
-    const body = grab(src, /\n\s*onDelete: (\(id\) => \{[\s\S]*?\n\s{6}\}),\n\s*noun:/, "OpsFleet onDelete");
+    const src = readDc("OpsChauffeurs.dc.html");
+    const body = grab(src, /\n\s*onDelete: (\(id\) => \{[\s\S]*?\n\s{6}\}),\n\s*noun:/, "OpsChauffeurs onDelete");
     const answer = { ok: true };
     const onDelete = new Function("store", "unassignedNotice", `return ${body};`).call(
       { setState() {} },
@@ -270,10 +270,10 @@ describe("OpsDetail edit form save", () => {
   });
 });
 
-describe("OpsFleet chauffeur languages", () => {
-  const src = readDc("OpsFleet.dc.html");
+describe("OpsChauffeurs chauffeur languages", () => {
+  const src = readDc("OpsChauffeurs.dc.html");
   // Everything between the script tag and the component class: constants and the copy table.
-  const head = grab(src, /<script type="text\/x-dc" data-dc-script[^>]*>\n([\s\S]*?)\nclass Component extends DCLogic/, "OpsFleet head");
+  const head = grab(src, /<script type="text\/x-dc" data-dc-script[^>]*>\n([\s\S]*?)\nclass Component extends DCLogic/, "OpsChauffeurs head");
   const optionsExpr = grab(src, /key:'languages',[^\n]*options:([^,\n]+(?:\([^\n]*?\)\))?), icon:'globe'/, "languages options");
   const build = new Function(
     "lang",

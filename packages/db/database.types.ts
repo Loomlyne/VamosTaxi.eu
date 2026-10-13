@@ -1602,7 +1602,7 @@ export type Database = {
           city_price_rappen: number | null
           hide_from_public: boolean
           id: number
-          max_pax: number
+          max_pax: number | null
           min_fare_rappen: number | null
           per_km_rappen: number | null
           rate_version_id: number
@@ -1615,7 +1615,7 @@ export type Database = {
           city_price_rappen?: number | null
           hide_from_public?: boolean
           id?: never
-          max_pax: number
+          max_pax?: number | null
           min_fare_rappen?: number | null
           per_km_rappen?: number | null
           rate_version_id: number
@@ -1628,7 +1628,7 @@ export type Database = {
           city_price_rappen?: number | null
           hide_from_public?: boolean
           id?: never
-          max_pax?: number
+          max_pax?: number | null
           min_fare_rappen?: number | null
           per_km_rappen?: number | null
           rate_version_id?: number
@@ -2700,9 +2700,9 @@ export type Database = {
           hidden_at: string | null
           hidden_reason: string | null
           id: string
-          luggage_capacity: number
+          luggage_capacity: number | null
           name: string | null
-          passenger_capacity: number
+          passenger_capacity: number | null
           photo_path: string | null
           slug: string
           sort_order: number
@@ -2712,9 +2712,9 @@ export type Database = {
           hidden_at?: string | null
           hidden_reason?: string | null
           id?: string
-          luggage_capacity: number
+          luggage_capacity?: number | null
           name?: string | null
-          passenger_capacity: number
+          passenger_capacity?: number | null
           photo_path?: string | null
           slug: string
           sort_order?: number
@@ -2724,9 +2724,9 @@ export type Database = {
           hidden_at?: string | null
           hidden_reason?: string | null
           id?: string
-          luggage_capacity?: number
+          luggage_capacity?: number | null
           name?: string | null
-          passenger_capacity?: number
+          passenger_capacity?: number | null
           photo_path?: string | null
           slug?: string
           sort_order?: number
@@ -2977,6 +2977,10 @@ export type Database = {
           outcome: string
           request_id: string
         }[]
+      }
+      booking_edit_request_class_retired: {
+        Args: { p_request_id: string }
+        Returns: boolean
       }
       booking_edit_request_set_extra_session: {
         Args: { p_extra_session_id: string; p_request_id: string }
@@ -3960,6 +3964,18 @@ export type Database = {
       ops_vehicle_class_delete_or_hide: {
         Args: { p_id: string; p_reason: string }
         Returns: string
+      }
+      ops_vehicle_class_missing: {
+        Args: { p_id: string }
+        Returns: string
+      }
+      ops_vehicle_class_set_status: {
+        Args: { p_id: string; p_reason: string; p_to: string }
+        Returns: string
+      }
+      ops_vehicle_class_unassigned_paid_trips: {
+        Args: { p_id: string }
+        Returns: number
       }
       paid_cancel_mail_read: {
         Args: { p_booking_id: string }

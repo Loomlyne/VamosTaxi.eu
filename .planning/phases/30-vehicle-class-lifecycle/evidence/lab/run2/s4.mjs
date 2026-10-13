@@ -1,0 +1,21 @@
+import { start, open, goPricing, signIn, dlgText, S, db, retireInfo } from "./lib.mjs";
+await start({ evidenceDir: process.argv[2] });
+const s = await open({ viewport: 1440, name: "s1440" });
+await signIn(s);
+await goPricing(s);
+const rowOf = (n) => s.page.locator("tr", { has: s.page.locator("[data-class-name]", { hasText: new RegExp(`^${n}$`) }) });
+await S("S4", "Retire Lab Draft Class", async () => {
+  const cnt0 = await s.page.locator("[data-retired-count]").innerText();
+  await rowOf("Lab Draft Class").locator('button[aria-label="Retire"]').click(); await s.page.waitForTimeout(1200);
+  const info = await retireInfo(s.page);
+  await s.page.locator('[role="dialog"] textarea').fill("No longer offered");
+  await s.shot("S4-dialog");
+  await s.page.locator('[role="dialog"] button', { hasText: /^retire$/i }).click(); await s.page.waitForTimeout(3000);
+  const cnt1 = await s.page.locator("[data-retired-count]").innerText();
+  const gone = (await rowOf("Lab Draft Class").count()) === 0;
+  const focus = await s.page.evaluate(() => { const a = document.activeElement; return a ? `${a.tagName} ${a.hasAttribute("data-retired-head") ? "data-retired-head" : a.outerHTML.slice(0, 100)}` : "none"; });
+  const dbr = db("select hidden_at is not null, hidden_reason from public.vehicle_classes where name = 'Lab Draft Class'");
+  const ok = gone && cnt0 === "1" && cnt1 === "2" && /data-retired-head/.test(focus) && dbr === "t|No longer offered";
+  return { s, ok, evidence: `dialog notes ${JSON.stringify(info.notes)} lastLive=${info.lastLive}; row gone from table: ${gone}; retired count ${cnt0} -> ${cnt1}; focus ${focus}; db ${dbr}` };
+}, { s });
+process.exit(0);

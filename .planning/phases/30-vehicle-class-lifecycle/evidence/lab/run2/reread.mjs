@@ -1,0 +1,10 @@
+import { start, open, goPricing, signIn, S, db, goLiveInfo, gl } from "./lib.mjs";
+await start({ evidenceDir: process.argv[2] });
+const s = await open({ viewport: 1440, name: "s1440" });
+await signIn(s);
+await goPricing(s);
+s.page.on("response", r => { if (r.url().includes("/api/staff")) console.log("API", r.request().method(), r.url().replace(/^.*\/api/, "/api"), r.status()); });
+await s.page.locator("[data-draft-btn]").first().click(); await s.page.waitForTimeout(800);
+console.log("fresh load:", gl(await goLiveInfo(s.page)));
+console.log(db("select passenger_capacity, luggage_capacity, photo_path from public.vehicle_classes where name = 'Lab Draft Class'"));
+process.exit(0);

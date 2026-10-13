@@ -102,6 +102,7 @@
 [data-ops-assign-act] .vt-btn.vt-btn--ghost:hover:not([disabled]){border-color:transparent;background:var(--vt-grey-50)}
 [data-ops-assign] [data-ops-pax-k]{align-self:center;padding-top:0}
 [data-ops-assign-under]{grid-column:2;max-inline-size:640px}
+[data-ops-assign-leftout]{margin:8px 0 0;font-size:13px;line-height:1.5;color:var(--vt-text-muted)}
 [data-ops-assign-note]{margin:0;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-muted)}
 [data-ops-assign-err]{margin:0;display:flex;align-items:flex-start;gap:8px;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-danger);text-wrap:pretty}
 [data-ops-assign-err] > :first-child{flex:0 0 auto;margin-top:2px}
@@ -222,6 +223,9 @@
 </sc-if>
 <sc-if value="{{ showNoDriverText }}" hint-placeholder-val="{{ false }}">
 <span data-ops-pax-v style="display:flex;flex-direction:column;gap:2px"><span>{{ tNoDriver }}</span><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tNoDriverSub }}</span></span>
+</sc-if>
+<sc-if value="{{ showLeftOut }}" hint-placeholder-val="{{ false }}">
+<p data-ops-assign-leftout="1" data-ops-assign-under><sc-if value="{{ leftOutNumShow }}" hint-placeholder-val="{{ true }}"><span class="vt-dir-keep" data-vt-no-i18n style="white-space:nowrap">{{ leftOutN }}</span> </sc-if>{{ tLeftOut }}</p>
 </sc-if>
 <sc-if value="{{ showNoDrivers }}" hint-placeholder-val="{{ false }}">
 <p data-ops-assign-note data-ops-assign-under>{{ tNoDrivers }}</p>
@@ -563,11 +567,12 @@ function fillAmounts(str, map) {
 /* 261001-chauffeur-car (owner, 2026-10-01): "When I assign a driver the driver that appear must
    match the request of the class." Only the chauffeurs whose class is the trip's class; no car.
    A row without a known trip class (an old store) lists everyone — the server still refuses. */
-function assignableChauffeurs(tripClassId) {
+function assignableChauffeurs(tripClassId, retiredIds) {
   const ops = window.VamosOps;
   if (!ops || !ops.chauffeurs) return [];
   const want = String(tripClassId || '');
-  return (ops.chauffeurs.all() || []).filter((c) => c && c.id && (!want || String(c.vehicleClassId || '') === want));
+  const gone = retiredIds || {};
+  return (ops.chauffeurs.all() || []).filter((c) => c && c.id && !gone[String(c.vehicleClassId || '')] && (!want || String(c.vehicleClassId || '') === want));
 }
 /* Signed 2026-10-01: Complete and No-show are offered once the pickup time has passed (Zurich).
    pickupAt is the instant; without it, the row's Zurich date and time are turned into one. */
@@ -768,6 +773,9 @@ function tripPreviewBody(booking, ed) {
   if (tf.bagsChanged && !tf.bagsBad) body.bags = Number(e.bags);
   return body;
 }
+/* Arabic count forms of the "left out" line (owner answer 2026-10-12): kept outside T because only Arabic has
+   them (T stays key-identical across languages). Chosen by arCountForm in renderVals. */
+const AR_COUNT = { assignLeftOutAr1:'سائق واحد مستبعد: فئة موقوفة', assignLeftOutAr2:'سائقان مستبعدان: فئة موقوفة', assignLeftOutArFew:'سائقين مستبعدين: فئة موقوفة', assignLeftOutArMany:'سائقًا مستبعدًا: فئة موقوفة', assignLeftOutArOther:'سائق مستبعد: فئة موقوفة' };
 const T = {
   en: { backToBookings:'Back to bookings', bookedBy:'booked by', moreActions:'More actions', details:'Details', history:'History', historyEmpty:'No events yet.',
     assignment:'Assignment', assign:'Assign driver', reassign:'Reassign', unassign:'Unassign', onShift:'On shift', noDriver:'No driver assigned', noDriverSub:'Assign before the pickup reminder goes out',
@@ -784,7 +792,7 @@ const T = {
     evPayment:'Payment captured', evRefund:'Refund issued', evVoucher:'Voucher sent', evAssigned:'Driver assigned', evVehicle:'Vehicle assigned', evCleared:'Assignment cleared',
     evQuoted:'Quote saved', evCreated:'Booking created', evPayStarted:'Payment started', evStatus:'Status changed', included:'Included',
     overlap:'Overlaps {ref} at {time}', noEmail:'Cannot assign until this chauffeur has an email on file.', noClass:'{name} has no class yet. Choose one on Chauffeurs.', classMismatch:'{name} drives {driver}; the trip is {trip}.',
-    actions:'Actions', plate:'Plate', chooseChauffeur:'Choose a chauffeur', assignBtn:'Assign', change:'Change', noDrivers:'No drivers yet. Add one on Chauffeurs.', noDriversClass:'No chauffeur has the class {class} yet. Choose it on Chauffeurs.', chooseDriver:'Choose the driver',
+    actions:'Actions', plate:'Plate', chooseChauffeur:'Choose a chauffeur', assignBtn:'Assign', change:'Change', noDrivers:'No drivers yet. Add one on Chauffeurs.', assignLeftOutMany:'chauffeurs left out: retired class', assignLeftOutOne:'chauffeur left out: retired class', noDriversClass:'No chauffeur has the class {class} yet. Choose it on Chauffeurs.', chooseDriver:'Choose the driver',
     notPaid:'Unpaid trips cannot be assigned.', frozen:'This trip is frozen.', capacity:'This trip has more passengers or bags than its class takes.', assignFailed:'Could not assign ',
     pickChauffeur:'Pick a chauffeur first.', voucherFailed:'Could not resend voucher ',
     website:'Website', stripeWebhook:'Stripe webhook', resend:'Resend', dispatch:'Dispatch',
@@ -897,7 +905,7 @@ const T = {
     voucherResent:'Gutschein erneut gesendet an ', driverAssigned:'Fahrer zugewiesen zu ', unassignedOk:'Zuweisung aufgehoben für ',
     evPayment:'Zahlung erfasst', evRefund:'Rückerstattung ausgezahlt', evVoucher:'Gutschein gesendet', evAssigned:'Fahrer zugewiesen', evVehicle:'Fahrzeug zugewiesen', evCleared:'Zuweisung aufgehoben',
     overlap:'Überschneidet sich mit {ref} um {time}', noEmail:'Zuweisung erst, wenn dieser Chauffeur eine E-Mail hat.', noClass:'{name} hat noch keine Klasse. Wählen Sie eine unter Chauffeure.', classMismatch:'{name} fährt {driver}; die Fahrt ist {trip}.',
-    actions:'Aktionen', plate:'Kennzeichen', chooseChauffeur:'Chauffeur wählen', assignBtn:'Zuweisen', change:'Ändern', noDrivers:'Noch keine Fahrer. Unter Chauffeure hinzufügen.', noDriversClass:'Noch kein Chauffeur hat die Klasse {class}. Wählen Sie sie unter Chauffeure.', chooseDriver:'Fahrer wählen',
+    actions:'Aktionen', plate:'Kennzeichen', chooseChauffeur:'Chauffeur wählen', assignBtn:'Zuweisen', change:'Ändern', noDrivers:'Noch keine Fahrer. Unter Chauffeure hinzufügen.', assignLeftOutMany:'Chauffeure ausgeblendet: stillgelegte Klasse', assignLeftOutOne:'Chauffeur ausgeblendet: stillgelegte Klasse', noDriversClass:'Noch kein Chauffeur hat die Klasse {class}. Wählen Sie sie unter Chauffeure.', chooseDriver:'Fahrer wählen',
     notPaid:'Unbezahlte Fahrten können nicht zugewiesen werden.', frozen:'Diese Fahrt ist gesperrt.', capacity:'Diese Fahrt hat mehr Passagiere oder Gepäck, als ihre Klasse aufnimmt.', assignFailed:'Zuweisung fehlgeschlagen für ',
     pickChauffeur:'Zuerst einen Fahrer wählen.', voucherFailed:'Gutschein konnte nicht gesendet werden ',
     website:'Website', stripeWebhook:'Stripe-Webhook', resend:'Resend', dispatch:'Dispatch',
@@ -1004,7 +1012,7 @@ const T = {
   fr: {
     unassign:'Désassigner', action:'Action', complete:'Terminer', historyEmpty:'Aucun événement.', passengerTrip:'Passager et trajet',
     overlap:'Chevauche {ref} à {time}', noEmail:'Impossible d’assigner tant que ce chauffeur n’a pas d’e-mail.', noClass:'{name} n’a pas encore de classe. Choisissez-en une sous Chauffeurs.', classMismatch:'{name} conduit en {driver} ; la course est en {trip}.',
-    actions:'Actions', plate:'Plaque', chooseChauffeur:'Choisir un chauffeur', assignBtn:'Assigner', change:'Modifier', noDrivers:'Aucun chauffeur. Ajoutez-en un sous Chauffeurs.', noDriversClass:'Aucun chauffeur n’a encore la classe {class}. Choisissez-la sous Chauffeurs.', chooseDriver:'Choisir le chauffeur',
+    actions:'Actions', plate:'Plaque', chooseChauffeur:'Choisir un chauffeur', assignBtn:'Assigner', change:'Modifier', noDrivers:'Aucun chauffeur. Ajoutez-en un sous Chauffeurs.', assignLeftOutMany:'chauffeurs écartés : classe retirée', assignLeftOutOne:'chauffeur écarté : classe retirée', noDriversClass:'Aucun chauffeur n’a encore la classe {class}. Choisissez-la sous Chauffeurs.', chooseDriver:'Choisir le chauffeur',
     notPaid:'Les courses non payées ne peuvent pas être assignées.', frozen:'Cette course est gelée.', capacity:'Cette course compte plus de passagers ou de bagages que sa classe n’en prend.', assignFailed:'Assignation impossible pour ',
     pickChauffeur:'Choisissez d’abord un chauffeur.', voucherFailed:'Impossible de renvoyer le bon ',
     unassignedOk:'Assignation retirée pour ', evVehicle:'Véhicule assigné', evCleared:'Assignation retirée',
@@ -1124,7 +1132,7 @@ const T = {
   ar: {
     unassign:'إلغاء التعيين', action:'إجراء', complete:'إكمال', historyEmpty:'لا أحداث بعد.', passengerTrip:'الراكب والرحلة',
     overlap:'يتداخل مع {ref} عند {time}', noEmail:'لا يمكن التعيين قبل وجود بريد إلكتروني لهذا السائق.', noClass:'لا فئة لـ {name} بعد. اختر له فئة في صفحة السائقين.', classMismatch:'يقود {name} فئة {driver}، والرحلة من فئة {trip}.',
-    actions:'الإجراءات', plate:'اللوحة', chooseChauffeur:'اختر سائقًا', assignBtn:'تعيين', change:'تغيير', noDrivers:'لا يوجد سائقون بعد. أضف سائقًا من صفحة السائقين.', noDriversClass:'لا يوجد سائق من فئة {class} بعد. اخترها في صفحة السائقين.', chooseDriver:'اختر السائق',
+    actions:'الإجراءات', plate:'اللوحة', chooseChauffeur:'اختر سائقًا', assignBtn:'تعيين', change:'تغيير', noDrivers:'لا يوجد سائقون بعد. أضف سائقًا من صفحة السائقين.', assignLeftOutMany:'سائقين مستبعدين: فئة موقوفة', assignLeftOutOne:'سائق مستبعد: فئة موقوفة', noDriversClass:'لا يوجد سائق من فئة {class} بعد. اخترها في صفحة السائقين.', chooseDriver:'اختر السائق',
     notPaid:'لا يمكن تعيين الرحلات غير المدفوعة.', frozen:'هذه الرحلة مجمّدة.', capacity:'في هذه الرحلة ركاب أو حقائب أكثر مما تتسع له فئتها.', assignFailed:'تعذّر التعيين لـ ',
     pickChauffeur:'اختر سائقاً أولاً.', voucherFailed:'تعذّر إعادة إرسال القسيمة ',
     unassignedOk:'أُلغي التعيين لـ ', evVehicle:'عُيّنت المركبة', evCleared:'أُلغي التعيين',
@@ -1243,7 +1251,7 @@ const T = {
   },
 };
 class Component extends DCLogic {
-  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', assignOpen:false, assignError:'', cancelOpen:false, pickDriver:'', toastMsg:'', toastTone:'success', showToast:false, editing:false, edit:{}, historyOpen:false,
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', assignOpen:false, assignError:'', classRows:null, cancelOpen:false, pickDriver:'', toastMsg:'', toastTone:'success', showToast:false, editing:false, edit:{}, historyOpen:false,
     // Phase 31 (refunds in Stripe): the booking's Stripe payment links ({ key, rows }), the booking whose
     // "Which payment?" list is open, and an inline error. The page never sends a refund.
     stripePays:null, stripeListFor:'', refundError:null,
@@ -1329,6 +1337,8 @@ class Component extends DCLogic {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     const offs = [];
     offs.push(window.VamosOps.bookings.onChange(() => this.forceUpdate()));
+    // Phase 30: which classes are retired (GET /api/staff/vehicle-classes) keeps retired-class chauffeurs out of Assign.
+    if (typeof window.VamosOps.classes === 'function') window.VamosOps.classes().then((rows) => this.setState({ classRows: rows }));
     if (window.VamosOps.chauffeurs) {
       offs.push(window.VamosOps.chauffeurs.onChange(() => this.forceUpdate()));
       window.VamosOps.chauffeurs.all();
@@ -1482,7 +1492,24 @@ class Component extends DCLogic {
     } else {
       booking.sessionLeft = 'No open session';
     }
-    const drivers = assignableChauffeurs(booking.vehicleClassId);
+    // Retired comes from the server field status only: a Draft class is also active=false, so active is never
+    // read. While the class rows are not loaded (classRows null) nothing is retired and no count is guessed.
+    const retiredIds = {};
+    (Array.isArray(this.state.classRows) ? this.state.classRows : []).forEach((c) => {
+      if (c && c.status === 'retired') retiredIds[String(c.id)] = 1;
+    });
+    const drivers = assignableChauffeurs(booking.vehicleClassId, retiredIds);
+    // Chauffeurs on the trip's own class, left out of the picker because that class is retired.
+    const leftOutN = (booking.vehicleClassId && retiredIds[String(booking.vehicleClassId)])
+      ? ((window.VamosOps.chauffeurs && window.VamosOps.chauffeurs.all() || []).filter((c) => c && c.id && String(c.vehicleClassId || '') === String(booking.vehicleClassId)).length)
+      : 0;
+    // Arabic count form for the two chauffeur count lines (owner answer 2026-10-12; same rule in OpsPricing and
+    // OpsDetail, pinned by ops-dc-arabic-count-lines.test.ts): 1 and 2 in words with no numeral, 3–10 plural,
+    // 11–99 singular accusative, 100+ genitive singular (the dictionary's bags rule).
+    const arCountForm = (n) => n === 1 ? '1' : n === 2 ? '2' : (n >= 3 && n <= 10) ? 'Few' : (n >= 11 && n <= 99) ? 'Many' : 'Other';
+    const leftOutAr = this.state.lang === 'ar';
+    const leftOutNumShow = !leftOutAr || leftOutN >= 3;
+    const tLeftOut = leftOutAr ? AR_COUNT['assignLeftOutAr' + arCountForm(leftOutN)] : (leftOutN === 1 ? t.assignLeftOutOne : t.assignLeftOutMany);
     const tripClassName = String(booking.className || booking.klass || '').trim();
     const assignedDriver = booking.driver || booking.chauffeur || null;
     const frozen = ['completed','cancelled','refunded','no-show','no_show','partially_cancelled','partially_completed'].indexOf(booking.status) !== -1;
@@ -1802,7 +1829,10 @@ class Component extends DCLogic {
       assignRef: this._assignRef, refundRef: this._refundRef,
       showAssignPicker, assignCancelable: showAssignPicker && !!assignedDriver,
       closeAssign: () => this.setState({ assignOpen: false, pickDriver: '', assignError: '' }),
-      driverOptions, noDrivers: driverOptions.length === 0, showNoDrivers: showAssignPicker && driverOptions.length === 0,
+      driverOptions, noDrivers: driverOptions.length === 0,
+      leftOutN, tLeftOut, leftOutNumShow,
+      showLeftOut: showAssignPicker && leftOutN > 0,
+      showNoDrivers: showAssignPicker && driverOptions.length === 0 && leftOutN === 0,
       // Never a disabled primary: at 42 % the yellow reads as a cream pill (law 02). No pick → the box says so.
       assignDisabled: false,
       assignError: this.state.assignError || '', hasAssignError: !!this.state.assignError,

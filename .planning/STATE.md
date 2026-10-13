@@ -169,6 +169,8 @@ Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/
 | Phase 26.1 P15 | 80min | 2 tasks | 11 files |
 | Phase 26.1 P29 | 10min | 2 tasks | 5 files |
 | Phase 26.1 P32 | 30min | 2 tasks | 8 files |
+| Phase 30 P01 | 2h | 3 tasks | 5 files |
+| Phase 30 P04 | 55min | 4 tasks | 15 files |
 | Phase 31 P01 | 11 min | 2 tasks | 8 files |
 | Phase 31 P02 | 4 min | 2 tasks | 13 files |
 | Phase 31 P03 | 8 min | 3 tasks | 3 files |

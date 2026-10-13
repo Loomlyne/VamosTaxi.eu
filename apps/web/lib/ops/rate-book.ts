@@ -31,7 +31,7 @@ export type DistanceRateRow = {
   minFareRappen: number | null;
   /** Comment 11. NULL until staff set it. */
   airportStartRappen: number | null;
-  maxPax: number;
+  maxPax: number | null;
   available: boolean;
   hideFromPublic: boolean;
 };
@@ -96,6 +96,8 @@ export type VehicleClassRef = {
   sortOrder?: number;
   /** 26.1-19 D-15: why an admin hid this class (null while it is not hidden). */
   hiddenReason?: string | null;
+  /** Phase 30: the class's `active` flag (Live when true and not retired). */
+  active?: boolean;
 };
 
 export type RateBook = {
@@ -129,7 +131,8 @@ export type DistanceRateInput = {
   perKmRappen: number | null;
   minFareRappen: number | null;
   airportStartRappen: number | null;
-  maxPax: number;
+  /** Decision 6: null while a Draft class has no seat count yet. */
+  maxPax: number | null;
   available: boolean;
   hideFromPublic: boolean;
 };
@@ -244,7 +247,10 @@ export function assertDistanceRateInput(input: DistanceRateInput): DistanceRateI
   if (!input.vehicleClassId) {
     throw new RateBookInputError("rateBook.error-class-required");
   }
-  if (!Number.isInteger(input.maxPax) || input.maxPax < 1 || input.maxPax > 16) {
+  if (
+    input.maxPax !== null &&
+    (!Number.isInteger(input.maxPax) || input.maxPax < 1 || input.maxPax > 16)
+  ) {
     throw new RateBookInputError("rateBook.error-max-pax");
   }
   return {
@@ -260,6 +266,24 @@ export function assertDistanceRateInput(input: DistanceRateInput): DistanceRateI
     available: input.available,
     hideFromPublic: input.hideFromPublic === true,
   };
+}
+
+/**
+ * Phase 30 decision 5: whether a Pricing save of a class's distance row counts (available).
+ * A Draft class's row counts only when start fare, per-km, seats and bags are all set (the
+ * publish guard refuses an available row with any of them empty); a Live class keeps the
+ * `available` the save asked for, so an unpriced Live row still blocks Publish.
+ */
+export function draftRowAvailable(
+  classIsLive: boolean,
+  parsed: { available: boolean; baseFareRappen: number | null; perKmRappen: number | null },
+  seats: number | null,
+  bags: number | null,
+): boolean {
+  if (classIsLive) return parsed.available;
+  return (
+    parsed.baseFareRappen != null && parsed.perKmRappen != null && seats != null && bags != null
+  );
 }
 
 export function assertFixedRouteInput(input: FixedRouteInput): FixedRouteInput {
@@ -363,7 +387,7 @@ type DistanceSqlRow = {
   per_km_rappen: number | string | null;
   min_fare_rappen: number | string | null;
   airport_start_rappen: number | string | null;
-  max_pax: number;
+  max_pax: number | null;
   available: boolean;
   hide_from_public: boolean;
 };
@@ -428,6 +452,7 @@ type ClassSqlRow = {
   sort_order?: number | null;
   hidden_at?: Date | string | null;
   hidden_reason?: string | null;
+  active?: boolean | null;
 };
 
 type ZoneSqlRow = {
@@ -543,7 +568,7 @@ export async function loadRateBook(
     `;
 
     const classes = await tx<ClassSqlRow[]>`
-      select id, slug, name, photo_path, luggage_capacity, sort_order, hidden_at, hidden_reason
+      select id, slug, name, photo_path, luggage_capacity, sort_order, hidden_at, hidden_reason, active
         from public.vehicle_classes
        order by sort_order, slug
     `;
@@ -631,6 +656,7 @@ export async function loadRateBook(
           row.hidden_at != null
             ? (typeof row.hidden_reason === "string" && row.hidden_reason) || ""
             : null,
+        active: row.active === true,
       })),
     };
   });
@@ -687,6 +713,7 @@ export { vehicleClassLabelKey } from "./vehicle-class-label";
  * Clone a live or retired book into a new draft (D-06 / D-09).
  * When `tx` is passed, the copy joins that asStaff transaction — Publish
  * must clone in the same tx as the public_chf / VAT flip.
+ * Phase 30 CLS-06: new price books skip retired classes; frozen books keep theirs.
  */
 async function cloneRateVersionFrom(
   tx: StaffTx,
@@ -724,25 +751,37 @@ async function cloneRateVersionFrom(
       min_fare_rappen, airport_start_rappen, city_price_rappen,
       max_pax, available, hide_from_public
     )
-    select ${newId}, vehicle_class_id, base_fare_rappen, per_km_rappen,
-           min_fare_rappen, airport_start_rappen, city_price_rappen,
-           max_pax, available, hide_from_public
-      from public.distance_rates
-     where rate_version_id = ${source.id}
+    select ${newId}, d.vehicle_class_id, d.base_fare_rappen, d.per_km_rappen,
+           d.min_fare_rappen, d.airport_start_rappen, d.city_price_rappen,
+           d.max_pax, d.available, d.hide_from_public
+      from public.distance_rates d
+      join public.vehicle_classes vc
+        on vc.id = d.vehicle_class_id and vc.hidden_at is null
+     where d.rate_version_id = ${source.id}
   `;
   await tx`
     insert into public.fixed_routes (
       rate_version_id, origin_zone_id, dest_zone_id, vehicle_class_id, price_rappen, live
     )
-    select ${newId}, origin_zone_id, dest_zone_id, vehicle_class_id, price_rappen, live
-      from public.fixed_routes
-     where rate_version_id = ${source.id}
+    select ${newId}, f.origin_zone_id, f.dest_zone_id, f.vehicle_class_id, f.price_rappen, f.live
+      from public.fixed_routes f
+      join public.vehicle_classes vc
+        on vc.id = f.vehicle_class_id and vc.hidden_at is null
+     where f.rate_version_id = ${source.id}
   `;
   await tx`
     insert into public.rate_version_rules (rate_version_id, kind, payload)
     select ${newId}, kind, payload
       from public.rate_version_rules
      where rate_version_id = ${source.id}
+       and not (
+         kind = 'city_pair'
+         and exists (
+           select 1 from public.vehicle_classes vc
+            where vc.id::text = payload ->> 'vehicleClassId'
+              and vc.hidden_at is not null
+         )
+       )
      order by id
   `;
   await tx`
@@ -770,9 +809,11 @@ async function cloneRateVersionFrom(
     insert into public.distance_bands (
       rate_version_id, vehicle_class_id, from_km, to_km, per_km_rappen
     )
-    select ${newId}, vehicle_class_id, from_km, to_km, per_km_rappen
-      from public.distance_bands
-     where rate_version_id = ${source.id}
+    select ${newId}, b.vehicle_class_id, b.from_km, b.to_km, b.per_km_rappen
+      from public.distance_bands b
+      left join public.vehicle_classes vc on vc.id = b.vehicle_class_id
+     where b.rate_version_id = ${source.id}
+       and (b.vehicle_class_id is null or vc.hidden_at is null)
   `;
   await tx`
     insert into public.region_premiums (
