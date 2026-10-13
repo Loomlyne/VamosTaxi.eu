@@ -4,7 +4,7 @@ plan: 04
 subsystem: email / refunds
 tags: [email, resend, refunds, i18n]
 requires:
-  - "31-03: notification_claim_refund, notification_refund_read (migration 20261012220000)"
+  - "31-03: notification_claim_refund, notification_refund_read (migration 20261012240000)"
 provides:
   - "apps/web/lib/checkout/refund-mail.ts: mailCustomerRefund(env, input) and deliverRefundMailByClaim(env, claimId), never throw; *WithDeps for tests; REFUND_MAIL_TEMPLATE_VERSION = refund@2026-10-13-1"
   - "apps/web/lib/checkout/refund-mail-alert.ts: alertRefundMailNotSent(env, { reference, stripeRefundId }) to SUPPORT_EMAIL"

@@ -1,6 +1,6 @@
 -- refund_check_reader.test.sql
 --
--- 20261012220000 (Phase 31, refunds in Stripe; 31-CONTEXT D-09..D-12, C-02):
+-- 20261012240000 (Phase 31, refunds in Stripe; 31-CONTEXT D-09..D-12, C-02):
 --   refund_check_read(jsonb)          the nightly refund check reader: reads only, one row per input element in
 --                                     input order, reference never name or e-mail, more than 500 inputs raise.
 --   notification_claim_refund(...)    one refund mail claim per Stripe refund (dedupe booking:refund:<re_id>),

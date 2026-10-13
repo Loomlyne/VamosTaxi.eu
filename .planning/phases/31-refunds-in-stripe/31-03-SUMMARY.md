@@ -15,12 +15,12 @@ tech-stack:
   patterns: [plpgsql STABLE definer reader with #variable_conflict use_column, claim keyed on a Stripe id, temp tables granted to vamos_system in pgTAP]
 key-files:
   created:
-    - packages/db/supabase/migrations/20261012220000_refund_check_reader.sql
+    - packages/db/supabase/migrations/20261012240000_refund_check_reader.sql
     - packages/db/supabase/tests/refund_check_reader.test.sql
   modified:
     - packages/db/database.types.ts
 decisions:
-  - "Migration number 20261012220000 given by the owner through the controller (31-CONTEXT S-10, question form 2026-10-13 ~16:20 +04); Task 1 gate recorded, no stop"
+  - "Migration number 20261012240000 given by the owner through the controller (31-CONTEXT S-10, question form 2026-10-13 ~16:20 +04); Task 1 gate recorded, no stop"
   - "refund_check_read returns payment_found and site_reversed as NULL (not false) for an element that is not an object or whose id is not a string, so such a row is entirely NULL"
   - "notification_refund_read joins booking_refunds on the same booking as the claim, not on the Stripe id alone"
   - "Types hand-applied in the committed prettier style from the native CLI 2.119.0 output; pinned CLI 2.115.0 needs Docker and was not used"
@@ -33,11 +33,11 @@ metrics:
 
 # Phase 31 Plan 03: Refund check reader migration Summary
 
-One additive migration, `20261012220000_refund_check_reader.sql` (md5 `a7f3ae95a3130a0ce3943cfa27cf660a`), adds three SECURITY DEFINER functions for vamos_system only: the nightly refund check reader (one row per Stripe refund in input order, reference and amounts only, raises `too_many_refunds` above 500), the per-refund customer mail claim (dedupe `booking:refund:<re_id>`, refused unless the refund is recorded on that booking, locale from the booking) and the claim reader that hands the sweep Stripe's recorded amount. pgTAP 52/52 in the new file, full suite PASS (117 files, 3488 tests) on this phase's own native lab stack.
+One additive migration, `20261012240000_refund_check_reader.sql` (md5 `07371cd72d495009d48eaddd73e9361e`), adds three SECURITY DEFINER functions for vamos_system only: the nightly refund check reader (one row per Stripe refund in input order, reference and amounts only, raises `too_many_refunds` above 500), the per-refund customer mail claim (dedupe `booking:refund:<re_id>`, refused unless the refund is recorded on that booking, locale from the booking) and the claim reader that hands the sweep Stripe's recorded amount. pgTAP 52/52 in the new file, full suite PASS (117 files, 3488 tests) on this phase's own native lab stack.
 
 ## Task 1: migration number (gate already answered)
 
-The owner gave `20261012220000` through the controller: 31-CONTEXT S-10, question form 2026-10-13 ~16:20 +04. It sorts after origin/main (`20261012190000`) and Phase 30 (`20261012210000`). No other Phase 31 file takes a number. No commit (no files).
+The owner gave `20261012240000` through the controller: 31-CONTEXT S-10, question form 2026-10-13 ~16:20 +04. It sorts after origin/main (`20261012190000`) and Phase 30 (`20261012210000`). No other Phase 31 file takes a number. No commit (no files).
 
 ## Commits
 
@@ -56,7 +56,7 @@ The owner gave `20261012220000` through the controller: 31-CONTEXT S-10, questio
 
 ## Lab stack (left running for 31-05, 31-06, 31-13)
 
-- Name `p31-refunds`, project `vamos-lab-p31-refunds`, slot 2, native runtime, database `127.0.0.1:45222` (API 45221). State `~/.vamos-scratch/lab-p31-refunds`. After the pgTAP run the lab data is back (seed-live-like, roles, admin), and the migration is at `20261012220000`.
+- Name `p31-refunds`, project `vamos-lab-p31-refunds`, slot 2, native runtime, database `127.0.0.1:45222` (API 45221). State `~/.vamos-scratch/lab-p31-refunds`. After the pgTAP run the lab data is back (seed-live-like, roles, admin), and the migration is at `20261012240000`.
 - No Workers: the stack was started without `lab.sh up` (see deviation 1). Before a browser run, `lab.sh up p31-refunds` reuses this lab.env and stack, then builds and starts the Workers.
 
 ## Deviations from Plan
@@ -103,7 +103,7 @@ None. The three functions are the surface the plan's threat model names: T-31-10
 
 ## Self-Check: PASSED
 
-- FOUND: packages/db/supabase/migrations/20261012220000_refund_check_reader.sql
+- FOUND: packages/db/supabase/migrations/20261012240000_refund_check_reader.sql
 - FOUND: packages/db/supabase/tests/refund_check_reader.test.sql
 - FOUND: packages/db/database.types.ts (3 function names)
 - FOUND: 9a5aa235, 5a66c275

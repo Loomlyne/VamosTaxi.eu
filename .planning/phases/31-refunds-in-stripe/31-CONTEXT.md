@@ -160,7 +160,8 @@ Not checked by the map (planner reads): webhook route body, `manage_money_for` b
 - **S-07** O-1 = A, SIGNED: one line under "Cancel this transfer" for both windows: en "Read the cancellation policy before anything is confirmed." / de "Lesen Sie die Stornierungsbedingungen, bevor etwas bestätigt wird." / fr "Consultez la politique d’annulation avant toute confirmation." / ar "اطّلع على سياسة الإلغاء قبل تأكيد أي شيء."
 - **S-08** KEEP both extra customer lines: the "See what comes back" button and "— keep it, because that is what your refund is calculated from."
 - **S-09** Ops mails that say Stripe (31-08, changes the signed 2026-10-02 T1 action sentence): ACCEPTED.
-- **S-10** Migration file: `20261012220000_refund_check_reader.sql` (owner's word). No other Phase 31 file takes a number.
+- **S-10** Migration file: `20261012240000_refund_check_reader.sql` (owner's word). No other Phase 31 file takes a number.
+- **S-10a** Renumbered (owner, 2026-10-13 ~23:25 +04): Phase 30 lands first and uses `20261012220000_edit_request_retired_class.sql`, so this file is `20261012240000_refund_check_reader.sql`.
 - **S-11** `STRIPE_ACCOUNT_ID` = `acct_1UIZmAQbJiSLxJfu`, confirmed by the controller against the live publishable key (`apps/web/wrangler.jsonc`, `pk_live_51UIZmAQbJiSLxJfu…`).
 - **S-12** Execution: owner said "Start building". The 23514 notification-kinds bug is NOT in Phase 31 (separate job, migration 20261012230000); do not touch `booking_notifications_kind_check`.
 

@@ -1,4 +1,4 @@
--- 20261012220000_refund_check_reader.sql
+-- 20261012240000_refund_check_reader.sql
 --
 -- Phase 31, refunds in Stripe (.planning/decisions/2026-10-12-refunds-in-stripe.md; 31-CONTEXT D-09, D-10,
 -- D-11, D-12, C-02; number given by the owner through the controller, S-10, 2026-10-13).

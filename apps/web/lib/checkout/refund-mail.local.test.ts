@@ -2,7 +2,7 @@
 //
 // Phase 31-05 (D-10): the customer refund mail's claim, dedupe and retry through the REAL Worker client
 // (asSystem: login `vamos_edge`, role vamos_system, `fetch_types: false`, prepared statements) on the
-// migration 20261012220000 definers: notification_claim_refund writes one booking_notifications row kind
+// migration 20261012240000 definers: notification_claim_refund writes one booking_notifications row kind
 // 'refund' (dedupe booking:refund:<re_id>), a second claim writes nothing and sends nothing, a failed send
 // stays on the claim, notification_sweep('0 seconds', ['refund']) hands it back and the sweep's refund route
 // re-sends it with the refund_rappen recorded from Stripe. Resend and the info@ alert are stand-ins.

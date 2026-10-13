@@ -4,7 +4,7 @@ plan: 06
 subsystem: cron / stripe reconciliation / email
 tags: [cron, stripe, reconciliation, email, automation]
 requires:
-  - "31-03: public.refund_check_read(jsonb) (migration 20261012220000), vamos_system only"
+  - "31-03: public.refund_check_read(jsonb) (migration 20261012240000), vamos_system only"
   - "31-04: refund mail helpers (untouched here)"
 provides:
   - "packages/emails: renderRefundCheckEmail, renderRefundCheckDidNotRun, RefundCheckReport, sendRefundCheck"
@@ -12,7 +12,7 @@ provides:
   - "apps/web/lib/db/system-reads.ts: loadRefundCheckRows(env, items) + RefundCheckRow"
   - "apps/web/lib/ops/must-fix-mail.ts: deliverRefundCheckAlert, deliverRefundCheckDidNotRun"
   - "apps/web/worker.ts: third try/catch in the 0 3 * * * branch (refund_check)"
-affects: [31-13 (hand-over: two new internal lines, deferred footer item), controller live apply of 20261012220000 before deploy]
+affects: [31-13 (hand-over: two new internal lines, deferred footer item), controller live apply of 20261012240000 before deploy]
 tech-stack:
   added: []
   patterns: [WithDeps pure core + env wrapper (stripe-fee shape), definer reader with sql.json list, Stripe autoPagingToArray capped one past the limit]
@@ -151,7 +151,7 @@ Also derived and not in D-09 (for the same hand-over): the footer is the phone n
 
 - A real Stripe list call (only stand-ins). The `created: { gte, lt }`, `limit: 100` and `autoPagingToArray({ limit: 501 })` call shape is pinned by a unit test against a client that exposes only `refunds.list`.
 - A real Resend send of either mail.
-- The cron firing on a Worker build. Until the controller applies migration 20261012220000 on live, the function is missing there, so the block logs `refund_check` `{ outcome: "failed" }` and the other two 03:00 blocks are unaffected (T-31-30).
+- The cron firing on a Worker build. Until the controller applies migration 20261012240000 on live, the function is missing there, so the block logs `refund_check` `{ outcome: "failed" }` and the other two 03:00 blocks are unaffected (T-31-30).
 - Prettier formatting of the new files was not run (no full gate run, per the job rules).
 
 ## Known Stubs

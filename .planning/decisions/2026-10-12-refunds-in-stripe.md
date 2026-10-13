@@ -22,4 +22,6 @@
 2. O-1 = A, SIGNED: "Read the cancellation policy before anything is confirmed." / "Lesen Sie die Stornierungsbedingungen, bevor etwas bestätigt wird." / "Consultez la politique d’annulation avant toute confirmation." / "اطّلع على سياسة الإلغاء قبل تأكيد أي شيء." (pinned as W6 by plan 31-12).
 3. KEEP both extra customer lines: "See what comes back" and "— keep it, because that is what your refund is calculated from."
 4. Ops mails that say Stripe (31-08): ACCEPTED, replacing the action sentence of the signed 2026-10-02 T1 wording.
-Also: migration `20261012220000_refund_check_reader.sql`; `STRIPE_ACCOUNT_ID` `acct_1UIZmAQbJiSLxJfu` (controller-verified against the live publishable key); owner said "Start building".
+Also: migration `20261012240000_refund_check_reader.sql`; `STRIPE_ACCOUNT_ID` `acct_1UIZmAQbJiSLxJfu` (controller-verified against the live publishable key); owner said "Start building".
+
+Renumbered 2026-10-13 ~23:25 (+04), owner via the controller: the migration is `20261012240000_refund_check_reader.sql` (Phase 30 lands first with `20261012220000_edit_request_retired_class.sql`).

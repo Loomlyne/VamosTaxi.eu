@@ -4,7 +4,7 @@ plan: 05
 subsystem: webhook / email / sweep
 tags: [webhook, stripe, email, sweep, refunds]
 requires:
-  - "31-03: notification_claim_refund, notification_refund_read (migration 20261012220000)"
+  - "31-03: notification_claim_refund, notification_refund_read (migration 20261012240000)"
   - "31-04: mailCustomerRefund, deliverRefundMailByClaim, *WithDeps, refundMailDeps"
 provides:
   - "money-events.ts: optional mailCustomerRefund dep, called only after outcome 'recorded' for a non-app CHF refund with refund.amount"

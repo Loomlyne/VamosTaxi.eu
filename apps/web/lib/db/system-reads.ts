@@ -257,7 +257,7 @@ export type RefundCheckRow = {
 
 /**
  * Phase 31 D-09 / C-02: the nightly refund check's only database read. Read-only STABLE definer
- * (20261012220000), booking reference only, never a name or an e-mail. The Stripe list goes in as one jsonb
+ * (20261012240000), booking reference only, never a name or an e-mail. The Stripe list goes in as one jsonb
  * through sql.json (a JS array or JSON.stringify(...)::jsonb breaks on the Worker client). Max 500 elements.
  */
 export const loadRefundCheckRows = async (

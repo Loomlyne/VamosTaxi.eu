@@ -2,7 +2,7 @@
 //
 // Phase 31 D-09 / C-02: the nightly refund check's database read through the REAL Worker client
 // (asSystem: login `vamos_edge`, role vamos_system, `fetch_types: false`, prepared statements) on the
-// migration 20261012220000 definer refund_check_read, with the Stripe list passed by sql.json. Stripe and
+// migration 20261012240000 definer refund_check_read, with the Stripe list passed by sql.json. Stripe and
 // the two mails are stand-ins (refund-check.test.ts covers them). Proves the classification on real rows and
 // that the run writes nothing: the row counts of bookings, booking_payments, booking_refunds and
 // booking_notifications are unchanged.

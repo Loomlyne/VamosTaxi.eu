@@ -4,7 +4,7 @@
 **Files analyzed:** 34 new or modified (removals listed in the last section, no pattern needed)
 **Analogs found:** 31 / 34 (3 are partial: noted per file)
 
-All paths are from the repo root. Line numbers were read in this worktree on 2026-10-12. Migration file names stay placeholders (`20261012220000_refund_check_reader.sql`): no number is reserved.
+All paths are from the repo root. Line numbers were read in this worktree on 2026-10-12. Migration file names stay placeholders (`20261012240000_refund_check_reader.sql`): no number is reserved.
 
 ## File Classification
 
@@ -29,7 +29,7 @@ All paths are from the repo root. Line numbers were read in this worktree on 202
 | `apps/web/lib/db/system-reads.ts` (CHANGE: `loadRefundCheckRows`) | utility | CRUD (read) | `loadMustFixTrip` (l.125-127) | exact |
 | `apps/web/worker.ts` (CHANGE: third try/catch in `0 3 * * *` branch) | config/entry | batch | itself l.123-139 | exact |
 | `apps/web/lib/env.d.ts`, `apps/web/wrangler.jsonc`, `apps/web/.dev.vars.example` (CHANGE: `STRIPE_ACCOUNT_ID`) | config | n/a | `STRIPE_PUBLISHABLE_KEY` entries (env.d.ts:375-381, wrangler.jsonc:75, .dev.vars.example:58-64) | exact |
-| `packages/db/supabase/migrations/20261012220000_refund_check_reader.sql` (NEW: `refund_check_read` + `notification_claim_refund`) | migration | CRUD (read) + claim | `20261007290000_stripe_fee_record.sql` (reader, stable definer) + `20260827000004_settlement_rpcs.sql:428-478` (claim) + `20261007260000_meta_purchase.sql` (house style, begin/commit, grants) | exact |
+| `packages/db/supabase/migrations/20261012240000_refund_check_reader.sql` (NEW: `refund_check_read` + `notification_claim_refund`) | migration | CRUD (read) + claim | `20261007290000_stripe_fee_record.sql` (reader, stable definer) + `20260827000004_settlement_rpcs.sql:428-478` (claim) + `20261007260000_meta_purchase.sql` (house style, begin/commit, grants) | exact |
 | `packages/db/supabase/tests/refund_check_reader.test.sql` (NEW pgTAP) | test | CRUD (read) | `packages/db/supabase/tests/stripe_fee_record.test.sql` | exact |
 | `app/ops/OpsDetail.dc.html` (CHANGE: refund area, T tables, `syncStripe`, menu item) | component | request-response | the signed prototype `31-prototype-wip.patch` + existing `syncRefund`/`loadRefund` (l.1453-1470) | exact (signed) |
 | `app/pages/booking-detail.dc.html`, `app/pages/manage-booking.dc.html` (CHANGE: policy line) | component | n/a | `31-prototype-wip.patch` hunks l.182-250 | exact (signed) |
@@ -311,7 +311,7 @@ async function sendMustFixOrThrow(env: CloudflareEnv, payload: OpsMustFixForEmai
 
 ---
 
-### Migration `20261012220000_refund_check_reader.sql` (migration)
+### Migration `20261012240000_refund_check_reader.sql` (migration)
 
 **House style analog:** `20261007260000_meta_purchase.sql` (header comment, `begin; ... commit;`, "apply it verbatim as a whole"), `20261007290000_stripe_fee_record.sql` (a `language sql stable security definer` reader plus its grants/comments).
 
@@ -480,7 +480,7 @@ export function withAdmin(handler: StaffJsonHandler): (request: Request) => Prom
 
 ### Migration conventions
 **Source:** `20261007260000_meta_purchase.sql`, `20261007290000_stripe_fee_record.sql`
-**Apply to:** `20261012220000_refund_check_reader.sql`. `begin; ... commit;` as one apply (connector `apply_migration`, md5 guard by the controller), `set search_path = ''`, every type `pg_catalog.`, every table `public.`, `revoke all ... from public, anon, authenticated; grant execute ... to vamos_system;`, a `comment on function` per function, additive only (no table DDL, no rows touched).
+**Apply to:** `20261012240000_refund_check_reader.sql`. `begin; ... commit;` as one apply (connector `apply_migration`, md5 guard by the controller), `set search_path = ''`, every type `pg_catalog.`, every table `public.`, `revoke all ... from public, anon, authenticated; grant execute ... to vamos_system;`, a `comment on function` per function, additive only (no table DDL, no rows touched).
 
 ### Four languages and platform laws for every visible string
 **Source:** `app/vamos-i18n-dict.js` (strings keyed by the English text, `patterns` for concatenated strings), page `T` tables in `OpsDetail.dc.html`, `ops-detail-i18n.test.ts` (T key parity en/de/fr/ar)

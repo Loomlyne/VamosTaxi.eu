@@ -191,7 +191,7 @@ apps/web/lib/env.d.ts, wrangler.jsonc, .dev.vars.example   CHANGE STRIPE_ACCOUNT
 packages/emails/src/refund.ts, lib/send.ts        CHANGE sendRefund gets optional idempotencyKey; new copy keys after signature
 packages/emails/src/RefundCheckEmail (new) + send helper  NEW English-only report mail (layoutHtml/layoutText, like refund.ts)
 packages/emails/src/CancellationEmail.tsx + messages/*.json   CHANGE one policy key
-packages/db/supabase/migrations/20261012220000_refund_check_reader.sql   NEW (see Migrations wanted)
+packages/db/supabase/migrations/20261012240000_refund_check_reader.sql   NEW (see Migrations wanted)
 packages/db/supabase/tests/refund_check_reader.test.sql             NEW pgTAP
 app/ops/OpsDetail.dc.html, app/vamos-i18n-dict.js, app/pages/{booking-detail,manage-booking}.dc.html, app/vamos-manage-ticket.js   CHANGE
 apps/web/i18n/messages/{en,de,fr,ar}.json         CHANGE checkout.cancelSheetFull/Ops, refundPendingOps (React twins)
@@ -494,7 +494,7 @@ All answered in 31-CONTEXT.md or gated in a plan (2026-10-12/13): 1 → D-10 (cl
 **One migration, for the nightly check only. Everything else: none.**
 
 - Why: the cron runs as `vamos_system`, which has EXECUTE on definers only and no SELECT on `booking_refunds`, `booking_payments`, `bookings` (`20260827000002_checkout_roles.sql:50-52`; `system-reads.ts:1-9`). `service_role` is off the money ledger (`20261012170000`). No existing function reads a refund by Stripe refund id. Staff-claim impersonation is not acceptable.
-- Proposed file: `packages/db/supabase/migrations/20261012220000_refund_check_reader.sql`; the number comes from the controller (Phase 30 owns 20261012200000 onward).
+- Proposed file: `packages/db/supabase/migrations/20261012240000_refund_check_reader.sql`; the number comes from the controller (Phase 30 owns 20261012200000 onward).
 - Contents (additive, no DDL on tables, no rows touched, one transaction `begin; … commit;`, per the house style of `20261007260000_meta_purchase.sql`):
   - `public.refund_check_read(p_refunds pg_catalog.jsonb)` `returns table (...)`, `language sql stable security definer set search_path = ''`. Input: JSON array of `{id, payment_intent}` objects (the Stripe refunds). Output per input refund: `stripe_refund_id`, `payment_intent_id`, `payment_found`, `booking_reference` (reference only, no name/e-mail), `site_refund_rappen`, `site_reason`, `site_reversed` (has a `booking_refund_reversals` row), `booking_refunded_rappen` (`bookings.refunded_rappen`), `booking_rows_sum_rappen` (sum of non-reversed `booking_refunds` on non-`duplicate` payments of that booking).
   - `revoke all on function … from public, anon, authenticated; grant execute on function … to vamos_system;` plus a `comment on function`.
