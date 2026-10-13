@@ -1223,14 +1223,25 @@ Plans:
 
 ### Phase 32: Automatic translator
 
-**Goal:** Every text that has a language reaches the customer in English, German, French and Arabic without Koss checking it: gaps in the site dictionary and messages, text he types on the dashboard (extras, FAQ, content), emails, customer messages to him and his replies. Gemma 4 on Cloudflare Workers AI fills it in the background, cached by source text and language, never in a public page view; a missing translation shows the source, never a blank. Human strings and owner-approved legal wording are never touched. The dashboard marks machine text and his correction always wins.
+**Goal:** Every text that has a language reaches the customer in English, German, French and Arabic without Koss checking it: gaps in the site dictionary and messages, text he types on the dashboard (extras, FAQ, content), emails, customer messages to him and his replies. Gemma 4 on Cloudflare Workers AI fills it in the background, cached by source text and language, never in a public page view; a missing translation shows the source, never a blank. Human strings and owner-approved legal wording are never touched. Nothing marks machine text; a value he types himself always wins (D-05). Dashboard Content › Pages and Legal are removed; home reviews get an on-tap translate button.
 **Decisions:** owner, question form 2026-10-12 ~19:20 +04; context `.planning/phases/32-auto-translate/32-CONTEXT.md`
-**Requirements**: TBD
+**Requirements**: TR-01 (gaps in the site dictionary, Next messages and e-mail catalog filled silently, never overwriting a human string), TR-02 (text he types on the dashboard is translated on write: extras de/fr/ar filled with no mark, his typed value always wins; review language detected on write), TR-03 (customer messages from the form and e-mail shown to him in his dashboard language with "Translated from" and the original underneath), TR-04 (his reply goes out in the customer's language through his mail app: translation, divider, his text), TR-05 (a customer language outside en/de/fr/ar: inbound still translated for him, his reply goes untranslated), TR-06 (home review cards show the original with a Translate button: on tap, cached, rate-limited, opaque review ref, no vendor name, never at page load), TR-07 (Content › Pages and Content › Legal removed everywhere: screens, rail, routes, staff API, library, tests, docs; no table or column dropped), TR-08 (Vamos Taxi written in Latin in every Arabic string, as a human edit), TR-09 (never machine-translated: legal pages, data-vt-legal, owner-approved and decision-cited lines, non_translatable rows, data-tok copy, dictionary patterns; amounts, CHF, refs, flight numbers, ZRH, class names, Vamos Taxi stay Latin; Swiss ss, never ß), TR-10 (the model is called only through the Workers AI binding with Gemma 4 and thinking off, never AI Gateway, never in a public page load or e-mail render; customer text never on a queue or in logs), TR-11 (a failed or rejected translation shows the source, never a blank, and never blocks a save or a send)
 **Depends on:** Phase 29 (no code dependency on Phases 30 or 31; shares only `app/vamos-i18n-dict.js`)
-**Plans:** 0 plans
+**Plans:** 12 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 32 to break down)
+- [ ] 32-01-PLAN.md — merge main with Phase 30; shared translator engine (Gemma 4 binding, mask, guard, ss, ids-only job contract)
+- [ ] 32-02-PLAN.md — database: translation cache, staff-only message and note translations, review language and ref, extras fill; pgTAP; store wrappers
+- [ ] 32-03-PLAN.md — remove Content › Pages and Legal everywhere (screens, rail, routes, staff API, tests, docs)
+- [ ] 32-04-PLAN.md — signed strings in four languages; Vamos Taxi in Latin in Arabic; seed regenerated
+- [ ] 32-05-PLAN.md — queue consumer, job handlers, quiet DLQ, nightly sweep, Worker and wrangler wiring, model-call boundary test
+- [ ] 32-06-PLAN.md — extras on the shared translator, his typed names win
+- [ ] 32-07-PLAN.md — support server: enqueue customer messages, ticket translations and reply target, staff reply-translate route
+- [ ] 32-08-PLAN.md — review server: language and opaque ref, cache-first public translation route, language detection on write
+- [ ] 32-09-PLAN.md — catalog filler (pnpm i18n:fill) with never-translate list and smoke script
+- [ ] 32-10-PLAN.md — support ticket DC: translated messages with original, reply box opening his mail app
+- [ ] 32-11-PLAN.md — home review card DC: translate on tap
+- [ ] 32-12-PLAN.md — browser proof 4 widths x 4 languages, full gates and pgTAP, VALIDATION sign-off, controller hand-over
 
 ## Progress
 
