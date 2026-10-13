@@ -27,7 +27,7 @@ import {
 } from "./refund-mail";
 import { alertRefundMailNotSent } from "./refund-mail-alert";
 
-const BOOKING_ID = "8a1f6c2e-0000-4000-8000-000000000001";
+const BOOKING_ID = "8a1f6c2e-aaaa-4bbb-8ccc-dddddddddddd";
 const RE_ID = "re_3PqXyZ0000000001";
 const INPUT = { bookingId: BOOKING_ID, stripeRefundId: RE_ID, refundRappen: 4000 };
 

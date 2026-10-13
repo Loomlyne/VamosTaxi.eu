@@ -80,6 +80,7 @@ export {
   sendPriceChanged,
   sendExpired,
   sendRefund,
+  sendRefundMailAlert,
   sendChauffeurAssign,
   sendChauffeurUnassign,
   sendOpsMustFix,
@@ -101,6 +102,7 @@ export type {
   LockMailSkip,
   PriceChangedMailInput,
   ExpiredMailInput,
+  RefundMailAlertInput,
 } from "./lib/send";
 export { buildInvite } from "./lib/ics";
 export type {

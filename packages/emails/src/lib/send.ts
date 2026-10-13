@@ -36,6 +36,8 @@ import {
   type OpsMustFixForEmail,
 } from "../OpsMustFixEmail";
 import { renderRefundEmail, type RefundKind } from "../refund";
+import { escapeHtml } from "../escape";
+import { layoutHtml, layoutText } from "../layout";
 import {
   CancellationEmail,
   cancellationPlainText,
@@ -384,6 +386,11 @@ export async function sendRefund(
     reference: string;
     /** J8 (W6-17): what was refunded, in rappen. The "issued" mail names it. */
     amountRappen?: number | null;
+    /**
+     * Phase 31 D-10: Resend idempotency key, the second guard after the claim (`refund-mail:<re_id>`, plus
+     * `:payer` for a different payer address). Absent: the Resend call is unchanged.
+     */
+    idempotencyKey?: string;
   },
 ): Promise<SendOutcome> {
   try {
@@ -403,13 +410,16 @@ export async function sendRefund(
       return { ok: false, error: "missing-copy" };
     }
     const resend = new Resend(env.RESEND_API_KEY);
-    const result = await resend.emails.send({
+    const payload = {
       from: FROM,
       to,
       subject: rendered.subject,
       html: rendered.html,
       text: rendered.text,
-    });
+    };
+    const result = input.idempotencyKey
+      ? await resend.emails.send(payload, { idempotencyKey: input.idempotencyKey })
+      : await resend.emails.send(payload);
     if (result.error) {
       return { ok: false, error: result.error.message };
     }
@@ -525,6 +535,64 @@ export async function sendOpsMustFix(
     return { ok: true, providerMessageId: id };
   } catch (err) {
     const message = err instanceof Error ? err.message : "sendOpsMustFix failed";
+    return { ok: false, error: message };
+  }
+}
+
+/** Phase 31: what the info@ alert names when a customer refund mail could not be prepared. Ids only. */
+export type RefundMailAlertInput = {
+  /** The booking reference (e.g. VT-26-0753), or null when it could not be read. */
+  reference: string | null;
+  /** The Stripe refund id (re_...). */
+  stripeRefundId: string;
+};
+
+/**
+ * Phase 31: a lost customer refund mail is never silent. When the refund mail cannot even be claimed, info@
+ * gets this one English, internal mail naming only the booking reference and the Stripe refund id: never a
+ * name, an address or an amount. Same From, Resend call and error mapping as sendOpsMustFix; never throws.
+ *
+ * NEW internal copy, NOT owner-signed yet: the 31-13 hand-over lists the subject and body for his sign-off.
+ */
+export async function sendRefundMailAlert(
+  env: EmailEnv,
+  input: RefundMailAlertInput,
+  to: string,
+  idempotencyKey?: string,
+): Promise<SendOutcome> {
+  try {
+    if (!env.RESEND_API_KEY) {
+      return { ok: false, error: "RESEND_API_KEY is not bound" };
+    }
+    const recipient = to.trim().toLowerCase();
+    if (!recipient) {
+      return { ok: false, error: "no ops recipient" };
+    }
+    const refundId = input.stripeRefundId.trim();
+    const reference = (input.reference ?? "").trim();
+    const subject = `Refund mail not sent: ${reference || refundId}`;
+    const body = `Stripe made refund ${refundId} on booking ${reference || "no reference"}, but the customer refund email could not be prepared, so the customer has not been told by email. Open the refund in Stripe and tell the customer yourself.`;
+    const payload = {
+      from: FROM,
+      to: recipient,
+      subject,
+      html: layoutHtml("en", `<p>${escapeHtml(body)}</p>`),
+      text: layoutText(body),
+    };
+    const resend = new Resend(env.RESEND_API_KEY);
+    const result = idempotencyKey
+      ? await resend.emails.send(payload, { idempotencyKey })
+      : await resend.emails.send(payload);
+    if (result.error) {
+      return { ok: false, error: result.error.message };
+    }
+    const id = result.data?.id;
+    if (!id) {
+      return { ok: false, error: "Resend returned no id" };
+    }
+    return { ok: true, providerMessageId: id };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "sendRefundMailAlert failed";
     return { ok: false, error: message };
   }
 }
