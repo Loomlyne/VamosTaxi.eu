@@ -149,6 +149,7 @@ export default {
           findings: check.findings,
           truncated: check.truncated,
           mailed: check.mailed,
+          refundMailsStarted: check.refundMailsStarted,
         });
       } catch {
         emit("error", "refund_check", { outcome: "failed" });

@@ -7,8 +7,11 @@
 // their way through the webhook) and compares each with the booking through the read-only definer
 // refund_check_read (system-reads.ts).
 //
-// Rules: reads only. It calls Stripe's refund list and nothing else, never writes Stripe and never writes a
-// money table. One English mail to info@ when something is found (references, CHF amounts, Stripe ids, never
+// Rules: it calls Stripe's refund list and nothing else, never writes Stripe and never writes a money table.
+// One write is allowed, the customer refund mail: a recorded Stripe Dashboard refund whose mail was never
+// claimed (the webhook's claim failed after the refund was recorded, so a replay answers 'already') gets it
+// here, through the same claim, send and settle as the webhook (refund-mail.ts). The claim is the guard: a
+// refund already claimed sends nothing, a failed send stays on the claim for the notification sweep. One English mail to info@ when something is found (references, CHF amounts, Stripe ids, never
 // a name or an address), one "did not run" mail when Stripe does not answer. No state is kept: a finding
 // repeats each night while it is inside the 48-hour window. Logs and the result carry counts only.
 
@@ -17,6 +20,7 @@ import type { RefundCheckReport } from "@vamos/emails/confirmation";
 import { loadRefundCheckRows, type RefundCheckRow } from "../db/system-reads";
 import { deliverRefundCheckAlert, deliverRefundCheckDidNotRun } from "../ops/must-fix-mail";
 import { CHARGE_CURRENCY } from "./currency";
+import { mailCustomerRefund } from "./refund-mail";
 import { stripeFromEnv } from "./stripe";
 import { stripeReadErrorKind } from "./stripe-fee";
 
@@ -47,6 +51,8 @@ export type RefundCheckDeps = {
   readSite: (items: { id: string; payment_intent: string | null }[]) => Promise<RefundCheckRow[]>;
   sendAlert: (report: RefundCheckReport) => Promise<void>;
   sendDidNotRun: () => Promise<void>;
+  /** mailCustomerRefund (refund-mail.ts): claim, send, settle. Never throws. */
+  mailRefund: (input: { bookingId: string; stripeRefundId: string; refundRappen: number }) => Promise<void>;
   emit: (level: LogLevel, type: string, fields?: LogFields) => void;
 };
 
@@ -59,6 +65,8 @@ export type RefundCheckResult = {
   findings: number;
   truncated: boolean;
   mailed: boolean;
+  /** Customer refund mails started here because their claim was missing. */
+  refundMailsStarted: number;
 };
 
 // Plain arrays: module-scope Sets are refused by check:db-fences (isolate memoisation).
@@ -86,7 +94,7 @@ function findingCount(report: RefundCheckReport): number {
   );
 }
 
-/** One nightly run. Never writes Stripe or the database. */
+/** One nightly run. Never writes Stripe or a money table; the only write is a missing customer refund mail. */
 export async function refundCheckWithDeps(deps: RefundCheckDeps, now: Date): Promise<RefundCheckResult> {
   const nowSeconds = Math.floor(now.getTime() / 1000);
   const range = { gte: nowSeconds - WINDOW_SECONDS, lt: nowSeconds - SETTLE_SECONDS };
@@ -107,6 +115,7 @@ export async function refundCheckWithDeps(deps: RefundCheckDeps, now: Date): Pro
       findings: 0,
       truncated: false,
       mailed: true,
+      refundMailsStarted: 0,
     };
   }
 
@@ -134,6 +143,7 @@ export async function refundCheckWithDeps(deps: RefundCheckDeps, now: Date): Pro
   }
 
   const report = emptyReport(truncated);
+  const unmailed: { bookingId: string; stripeRefundId: string; refundRappen: number }[] = [];
   if (toCompare.length > 0) {
     const rows = await deps.readSite(toCompare.map((r) => ({ id: r.id, payment_intent: r.payment_intent })));
     if (rows.length !== toCompare.length || rows.some((row, i) => row.stripe_refund_id !== toCompare[i]!.id)) {
@@ -165,6 +175,18 @@ export async function refundCheckWithDeps(deps: RefundCheckDeps, now: Date): Pro
           if (reversed) {
             report.statusDiffers.push({ reference, stripeStatus: "succeeded", siteStatus: "failed", refundId: refund.id });
           }
+          // Same rule as the webhook (money-events.ts): never for an app-made refund. A refund whose amount
+          // differs or that was reversed is a finding for the owner, not a mail.
+          const bookingId = row.site_refund_booking_id;
+          if (
+            row.refund_mail_claimed === false &&
+            bookingId &&
+            refund.metadata?.vamos_source !== "app" &&
+            siteRappen === refund.amount &&
+            !reversed
+          ) {
+            unmailed.push({ bookingId, stripeRefundId: refund.id, refundRappen: siteRappen });
+          }
         }
       } else if (refund.status !== null && STRIPE_UNDONE.includes(refund.status) && siteRappen !== null && !reversed) {
         report.statusDiffers.push({ reference, stripeStatus: refund.status, siteStatus: "refunded", refundId: refund.id });
@@ -183,6 +205,11 @@ export async function refundCheckWithDeps(deps: RefundCheckDeps, now: Date): Pro
     });
   }
 
+  for (const input of unmailed) {
+    deps.emit("warn", "refund_check_mail_unclaimed", { bookingId: input.bookingId, refundId: input.stripeRefundId });
+    await deps.mailRefund(input);
+  }
+
   const findings = findingCount(report);
   if (findings > 0) await deps.sendAlert(report);
   return {
@@ -194,6 +221,7 @@ export async function refundCheckWithDeps(deps: RefundCheckDeps, now: Date): Pro
     findings,
     truncated,
     mailed: findings > 0,
+    refundMailsStarted: unmailed.length,
   };
 }
 
@@ -230,6 +258,7 @@ export async function refundCheck(env: CloudflareEnv, now: Date = new Date()): P
       readSite: (items) => loadRefundCheckRows(env, items),
       sendAlert: (report) => deliverRefundCheckAlert(env, report),
       sendDidNotRun: () => deliverRefundCheckDidNotRun(env),
+      mailRefund: (input) => mailCustomerRefund(env, input),
       // The cron logs the result; this run logs only the listing failure word.
       emit: withRequestContext({ requestId: crypto.randomUUID(), route: "cron:refund_check", locale: null }),
     },

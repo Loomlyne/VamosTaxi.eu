@@ -2,14 +2,15 @@
 --
 -- 20261012240000 (Phase 31, refunds in Stripe; 31-CONTEXT D-09..D-12, C-02):
 --   refund_check_read(jsonb)          the nightly refund check reader: reads only, one row per input element in
---                                     input order, reference never name or e-mail, more than 500 inputs raise.
+--                                     input order, reference never name or e-mail, more than 500 inputs raise;
+--                                     for a recorded refund, its booking id and whether its mail was claimed.
 --   notification_claim_refund(...)    one refund mail claim per Stripe refund (dedupe booking:refund:<re_id>),
 --                                     only for a refund recorded on that booking, locale from the booking.
 --   notification_refund_read(int8)    booking, Stripe refund id and recorded refund_rappen for an unsent claim.
 -- Grants: vamos_system only. Rolled back. Synthetic ids and rappen integers only, never a product CHF figure.
 -- Run as postgres by `supabase test db`.
 begin;
-select plan(52);
+select plan(55);
 
 -- Fixtures -----------------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity, name)
@@ -134,7 +135,8 @@ select is((select l.lanname::text from pg_proc p join pg_language l on l.oid = p
 select is(pg_get_function_result('public.refund_check_read(jsonb)'::regprocedure),
           'TABLE(stripe_refund_id text, payment_intent_id text, payment_found boolean, payment_status text, '
           || 'booking_reference text, site_refund_rappen bigint, site_reason text, site_reversed boolean, '
-          || 'booking_refunded_rappen bigint, booking_rows_sum_rappen bigint, booking_refund_status text)',
+          || 'booking_refunded_rappen bigint, booking_rows_sum_rappen bigint, booking_refund_status text, '
+          || 'site_refund_booking_id uuid, refund_mail_claimed boolean)',
           'reader: column list pinned (reference and amounts only, no name or e-mail)');
 select is(pg_get_function_result('public.notification_refund_read(int8)'::regprocedure),
           'TABLE(booking_id uuid, stripe_refund_id text, refund_rappen bigint, locale text)',
@@ -319,6 +321,27 @@ select is((select v from misc where k = 'read_a1_sent'), '0', 'claim reader: a s
 select is((select v from misc where k = 'read_c1_failed'), row('re_t_c', 3000::int8, 'fr')::text,
           'claim reader: a failed send is still read for the retry, with the recorded amount');
 select is((select v from misc where k = 'claim_after_sent'), 'null', 'claim: a sent refund cannot be claimed again');
+
+-- Reader after the claims: which recorded refunds still lack their mail claim ---------------------- 3
+set local role vamos_system;
+insert into misc values ('mail_rows', (
+  select string_agg(row(r.stripe_refund_id, r.site_refund_booking_id = (select id from ids where k = 'a'),
+                        r.refund_mail_claimed)::text, ';' order by r.ord)
+    from public.refund_check_read('[
+      {"id": "re_t_rec", "payment_intent": "pi_t_a"},
+      {"id": "re_t_diff", "payment_intent": "pi_t_a"},
+      {"id": "re_t_missing", "payment_intent": "pi_t_a"}
+    ]'::jsonb) with ordinality as r(stripe_refund_id, payment_intent_id, payment_found, payment_status,
+                                    booking_reference, site_refund_rappen, site_reason, site_reversed,
+                                    booking_refunded_rappen, booking_rows_sum_rappen, booking_refund_status,
+                                    site_refund_booking_id, refund_mail_claimed, ord)));
+reset role;
+select is(split_part((select v from misc where k = 'mail_rows'), ';', 1), row('re_t_rec', true, true)::text,
+          'reader: a recorded refund with a mail claim says claimed, with its booking');
+select is(split_part((select v from misc where k = 'mail_rows'), ';', 2), row('re_t_diff', true, false)::text,
+          'reader: a recorded refund without a mail claim says not claimed, with its booking');
+select is(split_part((select v from misc where k = 'mail_rows'), ';', 3), row('re_t_missing', null::bool, null::bool)::text,
+          'reader: a refund the site has not recorded gives no booking and no claim answer');
 
 select * from finish();
 rollback;

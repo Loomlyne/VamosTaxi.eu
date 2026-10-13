@@ -25,7 +25,7 @@ Not pushed to main. No deploy. No live write. No live MCP call during execution;
 
 ## 2. Migration and ship order
 
-- File: `packages/db/supabase/migrations/20261012240000_refund_check_reader.sql`, md5 `07371cd72d495009d48eaddd73e9361e`.
+- File: `packages/db/supabase/migrations/20261012240000_refund_check_reader.sql`, md5 `c0c516f2b5dd56357267468313c1a296` (was 07371cd7… before the PR #82 review fix, 2026-10-14: `refund_check_read` gained `site_refund_booking_id` and `refund_mail_claimed`; not applied live, so the file was changed in place).
   - Renumbered from 20261012220000 by the owner, 2026-10-13 ~23:25 +04, because Phase 30 owns `20261012220000_edit_request_retired_class.sql`.
   - It is additive: three SECURITY DEFINER functions, `refund_check_read`, `notification_claim_refund` and `notification_refund_read`. No table change. It does not touch `booking_notifications_kind_check`; kind 'refund' is already allowed.
 - **Migration first:**
@@ -144,7 +144,8 @@ Earlier results (before the second merge):
 
 - Drop the `ops_refund_*` SQL after a week live (D-07). `findRefundByIntent` / `payoutFactsFromRefund` lost their only production caller.
 - The C-04 / 23514 notification kinds bug (`assignment_customer`, `time_change`, `flight_no`, `refund_failed` refused by the live check constraint). This is a separate job with migration 20261012230000; not touched here.
-- Owner question: the account bookings list (`app/pages/BookingRow.dc.html:251`) still says "Cancelled by you. The refund is with our team for review." It names no amount and no Stripe, but it is not signed wording. Keep it, or replace it with signed wording?
+- PR #82 review note 3, done 2026-10-14 (owner: "do what you think is best"): the account bookings list (`app/pages/BookingRow.dc.html:251`) now says "Cancelled by you. Any refund follows the cancellation policy." in en/de/fr/ar: its own first sentence plus W1's second sentence, both already in use. No new wording.
+- PR #82 review note 2, done 2026-10-14: a recorded Stripe Dashboard refund whose mail claim never landed is picked up by the 03:00 check (`refund_mail_claimed = false`), which runs the same claim, send and settle as the webhook. Not for app refunds, amount differences or reversed refunds; the claim keeps it to one mail. The info@ alert stays as the first signal.
 - `apps/web/i18n/messages/fr.json` `ops.assign-driver` says "Attribuer un chauffeur", while the dashboard and dictionary say "Assigner un chauffeur". The React twin reaches nobody.
 - `docs/runbooks/stripe-webhook.md:28` still says the booking "shows the refund as due again".
 - The archive copy `archive/ds-upgrade/app/manage-booking.dc.html` keeps the old lines; no customer sees it.

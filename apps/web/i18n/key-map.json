@@ -274,7 +274,7 @@
   "Cancellations, changes and refunds — see the": "legal.cancellations-changes-and-refunds-see-the",
   "Cancellations, changes, complaints and no-shows all go through the same team. Quote your booking reference and we will pick it up.": "legal.cancellations-changes-complaints-and-no-shows-al",
   "Cancelled": "common.cancelled",
-  "Cancelled by you. The refund is with our team for review.": "account.cancelled-by-you-the-refund-is-with-our-team-for",
+  "Cancelled by you. Any refund follows the cancellation policy.": "account.cancelled-by-you-the-refund-is-with-our-team-for",
   "Cancelled inside the free window": "ops.cancelled-inside-the-free-window",
   "Cancelled inside the free window — issue the refund in Stripe and record it here.": "ops.cancelled-inside-the-free-window-issue-the-refun",
   "Cancelling is still open to you, but this close in it no longer earns a full refund.": "account.cancelling-is-still-open-to-you-but-this-close-i",

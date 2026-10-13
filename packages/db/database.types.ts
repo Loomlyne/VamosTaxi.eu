@@ -4105,7 +4105,9 @@ export type Database = {
           payment_found: boolean
           payment_intent_id: string
           payment_status: string
+          refund_mail_claimed: boolean
           site_reason: string
+          site_refund_booking_id: string
           site_refund_rappen: number
           site_reversed: boolean
           stripe_refund_id: string

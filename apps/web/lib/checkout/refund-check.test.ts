@@ -70,6 +70,8 @@ function row(over: Partial<RefundCheckRow> = {}): RefundCheckRow {
     booking_refunded_rappen: "4000",
     booking_rows_sum_rappen: "4000",
     booking_refund_status: "refunded",
+    site_refund_booking_id: "00000000-0000-4000-8000-000000000001",
+    refund_mail_claimed: true,
     ...over,
   };
 }
@@ -82,6 +84,7 @@ function deps(refunds: StripeRefundLite[], rows: Record<string, Partial<RefundCh
     ),
     sendAlert: vi.fn(async (_report: RefundCheckReport) => undefined),
     sendDidNotRun: vi.fn(async () => undefined),
+    mailRefund: vi.fn(async (_input: { bookingId: string; stripeRefundId: string; refundRappen: number }) => undefined),
     emit: vi.fn(),
   } satisfies RefundCheckDeps;
   return d;
@@ -109,6 +112,7 @@ describe("refundCheckWithDeps: window and cap", () => {
       findings: 0,
       truncated: false,
       mailed: false,
+      refundMailsStarted: 0,
     });
   });
 
@@ -240,6 +244,41 @@ describe("refundCheckWithDeps: classification", () => {
   });
 });
 
+describe("refundCheckWithDeps: a customer refund mail whose claim never landed (PR #82 note 2)", () => {
+  it("a recorded Dashboard refund with no mail claim starts the mail once, with the recorded amount", async () => {
+    const d = deps([refund({ id: "re_t_lost" })], { re_t_lost: { refund_mail_claimed: false } });
+    const result = await refundCheckWithDeps(d, NOW);
+    expect(d.mailRefund).toHaveBeenCalledTimes(1);
+    expect(d.mailRefund).toHaveBeenCalledWith({
+      bookingId: "00000000-0000-4000-8000-000000000001",
+      stripeRefundId: "re_t_lost",
+      refundRappen: 4000,
+    });
+    expect(result.refundMailsStarted).toBe(1);
+    // Not a finding: the owner gets no alert for it, and the log carries ids only.
+    expect(d.sendAlert).not.toHaveBeenCalled();
+    expect(result.findings).toBe(0);
+    expect(d.emit).toHaveBeenCalledWith("warn", "refund_check_mail_unclaimed", {
+      bookingId: "00000000-0000-4000-8000-000000000001",
+      refundId: "re_t_lost",
+    });
+  });
+
+  it.each<[string, StripeRefundLite, Partial<RefundCheckRow>]>([
+    ["already claimed", refund(), { refund_mail_claimed: true }],
+    ["made by the app", refund({ metadata: { vamos_source: "app" } }), { refund_mail_claimed: false }],
+    ["amount differs", refund(), { refund_mail_claimed: false, site_refund_rappen: "3000" }],
+    ["reversed", refund(), { refund_mail_claimed: false, site_reversed: true }],
+    ["not recorded", refund(), { refund_mail_claimed: null, site_refund_rappen: null, site_refund_booking_id: null }],
+    ["Stripe says failed", refund({ status: "failed" }), { refund_mail_claimed: false }],
+  ])("no mail when the refund is %s", async (_label, stripeRefund, siteRow) => {
+    const d = deps([stripeRefund], { [stripeRefund.id]: siteRow });
+    const result = await refundCheckWithDeps(d, NOW);
+    expect(d.mailRefund).not.toHaveBeenCalled();
+    expect(result.refundMailsStarted).toBe(0);
+  });
+});
+
 describe("refundCheckWithDeps: mail and failures", () => {
   it("findings: one alert with the whole report, mailed true, counts only in the result", async () => {
     const d = deps([refund({ id: "re_t_m" }), refund({ id: "re_t_u" })], {
@@ -258,6 +297,7 @@ describe("refundCheckWithDeps: mail and failures", () => {
       findings: 2,
       truncated: false,
       mailed: true,
+      refundMailsStarted: 0,
     });
     for (const [key, value] of Object.entries(result)) {
       if (key === "outcome") continue;

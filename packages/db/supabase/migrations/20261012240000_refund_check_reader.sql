@@ -12,7 +12,9 @@
 --       and gets one row per element, in input order: the payment and booking facts the site holds for it, by
 --       reference only (never a name or an e-mail, D-12). Reads only (STABLE: Postgres refuses a write inside
 --       it). More than 500 elements raise too_many_refunds; a null or non-array argument returns no rows; an
---       element that is not an object, or whose id is not a string, returns a row of nulls.
+--       element that is not an object, or whose id is not a string, returns a row of nulls. For a recorded
+--       refund it also gives the refund row's booking id and whether its customer mail was claimed, so the
+--       check can send a refund mail whose claim never landed (PR #82 review note 2).
 --   (2) notification_claim_refund(booking, stripe_refund_id, template_version): claims the customer's refund
 --       mail for one Stripe refund (D-10, S-03, S-06), one booking_notifications row kind 'refund' with
 --       dedupe_key 'booking:refund:<re_id>'. NULL when that refund is already claimed. Refused unless that
@@ -45,7 +47,9 @@ returns table (
   site_reversed           pg_catalog.bool,
   booking_refunded_rappen pg_catalog.int8,
   booking_rows_sum_rappen pg_catalog.int8,
-  booking_refund_status   pg_catalog.text
+  booking_refund_status   pg_catalog.text,
+  site_refund_booking_id  pg_catalog.uuid,
+  refund_mail_claimed     pg_catalog.bool
 )
 language plpgsql
 stable
@@ -98,7 +102,12 @@ begin
                    and not exists (select 1 from public.booking_refund_reversals as rv2 where rv2.refund_id = r2.id)
               ), 0)::pg_catalog.int8
          end,
-         b.refund_status
+         b.refund_status,
+         br.booking_id,
+         case when br.id is null then null
+              else exists (select 1 from public.booking_notifications as n
+                            where n.dedupe_key = 'booking:refund:' || br.stripe_refund_id)
+         end
     from inp as i
     left join public.booking_payments as bp on bp.stripe_payment_intent_id = i.pi_id
     left join public.bookings as b on b.id = bp.booking_id
@@ -108,7 +117,7 @@ end;
 $$;
 
 comment on function public.refund_check_read(pg_catalog.jsonb) is
-  'Phase 31 D-09/D-12: nightly refund check. Input: JSON array of {"id": "re_...", "payment_intent": "pi_..." | null} from Stripe''s own refund list. One row per element, in input order: payment found and its status, booking reference, the site''s refund row for that Stripe refund (amount, reason, reversed), the booking''s refunded_rappen, the sum of its refund rows (reversed rows and rows on duplicate payments left out) and refund_status. Reads only, reference never name or e-mail. More than 500 elements raise too_many_refunds. EXECUTE: vamos_system only.';
+  'Phase 31 D-09/D-12: nightly refund check. Input: JSON array of {"id": "re_...", "payment_intent": "pi_..." | null} from Stripe''s own refund list. One row per element, in input order: payment found and its status, booking reference, the site''s refund row for that Stripe refund (amount, reason, reversed), the booking''s refunded_rappen, the sum of its refund rows (reversed rows and rows on duplicate payments left out) and refund_status; for a recorded refund, its booking id and whether its customer refund mail was claimed. Reads only, reference never name or e-mail. More than 500 elements raise too_many_refunds. EXECUTE: vamos_system only.';
 
 -- ---------------------------------------------------------------------------
 -- (2) claim the customer's refund mail for one Stripe refund

@@ -123,6 +123,7 @@ describe.skipIf(!PORT)("nightly refund check through the Worker client (local, r
     const sendAlert = vi.fn(async () => undefined);
     const sendDidNotRun = vi.fn(async () => undefined);
     const readSite = vi.fn((items: { id: string; payment_intent: string | null }[]) => loadRefundCheckRows(env, items));
+    const mailRefund = vi.fn(async (_input: { bookingId: string; stripeRefundId: string; refundRappen: number }) => undefined);
 
     const result = await refundCheckWithDeps(
       {
@@ -139,6 +140,7 @@ describe.skipIf(!PORT)("nightly refund check through the Worker client (local, r
         readSite,
         sendAlert,
         sendDidNotRun,
+        mailRefund,
         emit: vi.fn(),
       },
       NOW,
@@ -153,6 +155,15 @@ describe.skipIf(!PORT)("nightly refund check through the Worker client (local, r
       findings: 3,
       truncated: false,
       mailed: true,
+      refundMailsStarted: 1,
+    });
+    // The recorded refund has no mail claim on this stack: the check starts its mail, with the recorded amount
+    // and the refund row's own booking (PR #82 note 2). The reversed and amount-different ones get none.
+    expect(mailRefund).toHaveBeenCalledTimes(1);
+    expect(mailRefund).toHaveBeenCalledWith({
+      bookingId: expect.stringMatching(/^[0-9a-f-]{36}$/),
+      stripeRefundId: reRecorded,
+      refundRappen: 1500,
     });
     expect(sendDidNotRun).not.toHaveBeenCalled();
     expect(sendAlert).toHaveBeenCalledTimes(1);
@@ -179,6 +190,8 @@ describe.skipIf(!PORT)("nightly refund check through the Worker client (local, r
       reUnlinked,
     ]);
     expect(rows[1]).toMatchObject({ payment_found: true, site_reversed: true, booking_reference: reference });
+    expect(rows[0]).toMatchObject({ refund_mail_claimed: false });
+    expect(rows[3]).toMatchObject({ refund_mail_claimed: null, site_refund_booking_id: null });
 
     expect(await counts()).toEqual(before);
   });
@@ -195,6 +208,7 @@ describe.skipIf(!PORT)("nightly refund check through the Worker client (local, r
         readSite: (items) => loadRefundCheckRows(env, items),
         sendAlert,
         sendDidNotRun: vi.fn(async () => undefined),
+        mailRefund: vi.fn(async () => undefined),
         emit: vi.fn(),
       },
       NOW,

@@ -253,6 +253,10 @@ export type RefundCheckRow = {
   booking_refunded_rappen: number | string | null;
   booking_rows_sum_rappen: number | string | null;
   booking_refund_status: string | null;
+  /** The recorded refund row's booking; null when the site has no row for this refund. */
+  site_refund_booking_id: string | null;
+  /** Whether the customer refund mail for this refund was claimed; null when the site has no row. */
+  refund_mail_claimed: boolean | null;
 };
 
 /**
