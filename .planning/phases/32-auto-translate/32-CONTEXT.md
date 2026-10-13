@@ -126,7 +126,7 @@ Live counts read-only via the Supabase connector, 2026-10-12: 2 bookings in tota
 
 **D-11 (signed 2026-10-14 ~00:20 +04, `.planning/decisions/2026-10-13-p30-ship-p31-lines-rls-fix.md` items 6–8).** The five further Arabic-letter spellings of "Vamos Taxi" also become Latin: three in the e-mail catalogs, one in `OpsReviews`, one in `OpsSidebar`. Approved legal lines are untouched. The plans (32-04) already include them.
 **D-12 (signed the same time).** Booking notes are translated and stored, and no screen shows them until he signs a design for one.
-**Not signed yet:** the 12 plans and the four migration numbers. He asked to see the plans first. Execution waits for his word and for Phase 30 on main.
+**Plans signed 2026-10-14 ~00:25 +04** (decisions file `.planning/decisions/2026-10-13-p30-ship-p31-lines-rls-fix.md` item 8): all 12 plans and the four migration numbers, now in 32-02's `migration_numbers` field: translation cache `20261012260000`, review language and ref `20261012270000`, customer message and booking-note translations `20261012280000`, extras system fill `20261012290000`. Execution starts only after Phase 30 is live on main (32-01 refuses until then).
 </specifics>
 
 <deferred>
