@@ -1,6 +1,6 @@
 # DRAFT for the owner: wording for Google remarketing (2026-10-11)
 
-**Status: DRAFT, not adopted.** Written by the agent at his request: question form, 2026-10-11, "Yes, allow remarketing" (Accept also lets Google use the visit to show Vamos adverts again to past visitors). No lawyer has read it. Nothing here is on the site.
+**Status: DRAFT, not adopted.** Owner's Ship 2026-10-13 (question form): remarketing is OFF in code (`ad_personalization: denied` on Accept, PR #77) until he adopts this draft; WR-02 is closed by that, and WR-07 (doubleclick in CSP `frame-src`) stays out unless this draft is adopted. Written by the agent at his request: question form, 2026-10-11, "Yes, allow remarketing" (Accept also lets Google use the visit to show Vamos adverts again to past visitors). No lawyer has read it. Nothing here is on the site.
 
 Each change below adds to a text he adopted on 2026-10-09 (`2026-10-09-ad-tracking-wording.md`). Everything not quoted here stays word for word. When he adopts this draft, the build copies each new sentence byte for byte into `app/vamos-meta-texts.js` and `apps/web/i18n/messages/*.json`, and extends `owner-texts.test.ts`. `CONSENT_POLICY_VERSION` moves to the ship day, so every visitor is asked again. If GA4 ships in the same release, one version bump covers both.
 
