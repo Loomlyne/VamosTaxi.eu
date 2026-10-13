@@ -48,6 +48,14 @@ function fakeStore(patch: Partial<TranslateStore> = {}): TranslateStore & { call
     setReviewLanguage: rec("setReviewLanguage", undefined),
     extraLabelsMissing: rec("extraLabelsMissing", [{ code: "child_seat", label_en: "Child seat" }]),
     fillExtraLabel: rec("fillExtraLabel", 3),
+    staleTranslationSource: rec("staleTranslationSource", {
+      source_hash: "c".repeat(64),
+      source_lang: "de",
+      target_lang: "en",
+      source_text: DE_TEXT,
+      context: "review" as const,
+    }),
+    putMachineTranslation: rec("putMachineTranslation", { translated_text: EN, origin: "machine" as const, status: "done" as const }),
   };
   const out = { ...base, calls } as TranslateStore & { calls: Calls };
   for (const [k, fn] of Object.entries(patch)) {
@@ -269,5 +277,62 @@ describe("handleTranslateJob: reviews and extras", () => {
     expect(await handleTranslateJob({ ai, store, emit: vi.fn() }, { v: 1, kind: "extra", code: "child_seat" })).toBe("skipped");
     expect(ai.calls).toHaveLength(0);
     expect(store.calls.fillExtraLabel).toBeUndefined();
+  });
+});
+
+describe("handleTranslateJob: stale machine cache rows (prompt_version bump, plan 32-05)", () => {
+  it("re-translates the row and stores it under the same key with the current prompt version", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const ai = stubAi(() => gemmaReply({ en: EN }));
+    const store = fakeStore();
+    const emit = vi.fn();
+    expect(await handleTranslateJob({ ai, store, emit }, { v: 1, kind: "cache", translationId: "42" })).toBe("done");
+    expect(store.calls.staleTranslationSource).toEqual([["42", PROMPT_VERSION]]);
+    expect(store.calls.putMachineTranslation).toEqual([
+      [
+        {
+          hash: "c".repeat(64),
+          sourceLang: "de",
+          targetLang: "en",
+          sourceText: DE_TEXT,
+          text: EN,
+          context: "review",
+          promptVersion: PROMPT_VERSION,
+        },
+      ],
+    ]);
+    expectCleanLogs(emit);
+  });
+
+  it("a row that is human or current (no source returned) is skipped without a model call", async () => {
+    const ai = stubAi(() => gemmaReply({ en: EN }));
+    const store = fakeStore({ staleTranslationSource: async () => null });
+    expect(await handleTranslateJob({ ai, store, emit: vi.fn() }, { v: 1, kind: "cache", translationId: "42" })).toBe("skipped");
+    expect(ai.calls).toHaveLength(0);
+    expect(store.calls.putMachineTranslation).toBeUndefined();
+  });
+
+  it("a source language outside the four is detected again with it as the fallback", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const ai = stubAi(() => gemmaReply({ lang: "it", en: EN }));
+    const store = fakeStore({
+      staleTranslationSource: async () => ({
+        source_hash: "d".repeat(64),
+        source_lang: "it",
+        target_lang: "en",
+        source_text: IT_TEXT,
+        context: "review",
+      }),
+    });
+    expect(await handleTranslateJob({ ai, store, emit: vi.fn() }, { v: 1, kind: "cache", translationId: "43" })).toBe("done");
+    expect(store.calls.putMachineTranslation![0]![0]).toMatchObject({ hash: "d".repeat(64), sourceLang: "it", targetLang: "en", text: EN });
+  });
+
+  it("a rejected re-translation keeps the earlier text (no write)", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const ai = stubAi(() => gemmaReply({ en: `Sure, here is the translation: ${EN}` }));
+    const store = fakeStore();
+    expect(await handleTranslateJob({ ai, store, emit: vi.fn() }, { v: 1, kind: "cache", translationId: "42" })).toBe("failed");
+    expect(store.calls.putMachineTranslation).toBeUndefined();
   });
 });

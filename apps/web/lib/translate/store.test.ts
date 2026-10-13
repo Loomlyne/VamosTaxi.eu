@@ -104,6 +104,8 @@ const cases: Array<{ name: string; fn: string; via: "system" | "public"; run: ()
   { name: "setReviewLanguage", fn: "system_review_language_set", via: "system", run: () => store.setReviewLanguage(env, UUID, "de") },
   { name: "extraLabelsMissing", fn: "system_extra_labels_missing", via: "system", run: () => store.extraLabelsMissing(env) },
   { name: "fillExtraLabel", fn: "system_extra_label_fill", via: "system", json: true, run: () => store.fillExtraLabel(env, "child_seat", { de: "Kindersitz" }) },
+  { name: "staleMachineTranslations", fn: "system_translation_stale", via: "system", run: () => store.staleMachineTranslations(env, 2, 100) },
+  { name: "staleTranslationSource", fn: "system_translation_stale_source", via: "system", run: () => store.staleTranslationSource(env, "42", 2) },
 ];
 
 describe("translate store: one definer function per wrapper", () => {
@@ -151,5 +153,15 @@ describe("translate store: one definer function per wrapper", () => {
     expect(await store.supportFormMessageId(env, UUID)).toBe(UUID);
     h.state.reply = [{ n: 2 }];
     expect(await store.fillExtraLabel(env, "child_seat", { de: "Kindersitz" })).toBe(2);
+  });
+
+  it("stale readers pass the prompt version and map ids as strings (plan 32-05)", async () => {
+    h.state.reply = [{ id: 7, origin: "machine", prompt_version: 1 }];
+    expect(await store.staleMachineTranslations(env, 2, 100)).toEqual([{ id: "7", origin: "machine", prompt_version: 1 }]);
+    expect(h.state.calls[0]!.values).toEqual([2, 100]);
+    h.state.calls = [];
+    h.state.reply = [];
+    expect(await store.staleTranslationSource(env, "7", 2)).toBeNull();
+    expect(h.state.calls[0]!.values).toEqual(["7", 2]);
   });
 });

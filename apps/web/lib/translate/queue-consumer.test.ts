@@ -48,6 +48,8 @@ function store(patch: Partial<TranslateStore> = {}): TranslateStore & { calls: R
     setReviewLanguage: rec("setReviewLanguage", undefined),
     extraLabelsMissing: rec("extraLabelsMissing", []),
     fillExtraLabel: rec("fillExtraLabel", 0),
+    staleTranslationSource: rec("staleTranslationSource", null),
+    putMachineTranslation: rec("putMachineTranslation", null),
   } as unknown as TranslateStore;
   const out = { ...base, calls } as TranslateStore & { calls: Record<string, unknown[][]> };
   for (const [k, fn] of Object.entries(patch)) {
@@ -193,15 +195,18 @@ describe("consumeTranslateBatch: the quiet dead-letter queue", () => {
     }
   });
 
-  it("review and extra jobs only ack (the nightly sweep retries them)", async () => {
+  it("review, extra and cache jobs only ack (the nightly sweep retries them)", async () => {
     const s = store();
     const { d } = deps(s);
     const a = msg({ v: 1, kind: "review", reviewId: REVIEW });
     const b = msg({ v: 1, kind: "extra", code: "child_seat" }, { id: "qmsg_2" });
-    await consumeTranslateBatch({ queue: DLQ, messages: [a, b] }, d);
+    const c = msg({ v: 1, kind: "cache", translationId: "42" }, { id: "qmsg_3" });
+    await consumeTranslateBatch({ queue: DLQ, messages: [a, b, c] }, d);
     expect(Object.keys(s.calls)).toHaveLength(0);
-    expect(a.ack).toHaveBeenCalledTimes(1);
-    expect(b.ack).toHaveBeenCalledTimes(1);
+    for (const m of [a, b, c]) {
+      expect(m.ack).toHaveBeenCalledTimes(1);
+      expect(m.retry).not.toHaveBeenCalled();
+    }
   });
 
   it("a store failure in the DLQ is logged (SQLSTATE only) and still acked; nothing is retried or mailed", async () => {

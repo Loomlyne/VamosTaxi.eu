@@ -9,6 +9,7 @@ const JOBS: TranslateJob[] = [
   { v: 1, kind: "note", bookingId: ID },
   { v: 1, kind: "review", reviewId: ID },
   { v: 1, kind: "extra", code: "child_seat_2" },
+  { v: 1, kind: "cache", translationId: "42" },
 ];
 
 function loggedLines(spy: ReturnType<typeof vi.spyOn>): Record<string, unknown>[] {
@@ -39,6 +40,13 @@ describe("parseTranslateJob", () => {
     expect(parseTranslateJob({ v: 1, kind: "support", bookingId: ID })).toBeNull();
     expect(parseTranslateJob({ v: 1, kind: "support" })).toBeNull();
     expect(parseTranslateJob({ v: 1, kind: "other", messageId: ID })).toBeNull();
+  });
+
+  it("a cache job carries a positive integer id only (plan 32-05)", () => {
+    for (const bad of ["0", "-1", "01", "4.2", "abc", "1".repeat(20), 42]) {
+      expect(parseTranslateJob({ v: 1, kind: "cache", translationId: bad })).toBeNull();
+    }
+    expect(parseTranslateJob({ v: 1, kind: "cache", translationId: "42", text: "x" })).toBeNull();
   });
 
   it("refuses non-objects", () => {
