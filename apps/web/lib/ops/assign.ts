@@ -213,6 +213,7 @@ type ClassFactsRow = {
   driver_class_id: string | null;
   driver_class_name: string | null;
   driver_class_slug: string | null;
+  driver_class_retired?: boolean | null;
   trip_class_id: string | null;
   trip_class_name: string | null;
   trip_class_slug: string | null;
@@ -243,6 +244,7 @@ export async function loadAssignClassFacts(
       c.vehicle_class_id as driver_class_id,
       driver_cls.name as driver_class_name,
       driver_cls.slug as driver_class_slug,
+      (driver_cls.hidden_at is not null) as driver_class_retired,
       l.vehicle_class_id as trip_class_id,
       trip_cls.name as trip_class_name,
       trip_cls.slug as trip_class_slug
@@ -261,6 +263,7 @@ export async function loadAssignClassFacts(
     driverName: String(row.driver_name ?? "").trim(),
     driverClassId: row.driver_class_id ? String(row.driver_class_id) : null,
     driverClassName: className(row.driver_class_name, row.driver_class_slug),
+    driverClassRetired: row.driver_class_retired === true,
     tripClassId: row.trip_class_id ? String(row.trip_class_id) : null,
     tripClassName: className(row.trip_class_name, row.trip_class_slug),
   };
