@@ -202,7 +202,7 @@ function detail(over: Record<string, unknown> = {}, lang = "en", answer?: unknow
   const b = booking(over);
   const { win, request, bar } = detailWindow(b, answer);
   const logic = loadLogic("OpsDetail.dc.html", win, lang, { id: b.id });
-  return { logic, request, bar, vals: () => logic.renderVals() };
+  return { logic, request, bar, win, vals: () => logic.renderVals() };
 }
 
 function barMarkup(): string {
@@ -225,7 +225,6 @@ describe("1 · booking detail: one Actions menu", () => {
       "{{ openEdit }}",
       "{{ markNoShow }}",
       "{{ openCancel }}",
-      "{{ markRefund }}",
       "{{ openRequested }}",
       'name="BrandSelect"',
     ]) {
@@ -238,7 +237,8 @@ describe("1 · booking detail: one Actions menu", () => {
 
   it("a paid, unassigned trip lists every valid action; Cancel booking is last and danger", () => {
     const items = detail({ pickupAt: isoIn(-HOUR) }).vals().actionItems as { value: string; label: string; tone?: string }[];
-    expect(items.map((i) => i.value)).toEqual(["assign", "edit", "resend", "arrival", "complete", "noShow", "cancel"]);
+    // Phase 31: an admin on a paid booking also gets Refund in Stripe, above Cancel.
+    expect(items.map((i) => i.value)).toEqual(["assign", "edit", "resend", "arrival", "complete", "noShow", "refund", "cancel"]);
     expect(items.map((i) => i.label)).toEqual([
       "Assign driver",
       "Edit booking",
@@ -246,6 +246,7 @@ describe("1 · booking detail: one Actions menu", () => {
       "Mark arrival",
       "Complete",
       "No-show",
+      "Refund in Stripe",
       "Cancel booking",
     ]);
     expect(items.filter((i) => i.tone === "danger").map((i) => i.value)).toEqual(["cancel"]);
@@ -329,90 +330,105 @@ describe("1 · booking detail: one Actions menu", () => {
   });
 });
 
-// ── 1b · Merged with main (20-10 refunds by hand): Refund lives in Actions, main's panel does the work ──
-describe("1b · Actions → Refund opens main's refunds-by-hand panel", () => {
-  const due = { status: "cancelled", refundStatus: "pending_ops", refundOwedRappen: 12000 };
+// ── 1b · Phase 31 (refunds in Stripe): Refund in Stripe lives in Actions; the page sends no refund ──
+describe("1b · Actions → Refund in Stripe opens the payment in Stripe; nothing is sent from the page", () => {
+  const due = { status: "cancelled", refundStatus: "pending_ops", refundOwedRappen: 0 };
+  const ROUTE = "/api/staff/bookings/b0000000-0000-4000-8000-000000000042/stripe-payments";
+  const PI = "https://dashboard.stripe.com/test/payments/pi_one";
+  const PI2 = "https://dashboard.stripe.com/test/payments/pi_two";
+  const pay = (url: string) => ({ kind: "trip", chargedRappen: 100, leftRappen: 100, capturedAt: "2026-10-02T08:00:00Z", url });
   const fakePanel = () => {
     const focus = vi.fn();
     return { el: { isConnected: true, scrollIntoView: vi.fn(), querySelector: vi.fn(() => ({ focus })) }, focus };
   };
+  /** The detail with the Stripe links answered: the menu item is live. */
+  const linked = async (over: Record<string, unknown>, rows: unknown[]) => {
+    const d = detail(over, "en", { ok: true, data: rows });
+    d.logic.componentDidMount();
+    await flush();
+    const open = vi.fn();
+    (d.win as Record<string, unknown>).open = open;
+    return { ...d, open };
+  };
+  const posts = (request: ReturnType<typeof vi.fn>) => request.mock.calls.filter((c) => c[0] === "POST");
 
-  it("a cancelled paid booking with a refund due shows Actions with Refund, and main's panel on the page", () => {
+  it("a cancelled paid booking shows Actions with Refund in Stripe (disabled until the links arrive) and the neutral note", () => {
     const v = detail(due).vals();
-    expect(v.refundFormShown).toBe(true);
-    expect(v.fullShown).toBe(true);
     expect(v.showRefundDue).toBe(true);
     expect(v.showActions).toBe(true);
-    expect((v.actionItems as { value: string }[]).map((i) => i.value)).toEqual(["refund"]);
+    expect(v.refundFormShown).toBeUndefined();
+    const items = v.actionItems as { value: string; label: string; icon: string; disabled?: boolean }[];
+    expect(items.map((i) => i.value)).toEqual(["refund"]);
+    expect(items[0]).toMatchObject({ label: "Refund in Stripe", icon: "external-link", disabled: true });
   });
 
-  it("picking Refund sends nothing: it scrolls to main's panel and focuses its first control", async () => {
-    const d = detail(due);
-    const p = fakePanel();
-    (d.logic as unknown as { _refundEl: unknown })._refundEl = p.el;
+  it("once the links arrive the item is live; one payment opens in a new tab and nothing is posted", async () => {
+    const d = await linked(due, [pay(PI)]);
+    expect(d.request).toHaveBeenCalledWith("GET", ROUTE);
+    const item = (d.vals().actionItems as { value: string; disabled?: boolean }[]).find((i) => i.value === "refund");
+    expect(item?.disabled).toBe(false);
     d.vals().pickAction("refund");
+    expect(d.open).toHaveBeenCalledWith(PI, "_blank", "noopener");
     await flush();
-    expect(d.request).not.toHaveBeenCalled();
-    expect(p.el.scrollIntoView).toHaveBeenCalledWith({ block: "center" });
-    expect(p.focus).toHaveBeenCalledWith({ preventScroll: true });
-    // The panel's own Confirm refund is what sends (main's body: full tier = 100 %).
-    d.vals().confirmPercent();
-    await flush();
-    expect(d.request).toHaveBeenCalledWith("POST", "/api/staff/bookings/b0000000-0000-4000-8000-000000000042/refund", { percent: 100 });
+    expect(posts(d.request)).toEqual([]);
   });
 
-  it("the phone bar's Refund does the same (one handler)", async () => {
-    const d = detail(due);
-    const p = fakePanel();
-    (d.logic as unknown as { _refundEl: unknown })._refundEl = p.el;
+  it("the phone bar's Refund in Stripe does the same (one handler)", async () => {
+    const d = await linked(due, [pay(PI)]);
     d.vals();
     d.logic.componentDidUpdate();
     const [, entry] = d.bar.set.mock.calls.at(-1) as [string, Record<string, any>];
     expect(entry.items.map((i: { value: string }) => i.value)).toEqual(["refund"]);
     entry.onPick("refund");
+    expect(d.open).toHaveBeenCalledWith(PI, "_blank", "noopener");
     await flush();
-    expect(d.request).not.toHaveBeenCalledWith("POST", expect.stringMatching(/\/refund$/), expect.anything());
-    expect(p.el.scrollIntoView).toHaveBeenCalled();
+    expect(posts(d.request)).toEqual([]);
   });
 
-  it("a failed refund offers Refund too; it leads to main's Try again, never a new POST", async () => {
-    const d = detail({ status: "cancelled", refundStatus: "failed", refundOwedRappen: 12000 });
+  it("several payments: the pick opens the Which payment? list and scrolls to it", async () => {
+    const d = await linked(due, [pay(PI), pay(PI2)]);
+    const p = fakePanel();
+    (d.logic as unknown as { _refundEl: unknown })._refundEl = p.el;
+    d.vals().pickAction("refund");
+    await flush();
+    expect(d.open).not.toHaveBeenCalled();
+    expect(d.vals().stripeListShown).toBe(true);
+    expect(p.el.scrollIntoView).toHaveBeenCalledWith({ block: "center" });
+    expect(posts(d.request)).toEqual([]);
+  });
+
+  it("a failed refund offers Refund in Stripe too and the Alert links to Stripe; never a POST", async () => {
+    const d = await linked({ status: "cancelled", refundStatus: "failed" }, [pay(PI)]);
     const v = d.vals();
     expect(v.refundFailedShown).toBe(true);
+    expect(v.stripeOneUrl).toBe(PI);
     expect((v.actionItems as { value: string }[]).map((i) => i.value)).toContain("refund");
     v.pickAction("refund");
     await flush();
-    expect(d.request).not.toHaveBeenCalledWith("POST", expect.stringMatching(/\/refund$/), expect.anything());
+    expect(posts(d.request)).toEqual([]);
   });
 
-  it("an old cancelled row (refund_status none) keeps main's one-press full refund", async () => {
-    const d = detail({ status: "cancelled" });
+  it("an old cancelled row (refund_status none) opens Stripe; no one-press refund any more", async () => {
+    const d = await linked({ status: "cancelled" }, [pay(PI)]);
     d.vals().pickAction("refund");
     await flush();
-    expect(d.request).toHaveBeenCalledWith("POST", "/api/staff/bookings/b0000000-0000-4000-8000-000000000042/refund", {});
+    expect(d.open).toHaveBeenCalledWith(PI, "_blank", "noopener");
+    expect(posts(d.request)).toEqual([]);
   });
 
-  it("a post-trip request opens main's Accept / Reject panel", () => {
-    const d = detail({ status: "completed", tripPassed: true, driver: "Marco" });
-    d.vals().pickAction("refund");
-    expect(d.logic.state.requestedFor).toBe("b0000000-0000-4000-8000-000000000042");
-    expect(d.vals().requestedShown).toBe(true);
+  it("a finished paid trip offers Refund in Stripe; no post-trip Accept / Reject panel", async () => {
+    const d = await linked({ status: "completed", tripPassed: true, driver: "Marco" }, [pay(PI)]);
+    expect((d.vals().actionItems as { value: string }[]).map((i) => i.value)).toContain("refund");
+    expect(d.vals().requestedShown).toBeUndefined();
   });
 
-  it("while a refund is being sent the item is disabled and a pick does nothing", async () => {
-    const d = detail(due);
-    d.logic.state = { ...d.logic.state, refundBusy: "percent" };
-    const item = (d.vals().actionItems as { value: string; disabled?: boolean }[]).find((i) => i.value === "refund");
-    expect(item?.disabled).toBe(true);
-  });
-
-  it("main's three refund panels carry the ref the menu scrolls to; no Refund button outside the menu", () => {
+  it("the list and the failed Alert carry the ref the menu scrolls to; the decision box is gone", () => {
     const tpl = templateOf(readDc("OpsDetail.dc.html"));
-    for (const flag of ["refundFormShown", "requestedShown", "refundFailedShown"]) {
-      expect(tpl, flag).toMatch(new RegExp(`sc-if value="\\{\\{ ${flag} \\}\\}"[^>]*>\\s*<div data-ops-refund-region ref="\\{\\{ refundRef \\}\\}">`));
+    expect(tpl).toMatch(/sc-if value="\{\{ stripeListShown \}\}"[^>]*>\s*<div data-ops-refund-region data-ops-stripe-list ref="\{\{ refundRef \}\}">/);
+    expect(tpl).toMatch(/sc-if value="\{\{ refundFailedShown \}\}"[^>]*>\s*<div data-ops-refund-region ref="\{\{ refundRef \}\}">/);
+    for (const gone of ["refundFormShown", "requestedShown", "confirmPercent", "openDecline", "openReject", "acceptPostTrip", "retryRefund"]) {
+      expect(tpl, gone).not.toContain(gone);
     }
-    expect(tpl).not.toContain('onClick="{{ markRefund }}"');
-    expect(tpl).not.toContain('onClick="{{ openRequested }}"');
   });
 });
 

@@ -255,7 +255,7 @@ try {
     }
   }
 
-  // O2 a cheaper place: written at once, Refund due with the full difference, no refund sent.
+  // O2 a cheaper place: written at once, the difference is owed and refunded in Stripe by hand (Phase 31); the page sends no refund.
   if (want("O2")) {
     try {
       const c = B.cheap;
@@ -273,22 +273,23 @@ try {
       const leg = J(legRow("cheap"));
       const snap = J(q(`select json_build_object('km', s.distance_km, 'min', s.duration_min, 'total', s.total_rappen, 'refund', b.refund_status, 'owed', b.refund_owed_rappen) from public.bookings b join public.price_snapshots s on s.id = b.price_snapshot_id where b.id = '${c.id}'`));
       const due = c.paid - snap.total;
-      rec("O2a Destination 'Wallisellen': 'Trip changed. Refund due: CHF ...' and the leg carries the new drop-off (text, place id, coordinates, duration)",
-        /Trip changed\. Refund due: /.test(t1) && leg.dropoff === "Wallisellen" && leg.dropoff_place === "mb-wallisellen" && Number(leg.dropoff_lat) === 47.4148 && leg.dur === 11,
+      rec("O2a Destination 'Wallisellen': 'Trip changed. Difference to refund: CHF .... Refund it in Stripe.' and the leg carries the new drop-off (text, place id, coordinates, duration)",
+        /Trip changed\. Difference to refund: .+\. Refund it in Stripe\./.test(t1) && leg.dropoff === "Wallisellen" && leg.dropoff_place === "mb-wallisellen" && Number(leg.dropoff_lat) === 47.4148 && leg.dur === 11,
         `toast "${short(t1, 100)}"; leg ${JSON.stringify({ dropoff: leg.dropoff, place: leg.dropoff_place, lat: leg.dropoff_lat, duration_min: leg.dur })}; ${since(n0, /change$/)}`);
       rec("O2b the price record carries the new distance; Refund due is the full difference; the Stripe stand-in got no refund call",
         Number(snap.km) === 6.21 && snap.min === 11 && snap.owed === due && snap.refund === "pending_ops" && f.refund === due && (await fj("/__stats")).refunds === nStats,
         `distance_km ${snap.km} (route 6210 m), duration ${snap.min} min; box said Refund due ${money(f.refund)}; refund_owed ${money(snap.owed)} = paid ${money(c.paid)} - new total ${money(snap.total)}; refund_status ${snap.refund}; Stripe refund calls ${(await fj("/__stats")).refunds - nStats}`);
+      // Phase 31: reopened, the booking has no refund-decision box; the page reads the Stripe links and posts no refund.
+      const nOpen = apiLog.length;
       await openBooking(dpage, "cheap");
-      await dpage.getByText("Refund due", { exact: true }).first().waitFor({ timeout: 15000 });
-      const region = dpage.locator("[data-ops-refund-region]").first();
-      // D21: the panel's sentence follows GET …/refund (lastChange), which answers after the page loads.
-      await region.getByText("The trip was changed and costs less now.", { exact: false }).waitFor({ timeout: 15000 }).catch(() => {});
-      const regionText = (await region.innerText().catch(() => "")).replace(/\s+/g, " ");
-      await shot(region, "o2-refund-due-panel");
-      rec("O2c the booking page shows the Refund due panel with the full difference and the D21 trip line (not the class line)",
-        regionText.includes(money(due)) && regionText.includes("The trip was changed and costs less now. Nothing is sent until you confirm.") && !regionText.includes("The class was changed"),
-        `panel: "${short(regionText, 200)}"`);
+      for (let i = 0; i < 60 && apiOf(nOpen, /\/stripe-payments$/).length === 0; i++) await dpage.waitForTimeout(250);
+      const regionText = (await dpage.locator("[data-ops-refund-region]").allInnerTexts().catch(() => [])).join(" ").replace(/\s+/g, " ");
+      const decisionButtons = await dpage.getByRole("button", { name: /Confirm refund|Decline refund|Accept refund|Reject refund/ }).count();
+      const refundPosts = apiOf(n0, /\/refund(-decision)?$/);
+      const stripeRefunds = (await fj("/__stats")).refunds - nStats;
+      rec("O2c the reopened booking shows no refund-decision box, no request went to /refund, and the Stripe stand-in got no refund call",
+        decisionButtons === 0 && !/Difference to refund|The trip was changed and costs less now/.test(regionText) && refundPosts.length === 0 && stripeRefunds === 0,
+        `refund region: "${short(regionText, 160)}"; decision buttons ${decisionButtons}; ${since(n0, /\/refund(-decision)?$|stripe-payments$/) || "no refund request"}; Stripe refund calls ${stripeRefunds}`);
     } catch (e) {
       await stopped("O2 cheaper place", e);
     }

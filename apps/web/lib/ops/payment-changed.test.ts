@@ -353,19 +353,16 @@ describe("the dashboard shows it (vm-run page, four languages)", () => {
       expect(reset).toHaveBeenCalledTimes(1);
     });
 
-    it(`${lang}: Refund answered payment-changed shows the sentence in the refund error box`, async () => {
-      const { logic, request } = setup(
-        booking({ refundStatus: "none" }),
-        (method, url) => (method === "POST" && url.endsWith("/refund") ? { ok: false, code: "payment-changed" } : { ok: false, code: "unknown" }),
-        lang,
-      );
-      logic.renderVals().markRefund();
-      await flush();
-      const posted = request.mock.calls.find((c) => c[0] === "POST" && String(c[1]).endsWith("/refund"));
-      expect(posted, "the refund was posted").toBeDefined();
+    // Phase 31 (D-01): the page no longer posts a refund, so nothing answers payment-changed into the refund
+    // error box today; the box's code map keeps the signed sentence for that code (31-09 plan: keep it).
+    it(`${lang}: the refund error box maps payment-changed to the sentence (no refund is posted)`, async () => {
+      const { logic, request } = setup(booking({ refundStatus: "none" }), () => ({ ok: false, code: "unknown" }), lang);
+      logic.state = { ...logic.state, refundError: { key: BOOKING_ID, code: "payment-changed" } };
       const vals = logic.renderVals();
       expect(vals.refundErrorShown).toBe(true);
       expect(vals.refundErrorText).toBe(sentence(lang));
+      await flush();
+      expect(request.mock.calls.filter((c) => c[0] === "POST")).toEqual([]);
     });
 
     it(`${lang}: a class change answered payment-changed shows the sentence, not the generic failure`, async () => {

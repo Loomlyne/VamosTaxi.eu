@@ -37,16 +37,38 @@ describe("OpsDetail follows the change route's answers (26.2 P6)", () => {
   });
 });
 
-describe("D21 (owner, 2026-10-02): the Refund due panel after a cheaper place or time change", () => {
-  it("says the trip changed, in four languages; a class-only change keeps the class line", () => {
-    expect(dc).toContain("tripCreditBody:'The trip was changed and costs less now. Nothing is sent until you confirm.'");
-    expect(dc).toContain("tripCreditBody:'Die Fahrt wurde geändert und kostet jetzt weniger. Es wird nichts gesendet, bis Sie bestätigen.'");
-    expect(dc.match(/\btripCreditBody:'/g)?.length).toBe(4);
-    expect(dc.match(/\bclassCreditBody:'/g)?.length).toBe(4);
-    // Both places the credit body shows pick the trip line from the refund data's lastChange.
-    expect(dc).toMatch(/const tripCredit = !!\(rd && rd\.lastChange === 'trip'\);/);
-    expect(dc).toMatch(/tClassCreditBody: tripCredit \? t\.tripCreditBody : t\.classCreditBody/);
-    expect(dc).toMatch(/tRefundBody: creditTier \? \(tripCredit \? t\.tripCreditBody : t\.classCreditBody\)/);
+describe("Phase 31 (refunds in Stripe): a cheaper class or trip change is refunded in Stripe", () => {
+  // Replaces the D21 (2026-10-02) Refund due credit box: the dashboard no longer sends the difference itself.
+  const NOTES: Record<"classNoteCheaper" | "tripNoteCheaper", string[]> = {
+    classNoteCheaper: [
+      "The class changes when you confirm. Refund the difference in Stripe afterwards.",
+      "Die Klasse ändert sich, wenn Sie bestätigen. Erstatten Sie die Differenz danach in Stripe.",
+      "La classe change dès votre confirmation. Remboursez ensuite la différence dans Stripe.",
+      "تتغيّر الفئة عند تأكيدك. استرد الفرق بعد ذلك في Stripe.",
+    ],
+    tripNoteCheaper: [
+      "The trip changes when you confirm. Refund the difference in Stripe afterwards.",
+      "Die Fahrt ändert sich, wenn Sie bestätigen. Erstatten Sie die Differenz danach in Stripe.",
+      "Le trajet change dès votre confirmation. Remboursez ensuite la différence dans Stripe.",
+      "تتغيّر الرحلة عند تأكيدك. استرد الفرق بعد ذلك في Stripe.",
+    ],
+  };
+
+  it("the confirm step's note says to refund the difference in Stripe, in four languages", () => {
+    for (const [key, texts] of Object.entries(NOTES)) {
+      expect(dc.match(new RegExp(`\\b${key}:'`, "g"))?.length, key).toBe(4);
+      for (const text of texts) expect(dc, `${key}: ${text}`).toContain(`${key}:'${text}'`);
+    }
+  });
+
+  it("the toast after the change names the difference and says to refund it in Stripe", () => {
+    expect(dc).toContain("classDoneRefund:'Class changed. Difference to refund: {a}. Refund it in Stripe.'");
+    expect(dc).toContain("tripDoneRefund:'Trip changed. Difference to refund: {a}. Refund it in Stripe.'");
+  });
+
+  it("the credit box and its copy are gone", () => {
+    expect(dc).not.toMatch(/\b(?:trip|class)CreditBody:'/);
+    expect(dc).not.toMatch(/\bt\.(?:trip|class)CreditBody\b/);
+    expect(dc).not.toMatch(/tClassCreditBody|tRefundBody|const tripCredit\b/);
   });
 });
-
