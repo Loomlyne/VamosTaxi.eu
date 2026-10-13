@@ -1,49 +1,52 @@
 // apps/web/lib/ops/extra-label-translate.ts
 //
-// D-44: an extra's English name is machine-translated into de/fr/ar with the Cloudflare Workers AI
-// binding when the owner saves it. Staff edits always win: a language the owner typed is never
-// overwritten by a later translation. Translation failure never blocks the save.
+// D-44 on the shared translator (Phase 32, D-03): an extra's English name is translated into de/fr/ar by
+// the one Gemma engine (`translateText`) when the owner saves it. Staff edits always win (D-02): a
+// language the owner typed is never overwritten by a later translation. Translation failure never blocks
+// the save (F-07); the languages that failed stay empty and the nightly fill (`system_extra_label_fill`)
+// completes them. No mark is shown on Pricing (D-10).
+
+import { translateText } from "../translate/translate";
+import type { AiLike } from "../translate/translate";
+
+export type { AiLike };
 
 export type ExtraLang = "de" | "fr" | "ar";
 export const EXTRA_LANGS: readonly ExtraLang[] = ["de", "fr", "ar"];
 
-/** Minimal shape of the Workers AI binding we use (the real `Ai` type satisfies it). */
-export type AiLike = { run: (model: string, input: Record<string, unknown>) => Promise<unknown> };
-
-export const TRANSLATE_MODEL = "@cf/meta/m2m100-1.2b";
 export const MAX_LABEL = 80;
+/** One call returns every missing language; the save waits at most this long. */
+const TRANSLATE_TIMEOUT_MS = 10_000;
 
-const TARGET_NAME: Record<ExtraLang, string> = { de: "german", fr: "french", ar: "arabic" };
-
-function clean(text: string, lang: ExtraLang): string {
-  let out = text.trim();
-  if (lang === "de") out = out.replace(/ß/g, "ss");
-  return out.slice(0, MAX_LABEL).trim();
+function clean(text: string): string {
+  return text.trim().slice(0, MAX_LABEL).trim();
 }
 
-/** Translate an English extra name. A language that fails is absent from the result. No throw. */
-export async function translateExtraName(
+/**
+ * Translate an English extra name into `langs` with one engine call. A language that fails (model down,
+ * timeout, guard reject) is absent from the result. No throw. Reason codes only in the log.
+ */
+async function translateExtraName(
   ai: AiLike | null | undefined,
   en: string,
+  langs: readonly ExtraLang[],
 ): Promise<Partial<Record<ExtraLang, string>>> {
   const text = en.trim().slice(0, MAX_LABEL);
-  if (!ai || !text) return {};
+  if (!ai || !text || langs.length === 0) return {};
   const out: Partial<Record<ExtraLang, string>> = {};
-  await Promise.all(
-    EXTRA_LANGS.map(async (lang) => {
-      try {
-        const res = (await ai.run(TRANSLATE_MODEL, {
-          text,
-          source_lang: "english",
-          target_lang: TARGET_NAME[lang],
-        })) as { translated_text?: unknown } | null;
-        const value = typeof res?.translated_text === "string" ? clean(res.translated_text, lang) : "";
-        if (value) out[lang] = value;
-      } catch {
-        console.error("extra_label_translate", lang);
-      }
-    }),
-  );
+  try {
+    const res = await translateText(ai, { text, from: "en", to: [...langs], timeoutMs: TRANSLATE_TIMEOUT_MS });
+    if (!res.ok) {
+      console.error("extra_label_translate", res.reason);
+      return out;
+    }
+    for (const lang of langs) {
+      const value = res.out[lang];
+      if (typeof value === "string" && clean(value)) out[lang] = clean(value);
+    }
+  } catch {
+    console.error("extra_label_translate", "model_error");
+  }
   return out;
 }
 
@@ -92,7 +95,7 @@ export async function planExtraLabels(
     }
   }
   if (needs.length) {
-    const tr = await translateExtraName(ai, en);
+    const tr = await translateExtraName(ai, en, needs);
     for (const lang of needs) {
       const value = tr[lang];
       if (value) {
