@@ -1650,9 +1650,11 @@ class Component extends DCLogic {
     } else {
       booking.sessionLeft = 'No open session';
     }
+    // Retired comes from the server field status only: a Draft class is also active=false, so active is never
+    // read. While the class rows are not loaded (classRows null) nothing is retired and no count is guessed.
     const retiredIds = {};
     (Array.isArray(this.state.classRows) ? this.state.classRows : []).forEach((c) => {
-      if (c && (c.status || ((c.active === false || c.hiddenAt || c.hidden_at) ? 'retired' : 'live')) === 'retired') retiredIds[String(c.id)] = 1;
+      if (c && c.status === 'retired') retiredIds[String(c.id)] = 1;
     });
     const drivers = assignableChauffeurs(booking.vehicleClassId, retiredIds);
     // Chauffeurs on the trip's own class, left out of the picker because that class is retired.
