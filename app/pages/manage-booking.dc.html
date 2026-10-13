@@ -492,7 +492,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-noprint="1" data-card="1" style="padding:clamp(22px,2.6vw,30px)">
 <button type="button" data-back="1" onClick="{{ backToBooking }}" style-hover="color:var(--vt-charcoal-900)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Back to your booking</button>
 <h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Cancel this transfer</h2>
-<p style="margin:0 0 22px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><span class="vt-dir-keep" data-vt-no-i18n="1">{{ ref }}</span> · {{ routeShort }} · <span data-vt-no-i18n="1">{{ bookedDay }}</span> · <span class="vt-dir-keep" data-vt-no-i18n="1">{{ bookedTime }}</span>.</p>
+<p style="margin:0 0 22px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><span class="vt-dir-keep" data-vt-no-i18n="1">{{ ref }}</span> · <span class="vt-dir-keep" data-vt-no-i18n="1">{{ routeShort }}</span> · <span data-vt-no-i18n="1">{{ bookedDay }}</span> · <span class="vt-dir-keep" data-vt-no-i18n="1">{{ bookedTime }}</span>.</p>
 
 <div data-refund="1" style="margin-bottom:20px">
 <sc-if value="{{ cancelFull }}" hint-placeholder-val="{{ true }}">
@@ -560,7 +560,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p style="margin:0 0 16px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Same pickup, same destination, same class — you only choose the day and the time. Prices are quoted fresh, so the fare may differ from the one you paid.</p>
 <div data-card="1" style="padding:16px 18px;margin-bottom:18px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px">
 <span data-tile="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="car" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
-<span style="min-width:0;flex:1 1 220px"><span data-row-k="1">The trip you cancelled</span><span data-row-v="1">{{ routeShort }}</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ vehicleName }} · {{ paxLabel }} · {{ bagLabel }}</span></span>
+<span style="min-width:0;flex:1 1 220px"><span data-row-k="1">The trip you cancelled</span><span data-row-v="1" data-vt-no-i18n="1">{{ routeShort }}</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ vehicleName }} · {{ paxLabel }} · {{ bagLabel }}</span></span>
 </div>
 <div data-actions2="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" href="../home/home.dc.html" iconEnd="arrow-right" hint-size="100%,54px">Rebook this trip</x-import>

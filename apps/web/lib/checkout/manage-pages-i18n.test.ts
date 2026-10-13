@@ -169,6 +169,15 @@ describe.each(PAGES)("%s in four languages", (rel) => {
     }
   });
 
+  it("the route (place names) is data: never looked up, left to right in the cancel sheet header (step C8)", () => {
+    const markup = markupOf(rel);
+    expect(markup).toContain(`</span> · ${KEEP}{{ routeShort }}</span> · <span data-vt-no-i18n="1">{{ bookedDay }}`);
+    const all = markup.split("{{ routeShort }}").length - 1;
+    const skipped = markup.match(/<span\b[^>]*\bdata-vt-no-i18n="1"[^>]*>\{\{ routeShort \}\}<\/span>/g) ?? [];
+    expect(all).toBeGreaterThan(0);
+    expect(skipped.length, `${all - skipped.length} routeShort left bare`).toBe(all);
+  });
+
   it("names, cars and the charged amount are never looked up (data-vt-no-i18n, not the ignored data-i18n-skip)", () => {
     expect(read(rel)).not.toContain("data-i18n-skip");
   });
