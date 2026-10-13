@@ -460,7 +460,9 @@ try {
 | A7 | Live `booking_notifications_kind_check` equals the repo (7 kinds) | Q1 | If equal, lifecycle claims for 4 kinds fail today; if different, no issue. Does not affect N1 |
 | A8 | Stripe sends `charge.refunded` for dashboard refunds incl. partial ones and the live endpoint is subscribed (code comments say so, `money-events.ts:131-140`) | Q1 | No customer mail and no record for dashboard refunds; check the endpoint's event list |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+All answered in 31-CONTEXT.md or gated in a plan (2026-10-12/13): 1 → D-10 (claim + retry, 31-03/31-04/31-05); 2 → C-01, gated in 31-11; 3 → gated in 31-04 (owner signs the copy); 4 → O-1, gated in 31-12; 5 → D-12; 6 → C-04 (read live 2026-10-12, reported, out of scope); 7 → D-13.
 
 1. **Exactly-once mechanism for the customer mail (N1 vs M1 vs N2)**
    - Known: N1 needs no migration and never double-sends; it can lose a mail if the send fails after the commit.
