@@ -16,6 +16,32 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
+const noopFn = () => undefined;
+/** Same contract as the DC runtime DCLogic for what OpsTable uses. */
+class StubLogic {
+  props: Record<string, unknown> = {};
+  state: Record<string, unknown> = {};
+  setState(patch: unknown) {
+    const next = typeof patch === "function" ? (patch as (s: unknown) => object)(this.state) : (patch as object);
+    this.state = { ...this.state, ...next };
+  }
+  forceUpdate() {}
+}
+type TableComp = { props: Record<string, any>; state: Record<string, any>; renderVals(): Record<string, any> };
+function tableComp(props: Record<string, unknown>, state: Record<string, unknown>): TableComp {
+  const m = table.match(/<script type="text\/x-dc" data-dc-script[^>]*>\n([\s\S]*?)\n<\/script>/);
+  if (!m?.[1]) throw new Error("no script block");
+  const win = { addEventListener: noopFn, removeEventListener: noopFn, VamosTaxiDesignSystem_245af1: {} };
+  const Component = new Function(
+    "DCLogic", "window", "document", "React", "localStorage",
+    `${m[1]}\nreturn Component;`,
+  )(StubLogic, win, { addEventListener: noopFn, removeEventListener: noopFn, body: { style: {} } }, { createElement: noopFn }, { getItem: () => "en" }) as new () => TableComp;
+  const c = new Component();
+  c.props = props;
+  c.state = { ...c.state, ...state };
+  return c;
+}
+
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, "../../../..");
 const table = readFileSync(join(repoRoot, "app/ops/OpsTable.dc.html"), "utf8");
@@ -78,7 +104,9 @@ describe("editor dialog footer (OpsTable): one row at the bottom", () => {
     expect(all).toHaveLength(3);
     const [d, c, s] = all as [string, string, string];
     expect(d).toContain('onClick="{{ askDeleteCurrent }}"');
+    // Phase 30: the foot button is the plain word Delete; the class editor hides the slot (footDelete).
     expect(d).toContain(">Delete<");
+    expect(table).not.toContain("deleteBtnLabel");
     // A text button: no icon (it also keeps the French row on one line in the 512 px footer).
     expect(d).not.toContain("icon=");
     expect(c).toContain('onClick="{{ requestClose }}"');
@@ -139,5 +167,28 @@ describe("editor dialog footer (OpsTable): one row at the bottom", () => {
     const foot = footMarkup();
     expect(foot).not.toContain('variant="outline"');
     expect(foot).not.toContain('style="margin-inline-start:auto;display:flex;flex-wrap:wrap;gap:10px"');
+  });
+
+  it("footDelete={false} hides the foot Delete slot; the default keeps it; the table declares the new props", () => {
+    const row = { id: "r1", name: "Economy Sedan" };
+    const base = { rows: [row], columns: [], fields: [] };
+    const off = tableComp({ ...base, footDelete: false }, { draft: row, isNew: false }).renderVals();
+    expect(off.deleteShow).toBe("none");
+    const on = tableComp(base, { draft: row, isNew: false }).renderVals();
+    expect(on.deleteShow).toBe("inline-flex");
+    const fresh = tableComp(base, { draft: row, isNew: true }).renderVals();
+    expect(fresh.deleteShow).toBe("none");
+    for (const prop of ["footDelete", "actionsGap", "tapArea"]) {
+      expect(table).toContain(`&quot;${prop}&quot;:{`);
+    }
+  });
+
+  it("tapArea gives each row icon a 44 px hit area through ::after, with no padding", () => {
+    const css = styleBlock();
+    expect(css).toContain("[data-vt-tap44] button::after");
+    expect(css).toMatch(/\[data-vt-tap44\] button::after\{[^}]*inset:-6px/);
+    expect(css).toMatch(/\[data-vt-tap44\] button\{position:relative\}/);
+    expect(table).toContain("'data-vt-tap44': t.tapArea ? '1' : undefined");
+    expect(table).toContain("gap: t.actionsGap || 6");
   });
 });

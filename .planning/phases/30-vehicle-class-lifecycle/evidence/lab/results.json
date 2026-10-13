@@ -1,0 +1,114 @@
+{
+ "at": "2026-10-13T13:49:49.270Z",
+ "base": "http://localhost:4730",
+ "results": [
+  {
+   "id": "S1",
+   "title": "Add Lab Draft Class",
+   "status": "PASS",
+   "evidence": "steppers show em dash before save: true; row \" Lab Draft Class — — — — — SHOWN ON PUBLIC \"; db \"||f|\"; quote classes [\"Economy\",\"Business\",\"Van luxury\"]; About names Lab Draft Class: false"
+  },
+  {
+   "id": "S2",
+   "title": "Click DRAFT badge",
+   "status": "PASS",
+   "evidence": "badge \"DRAFT\"; Before this class goes live; Photo=missing(circle-alert.svg), Seats=missing(circle-alert.svg), Bags=missing(circle-alert.svg), Price in the live price book=missing(circle-alert.svg); why=\"Add a photo first\"; whyAboveButtons=true; EDIT CLASS:enabled GO LIVE:disabled"
+  },
+  {
+   "id": "S2b",
+   "title": "after photo + seats (re-read of state)",
+   "status": "PASS",
+   "evidence": "PARTIAL: the first half (state right after the photo only) was not captured as text because my script crashed on a wrong table name in its select after the second save (screenshot S2b-after-photo.png was taken, not read); the photo save and the seats save both succeeded. State now (photo + seats 3): Before this class goes live; Photo=done(circle-check.svg), Seats=done(circle-check.svg), Bags=missing(circle-alert.svg), Price in the live price book=missing(circle-alert.svg); why=\"Add the bags first\"; whyAboveButtons=true; EDIT CLASS:enabled GO LIVE:disabled; db seats/bags/active/photo 3||f|t"
+  },
+  {
+   "id": "S12",
+   "title": "Publish a draft without Lab Draft Class amounts",
+   "status": "BLOCKED",
+   "evidence": "BLOCKED: the brief needs 'make a draft of the price book (copy of the live stand-in book)' but lab p30c already holds draft book 1 (Staging matrix placeholder) with no amounts for Economy/Business/Van luxury, no photos and no surcharges (Publish lists 13 gaps: three classes missing photo/start/per-km plus ten surcharges), and the UI has no 'copy live into draft' control (the history list is not in the Pricing template). DISCARD DRAFT answers {ok:false,code:fk} because the two setup trips' price_snapshots point at draft book 1. Publishing needs inventing photos and ten surcharge amounts, which the brief does not allow."
+  },
+  {
+   "id": "S13",
+   "title": "Stand-in price, publish, Go live list",
+   "status": "BLOCKED",
+   "evidence": "BLOCKED by S12: no draft book that can be published (see S12). The Go live list for Lab Draft Class still shows Price in the live price book as missing, Go live disabled."
+  },
+  {
+   "id": "S3",
+   "title": "Press GO LIVE",
+   "status": "BLOCKED",
+   "evidence": "BLOCKED by S12/S13: GO LIVE stays disabled until the price exists in the live price book."
+  },
+  {
+   "id": "S3b",
+   "title": "Live class seats cannot be cleared",
+   "status": "BLOCKED",
+   "evidence": "BLOCKED by S3: Lab Draft Class cannot become Live."
+  },
+  {
+   "id": "S15",
+   "title": "Retire dialog on Business, en 1440 and ar 390",
+   "status": "PASS",
+   "evidence": "en: title \"Retire this class?\", notes [\"1 chauffeur is on this class\",\"1 paid trip ahead has no chauffeur yet\"], lastLive warning false, after CANCEL db active|not hidden t|t; ar 390: dir=rtl, title \"إيقاف هذه الفئة؟\", notes [\"سائق واحد في هذه الفئة\",\"رحلة واحدة مدفوعة قادمة بلا سائق بعد\"], lastLive false, after CANCEL db t|t"
+  },
+  {
+   "id": "S4",
+   "title": "Retire Lab Draft Class",
+   "status": "PASS",
+   "evidence": "dialog notes [] lastLive=false; row gone from table: true; retired count 1 -> 2; focus BUTTON data-retired-head; db t|No longer offered"
+  },
+  {
+   "id": "S5",
+   "title": "Open Retired classes list",
+   "status": "PASS",
+   "evidence": "chevron closed chevron-down.svg (expanded false) -> open chevron-up.svg (expanded true); rows [{\"t\":\"Lab old class Lab: retired before the run BRING BACK\",\"btn\":\"BRING BACK/Bring back\"},{\"t\":\"Lab Draft Class No longer offered BRING BACK\",\"btn\":\"BRING BACK/Bring back\"}]"
+  },
+  {
+   "id": "S14",
+   "title": "Bring back Lab Draft Class (first half only)",
+   "status": "BLOCKED",
+   "evidence": "BLOCKED (second half needs the stand-in Publish, blocked by S12). First half PASS: in class table 1, badge DRAFT, still in Retired list 0, Retired count 1; Before this class goes live; Photo=done(circle-check.svg), Seats=done(circle-check.svg), Bags=done(circle-check.svg), Price in the live price book=missing(circle-alert.svg); why=\"Add a price in the live price book first\"; whyAboveButtons=true; EDIT CLASS:enabled GO LIVE:disabled; db not hidden|active|reason null t|f|t. Note: Lab Draft Class never had a price in a live book (S13 blocked), so \"missing although the previous live book had its price\" is not exercised."
+  },
+  {
+   "id": "S6",
+   "title": "fleet redirects",
+   "status": "PASS",
+   "evidence": "/fleet/chauffeurs -> 307 /chauffeurs; /fleet -> 307 /chauffeurs; browser lands on /chauffeurs; page text starts: Dashboard Bookings Calendar Chauffeurs Pricing & routes Customers Support Content Collapse sidebar Lab Admin admin Chauffeurs Who drives, in which class, and on which plate CHAUFFEURS 3 On the books ON SHIFT 0 / 3 Available to assign now WITH A CLASS 2 / 3 Can be assigned trips of that class 3 chauf"
+  },
+  {
+   "id": "S7",
+   "title": "Chauffeurs screen",
+   "status": "PASS",
+   "evidence": "rows [\"Lab Biz Driver +41 79 840 00 02 Business ZH 840 002 LIC-P30-2\",\"Lab Eco Driver +41 79 840 00 01 Economy ZH 840 001 LIC-P30-1\",\"Lab Old Driver +41 79 840 00 03 Lab old class Retired class: pick a new one ZH 840 003 LIC-P30-3\"]; flags [{\"t\":\"Retired class: pick a new one\",\"tag\":\"SPAN\",\"color\":\"oklch(0.56 0.19 27)\"}]; \"2 / 3\" present: true; page text: Dashboard Bookings Calendar Chauffeurs Pricing & routes Customers Support Content Collapse sidebar Lab Admin admin Chauffeurs Who drives, in which class, and on which plate CHAUFFEURS 3 On the books ON SHIFT 0 / 3 Available to assign now WITH A CLASS 2 / 3 Can be assigned trips of that class 3 chauffeurs ADD A CHAUFFEUR DRIVER CLASS PLATE LICENCE L"
+  },
+  {
+   "id": "S8",
+   "title": "Assign picker of the lab-old trip",
+   "status": "PASS",
+   "evidence": "/bookings/VT-26-0001; picker options [\"Choose a chauffeur\"]; \"1 chauffeur left out: retired class\" shown: true ({\"tag\":\"SPAN\",\"color\":\"oklab(0.523866 -0.00327937 0.000616694)\",\"size\":\"13px\"}); \"No chauffeur has the class\" shown: false"
+  },
+  {
+   "id": "S16",
+   "title": "Move the lab-old trip one day later",
+   "status": "FAIL",
+   "evidence": "after first Continue: {\"btns\":[\"Lab Adminadmin\",\"Back to bookings\",\"Cancel\",\"Continue\",\"Assign\",\"History\"],\"err\":[\"The saved price of this trip cannot be worked out again, so the class cannot change here. Cancel it and make a new trip.\"]}; second button clicked: 1; refusal text shown: false (\"\"); scheduled_at before 2026-10-19 13:13:05.864489+00 after 2026-10-19 13:13:05.864489+00; calls [\"POST /api/staff/bookings/2ca1f5ed-19ba-409f-ab68-8ba780f3bd23/change/preview 409 {\\\"ok\\\":false,\\\"code\\\":\\\"trip-data\\\"}\",\"POST /api/staff/bookings/2ca1f5ed-19ba-409f-ab68-8ba780f3bd23/change/preview 200 {\\\"ok\\\":true,\\\"data\\\":{\\\"ok\\\":true,\\\"bookingId\\\":\\\"2ca1f5ed-19ba-409f-ab68-8ba780f3bd23\\\",\\\"reference\\\":\\\"VT-26-0001\\\",\\\"currentClass\\\":\\\"lab-old\\\",\\\"paidRappen\\\":1,\\\"currentTotalRappen\\\":0,\\\"rateVersionId\\\":2,\\\"classes\\\":[{\\\"slug\\\":\\\"economy\\\",\\\"name\\\":\\\"Economy\\\",\\\"current\\\":false,\\\"o\"]; page after sav"
+  },
+  {
+   "id": "S11",
+   "title": "dashboard /chauffeurs vs public /chauffeurs",
+   "status": "PASS",
+   "evidence": "dashboard /chauffeurs 200, text \"Dashboard Bookings Calendar Chauffeurs Pricing & routes Customers Support Content Collapse sidebar Lab Admin admin Chauffeurs Who drives, in which class, and on\"; public /chauffeurs 404, text \"EN CHF Sign in BOOK A TRANSFER We can't find that page. The link may be old or mistyped. Head back to the homepage, or contact support if you think this is wrong. GO TO THE HOMEPAGE CONTACT SUPPORT Bo\""
+  },
+  {
+   "id": "S9",
+   "title": "Responsive, four languages, coverage, RTL (4 widths x 4 languages x 7 views)",
+   "status": "FAIL",
+   "evidence": "112 captures (1440/1024/768/390 x en/de/fr/ar x pricing table, Go live dialog of Lab Draft Class (Draft), Retire dialog of Business, open Retired list, Chauffeurs, booking detail VT-26-0001, public /about), metrics in s9-metrics.json. PASS parts: scrollWidth <= innerWidth on all 112; dir=rtl on every Arabic capture and ltr on the others; both dialogs fit the viewport at every size (no inner scroll needed); no clipped DRAFT/LIVE badge at 390 (inside cell and cell; text fits); class names carry unicode-bidi:isolate. FAIL parts: (1) VamosLocale.coverage(document.body) is NOT 0 on any dashboard capture (96 of 96): Pricing 24 en / 21 de / 30 fr / 28 ar, Chauffeurs 25-26, booking detail 11-15; it is 0 on /about (16 of 16). The strings flagged include shell and older page strings (Content, Collapse sidebar, Lab Admin, admin, Actions, Discard draft, Publish fare book, Class, Start, Hide from public, Shown on public, '4 classes', 'Who drives, in which class, and on which plate'), so the brief's body-wide 0 cannot hold on the dashboard; scoped to the open dialog coverage is 0 in 24 of 32 dialog captures and 1 in the 8 de/fr Go live captures ('Erledigt' / 'Fait', the screen-reader word for Done). (2) At 390 the badge sits beside a short name (LIVE next to Economy/Business/Van luxury) and wraps under only a long name (DRAFT under Lab Draft Class); it is never clipped. (3) Arabic: on the booking detail the reference VT-26-0001 has computed direction rtl and unicode-bidi normal (no isolate / vt-dir-keep class on its span); on Chauffeurs the plate and licence cells are direction rtl with unicode-bidi isolate; how they render was not read from a picture."
+  },
+  {
+   "id": "S10",
+   "title": "No yellow glow / pale yellow on new elements (1440 and 390)",
+   "status": "FAIL",
+   "evidence": "Computed styles in s10-metrics.json (43 rows at 1440, 42 at 390; base, hover, Tab focus, press) for DRAFT badge, LIVE badge, Retire icon, Retired head (closed and open), Retired list, Bring back, Go live dialog (Edit class, disabled Go live), Retire dialog (Cancel, Retire), red flag on Chauffeurs, left-out line on booking detail. Pale yellow or cream background/border/text: none. Blurred halo: none; the only blur is the neutral charcoal dialog shadow rgba(17,18,18,0.18) 0 24px 64px. FAIL against the brief's literal rule: on Tab focus (and on press while focus stays) six interactive elements (DRAFT badge button, Retired head, Bring back, Edit class, Retire-dialog Cancel, and the Retired head while open) carry box-shadow rgba(253,194,11,0.45) 0 0 0 3px, a solid 3px yellow ring. It is the design-system --vt-ring (design-system/tokens/elevation.css line 15, applied by base.css 'button:focus-visible'), which the project rules list as allowed on focus, so the brief and CLAUDE.md disagree; no hover state has a ring except where focus was kept. LIVE badge has tabindex -1 so Tab does not reach it (by design); the disabled Go live and the Retire/Retire-icon buttons showed no ring."
+  }
+ ]
+}

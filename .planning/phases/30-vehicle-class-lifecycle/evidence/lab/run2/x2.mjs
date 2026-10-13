@@ -1,0 +1,12 @@
+import { start, open, goPricing, signIn, dlgText, S, db } from "./lib.mjs";
+await start({ evidenceDir: process.argv[2] });
+const s = await open({ viewport: 1440, name: "s1440" });
+await signIn(s);
+await goPricing(s);
+console.log(db("select id,status,label,created_at from public.rate_versions order by id").replace(/\n/g, " ; "));
+console.log((await s.page.evaluate(() => document.body.innerText)).slice(150, 1500).replace(/\n+/g, " | "));
+const tr = s.page.locator("tr", { has: s.page.locator("[data-class-name]", { hasText: /^Economy$/ }) });
+await tr.locator('button[aria-label="Edit"]').click(); await s.page.waitForTimeout(900);
+console.log(await dlgText(s.page));
+console.log(await s.page.evaluate(() => [...document.querySelectorAll('[role=dialog] input')].map(i => `${i.type}|${i.value}|${i.disabled}|${i.readOnly}|${i.placeholder}`)));
+process.exit(0);

@@ -1,0 +1,66 @@
+{
+ "at": "2026-10-13T14:13:49.897Z",
+ "base": "http://localhost:4730",
+ "results": [
+  {
+   "id": "S1",
+   "title": "Add Lab Draft Class (retry: read-back from fresh load; class created by first attempt)",
+   "status": "FAIL",
+   "evidence": "page.goto: Timeout 30000ms exceeded."
+  },
+  {
+   "id": "S2",
+   "title": "Click DRAFT badge",
+   "status": "PASS",
+   "evidence": "Before this class goes live; Photo=missing(circle-alert.svg), Seats=missing(circle-alert.svg), Bags=missing(circle-alert.svg), Price in the live price book=missing(circle-alert.svg); why=\"Add a photo first\"; whyAboveButtons=true; EDIT CLASS:enabled GO LIVE:disabled"
+  },
+  {
+   "id": "S2b",
+   "title": "photo then seats, no reload",
+   "status": "PASS",
+   "evidence": "after photo: Before this class goes live; Photo=done(circle-check.svg), Seats=missing(circle-alert.svg), Bags=missing(circle-alert.svg), Price in the live price book=missing(circle-alert.svg); why=\"Add the seats first\"; whyAboveButtons=true; EDIT CLASS:enabled GO LIVE:disabled || after seats 3: Before this class goes live; Photo=done(circle-check.svg), Seats=done(circle-check.svg), Bags=missing(circle-alert.svg), Price in the live price book=missing(circle-alert.svg); why=\"Add the bags first\"; whyAboveButtons=true; EDIT CLASS:enabled GO LIVE:disabled; db seats/bags/active/photo 3||f|t"
+  },
+  {
+   "id": "S12",
+   "title": "bags 3, publish draft without Lab Draft Class amounts",
+   "status": "FAIL",
+   "evidence": "bags db 3|3; confirm dialog \"Publish this fare book? | Every required class field is filled. Publish fare book writes the live book. | KEEP EDITING | PUBLISH FARE BOOK\"; after confirm dialog \"NO DIALOG\"; page lines \"\"; versions 2|retired|lab stand-in, not a price ; 3|live|lab stand-in, not a price; live book slugs business,economy,lab-draft-class,van"
+  },
+  {
+   "id": "S13",
+   "title": "stand-in price, publish, Go live list",
+   "status": "PASS",
+   "evidence": "publish confirm \"Publish this fare book? | Every required class field is filled. Publish fare book writes the live book. | KEEP EDITING | PUBLISH FARE BOOK\"; after confirm \"NO DIALOG\"; versions 2|retired ; 3|retired ; 4|live; Before this class goes live; Photo=done(circle-check.svg), Seats=done(circle-check.svg), Bags=done(circle-check.svg), Price in the live price book=done(circle-check.svg); why=null; whyAboveButtons=false; EDIT CLASS:enabled GO LIVE:enabled"
+  },
+  {
+   "id": "S3",
+   "title": "Press GO LIVE",
+   "status": "FAIL",
+   "evidence": "before: Before this class goes live; Photo=done(circle-check.svg), Seats=done(circle-check.svg), Bags=done(circle-check.svg), Price in the live price book=done(circle-check.svg); why=null; whyAboveButtons=false; EDIT CLASS:enabled GO LIVE:enabled; dialog after: NO DIALOG; row \" Lab Draft Class LIVE CHF 0.01 CHF 0.01 — 3 3 SHOWN ON PUBLIC \" row buttons [\"LIVE\",\"SHOWN ON PUBLIC\"]; focus BODY <body> <div id=\"dc-root\"><div class=\"sc-host\" data-sc-name=\"Root\"><div data-dc-tpl=\"19\" style=\"display: flex; min-height: 100vh; font-family inRow=false; db \"t|\"; About shows Lab Draft Class: true"
+  },
+  {
+   "id": "S3b",
+   "title": "Live class seats cannot be cleared",
+   "status": "PASS",
+   "evidence": "seats start 3; after 6 decreases 1; save -> dialog \"NO DIALOG\" db 1|3; clear attempt: cannot clear: TimeoutError: locator.fill: Timeout 3000ms exceeded., field shows 1; input vals [\"text|Lab Draft Class|null\",\"text|0.01|null\",\"text||null\",\"text|0.01|null\"]; after save dialog \"NO DIALOG\"; db 1|3"
+  },
+  {
+   "id": "S4",
+   "title": "Retire Lab Draft Class",
+   "status": "PASS",
+   "evidence": "dialog title \"Retire this class?\" notes [] lastLive=false; row gone from table: true; retired count 1 -> 2; focus BUTTON data-retired-head; db t|No longer offered"
+  },
+  {
+   "id": "S5",
+   "title": "Open Retired classes list",
+   "status": "PASS",
+   "evidence": "chevron closed chevron-down.svg (expanded false) -> open chevron-up.svg (expanded true); rows [{\"t\":\"Lab old class Lab: retired before the run BRING BACK\",\"btn\":\"BRING BACK/Bring back\"},{\"t\":\"Lab Draft Class No longer offered BRING BACK\",\"btn\":\"BRING BACK/Bring back\"}]"
+  },
+  {
+   "id": "S14",
+   "title": "Bring back, badge, stand-in publish, badge",
+   "status": "PASS",
+   "evidence": "AFTER BRING BACK: in table 1, badge DRAFT, in Retired list 0, Retired count 1, Before this class goes live; Photo=done(circle-check.svg), Seats=done(circle-check.svg), Bags=done(circle-check.svg), Price in the live price book=missing(circle-alert.svg); why=\"Add a price in the live price book first\"; whyAboveButtons=true; EDIT CLASS:enabled GO LIVE:disabled, db(not hidden|active|reason null) t|f|t. AFTER STAND-IN PUBLISH: confirm \"Publish this fare book? | Every required class field is filled. Publish fare book writes the live book. | KEEP EDITING | PUBLISH FARE BOOK\", after \"NO DIALOG\", versions 2|retired ; 3|retired ; 4|retired ; 5|live, Before this class goes live; Photo=done(circle-check.svg), Seats=done(circle-check.svg), Bags=done(circle-check.svg), Price in the live price book=done(circle-check.svg); why=null; whyAboveButtons=false; EDIT CLASS:enabled GO LIVE:enabled"
+  }
+ ]
+}

@@ -15,3 +15,18 @@
 6. **Phase 32: five more Arabic-letter spellings of "Vamos Taxi" become Latin** (3 e-mails, dashboard Reviews screen, sidebar), same rule as the 44 (D-14a); approved legal lines untouched.
 7. **Phase 32: booking notes are translated and stored; no screen until the owner signs a design.**
 8. **Phase 32 plans (12) and migration numbers 20261012260000–20261012290000 SIGNED** (~00:25, after seeing the plan list). Execution starts after Phase 30 is live.
+
+## 2026-10-14 ~00:45 (+04): PR #81 re-scoped
+
+9. **Correction:** city/canton extras live in `fixed_routes` and always saved (live book 22 holds 6). The blocked parts were km bands, region % and the Rules list (`rate_version_rules`).
+10. **Km bands and region % are deleted completely** (owner: removed on purpose, replaced by city/canton extras, "we will take more look into it"). Item 5 (give region premiums staff access) is withdrawn. PR #81 becomes the removal: Pricing screen parts, price engine, copy in four languages, tests. The old rows (20 bands, 5 premiums in retired books 1–5) are archived on GitHub first, then the owner runs one delete script; tables dropped after that.
+11. **Rules list (Pricing › Distance rules: waiting unit, free-wait hours, Mapbox service area): discuss, aim to make it work.** The owner wants it explained and drawn first. Not decided.
+12. **Lock check added to PR #81:** the frozen-book trigger also refuses moving a row OUT of a live or retired book, on every pricing table that stays.
+
+## 2026-10-14 ~02:20 (+04): Rules list decided (drawn first, signed)
+
+Live facts read 2026-10-14 01:5x: `rate_version_rules` has 0 rows in every book; the quote never reads it. Quote lock is 1,440 min on book 22 and draft 23 (stored on `rate_versions.quote_lock_minutes`). Waiting included comes from Settings › Booking policy (airport 60 min, city 15 min). `rate_versions.free_wait_minutes` is empty on book 22. The service-area polygon sits in Settings and the quote already enforces it.
+
+13. **Rules box becomes one box: "Price stays valid for 24 hours"** (edits `quote_lock_minutes`). Waiting unit, Free-wait hours and Service area leave the Pricing screen, and so does the hidden `city_pair` write. `rate_version_rules` is dropped in PR #81 part B, after its archive tag. No price changes, nothing public changes. Part of PR #81; pictures for his signature before code.
+14. **Extra waiting after the included time: not charged, not now.** Waiting stays free; late cases handled by hand.
+15. **Service area: keep as is, no map screen.** Changing the shape is a reviewed database change on request.

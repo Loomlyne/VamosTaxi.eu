@@ -19,7 +19,7 @@ export type VehicleSeats = {
   nightId: string | null;
 };
 
-/** OpsFleet vehicle save posts the full pair. Occupied seats are replaced. */
+/** OpsChauffeurs vehicle save posts the full pair. Occupied seats are replaced. */
 export function replaceVehicleSeats(input: {
   morningId: string | null;
   nightId: string | null;

@@ -8,6 +8,8 @@
 <body>
 <x-dc>
 <style>
+:root{--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
 [data-period-pills]{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 [data-period-time]{display:none}
 [data-icon-only] [data-vs-txt]{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
@@ -151,7 +153,7 @@
 </span>
 </div>
 <div style="display:flex;flex-wrap:wrap;gap:10px;padding-top:14px;border-top:1px solid var(--vt-border-inverse)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="light" href="/fleet/chauffeurs" hint-size="130px,36px">Chauffeurs</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="light" href="/chauffeurs" hint-size="130px,36px">Chauffeurs</x-import>
 </div>
 </section>
 
@@ -224,7 +226,7 @@ class Component extends DCLogic {
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     this._off = window.VamosOps.bookings.onChange(() => this.forceUpdate());
-    this._offFleet = window.VamosOps.chauffeurs.onChange(() => this.forceUpdate());
+    this._offChauffeurs = window.VamosOps.chauffeurs.onChange(() => this.forceUpdate());
     this.forceUpdate();
   };
   select = (key) => this.setState({ period: key }, this.loadMoney);
@@ -252,7 +254,7 @@ class Component extends DCLogic {
   componentWillUnmount() {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._off) this._off();
-    if (this._offFleet) this._offFleet();
+    if (this._offChauffeurs) this._offChauffeurs();
     clearTimeout(this._retry);
   }
   renderVals() {
@@ -335,7 +337,7 @@ class Component extends DCLogic {
       counts: [
         { label:'Bookings', value:String(bookedInPeriod), of:'', icon:'list', href:bookingsHref, foot:'Taken in this period' },
         { label:'Pickups', value:String(pickups), of:'', icon:'car-front', href:pickupsHref, foot:'Scheduled to run' },
-        { label:'Chauffeurs on shift', value:String(onShift), of:'/ ' + chauffeurs.length, icon:'users', href:'/fleet/chauffeurs', foot:'Available to assign' },
+        { label:'Chauffeurs on shift', value:String(onShift), of:'/ ' + chauffeurs.length, icon:'users', href:'/chauffeurs', foot:'Available to assign' },
       ],
       income: classLines.map((l) => ({ label: String(l.klass || '').trim() || (window.VamosLocale && window.VamosLocale.t ? window.VamosLocale.t('Class not stated') : 'Class not stated'), amount: fareLabel(Number(l.rappen) || 0) })),
       expenses: moneyOut,

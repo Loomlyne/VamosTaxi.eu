@@ -8,7 +8,7 @@ import { VehicleSeatError, replaceVehicleSeats } from "./vehicle-seats";
 const A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const B = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 
-describe("replaceVehicleSeats (OpsFleet save)", () => {
+describe("replaceVehicleSeats (OpsChauffeurs save)", () => {
   it("replaces an occupied Morning seat", () => {
     expect(replaceVehicleSeats({ morningId: B, nightId: null })).toEqual({
       morningId: B,

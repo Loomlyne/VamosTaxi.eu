@@ -53,13 +53,13 @@ test.describe("GET /api/staff/vehicles @ops-dc-fleet", () => {
     expect(vehicles).toMatch(/export\s*\{\s*GET,\s*POST\s*\}/);
     expect(vehicles).toMatch(/\[locale\]\/\(ops\)\/api\/staff\/vehicles\/route/);
     expect(vehicleId).toMatch(/export\s*\{\s*PATCH,\s*DELETE\s*\}/);
-    expect(classes).toMatch(/export\s*\{\s*GET,\s*PATCH,\s*POST,\s*DELETE\s*\}/);
+    expect(classes).toMatch(/export\s*\{\s*GET,\s*PATCH,\s*POST\s*\}/);
     expect(chauffeurs).toMatch(/export\s*\{\s*GET,\s*POST\s*\}/);
     expect(chauffeurId).toMatch(/export\s*\{\s*PATCH,\s*DELETE\s*\}/);
   });
 
-  test("OpsFleet posts photos to /api/photos/upload and has no readAsDataURL", () => {
-    const html = readFileSync(join(repoRoot, "app/ops/OpsFleet.dc.html"), "utf8");
+  test("OpsChauffeurs posts photos to /api/photos/upload and has no readAsDataURL", () => {
+    const html = readFileSync(join(repoRoot, "app/ops/OpsChauffeurs.dc.html"), "utf8");
     expect(html).toContain("/api/photos/upload");
     expect(html).not.toContain("readAsDataURL");
     expect(html).toContain("emptyCTitle");

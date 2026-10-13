@@ -55,7 +55,7 @@ describe("ops live data — comments 8–10", () => {
       "app/ops/OpsCalendarBoard.dc.html",
       "app/ops/OpsDetail.dc.html",
       "app/ops/OpsCustomers.dc.html",
-      "app/ops/OpsFleet.dc.html",
+      "app/ops/OpsChauffeurs.dc.html",
     ];
     for (const f of files) {
       const t = read(f);
