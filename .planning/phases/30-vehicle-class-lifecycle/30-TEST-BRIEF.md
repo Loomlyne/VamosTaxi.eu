@@ -1,0 +1,64 @@
+---
+worktree: /Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/phase-30-vehicle-class-lifecycle
+branch: phase-30-vehicle-class-lifecycle
+commit: 91c038dc
+lab: p30
+evidence: /Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/phase-30-vehicle-class-lifecycle/.planning/phases/30-vehicle-class-lifecycle/evidence
+---
+
+# Test brief: class lifecycle (Draft, Live, Retired) on the dashboard, chauffeurs and the public About block
+
+Written by the lead (Opus); run by `vamos-tester` (Sonnet). Run it exactly; reply with PASS / FAIL / BLOCKED per step; the lead saves the reply as `RESULT.md` in the evidence folder. A lab run is never proof for live.
+
+## What changed
+
+The owner now runs each vehicle class through three states on the dashboard Pricing screen: Draft (new, not offered), Live (offered on the site and in quotes) and Retired (gone from the site, kept on past trips, can be brought back). A new class starts with Seats and Bags empty ("—"); Go live waits for a photo, seats, bags and a price in the live price book. Retiring asks for an optional reason and warns about chauffeurs on the class, paid trips with no chauffeur, and the last Live class. The chauffeur screen moved from `/fleet/chauffeurs` to `/chauffeurs`, flags a chauffeur whose class is retired, and the WITH A CLASS card counts Live classes only. The booking detail's Assign picker leaves out chauffeurs of a retired class and says how many. A trip in a retired class cannot be moved to another date. Files: `app/ops/OpsPricing.dc.html`, `OpsTable.dc.html`, `OpsChauffeurs.dc.html`, `OpsDetail.dc.html`, `app/vamos-i18n-dict.js`, the class routes under `apps/web/app/api/staff/vehicle-classes/`, `apps/web/lib/ops/*`, two migrations `20261012200000_class_lifecycle.sql` and `20261012210000_assign_refuses_retired_class.sql`.
+
+## Gates
+
+Skip `lab.sh gates`: the lead ran the full gates (pgTAP, `pnpm gate:local`, the OpenNext build) once before this brief. Bring the lab up with `scripts/test-lab/lab.sh up p30` (it builds the Worker when needed; a first build may take several minutes: run it in its own call as the runbook says).
+
+## Setup beyond the lab
+
+Lab p30 only. Run once after `up`, with the lab's own psql: `eval "$(scripts/test-lab/lab.sh env p30)"` then `"$LAB_PSQL" "$LAB_DB_URL" -v ON_ERROR_STOP=1 -f .planning/phases/30-vehicle-class-lifecycle/evidence/lab-setup.sql`. It refuses to run on anything but a throwaway lab stack and is safe to run twice. Paste its three read-back tables into the run. Expected read-back (checked by the lead on lab p30, 2026-10-13):
+
+- classes: `economy` Economy, `business` Business, `van` Van luxury all Live; `lab-old` Lab old class retired.
+- trips: `VT-26-0001` (`p30-biz@example.test`, class business) and `VT-26-0002` (`p30-old@example.test`, class lab-old), both no chauffeur, payment `succeeded`. Use the references the read-back prints if they differ.
+- chauffeurs: `with_live_class` 2, `total` 3 (Lab Eco Driver, Lab Biz Driver, Lab Old Driver).
+
+Prices: the lab book is the stand-in `lab-live` (1-3 rappen). Where a step says "type a stand-in price", type `0.01` in each amount field and nothing else. Never type any other amount. Publishing a draft price book in the lab is allowed (lab only). Dashboard sign-in: `dashboardSignIn(s)` from `lab-browser.mjs` (admin from `admin.txt`).
+
+The new class in S1 is called `Lab Draft Class`. Its photo in S2b: any small JPEG made on the fly (for example a 64x64 grey JPEG written by the step script into the evidence folder); never a brand photograph.
+
+## Steps
+
+Dashboard pages are on the dashboard host (`LAB_DASH`): Pricing `/pricing` (class table in the "Distance rules" pane), Chauffeurs `/chauffeurs`, booking detail `/bookings/<id>` (open it from the Bookings list by reference). The public About page is `/about` on `LAB_BASE`.
+
+| id | viewport | language | action in plain words | expected result |
+|---|---|---|---|---|
+| S1 | 1440 | en | Pricing, ADD CLASS, name `Lab Draft Class`, leave seats and bags untouched, save. Then open `LAB_BASE/about` and call `GET LAB_BASE/api/quote` for a Zurich Airport to Zug trip (or read the class cards on `/checkout` after a home booking) | the editor's seat and bag steppers show "—" (not 3 and 3) before saving; the saved row shows a DRAFT badge and "—" for seats and bags; `select passenger_capacity, luggage_capacity, active, hidden_at from public.vehicle_classes where name = 'Lab Draft Class'` gives null, null, false, null; the About classes block and the quote list do not name Lab Draft Class |
+| S2 | 1440 | en | Click the DRAFT badge of Lab Draft Class | dialog titled "Before this class goes live" lists Photo, Seats, Bags and Price in the live price book, all four with the missing icon; why-line "Add a photo first" directly above the buttons; GO LIVE disabled; EDIT CLASS enabled |
+| S2b | 1440 | en | EDIT CLASS, add the photo only, save, open the DRAFT badge; then set seats 3, save, open the badge again | after the photo: Photo done, why-line "Add the seats first"; after seats: Seats done, why-line "Add the bags first"; GO LIVE still disabled both times |
+| S12 | 1440 | en | Set bags 3 for Lab Draft Class (save). Make a draft of the price book (copy of the live stand-in book) and leave Lab Draft Class without any amount in it; Publish that draft | Publish succeeds (no error naming Lab Draft Class); the new live book still prices Economy, Business and Van luxury: `select vc.slug from public.distance_rates dr join public.rate_versions rv on rv.id = dr.rate_version_id join public.vehicle_classes vc on vc.id = dr.vehicle_class_id where rv.status = 'live' order by 1` lists business, economy, van (and not the Draft class) |
+| S13 | 1440 | en | Make a new draft of the price book, type a stand-in price (`0.01`) for start fare and per km for Lab Draft Class only, save, Publish. Open the DRAFT badge | the Go live list shows Price in the live price book done (no tick box needed); all four items done; no why-line; GO LIVE enabled |
+| S3 | 1440 | en | Press GO LIVE | dialog closes, the row badge reads LIVE, focus is back on the row; `select active, hidden_at from public.vehicle_classes where name = 'Lab Draft Class'` gives true, null; `/about` now shows a Lab Draft Class card |
+| S3b | 1440 | en | Open the editor of Lab Draft Class (now Live), try to step seats below 1 or clear the field, save | the seat stepper cannot reach "—" (stops at 1) or the save is refused with an error line; the database keeps passenger_capacity 3 |
+| S15 | 1440 then 390 | en then ar | Pricing, Retire icon on Business; read the dialog; CANCEL. Repeat at 390 in Arabic | dialog "Retire this class?"; under the body: the chauffeur line "1 chauffeur is on this class", then "1 paid trip ahead has no chauffeur yet" (en) / "رحلة واحدة مدفوعة قادمة بلا سائق بعد" (ar), in that order; no last-Live warning (other classes are Live); after CANCEL Business is still Live |
+| S4 | 1440 | en | Retire icon on Lab Draft Class, reason `No longer offered`, RETIRE | the row leaves the class table; the Retired classes head count goes up by one (from 1 to 2); keyboard focus is on the Retired head button; `select hidden_at is not null, hidden_reason from public.vehicle_classes where name = 'Lab Draft Class'` gives true, `No longer offered` |
+| S5 | 1440 | en | Open the Retired classes list | two rows: Lab old class with "Lab: retired before the run", Lab Draft Class with "No longer offered", each with BRING BACK; chevron up when open |
+| S14 | 1440 | en | BRING BACK on Lab Draft Class; open its DRAFT badge; then make a draft price book that includes a stand-in price (`0.01`) for it, Publish, open the badge again | after Bring back the class is in the table as DRAFT and leaves the Retired list; the Go live list shows Price in the live price book missing although the previous live book had its price; after the stand-in Publish, Price is done |
+| S6 | 1440 | en | Signed in, open `LAB_DASH/fleet/chauffeurs` (and also `LAB_DASH/fleet`) | 307 to `/chauffeurs`; the Chauffeurs screen shows |
+| S7 | 1440 | en | Chauffeurs screen | Lab Old Driver's row shows the class name Lab old class and under it "Retired class: pick a new one" in red; Lab Eco Driver and Lab Biz Driver have no flag; the WITH A CLASS card reads "2 / 3" (equal to the setup read-back) |
+| S8 | 1440 | en | Booking detail of VT-26-0002 (class Lab old class, paid, no chauffeur); open the Assign picker | the picker offers no chauffeur (Lab Old Driver is not in it); the muted line "1 chauffeur left out: retired class" is under the picker; the text "No chauffeur has the class" does not appear |
+| S16 | 1440 | en | Same booking (VT-26-0002), change its date to one day later and save | refused with "This class is not offered for this trip."; `select scheduled_at from public.booking_legs where booking_id = (select id from public.bookings where reference = 'VT-26-0002')` is unchanged |
+| S9 | 1440, 1024, 768, 390 | en, de, fr, ar | Pricing (class table, the Go live dialog of a Draft class, the Retire dialog of Business, the open Retired list), Chauffeurs, booking detail of VT-26-0002, public `/about`: one screenshot per page, width and language | no sideways scroll at 390 (`document.documentElement.scrollWidth <= innerWidth`); at 390 the DRAFT/LIVE badge wraps under the class name and is not clipped; dialogs fit the screen or scroll inside; `VamosLocale.coverage(document.body)` returns count 0 on every dashboard and About screenshot; Arabic pages have `dir="rtl"` and Latin class names, plates and references stay left-to-right |
+| S10 | 1440, 390 | en | On the new elements (DRAFT and LIVE badges, Go live dialog, Retire dialog, Retired list and its head, red flag on Chauffeurs, left-out line): hover, focus (Tab) and press each interactive one; read `getComputedStyle` | no `box-shadow` with a yellow colour (rgb 253, 194, 11 at any alpha) or a blur halo on any state; no background or border in a pale yellow or cream (`--vt-yellow-50` to `-300`); screenshots saved for the lead |
+| S11 | 1440 | en | Both lab Workers are built from this branch: open `LAB_DASH/chauffeurs` signed in, and `LAB_BASE/chauffeurs` on the public host | dashboard: 200 and the Chauffeurs screen; public host: not the dashboard (404 or the public not-found page) |
+
+## Out of scope
+
+The live site, staging, any hosted database, the live price book. Design judgement beyond the checks written above. Other dashboard screens. Customer checkout and payment (no PAY). Do not edit product code, tests, this brief or the setup SQL.
+
+## Stop conditions
+
+Report BLOCKED and stop when: the lab does not come up, or `lab-setup.sql` errors; a step cannot be run as written (for example the booking detail of a setup trip does not open: report it, do not make a booking another way); a Worker keeps dropping after one `down` / `up`. A step blocked by an earlier failure is BLOCKED, not FAIL. Run `lab.sh down p30` at the end; leave the stack for the lead.
