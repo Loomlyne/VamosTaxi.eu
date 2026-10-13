@@ -136,8 +136,9 @@ export default {
       } catch {
         emit("error", "meta_purchase_sweep", { outcome: "failed" });
       }
-      // Phase 31 D-09: nightly read-only refund check (Stripe refunds of the last 48 hours against the
-      // bookings; mails info@ only on a finding or when Stripe does not answer). Counts only.
+      // Phase 31 D-09: nightly refund check (Stripe refunds of the last 48 hours against the bookings; mails
+      // info@ on a finding or when Stripe does not answer). Writes no money table; its one write is the
+      // customer refund mail for a recorded refund whose mail claim never landed (PR #82). Counts only.
       try {
         const check = await refundCheck(env);
         emit(check.outcome === "ok" ? "info" : "error", "refund_check", {

@@ -205,13 +205,24 @@ export async function refundCheckWithDeps(deps: RefundCheckDeps, now: Date): Pro
     });
   }
 
+  // The owner's alert goes first, so a slow customer mail can never hold it back; an alert that fails
+  // still lets the customer mails go out, then rejects for the cron log.
+  const findings = findingCount(report);
+  let alertError: unknown = null;
+  if (findings > 0) {
+    try {
+      await deps.sendAlert(report);
+    } catch (err) {
+      alertError = err ?? new Error("refund_check_alert_failed");
+    }
+  }
+
   for (const input of unmailed) {
     deps.emit("warn", "refund_check_mail_unclaimed", { bookingId: input.bookingId, refundId: input.stripeRefundId });
     await deps.mailRefund(input);
   }
 
-  const findings = findingCount(report);
-  if (findings > 0) await deps.sendAlert(report);
+  if (alertError !== null) throw alertError;
   return {
     outcome: "ok",
     stripeRefunds: listed.refunds.length,

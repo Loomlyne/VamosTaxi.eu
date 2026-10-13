@@ -329,6 +329,23 @@ describe("refundCheckWithDeps: mail and failures", () => {
     expect(d.sendAlert).not.toHaveBeenCalled();
   });
 
+  it("the owner's alert goes before the customer mails; a failed alert still lets them go, then rejects", async () => {
+    const order: string[] = [];
+    const d = deps([refund({ id: "re_t_m" }), refund({ id: "re_t_lost" })], {
+      re_t_m: { site_refund_rappen: null },
+      re_t_lost: { refund_mail_claimed: false },
+    });
+    d.sendAlert.mockImplementationOnce(async () => {
+      order.push("alert");
+      throw new MustFixMailError("send_failed");
+    });
+    d.mailRefund.mockImplementationOnce(async () => {
+      order.push("mail");
+    });
+    await expect(refundCheckWithDeps(d, NOW)).rejects.toBeInstanceOf(MustFixMailError);
+    expect(order).toEqual(["alert", "mail"]);
+  });
+
   it("a mail that does not go out rejects (the cron logs it)", async () => {
     const d = deps([refund({ id: "re_t_m" })], { re_t_m: { site_refund_rappen: null } });
     d.sendAlert.mockRejectedValueOnce(new MustFixMailError("send_failed"));
