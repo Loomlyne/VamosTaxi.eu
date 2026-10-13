@@ -617,6 +617,15 @@ gate() { # gate <name> <cmd...>
     echo "FAIL | $name | $(printf '%s' "$out" | grep -v '^\s*$' | head -3 | tr '\n' ' ' | cut -c1-300)"
   fi
 }
+# Changed files go to eslint and vitest as arguments, never pasted into a bash -c string: paths such as
+# apps/web/app/[locale]/(ops)/api/... break shell parsing ("(") and globbing ("[locale]").
+gate_eslint() { # gate_eslint <file...>
+  pnpm exec eslint "$@" && echo "$# changed files clean"
+}
+gate_vitest() { # gate_vitest <pkg> <file relative to pkg...>
+  local pkg=$1; shift
+  (cd "$pkg" && pnpm exec vitest related --run --passWithNoTests --exclude '**/*.local.test.ts' "$@")
+}
 cmd_gates() {
   cd "$TREE" || exit 2
   local base=${1:-}
@@ -624,19 +633,25 @@ cmd_gates() {
   local changed
   changed=$( { git diff --name-only --diff-filter=ACMR "$base" 2>/dev/null; git ls-files -o --exclude-standard; } | sort -u)
   gate typecheck pnpm -s typecheck
-  local js; js=$(printf '%s\n' "$changed" | grep -E '\.(ts|tsx|js|mjs)$' | while read -r f; do [ -f "$f" ] && echo "$f"; done)
-  if [ -n "$js" ]; then gate eslint bash -c "pnpm exec eslint $(printf '%s ' $js) && echo \"$(printf '%s\n' $js | wc -l | tr -d ' ') changed files clean\""; else echo "PASS | eslint | no changed ts/tsx/js/mjs files"; fi
+  local f js=()
+  while IFS= read -r f; do [ -n "$f" ] && [ -f "$f" ] && js+=("$f"); done <<EOF
+$(printf '%s\n' "$changed" | grep -E '\.(ts|tsx|js|mjs)$')
+EOF
+  if [ ${#js[@]} -gt 0 ]; then gate eslint gate_eslint "${js[@]}"; else echo "PASS | eslint | no changed ts/tsx/js/mjs files"; fi
   gate i18n:check pnpm -s i18n:check
   gate check:numbers pnpm -s check:numbers
   gate check:db-fences pnpm -s check:db-fences
   gate check:legal-claims pnpm -s check:legal-claims
-  local pkg files rel
+  local pkg files
   for pkg in apps/web packages/*; do
     [ -f "$pkg/vitest.config.ts" ] || continue
-    files=$(printf '%s\n' "$changed" | grep -E "^$pkg/.*\.(ts|tsx|js|mjs)\$" | grep -v '\.local\.test\.ts$' | sed "s#^$pkg/##")
-    [ -n "$files" ] || continue
+    files=()
+    while IFS= read -r f; do [ -n "$f" ] && files+=("$f"); done <<EOF
+$(printf '%s\n' "$changed" | grep -E "^$pkg/.*\.(ts|tsx|js|mjs)\$" | grep -v '\.local\.test\.ts$' | sed "s#^$pkg/##")
+EOF
+    [ ${#files[@]} -gt 0 ] || continue
     [ "$pkg" = apps/web ] && node scripts/sync-dc-mock-to-public.mjs >/dev/null 2>&1
-    gate "vitest:$pkg" bash -c "cd '$pkg' && pnpm exec vitest related --run --passWithNoTests --exclude '**/*.local.test.ts' $(printf '%s ' $files)"
+    gate "vitest:$pkg" gate_vitest "$pkg" "${files[@]}"
   done
   [ $GATE_FAIL -eq 0 ]
 }
