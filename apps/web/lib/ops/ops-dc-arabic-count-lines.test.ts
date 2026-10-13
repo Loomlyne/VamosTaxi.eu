@@ -21,6 +21,13 @@ const RETIRE = {
   11: "11 سائقًا في هذه الفئة",
   100: "100 سائق في هذه الفئة",
 } as const;
+const RETIRE_TRIPS = {
+  1: "رحلة واحدة مدفوعة قادمة بلا سائق بعد",
+  2: "رحلتان مدفوعتان قادمتان بلا سائق بعد",
+  5: "5 رحلات مدفوعة قادمة بلا سائق بعد",
+  11: "11 رحلةً مدفوعةً قادمةً بلا سائق بعد",
+  100: "100 رحلة مدفوعة قادمة بلا سائق بعد",
+} as const;
 const LEFT_OUT = {
   1: "سائق واحد مستبعد: فئة موقوفة",
   2: "سائقان مستبعدان: فئة موقوفة",
@@ -77,6 +84,20 @@ describe("Arabic count lines (phase 30, owner answer 2026-10-12)", () => {
         want.replace(/^(\d+) /, "$1"),
       );
       const en = Number(n) === 1 ? "1 chauffeur is on this class" : `${n} chauffeurs are on this class`;
+      expect(dictAr(en), `dict n=${n}`).toBe(want);
+    }
+  });
+
+  it("Retire unassigned-trips line: the four forms (and 100+)", () => {
+    const pricing = read("app/ops/OpsPricing.dc.html");
+    for (const k of ["Ar1", "Ar2", "ArFew", "ArMany", "ArOther"]) {
+      expect(pricing.match(new RegExp(`retireUnassigned${k}:'`, "g"))?.length, k).toBe(1);
+    }
+    expect(pricing).toContain("AR_COUNT['retireUnassignedAr' + arCountForm(retireUnassigned)]");
+    expect(pricing).toContain("const retireUnassignedNumShow = lang !== 'ar' || retireUnassigned >= 3;");
+    for (const [n, want] of Object.entries(RETIRE_TRIPS)) {
+      expect(pageLine("app/ops/OpsPricing.dc.html", "retireUnassignedAr", Number(n), " "), `n=${n}`).toBe(want);
+      const en = Number(n) === 1 ? "1 paid trip ahead has no chauffeur yet" : `${n} paid trips ahead have no chauffeur yet`;
       expect(dictAr(en), `dict n=${n}`).toBe(want);
     }
   });
