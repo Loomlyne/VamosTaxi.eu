@@ -28,7 +28,7 @@ created: 2026-10-12
 ## Sampling Rate
 
 - **After every task commit:** the touched test files only (agents never run the full suite; memory "parallel agents and gate load").
-- **After every plan wave:** `vitest run lib/ops lib/checkout lib/lifecycle lib/legal tests/unit` in `apps/web` plus the `packages/emails` suite.
+- **After every plan wave:** the touched test files of that wave only. The folder suites (`vitest run lib/ops lib/checkout lib/lifecycle lib/legal tests/unit` in `apps/web` plus `packages/emails`) run once, in 31-13, after `gate:local`.
 - **Before `/gsd-verify-work`:** `pnpm gate:local` green, pgTAP for the reader on an own native stack (`scripts/test-lab/lab.sh pgtap <name>`), Chromium run on the local Worker for the dashboard and customer flows.
 - **Max feedback latency:** 60 s per task.
 
@@ -44,7 +44,7 @@ created: 2026-10-12
 | R31-03 | webhook still records dashboard refunds; replay `'already'` | unit | `… vitest run lib/checkout/money-events.test.ts lib/checkout/settle.test.ts` | ✅ extend |
 | R31-04 | duplicate / paid-after-cancel refund path unchanged, no customer mail | unit | same files, new cases | ✅ extend |
 | R31-05 | paid-cancel answers carry no amount; policy line on DC pages, dict, twins, email in 4 languages; refund-texts pins rewritten | unit | `… vitest run lib/lifecycle/paid-cancel.test.ts lib/legal/refund-texts-20-10.test.ts tests/unit/manage-ticket-account-refund.test.ts tests/unit/account-booking-details-refund.test.ts lib/ops/class-change-customer-line.test.ts` and `pnpm --filter @vamos/emails exec vitest run` | ✅ update |
-| R31-06 | customer mail: recorded→1 (locale, recipients, amount from Stripe), already→0, app→0, send error doesn't retry, idempotency key | unit | `… vitest run lib/checkout/money-events.test.ts packages/emails (refund.test.ts, send.test.ts)` | ✅ extend |
+| R31-06 | customer mail: recorded→1 (locale, recipients, amount from Stripe), already→0, app→0, a send error is not retried by the webhook but by the notification sweep (31-05), idempotency key | unit | `… vitest run lib/checkout/money-events.test.ts packages/emails (refund.test.ts, send.test.ts)` | ✅ extend |
 | R31-07 | "Refund to check" visible/hidden per state table | unit (DC) | `… vitest run lib/ops/ops-refund-stripe-dc.test.ts` | ❌ Wave 0 |
 | R31-08 | nightly core: window math, 30-min skip, exclusions, findings (a)-(d)+total, cap 500 "truncated", Stripe down → "did not run", no write calls, counts-only logs | unit | `… vitest run lib/checkout/refund-check.test.ts` | ❌ Wave 0 |
 | R31-08 | reader definer: grants, STABLE, fixtures, no writes | pgTAP | `pnpm db:test` (or `pnpm test:db-lab`) `packages/db/supabase/tests/refund_check_reader.test.sql` | ❌ Wave 0 |

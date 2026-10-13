@@ -191,7 +191,7 @@ apps/web/lib/env.d.ts, wrangler.jsonc, .dev.vars.example   CHANGE STRIPE_ACCOUNT
 packages/emails/src/refund.ts, lib/send.ts        CHANGE sendRefund gets optional idempotencyKey; new copy keys after signature
 packages/emails/src/RefundCheckEmail (new) + send helper  NEW English-only report mail (layoutHtml/layoutText, like refund.ts)
 packages/emails/src/CancellationEmail.tsx + messages/*.json   CHANGE one policy key
-packages/db/supabase/migrations/2026101X_refund_check_reader.sql   NEW (see Migrations wanted)
+packages/db/supabase/migrations/<NUMBER>_refund_check_reader.sql   NEW (see Migrations wanted)
 packages/db/supabase/tests/refund_check_reader.test.sql             NEW pgTAP
 app/ops/OpsDetail.dc.html, app/vamos-i18n-dict.js, app/pages/{booking-detail,manage-booking}.dc.html, app/vamos-manage-ticket.js   CHANGE
 apps/web/i18n/messages/{en,de,fr,ar}.json         CHANGE checkout.cancelSheetFull/Ops, refundPendingOps (React twins)
