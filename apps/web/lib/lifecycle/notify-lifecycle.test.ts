@@ -31,7 +31,6 @@ describe("notify-lifecycle claim-then-send", () => {
     expect(between).toMatch(/await send\(/);
     for (const name of [
       "sendCancellation",
-      "sendRefundFailed",
       "sendReminder24h",
       "sendAssignmentCustomer",
       "sendTimeChange",
@@ -51,19 +50,23 @@ describe("notify-lifecycle claim-then-send", () => {
     expect(src).not.toMatch(/info@vamostaxi\.site/);
   });
 
-  it("dedupe kinds match cancellation, refund_failed, reminder_24h, assignment_customer, time_change, flight_no, review_request", () => {
+  it("every kind it claims is allowed by booking_notifications_kind_check (20261012230000)", () => {
     const src = read("apps/web/lib/lifecycle/notify-lifecycle.ts");
-    for (const kind of [
-      "cancellation",
-      "refund_failed",
-      "reminder_24h",
-      "assignment_customer",
-      "time_change",
-      "flight_no",
-      "review_request",
-    ]) {
-      expect(src).toContain(kind);
-    }
+    const union = src.match(/export type LifecycleKind =([^;]+);/)?.[1] ?? "";
+    const kinds = [...union.matchAll(/"([a-z_0-9]+)"/g)].map((m) => m[1]);
+    expect(kinds.sort()).toEqual(
+      ["assignment", "cancellation", "flight_no", "reminder_24h", "review_request", "time_change"],
+    );
+
+    const table = read("packages/db/supabase/migrations/20260823000014_payments_refunds.sql");
+    const original = table.match(/kind\s+text not null check \(kind in \(([^)]+)\)\)/)?.[1] ?? "";
+    const added = read("packages/db/supabase/migrations/20261012230000_notification_kinds.sql")
+      .match(/foreach v_kind in array array\[([^\]]+)\]/)?.[1] ?? "";
+    const allowed = new Set([...`${original},${added}`.matchAll(/'([a-z_0-9]+)'/g)].map((m) => m[1]));
+    expect(allowed.size).toBe(9);
+    for (const kind of kinds) expect(allowed.has(kind), kind).toBe(true);
+    expect(allowed.has("assignment_customer")).toBe(false);
+    expect(allowed.has("refund_failed")).toBe(false);
   });
 });
 
