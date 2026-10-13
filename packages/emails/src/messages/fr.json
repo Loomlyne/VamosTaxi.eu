@@ -89,8 +89,7 @@
     "preheader": "Ce trajet est annulé.",
     "headline": "Ce trajet est annulé",
     "refundLabel": "Remboursement",
-    "refundPendingOps": "Notre équipe décide du remboursement et vous en informe par e-mail.",
-    "refundFullCaptured": "Vous recevrez un remboursement intégral du montant payé. Notre équipe l’envoie ; votre banque peut mettre quelques jours à l’afficher.",
+    "refundPolicy": "Tout remboursement suit la politique d’annulation et revient sur le moyen de paiement utilisé. Votre banque peut mettre quelques jours à l’afficher.",
     "refundNone": "Aucun remboursement pour cette fenêtre."
   },
   "refundFailed": {
