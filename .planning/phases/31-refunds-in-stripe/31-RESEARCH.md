@@ -15,7 +15,7 @@ Claim tags: `[VERIFIED: codebase]` read in this worktree on 2026-10-12; `[CITED:
 - **D-02** The site keeps recording what Stripe did (existing webhook), so the booking, the dashboard money totals and the customer's account show refunded amounts.
 - **D-03** Duplicate charge stays automatic: the second charge on one booking is refunded at once and he gets the mail. `settle.ts` duplicate branch unchanged.
 - **D-04** Customer cancel of a paid trip: one policy line, no amount, never the word Stripe. en/de/fr/ar drafted in `31-UI-SPEC.md` for his signature.
-- **D-05** Single-leg refund work is parked (`archive/fix-single-leg-refund-a46ac2ca`), not in this phase. Migration `20261013100000` is free.
+- **D-05** Single-leg refund work is parked (`archive/fix-single-leg-refund-a46ac2ca`), not in this phase. Migration number not taken here: Phase 30 owns 20261012200000 onward; the controller asks the owner (2026-10-13).
 
 Owner signatures (question form, 2026-10-12 ~19:05 +04, via the controller):
 
@@ -310,7 +310,7 @@ Not touched: `settle.test.ts`/`money-events.test.ts` duplicate and webhook tests
 - **CONTEXT correction:** `app/ops/OpsDetail.dc.html` is in Phase 30's diff (+37/-9): the Assign block, `assignableChauffeurs(…, retiredIds)`, `AR_COUNT`, five T-table lines (`actions:… noDriversClass` line in en/de/fr/ar, `OpsDetail:853-1270` area), `state` (adds `classRows`), `renderVals`. Phase 31 edits the same file's T tables (deleting ~20 keys, adding ~12), state, `renderVals` and markup, so expect hunks within a few lines of each other (`markRefund`/`saveEdit` line sits 2-3 lines from Phase 30's `actions:` line). Also `app/ops/OpsDash.dc.html` is touched by Phase 30; Phase 31 only reads its money totals (KEEP).
 - Shared: `app/vamos-i18n-dict.js` (different entries), `ROADMAP.md`/`STATE.md`, and `lib/ops/ops-dc-p4.test.ts`, `ops-dc-chauffeur-class.test.ts` (both read `OpsDetail`; run them after merging).
 - **Migration/`database.types.ts`:** the reader migration adds a function, so `packages/db/database.types.ts` is regenerated (`db:types:check`) and will conflict with 30-01. Mitigation: land Phase 30 first, or regenerate after merging `origin/main`; the CONTEXT claim "Phase 31 keeps `database.types.ts` out of Phase 30's way" only holds for the no-migration part of this phase.
-- Rule: whichever lands second merges `origin/main`, resolves T lines by keeping both key sets, and re-runs `ops-dc-*` tests. Migration numbers do not collide (`20261013100000` is free; Phase 30 uses `…200000/210000`, `30-J10-OVERLAP.md`).
+- Rule: whichever lands second merges `origin/main`, resolves T lines by keeping both key sets, and re-runs `ops-dc-*` tests. Migration numbers do not collide: Phase 31 waits for a number from the controller (Phase 30 owns 20261012200000 onward).
 
 ### Pattern 1: Hook the customer mail after the record call
 
@@ -494,7 +494,7 @@ All answered in 31-CONTEXT.md or gated in a plan (2026-10-12/13): 1 → D-10 (cl
 **One migration, for the nightly check only. Everything else: none.**
 
 - Why: the cron runs as `vamos_system`, which has EXECUTE on definers only and no SELECT on `booking_refunds`, `booking_payments`, `bookings` (`20260827000002_checkout_roles.sql:50-52`; `system-reads.ts:1-9`). `service_role` is off the money ledger (`20261012170000`). No existing function reads a refund by Stripe refund id. Staff-claim impersonation is not acceptable.
-- Proposed file: `packages/db/supabase/migrations/2026101X_refund_check_reader.sql` (suggest `20261013100000_refund_check_reader.sql`, free per D-05; Phase 30 uses `…200000/210000`).
+- Proposed file: `packages/db/supabase/migrations/<NUMBER>_refund_check_reader.sql`; the number comes from the controller (Phase 30 owns 20261012200000 onward).
 - Contents (additive, no DDL on tables, no rows touched, one transaction `begin; … commit;`, per the house style of `20261007260000_meta_purchase.sql`):
   - `public.refund_check_read(p_refunds pg_catalog.jsonb)` `returns table (...)`, `language sql stable security definer set search_path = ''`. Input: JSON array of `{id, payment_intent}` objects (the Stripe refunds). Output per input refund: `stripe_refund_id`, `payment_intent_id`, `payment_found`, `booking_reference` (reference only, no name/e-mail), `site_refund_rappen`, `site_reason`, `site_reversed` (has a `booking_refund_reversals` row), `booking_refunded_rappen` (`bookings.refunded_rappen`), `booking_rows_sum_rappen` (sum of non-reversed `booking_refunds` on non-`duplicate` payments of that booking).
   - `revoke all on function … from public, anon, authenticated; grant execute on function … to vamos_system;` plus a `comment on function`.

@@ -16,7 +16,7 @@ evening (owner: "run that"): a nightly read-only refund check (D-09).
 - **D-04** Customer cancel of a paid trip: one policy line, no amount, never the word Stripe. en/de/fr/ar
   drafted in `31-UI-SPEC.md` for his signature.
 - **D-05** Single-leg refund work is parked (`archive/fix-single-leg-refund-a46ac2ca`), not in this phase.
-  Migration `20261013100000` is free.
+  Migration number not taken here: Phase 30 owns 20261012200000 onward; the controller asks the owner (2026-10-13).
 
 ## Recommendations on the open technical points
 
