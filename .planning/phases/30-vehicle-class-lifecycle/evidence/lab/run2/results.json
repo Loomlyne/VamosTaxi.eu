@@ -1,0 +1,66 @@
+{
+ "at": "2026-10-13T13:59:14.476Z",
+ "base": "http://localhost:4730",
+ "results": [
+  {
+   "id": "S1",
+   "title": "Add Lab Draft Class",
+   "status": "PASS",
+   "evidence": "steppers showed em dash before save; saved row has DRAFT badge button (data-draft-btn text DRAFT, read in S2 run) and em dash for seats and bags; db '||f|' (null,null,false,null); quote classes Economy, Business, Van luxury; About does not name Lab Draft Class. (The first S1 evidence line matched DRAFT inside the name; the badge was confirmed separately in the S2 run.)"
+  },
+  {
+   "id": "S2",
+   "title": "Click DRAFT badge",
+   "status": "PASS",
+   "evidence": "badge \"DRAFT\"; Before this class goes live; Photo=missing(circle-alert.svg), Seats=missing(circle-alert.svg), Bags=missing(circle-alert.svg), Price in the live price book=missing(circle-alert.svg); why=\"Add a photo first\"; whyAboveButtons=true; EDIT CLASS:enabled GO LIVE:disabled"
+  },
+  {
+   "id": "S2b",
+   "title": "photo then seats",
+   "status": "FAIL",
+   "evidence": "Same page session: after saving the photo the Go live list still read Photo=missing, why 'Add a photo first'; after saving seats 3 it still read Photo/Seats/Bags/Price all missing, why 'Add a photo first' (db had seats 3 and photo_path set). A fresh page load shows Photo=done, Seats=done, why 'Add the bags first'. Same stale list after the bags save (bags 2 in db, list said Bags=missing for 6 s). GO LIVE disabled each time. The list is a page-load snapshot."
+  },
+  {
+   "id": "S12",
+   "title": "Publish a draft without Lab Draft Class amounts",
+   "status": "BLOCKED",
+   "evidence": "Bags 3 saved (db 3|3), seed draft discarded, draft 3 now exists (copy of live book, label 'lab stand-in, not a price draft'), Economy start re-saved at 0.01. PUBLISH FARE BOOK refuses: 'Economy - missing photo. Business - missing photo. Van luxury - missing photo. 3 gaps before Publish fare book' (Lab Draft Class is not named). Publishing would need photos uploaded to the three live classes, which the brief does not allow."
+  },
+  {
+   "id": "S4",
+   "title": "Retire Lab Draft Class",
+   "status": "PASS",
+   "evidence": "dialog notes [] lastLive=false; row gone from table: true; retired count 1 -> 2; focus BUTTON data-retired-head; db t|No longer offered"
+  },
+  {
+   "id": "S5",
+   "title": "Open Retired classes list",
+   "status": "PASS",
+   "evidence": "chevron closed chevron-down.svg (expanded false) -> open chevron-up.svg (expanded true); rows [{\"t\":\"Lab old class Lab: retired before the run BRING BACK\",\"btn\":\"BRING BACK/Bring back\"},{\"t\":\"Lab Draft Class No longer offered BRING BACK\",\"btn\":\"BRING BACK/Bring back\"}]"
+  },
+  {
+   "id": "S14",
+   "title": "Bring back Lab Draft Class (first half only)",
+   "status": "BLOCKED",
+   "evidence": "PARTIAL: second half BLOCKED (needs the stand-in Publish, blocked by S12 photo gaps). First half PASS: in class table 1, badge DRAFT, still in Retired list 0, Retired count 1; Before this class goes live; Photo=done(circle-check.svg), Seats=done(circle-check.svg), Bags=done(circle-check.svg), Price in the live price book=missing(circle-alert.svg); why=\"Add a price in the live price book first\"; whyAboveButtons=true; EDIT CLASS:enabled GO LIVE:disabled; db not hidden|active|reason null t|f|t. Note: Lab Draft Class never had a price in a live book (S13 blocked), so \"missing although the previous live book had its price\" is not exercised."
+  },
+  {
+   "id": "S13",
+   "title": "Stand-in price, publish, Go live list",
+   "status": "BLOCKED",
+   "evidence": "BLOCKED by S12: the draft cannot be published (3 missing photos)."
+  },
+  {
+   "id": "S3",
+   "title": "Press GO LIVE",
+   "status": "BLOCKED",
+   "evidence": "BLOCKED by S13: Price in the live price book stays missing, GO LIVE disabled."
+  },
+  {
+   "id": "S3b",
+   "title": "Live class seats cannot be cleared",
+   "status": "BLOCKED",
+   "evidence": "BLOCKED by S3: Lab Draft Class never became Live."
+  }
+ ]
+}

@@ -1,0 +1,1032 @@
+[
+ {
+  "w": 1440,
+  "el": "draft-badge",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "draft-badge",
+  "state": "hover",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "draft-badge",
+  "state": "focus(Tab)",
+  "n": 2,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "el": "draft-badge",
+  "state": "press",
+  "n": 2,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "el": "live-badge",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "live-badge",
+  "state": "hover",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "live-badge",
+  "state": "focus(Tab) NOT REACHED",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "retire-icon",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "retire-icon",
+  "state": "hover",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "retire-icon",
+  "state": "focus(Tab)",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "retire-icon",
+  "state": "press",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "retired-head-closed",
+  "state": "base",
+  "n": 7,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "retired-head-closed",
+  "state": "hover",
+  "n": 7,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "retired-head-closed",
+  "state": "focus(Tab)",
+  "n": 7,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "el": "retired-head-closed",
+  "state": "press",
+  "n": 7,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "el": "retired-head-open",
+  "state": "base",
+  "n": 7,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "el": "retired-head-open",
+  "state": "hover",
+  "n": 7,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "el": "retired-head-open",
+  "state": "focus(Tab)",
+  "n": 7,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "el": "retired-head-open",
+  "state": "press",
+  "n": 7,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "el": "retired-list",
+  "state": "base",
+  "n": 24,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "el": "bring-back",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "bring-back",
+  "state": "hover",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "bring-back",
+  "state": "focus(Tab)",
+  "n": 2,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "el": "bring-back",
+  "state": "press",
+  "n": 2,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "el": "golive-dialog",
+  "state": "base",
+  "n": 48,
+  "shadows": [
+   {
+    "tag": "DIV",
+    "sh": "rgba(17, 18, 18, 0.18) 0px 24px 64px 0px"
+   }
+  ],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "golive-edit-button",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "golive-edit-button",
+  "state": "hover",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "golive-edit-button",
+  "state": "focus(Tab)",
+  "n": 2,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "el": "golive-edit-button",
+  "state": "press",
+  "n": 2,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "el": "golive-disabled-button",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "golive-disabled-button",
+  "state": "hover",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "golive-disabled-button",
+  "state": "focus(Tab)",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "retire-dialog",
+  "state": "base",
+  "n": 34,
+  "shadows": [
+   {
+    "tag": "DIV",
+    "sh": "rgba(17, 18, 18, 0.18) 0px 24px 64px 0px"
+   }
+  ],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "retire-cancel",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "retire-cancel",
+  "state": "hover",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "retire-cancel",
+  "state": "focus(Tab)",
+  "n": 2,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "el": "retire-cancel",
+  "state": "press",
+  "n": 2,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "el": "retire-confirm",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "retire-confirm",
+  "state": "hover",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "retire-confirm",
+  "state": "focus(Tab)",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "retire-confirm",
+  "state": "press",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "chauffeur-red-flag",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 1440,
+  "el": "left-out-line",
+  "state": "base",
+  "n": 1,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "draft-badge",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "draft-badge",
+  "state": "hover",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "draft-badge",
+  "state": "focus(Tab)",
+  "n": 2,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "el": "draft-badge",
+  "state": "press",
+  "n": 2,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "el": "live-badge",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "live-badge",
+  "state": "hover",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "live-badge",
+  "state": "focus(Tab) NOT REACHED",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "retire-icon",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "retire-icon",
+  "state": "hover",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "retire-icon",
+  "state": "focus(Tab)",
+  "n": 2,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "el": "retire-icon",
+  "state": "press",
+  "n": 2,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "el": "retired-head-closed",
+  "state": "base",
+  "n": 7,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "retired-head-closed",
+  "state": "hover",
+  "n": 7,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "retired-head-closed",
+  "state": "focus(Tab)",
+  "n": 7,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "el": "retired-head-closed",
+  "state": "press",
+  "n": 7,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "el": "retired-head-open",
+  "state": "base",
+  "n": 7,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "el": "retired-head-open",
+  "state": "hover",
+  "n": 7,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "el": "retired-head-open",
+  "state": "focus(Tab)",
+  "n": 7,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "el": "retired-head-open",
+  "state": "press",
+  "n": 7,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "el": "retired-list",
+  "state": "base",
+  "n": 24,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "el": "bring-back",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "bring-back",
+  "state": "hover",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "bring-back",
+  "state": "focus(Tab)",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "golive-dialog",
+  "state": "base",
+  "n": 48,
+  "shadows": [
+   {
+    "tag": "DIV",
+    "sh": "rgba(17, 18, 18, 0.18) 0px 24px 64px 0px"
+   }
+  ],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "golive-edit-button",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "golive-edit-button",
+  "state": "hover",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "golive-edit-button",
+  "state": "focus(Tab)",
+  "n": 2,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "el": "golive-edit-button",
+  "state": "press",
+  "n": 2,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "el": "golive-disabled-button",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "golive-disabled-button",
+  "state": "hover",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "golive-disabled-button",
+  "state": "focus(Tab)",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "retire-dialog",
+  "state": "base",
+  "n": 34,
+  "shadows": [
+   {
+    "tag": "DIV",
+    "sh": "rgba(17, 18, 18, 0.18) 0px 24px 64px 0px"
+   }
+  ],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "retire-cancel",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "retire-cancel",
+  "state": "hover",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "retire-cancel",
+  "state": "focus(Tab)",
+  "n": 2,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "el": "retire-cancel",
+  "state": "press",
+  "n": 2,
+  "shadows": [
+   {
+    "tag": "BUTTON",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ],
+  "bad": [
+   {
+    "tag": "BUTTON",
+    "why": "yellow box-shadow",
+    "sh": "rgba(253, 194, 11, 0.45) 0px 0px 0px 3px"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "el": "retire-confirm",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "retire-confirm",
+  "state": "hover",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "retire-confirm",
+  "state": "focus(Tab)",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "retire-confirm",
+  "state": "press",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "chauffeur-red-flag",
+  "state": "base",
+  "n": 2,
+  "shadows": [],
+  "bad": []
+ },
+ {
+  "w": 390,
+  "el": "left-out-line",
+  "state": "base",
+  "n": 1,
+  "shadows": [],
+  "bad": []
+ }
+]

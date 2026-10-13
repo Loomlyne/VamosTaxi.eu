@@ -1,0 +1,10 @@
+import { start, finish, open, dashboardSignIn, DASH } from "/Users/koss/.vamos-scratch/p30-clean/scripts/test-lab/lab-browser.mjs";
+await start({ evidenceDir: process.argv[2] });
+const s = await open({ viewport: 1440, name: "x" });
+await dashboardSignIn(s);
+await s.page.goto(DASH + "/pricing", { waitUntil: "networkidle" });
+await s.page.waitForTimeout(2000);
+console.log(await s.page.evaluate(() => document.body.innerText.slice(0, 3000)));
+console.log(await s.page.evaluate(() => [...document.querySelectorAll("[data-class-id]")].map(e=>e.outerHTML.slice(0,1500)).join("\n----\n")));
+await s.shot("explore");
+await finish();
