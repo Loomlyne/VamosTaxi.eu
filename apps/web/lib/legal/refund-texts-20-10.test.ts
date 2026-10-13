@@ -1,7 +1,8 @@
 // Customer refund wording, pinned byte for byte against two decision files in every file where it lives:
 // - T1 and T3 (cancellation page, tiers line) from .planning/decisions/2026-09-30-refunds-by-hand.md;
 // - W1 to W5 from .planning/decisions/2026-10-12-refund-wording-signed.md (Phase 31, S-02): W1 the cancel
-//   sheet line, W2 the account Refund row, W3 the dead-card paragraph and the cancellation e-mail line.
+//   sheet line, W2 the account Refund row, W3 the dead-card paragraph and the cancellation e-mail line;
+//   W6 the "Cancel this transfer" sub-line (O-1 = A, S-07).
 // No customer surface may say "Pending Ops", promise an automatic cancellation refund, or carry the retired
 // 20-10 promise sentences (full refund sent by our team, refund under review).
 
@@ -46,6 +47,12 @@ const T3 = table("T3");
 const W1 = signedTable("W1");
 const W2 = signedTable("W2");
 const W3 = signedTable("W3");
+const W6 = signedTable("W6");
+// The two retired "Cancel this transfer" sub-lines (O-1, replaced by W6); banned below.
+const OLD_CANCEL_SUBS = [
+  "See what comes back at this notice before you decide.",
+  "See the refund you are due before anything is confirmed.",
+];
 // The retired 20-10 Refund row label (answers 2/3 in 20-10-BUILD-SPEC section E); banned below.
 const OLD_ROW: Texts = {
   en: "Full refund · sent by our team",
@@ -84,8 +91,8 @@ describe("the decision file itself", () => {
     for (const t of [T1, T2, T3]) for (const lang of LANGS) expect(t[lang].length).toBeGreaterThan(10);
   });
 
-  it("the signed Phase 31 file has the four languages of W1, W2 and W3, sharp-s free", () => {
-    for (const t of [W1, W2, W3]) for (const lang of LANGS) expect(t[lang].length).toBeGreaterThan(10);
+  it("the signed Phase 31 file has the four languages of W1, W2, W3 and W6, sharp-s free", () => {
+    for (const t of [W1, W2, W3, W6]) for (const lang of LANGS) expect(t[lang].length).toBeGreaterThan(10);
     expect(signed).not.toContain("ß");
   });
 });
@@ -141,6 +148,26 @@ describe("W2 the customer's Refund row value", () => {
     expect(dictSrc).toContain(`"${W2.en}": { de: "${W2.de}", fr: "${W2.fr}", ar: "${W2.ar}" }`);
     expect(read("app/vamos-manage-ticket.js")).toContain(`t("${W2.en}")`);
     expectInJson("apps/web/i18n/messages", ["checkout", "refundPendingOps"], W2);
+  });
+});
+
+describe("W6 Cancel this transfer sub-line, both windows (O-1 = A)", () => {
+  it("both pages hand W6 to cancelSub for every window; the dict has it in four languages; the old lines are gone", () => {
+    for (const rel of ["app/pages/manage-booking.dc.html", "app/pages/booking-detail.dc.html"]) {
+      const src = read(rel);
+      expect(src, rel).toContain(`cancelSub: '${W6.en}',`);
+      expect(src.split(W6.en).length - 1, rel).toBe(1);
+      for (const old of OLD_CANCEL_SUBS) expect(src, `${rel}: ${old}`).not.toContain(old);
+    }
+    expect(dictSrc).toContain(`'${W6.en}': { de: '${W6.de}', fr: '${W6.fr}', ar: '${W6.ar}' }`);
+    for (const old of OLD_CANCEL_SUBS) expect(dictSrc, old).not.toContain(old);
+  });
+
+  it("the S-08 lines stay: the See what comes back button and the keep-it line", () => {
+    for (const rel of ["app/pages/manage-booking.dc.html", "app/pages/booking-detail.dc.html"]) {
+      expect(read(rel), rel).toContain("— keep it, because that is what your refund is calculated from.");
+      expect(read(rel), rel).toContain('<span data-fork-cta="ghost">See what comes back<');
+    }
   });
 });
 

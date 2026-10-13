@@ -46,6 +46,19 @@ Answered: A, signed 2026-10-13 ~16:20 (+04), owner, question form via the contro
 under "Cancel this transfer" for both windows, replacing the two lines that still spoke of a refund amount. Plan
 31-12 adds it here as W6 and applies it to the pages.
 
+### W6 — Cancel this transfer sub-line (both pages, both windows; `cancelSub` in booking-detail and manage-booking, dict)
+
+Replaces "See what comes back at this notice before you decide." and "See the refund you are due before anything is
+confirmed." The "See what comes back" button and "— keep it, because that is what your refund is calculated from."
+stay (S-08).
+
+| Language | Text |
+|---|---|
+| en | Read the cancellation policy before anything is confirmed. |
+| de | Lesen Sie die Stornierungsbedingungen, bevor etwas bestätigt wird. |
+| fr | Consultez la politique d’annulation avant toute confirmation. |
+| ar | اطّلع على سياسة الإلغاء قبل تأكيد أي شيء. |
+
 ## Owner answers, 2026-10-13 ~16:20 (+04)
 
 - S-08: KEEP both extra customer lines: the "See what comes back" button and "— keep it, because that is what your

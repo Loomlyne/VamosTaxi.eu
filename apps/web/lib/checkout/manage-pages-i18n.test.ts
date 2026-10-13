@@ -102,8 +102,7 @@ function visibleTexts(rel: string): string[] {
 const LOGIC_LINES = [
   "Your surname",
   "you@example.com",
-  "See what comes back at this notice before you decide.",
-  "See the refund you are due before anything is confirmed.",
+  "Read the cancellation policy before anything is confirmed.",
   "the booked time",
 ];
 
@@ -134,8 +133,7 @@ const STEP3 = [
   "cancellation and refund policy",
   "Another booking",
   "Your surname",
-  "See what comes back at this notice before you decide.",
-  "See the refund you are due before anything is confirmed.",
+  "Read the cancellation policy before anything is confirmed.",
   "the booked time",
   "Pick a new date and time",
   "Use this time",
