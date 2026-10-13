@@ -11,7 +11,8 @@
 //
 // Skipped unless VAMOS_LOCAL_DB_PORT names a DISPOSABLE local stack (the test lab). It commits rows (one
 // staff user, one private draft source book, the new draft book, two classes) on that throwaway stack only,
-// never on any other database. Synthetic integer rappen only.
+// and removes the books and classes afterwards: a leftover draft would be the "newest draft" every later lab run previews
+// and saves into. Synthetic integer rappen only.
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { workerSql } from "../../../../packages/db/test/support/worker-client";
 import type { VamosClaims } from "../db/identity";
@@ -29,6 +30,8 @@ const STAFF = { sub: adminId, role: "authenticated", aal: "aal2", app_metadata: 
 describe.skipIf(!PORT)("a new price book keeps every distance band and rule of its source (local lab)", () => {
   let su!: ReturnType<typeof workerSql>;
   const env = () => ctx.env as unknown as CloudflareEnv;
+  const books: string[] = [];
+  const classes: string[] = [];
 
   beforeAll(async () => {
     su = workerSql(`postgres://postgres:postgres@127.0.0.1:${PORT}/postgres`);
@@ -42,11 +45,19 @@ describe.skipIf(!PORT)("a new price book keeps every distance band and rule of i
     await su`insert into public.staff (user_id, role, active, accepted_at, full_name) values (${adminId}, 'admin', true, now(), 'FB Admin')`;
   });
   afterAll(async () => {
+    if (su) {
+      // Both books are drafts, so the frozen triggers allow these deletes.
+      for (const t of ["distance_bands", "rate_version_rules", "surcharges", "distance_rates", "fixed_routes", "region_premiums", "coupons"]) {
+        await su`delete from ${su("public." + t)} where rate_version_id::text in ${su(books.length ? books : ["0"])}`;
+      }
+      if (books.length) await su`delete from public.rate_versions where id::text in ${su(books)}`;
+      if (classes.length) await su`delete from public.vehicle_classes where id::text in ${su(classes)}`;
+      // The staff user stays: audit_log is append-only and references it (as publish-label leaves its own).
+    }
     await su?.end({ timeout: 5 });
   });
 
   it("copies every band and rule into the new draft, and a staff session reads them", { timeout: 60_000 }, async () => {
-    const classes: string[] = [];
     for (const key of ["a", "b"]) {
       const row = (await su<{ id: string }[]>`
         insert into public.vehicle_classes (slug, name, passenger_capacity, luggage_capacity, active)
@@ -57,6 +68,7 @@ describe.skipIf(!PORT)("a new price book keeps every distance band and rule of i
     const src = (await su<{ id: string }[]>`
       insert into public.rate_versions (slug, label, status)
       values (${`fb-src-${tag}`}, ${`Fork source ${tag}`}, 'draft') returning id::text as id`)[0]!.id;
+    books.push(src);
     for (const cls of classes) {
       await su`insert into public.distance_rates (rate_version_id, vehicle_class_id, base_fare_rappen, per_km_rappen, min_fare_rappen, max_pax, available)
                values (${src}, ${cls}, 100, 10, 100, 3, true)`;
@@ -73,6 +85,7 @@ describe.skipIf(!PORT)("a new price book keeps every distance band and rule of i
     const { forkLiveRateVersion, loadQuoteBookDocForVersion } = await import("@/lib/ops/rate-book");
     const { asStaff } = await import("@/lib/db/identity");
     const draftId = await forkLiveRateVersion(env(), STAFF, { id: Number(src), label: `Fork source ${tag}` });
+    books.push(String(draftId));
     expect(String(draftId)).not.toBe(src);
 
     type Band = { cls: string | null; from_km: number; to_km: number; per_km_rappen: number };

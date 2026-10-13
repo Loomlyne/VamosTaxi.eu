@@ -8,7 +8,7 @@
 --   D  root cause: without the new permissive policies a staff session reads zero rows.
 -- Rolled back. Synthetic integer rappen only.
 begin;
-select plan(25);
+select plan(29);
 
 -- Fixtures (as the connecting superuser) ---------------------------------------------------
 update public.rate_versions set status = 'retired' where status = 'live';
@@ -205,6 +205,29 @@ select is(
   pg_temp.psp_rows('delete from public.rate_version_rules where rate_version_id = (select draft from psp_ids)'),
   0,
   '(C8) a dispatcher delete of a draft rule affects 0 rows'
+);
+-- A published book: the *_admin_update policies let a dispatcher's UPDATE through
+-- (`or app.rate_version_published(...)`), so the frozen trigger is what refuses it. DELETE has no
+-- published carve-out, so the admin-only policy filters every row out.
+select throws_ok(
+  $$ update public.distance_bands set per_km_rappen = 1 where rate_version_id = (select pub from psp_ids) $$,
+  '23001', null,
+  '(C9) a dispatcher update of a published distance band is refused by the frozen trigger'
+);
+select is(
+  pg_temp.psp_rows('delete from public.distance_bands where rate_version_id = (select pub from psp_ids)'),
+  0,
+  '(C10) a dispatcher delete of a published distance band affects 0 rows'
+);
+select throws_ok(
+  $$ update public.rate_version_rules set payload = '{}'::jsonb where rate_version_id = (select pub from psp_ids) $$,
+  '23001', null,
+  '(C11) a dispatcher update of a published rule is refused by the frozen trigger'
+);
+select is(
+  pg_temp.psp_rows('delete from public.rate_version_rules where rate_version_id = (select pub from psp_ids)'),
+  0,
+  '(C12) a dispatcher delete of a published rule affects 0 rows'
 );
 reset role;
 
