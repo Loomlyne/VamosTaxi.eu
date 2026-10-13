@@ -121,8 +121,8 @@ select is(
 -- trigger's OWN function (tgfoid) proves the intended claim regardless of table naming.
 select is(
   (select count(*) from pg_trigger where tgfoid = 'public.tg_audit_row()'::regprocedure and not tgisinternal)::int,
-  16,
-  '(14) exactly 16 triggers (15 drafted + extra_labels, 26.3-07) call tg_audit_row (one per drafted table)'
+  17,
+  '(14) exactly 17 triggers (15 drafted + extra_labels, 26.3-07 + translations, 32-02) call tg_audit_row (one per audited table)'
 );
 
 select * from finish();
