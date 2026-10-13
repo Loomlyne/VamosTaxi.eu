@@ -48,7 +48,7 @@
   // markup and keeps this list equal to its route mounts plus its top-level imports.
   var SHELL_SCREENS = {
     OpsDash: 1, OpsBoard: 1, OpsNewTrip: 1, OpsChauffeurs: 1, OpsDetail: 1, OpsPricing: 1, OpsReviews: 1,
-    OpsContent: 1, OpsCalendarBoard: 1, OpsCustomers: 1, OpsSupportTicket: 1, OpsSettings: 1, OpsProfile: 1,
+    OpsCalendarBoard: 1, OpsCustomers: 1, OpsSupportTicket: 1, OpsSettings: 1, OpsProfile: 1,
     OpsSidebar: 1
   };
 
