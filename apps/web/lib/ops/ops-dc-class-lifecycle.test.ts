@@ -619,3 +619,58 @@ describe("Retired list and Bring back (plan 08, task 3)", () => {
     expect(retiredRules.join("\n")).not.toMatch(/(margin|padding)-(left|right)|[^-]left:|[^-]right:/);
   });
 });
+
+describe("Go live dialog re-reads the class rows (30-08 lab defect)", () => {
+  const stale: Json[] = ROWS.map((r) => (r.id === "c-van" ? { ...r, missing: "" } : r));
+  const fresh: Json[] = ROWS.map((r) => (r.id === "c-van" ? { ...r, missing: "" } : r));
+  const flush = () => new Promise((r) => setTimeout(r, 0));
+
+  it("opening reloads the rows; once they answer the checklist is all done and GO LIVE is enabled", async () => {
+    const p = page();
+    const before = p.calls.classesReads;
+    p.setRows(ROWS); // the page holds stale rows: photo,price missing
+    p.setRows(fresh); // ...then the server answers with the saved state
+    p.comp.state = { ...p.comp.state, classes: ROWS };
+    p.comp.openGoLive("c-van", "r2");
+    expect(p.calls.classesReads).toBe(before + 1);
+    expect(p.vals().goLiveDisabled).toBe(true);
+    await flush();
+    const v = p.vals();
+    expect(v.goLiveItems.every((i: Json) => i.state === "done")).toBe(true);
+    expect(v.goLiveDisabled).toBe(false);
+  });
+
+  it("while the reload is pending GO LIVE is disabled and confirm does nothing, even if old rows said complete", async () => {
+    const p = page({ rows: stale });
+    let release: (r: Json[]) => void = () => undefined;
+    p.comp.state = { ...p.comp.state, classes: stale };
+    const pending = new Promise<Json[]>((res) => { release = res; });
+    const w = (p.comp as Json);
+    w.loadClasses = () => pending.then((rows) => w.setState({ classes: rows }));
+    p.comp.openGoLive("c-van", "r2");
+    expect(p.vals().goLiveDisabled).toBe(true);
+    p.comp.confirmGoLive();
+    expect(p.calls.goLive).toEqual([]);
+    release(fresh);
+    await flush();
+    expect(p.vals().goLiveDisabled).toBe(false);
+  });
+
+  it("GO LIVE is enabled again after a failed reload (old rows decide)", async () => {
+    const p = page({ rows: stale });
+    const w = p.comp as Json;
+    w.loadClasses = () => Promise.reject(new Error("offline"));
+    w.openGoLive("c-van", "r2");
+    await flush();
+    expect(w.state.goLiveLoading).toBe(false);
+  });
+
+  it("a successful publish reloads the classes", async () => {
+    const p = page();
+    const before = p.calls.classesReads;
+    p.comp.loadDraft = () => Promise.resolve();
+    p.comp.afterPublish({ ok: true });
+    await flush();
+    expect(p.calls.classesReads).toBe(before + 1);
+  });
+});

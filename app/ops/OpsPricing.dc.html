@@ -836,6 +836,7 @@ class Component extends DCLogic {
     retiredOpen: false,
     goLiveTarget: null,
     goLiveBusy: false,
+    goLiveLoading: false,
     goLiveFailed: false,
     retireTarget: null,
     retireReason: '',
@@ -1103,7 +1104,12 @@ class Component extends DCLogic {
       fail();
     }, fail);
   };
-  openGoLive = (id, rowId) => this.setState({ goLiveTarget: { id: id, rowId: rowId }, goLiveBusy: false, goLiveFailed: false });
+  /* The checklist reads the server row, so every open re-reads the rows; GO LIVE stays off until that settles. */
+  openGoLive = (id, rowId) => {
+    this.setState({ goLiveTarget: { id: id, rowId: rowId }, goLiveBusy: false, goLiveFailed: false, goLiveLoading: true });
+    const done = () => this.setState({ goLiveLoading: false });
+    this.loadClasses().then(done, done);
+  };
   closeGoLive = () => {
     const g = this.state.goLiveTarget;
     if (this.state.goLiveBusy) return;
@@ -1117,7 +1123,7 @@ class Component extends DCLogic {
   };
   confirmGoLive = () => {
     const g = this.state.goLiveTarget;
-    if (!g || this.state.goLiveBusy) return;
+    if (!g || this.state.goLiveBusy || this.state.goLiveLoading) return;
     const c = (Array.isArray(this.state.classes) ? this.state.classes : []).filter((x) => x.id === g.id)[0];
     if (!c || this.missingOf(c).length) return;
     this.setState({ goLiveBusy: true, goLiveFailed: false });
@@ -1225,6 +1231,7 @@ class Component extends DCLogic {
       this.setState({ publishing: false, publishCode: '', gaps: [], publishOpen: false });
       this.notifyPublishOk(t.publishOk);
       this.loadDraft();
+      this.loadClasses();
       return;
     }
     const gaps = (json && Array.isArray(json.gaps)) ? json.gaps : this.state.gaps;
@@ -1847,7 +1854,7 @@ class Component extends DCLogic {
       })),
       goLiveBlocked: goLiveMissing.length > 0, goLiveWhy: goLiveMissing.length ? t['goLiveNeeds' + goLiveMissing[0].key] : '',
       goLiveBusy: this.state.goLiveBusy, goLiveFailed: this.state.goLiveFailed, tGoLiveError: t.goLiveError,
-      goLiveDisabled: goLiveMissing.length > 0 || this.state.goLiveBusy,
+      goLiveDisabled: goLiveMissing.length > 0 || this.state.goLiveBusy || this.state.goLiveLoading,
       goLiveButtonLabel: this.state.goLiveBusy ? t.goingLive : t.goLive,
       closeGoLive: this.closeGoLive, confirmGoLive: this.confirmGoLive, editFromGoLive: this.editFromGoLive,
       tGoLiveTitle: t.goLiveTitle, tGoLive: t.goLive, tEditClassBtn: t.editClass,
