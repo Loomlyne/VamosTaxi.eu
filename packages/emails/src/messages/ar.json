@@ -27,13 +27,13 @@
     "routePair": "مسار {origin} – {destination}",
     "routePairPlain": "سعر المسار",
     "total": "الإجمالي المدفوع",
-    "presented": "دفعت {paid} بعملة {currency}. استلمت فاموس {received}."
+    "presented": "دفعت {paid} بعملة {currency}. استلمت Vamos {received}."
   },
   "manageBooking": "إدارة الحجز",
   "calendarNote": "دعوة تقويم مرفقة بهذا البريد.",
   "cancellationLine": "إلغاء مجاني حتى 24 ساعة قبل الاستلام عبر رابط إدارة الحجز.",
   "dispatchPhone": "التشغيل {phone}",
-  "footer": "فاموس تاكسي · زيورخ",
+  "footer": "Vamos Taxi · زيورخ",
   "payLink": {
     "subject": "ادفع الحجز {reference}",
     "preheader": "يُثبَّت هذا السعر {hours} ساعة. بعدها يموت الرابط.",
@@ -43,7 +43,7 @@
     "unpaid": "غير مدفوع بعد — السيارة غير مؤكدة.",
     "payCta": "ادفع الآن",
     "amountLabel": "المبلغ",
-    "footer": "فاموس تاكسي · زيورخ",
+    "footer": "Vamos Taxi · زيورخ",
     "linkLabel": "أو افتح هذا الرابط",
     "passengerLabel": "الراكب",
     "phoneLabel": "الجوال",

@@ -126,3 +126,29 @@ describe("signed phase 32 strings", () => {
     }
   });
 });
+
+/** Owner-approved legal lines that keep the Arabic spelling (F-01). None found on 2026-10-14: no `legal.*` or
+ *  `cookies.*` message, no decision-file text and no data-vt-legal page string carried the Arabic brand. */
+const F01_KEPT: string[] = [];
+
+describe("Vamos Taxi is written in Latin in Arabic (D-10, D-11)", () => {
+  const files = [
+    "app/vamos-i18n-dict.js",
+    "apps/web/i18n/messages/ar.json",
+    "packages/emails/src/messages/ar.json",
+    "app/ops/OpsReviews.dc.html",
+    "app/ops/OpsSidebar.dc.html",
+  ];
+  const ARABIC_BRAND = /فاموس/;
+  for (const file of files) {
+    it(`${file} has no Arabic-letter spelling outside the listed legal lines`, () => {
+      const left = read(file).split("\n").filter((l) => ARABIC_BRAND.test(l) && !F01_KEPT.some((k) => l.includes(k)));
+      expect(left).toEqual([]);
+    });
+  }
+
+  it("keeps the Latin brand beside Arabic words in the e-mail footer and the dictionary", () => {
+    expect(read("packages/emails/src/messages/ar.json")).toContain("Vamos Taxi · زيورخ");
+    expect(strings["About Vamos Taxi"]?.ar).toBe("عن Vamos Taxi");
+  });
+});
