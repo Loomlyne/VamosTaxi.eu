@@ -1,7 +1,7 @@
 # Phase 32: Automatic translator — Context
 
 **Gathered:** 2026-10-12 (owner decisions from the question form, ~19:20 +04; relayed by the controller, T3 thread 0fbbf0c1)
-**Status:** Discuss input signed 2026-10-12, revised by the owner's answers of 2026-10-13 (~16:00 +04, question form, relayed by the controller). The 2026-10-12 sheets were NOT signed; UI-SPEC rewritten. Plan not started.
+**Status:** Discuss signed 2026-10-12 and revised 2026-10-13 (~16:00 +04). **Design signed 2026-10-13 ~18:35 +04** (question form, relayed by the controller): sheets a, b (parts a and b) and c, and every new string in en/de/fr/ar in `32-STRINGS.md`. No table or column is dropped (decision file `.planning/decisions/2026-10-13-auto-translate.md`). Plan in progress.
 **Branch / worktree:** `phase-32-auto-translate`. Phases 30 and 31 also touch ROADMAP, STATE and `app/vamos-i18n-dict.js` on their own branches, so edits here stay small and append-only.
 
 <domain>
@@ -155,9 +155,9 @@ Tests:
 - `apps/web/tests/integration/ops-dc-content-loader.spec.ts` — only line 51 and 70–78; the public-loader parts stay.
 - Kept: `home-content.spec.ts`, `content-loader-parity.spec.ts`, `apps/web/lib/content/messages.test.ts`, pgTAP `seed_idempotent`, `reference_tables`, `fail_closed`, `canton_zones`.
 
-Tables and columns — **nothing dropped** (any drop is a migration question for the controller):
+Tables and columns — **nothing dropped** (owner, 2026-10-13 ~18:35: drop no table or column):
 - `content_strings` stays: read by `apps/web/lib/content/messages.ts` (public, when `CONTENT_SOURCE=db`), `apps/web/lib/db/content.ts` → `/api/quote` (zone names), the seed generator, migration `20260928130000_canton_city_zones.sql`, `scripts/pull-content-strings.mjs`, RLS public read policy.
-- After removal, `content_strings.no_param_reason`, `updated_by` (and `updated_at` as a staff signal) lose their only staff writer; `pending_value`, `non_translatable` keep seed writers and a reader in `lib/db/content.ts`. Candidates the controller may raise with the owner: `no_param_reason` and `updated_by`. Proposal only; keeping them costs nothing and seed plus pgTAP use them.
+- After removal, `content_strings.no_param_reason`, `updated_by` (and `updated_at` as a staff signal) lose their only staff writer; `pending_value`, `non_translatable` keep seed writers and a reader in `lib/db/content.ts`. They stay (owner: drop nothing); seed and pgTAP still use them.
 - `settings.policy_doc_slug` / `policy_doc_version` stay (checkout, quote, Settings publish).
 </removed>
 
