@@ -1,6 +1,6 @@
 -- Phase 30 test brief setup. Lab p30 ONLY: refuses to run on anything but a throwaway lab stack. Never live.
 -- Safe to run twice: every insert skips rows it already made.
--- Adds: class "Lab old class" (slug lab-old, retired at the end), one chauffeur each in economy, business
+-- Adds: a lab photo path on the seed's three classes, class "Lab old class" (slug lab-old, retired at the end), one chauffeur each in economy, business
 -- and lab-old, and two paid upcoming trips with no chauffeur (one in business, one in lab-old).
 -- Amounts are 1-rappen stand-ins, never a Vamos price. Pattern copied from
 -- packages/db/supabase/tests/assign_retired_class.test.sql.
@@ -75,6 +75,11 @@ select n.booking_id, s.id, 'pi_p30_lab_' || left(n.booking_id::text, 8), 1, 'suc
   from need n
   join snap s on s.vehicle_class_id = n.vehicle_class_id;
 set local session_replication_role = origin;
+
+-- The lab seed's three classes have no photo, so Publish would refuse every draft ("missing photo").
+-- A lab-only path is enough for the gap check; no picture is uploaded.
+update public.vehicle_classes set photo_path = 'site/lab-' || slug || '.jpg'
+ where slug in ('economy', 'business', 'van') and photo_path is null;
 
 update public.vehicle_classes
    set active = false, hidden_at = now(), hidden_reason = 'Lab: retired before the run'
