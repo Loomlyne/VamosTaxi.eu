@@ -2,7 +2,7 @@
 
 ## 0. Status
 
-Branch `phase-31-refunds-in-stripe`. The head commit is the one that updates this file (`git log -1`). Second merge of origin/main (95253429: #77 remarketing off, #78 notification kinds, migration 20261012230000) at **edd7d6d8**, clean, no conflicts. First merge was 89e68ca8.
+Branch `phase-31-refunds-in-stripe`. The head commit is the one that updates this file (`git log -1`). Second merge of origin/main (95253429: #77 remarketing off, #78 notification kinds, migration 20261012230000) at **edd7d6d8**, clean, no conflicts. First merge was 89e68ca8. Third merge bcf34728 brings origin/main aa85e5ec (planning notes only: Phase 30 Ship decision, Phase 31 internal lines signed); no code, so the gate and pgTAP results below stand.
 Not pushed to main. No deploy. No live write. No live MCP call during execution; the only live calls were read-only SELECTs on 2026-10-12/13 for the 23514 facts, before execution.
 
 ## 1. What was built
@@ -56,7 +56,9 @@ Not pushed to main. No deploy. No live write. No live MCP call during execution;
   - Derived from the signed text: the heading inside the mail = the subject words; the greeting without a name = "Hello," / "Guten Tag" / "Bonjour," / "مرحبًا،".
 - S-07: O-1 = A (W6). S-08: keep "See what comes back" and "— keep it, because that is what your refund is calculated from." S-09: ops mails that say Stripe accepted. S-10/S-10a: migration number. S-11: account id.
 
-### New internal lines for his sign-off (not signed yet; the controller asks before Ship)
+### New internal lines — SIGNED as written
+
+Signed by the owner, question form 2026-10-13 ~23:35 (+04), `.planning/decisions/2026-10-13-p30-ship-p31-lines-rls-fix.md` item 3 (origin/main aa85e5ec): every line in this part (31-06 nightly refund check mail, 31-04 refund-mail alert, 31-08 W4/W5 en/de/fr/ar). Used verbatim; nothing changed in code.
 
 31-06 nightly refund check mail (English, info@ only):
 - totalDiffers line: `- VT-26-0001 · booking refunded CHF 40.00 · refund records CHF 30.00`

@@ -68,6 +68,8 @@ stay (S-08).
 
 ## Internal (ops must-fix mails)
 
+W4 and W5 below, en/de/fr/ar: SIGNED as written, owner, question form 2026-10-13 ~23:35 (+04), `.planning/decisions/2026-10-13-p30-ship-p31-lines-rls-fix.md` item 3 (origin/main aa85e5ec). Used verbatim.
+
 ### W4 — `opsMustFix.differenceNotAppliedBody` (`packages/emails/src/messages/*.json`)
 
 Internal (to info@, not a customer surface); first sentence signed 2026-10-02, action sentence from the 2026-10-12 signed dashboard strings (D-08). Accepted by the owner 2026-10-13 ~16:20 (+04), S-09.
