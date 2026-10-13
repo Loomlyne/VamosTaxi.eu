@@ -1,6 +1,6 @@
 // apps/web/lib/ops/ops-chauffeur-desk.test.ts
 //
-// Wave 0 (17-01): OpsFleet import, no duty select, Morning/Night seats,
+// Wave 0 (17-01): OpsChauffeurs import, no duty select, Morning/Night seats,
 // overlay verbs, empty live/past (D-01 D-07 D-10 D-14). Dual-DC. May stay
 // red until 17-04.
 
@@ -14,9 +14,9 @@ const webRoot = join(here, "../..");
 const repoRoot = join(webRoot, "../..");
 
 const OPS = join(repoRoot, "app/ops/ops.dc.html");
-const FLEET = join(repoRoot, "app/ops/OpsFleet.dc.html");
+const CHAUFFEURS = join(repoRoot, "app/ops/OpsChauffeurs.dc.html");
 const PUBLIC_OPS = join(webRoot, "public/app/ops/ops.dc.html");
-const PUBLIC_FLEET = join(webRoot, "public/app/ops/OpsFleet.dc.html");
+const PUBLIC_CHAUFFEURS = join(webRoot, "public/app/ops/OpsChauffeurs.dc.html");
 const WRITE = join(here, "chauffeurs-write.ts");
 
 function read(path: string): string {
@@ -25,14 +25,14 @@ function read(path: string): string {
 }
 
 describe("Ops chauffeur desk Wave 0 (D-01 D-07 D-10 D-14)", () => {
-  it("ops.dc.html dc-imports OpsFleet, not OpsFleetBoard", () => {
+  it("ops.dc.html dc-imports OpsChauffeurs, never an Ops + Fleet name (revert guard)", () => {
     const html = read(OPS);
-    expect(html).toContain('dc-import name="OpsFleet"');
-    expect(html).not.toContain('dc-import name="OpsFleetBoard"');
+    expect(html).toContain('dc-import name="OpsChauffeurs"');
+    expect(html).not.toContain('dc-import name="OpsFleet');
   });
 
-  it("OpsFleet has no chauffeur status select as a duty switch", () => {
-    const html = read(FLEET);
+  it("OpsChauffeurs has no chauffeur status select as a duty switch", () => {
+    const html = read(CHAUFFEURS);
     const start = html.indexOf("const chauffeurFields");
     const block = start >= 0 ? html.slice(start, start + 1800) : html;
     expect(block).not.toMatch(/key:\s*'status'/);
@@ -40,7 +40,7 @@ describe("Ops chauffeur desk Wave 0 (D-01 D-07 D-10 D-14)", () => {
   });
 
   it("has no chauffeurIds multi-select and names Morning and Night seats", () => {
-    const html = read(FLEET);
+    const html = read(CHAUFFEURS);
     expect(html).not.toContain("key:'chauffeurIds'");
     expect(html).not.toContain('key:"chauffeurIds"');
     expect(html).toMatch(/Morning/);
@@ -48,7 +48,7 @@ describe("Ops chauffeur desk Wave 0 (D-01 D-07 D-10 D-14)", () => {
   });
 
   it("overlay verb is Save chauffeur; dismiss is Keep editing; shift and leave cards are gone", () => {
-    const html = read(FLEET);
+    const html = read(CHAUFFEURS);
     expect(html).toContain("Save chauffeur");
     expect(html).toContain("Keep editing");
     expect(html).not.toContain("Save shift");
@@ -58,7 +58,7 @@ describe("Ops chauffeur desk Wave 0 (D-01 D-07 D-10 D-14)", () => {
   });
 
   it("empty live/past copy has a next step and no sample VT- on the desk empty path", () => {
-    const html = read(FLEET);
+    const html = read(CHAUFFEURS);
     expect(html).toContain("No live trips");
     expect(html).toContain("Assigned trips that are not finished show here.");
     expect(html).toContain("No past bookings");
@@ -70,15 +70,15 @@ describe("Ops chauffeur desk Wave 0 (D-01 D-07 D-10 D-14)", () => {
   });
 
   it("On shift KPI follows computed status, not a duty select (D-13)", () => {
-    const fleet = read(FLEET);
+    const fleet = read(CHAUFFEURS);
     expect(fleet).toMatch(/c\.status === ['"]shift['"]/);
     const dash = join(repoRoot, "app/ops/OpsDash.dc.html");
     expect(read(dash)).toMatch(/c\.status === ['"]shift['"]/);
   });
 
-  it("canonical and public OpsFleet copies exist", () => {
-    expect(existsSync(FLEET)).toBe(true);
-    expect(existsSync(PUBLIC_FLEET)).toBe(true);
+  it("canonical and public OpsChauffeurs copies exist", () => {
+    expect(existsSync(CHAUFFEURS)).toBe(true);
+    expect(existsSync(PUBLIC_CHAUFFEURS)).toBe(true);
     expect(existsSync(PUBLIC_OPS)).toBe(true);
   });
 });
@@ -92,7 +92,7 @@ describe("insertChauffeur idempotency (D-04)", () => {
 
 describe("dedicated chauffeur desk (D-15 D-16 D-17 D-18)", () => {
   it("omits Vehicles/Chauffeurs tags — the page is chauffeurs only (D-15)", () => {
-    const html = read(FLEET);
+    const html = read(CHAUFFEURS);
     const header = html.slice(html.indexOf("<header"), html.indexOf("</header>"));
     expect(header).not.toMatch(/sc-for list="\{\{ tabs \}\}"/);
     expect(header).not.toMatch(/>Vehicles</);
@@ -101,7 +101,7 @@ describe("dedicated chauffeur desk (D-15 D-16 D-17 D-18)", () => {
   });
 
   it("desk back is a Button All chauffeurs, not a muted link (D-16)", () => {
-    const html = read(FLEET);
+    const html = read(CHAUFFEURS);
     expect(html).toMatch(/tBack/);
     expect(html).toMatch(/goBack|All chauffeurs/);
     const header = html.slice(html.indexOf("<header"), html.indexOf("</header>"));
@@ -111,7 +111,7 @@ describe("dedicated chauffeur desk (D-15 D-16 D-17 D-18)", () => {
   });
 
   it("detail page has no shift-days or leave editor; overlay still carries weekdays (D-17)", () => {
-    const html = read(FLEET);
+    const html = read(CHAUFFEURS);
     expect(html).not.toMatch(/saveShift/);
     expect(html).not.toMatch(/saveLeave/);
     expect(html).not.toMatch(/deskDays/);
@@ -133,7 +133,7 @@ describe("dedicated chauffeur desk (D-15 D-16 D-17 D-18)", () => {
   });
 
   it("chauffeur profile is a person header with duty badge and fact grid", () => {
-    const html = read(FLEET);
+    const html = read(CHAUFFEURS);
     expect(html).toContain('data-ch-profile="1"');
     expect(html).toMatch(/inline-size:64px/);
     expect(html).toMatch(/dutyTone/);
@@ -147,13 +147,13 @@ describe("dedicated chauffeur desk (D-15 D-16 D-17 D-18)", () => {
   });
 
   it("Keep editing is not a desk header control (D-18)", () => {
-    const html = read(FLEET);
+    const html = read(CHAUFFEURS);
     const header = html.slice(html.indexOf("<header"), html.indexOf("</header>"));
     expect(header).not.toMatch(/tKeepEditing|keepEditing/);
   });
 
   it("desk header has duty Badge and Edit chauffeur (D-17)", () => {
-    const html = read(FLEET);
+    const html = read(CHAUFFEURS);
     const header = html.slice(html.indexOf("<header"), html.indexOf("</header>"));
     expect(header).toMatch(/Badge/);
     expect(header).toMatch(/dutyTone/);
@@ -164,7 +164,7 @@ describe("dedicated chauffeur desk (D-15 D-16 D-17 D-18)", () => {
   });
 
   it("desk Edit chauffeur opens the OpsTable overlay without the list table", () => {
-    const html = read(FLEET);
+    const html = read(CHAUFFEURS);
     expect(html).toMatch(/embedded=\"\{\{ isDetail \}\}\"/);
     expect(html).toMatch(/edit-id=\"\{\{ deskEditId \}\}\"/);
     expect(html).toMatch(/edit-tick=\"\{\{ deskEditTick \}\}\"/);

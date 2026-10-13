@@ -91,7 +91,7 @@ function loadLogic(file: string, win: Record<string, unknown>, lang = "en", prop
     doc,
     { pushState() {} },
     { getItem: (k: string) => (k === "vamosLang" ? lang : null), setItem() {} },
-    { pathname: "/fleet/chauffeurs", href: "https://dashboard.vamostaxi.site/fleet/chauffeurs" },
+    { pathname: "/chauffeurs", href: "https://dashboard.vamostaxi.site/chauffeurs" },
     class {},
   ) as new (p: Record<string, unknown>) => Logic;
   const logic = new Component(props);
@@ -144,7 +144,7 @@ function fleetWindow(over: { request?: ReturnType<typeof vi.fn>; drivers?: unkno
 }
 function fleet(lang = "en", props: Record<string, unknown> = {}, over: Parameters<typeof fleetWindow>[0] = {}) {
   const w = fleetWindow(over);
-  const logic = loadLogic("OpsFleet.dc.html", w.win, lang, props);
+  const logic = loadLogic("OpsChauffeurs.dc.html", w.win, lang, props);
   return { ...w, logic, vals: () => logic.renderVals() };
 }
 type Field = { key: string; label: string; editor?: string; half?: boolean; required?: boolean; options?: { value: string; label: string }[]; emptyLabel?: string; placeholder?: string };
@@ -271,7 +271,7 @@ describe("1 · the chauffeur form", () => {
   });
 
   it("two chauffeurs may carry the same plate: no plate-taken words are left", () => {
-    expect(scriptOf(readDc("OpsFleet.dc.html"))).not.toMatch(/plateTaken|chauffeurs-plate-taken/);
+    expect(scriptOf(readDc("OpsChauffeurs.dc.html"))).not.toMatch(/plateTaken|chauffeurs-plate-taken/);
   });
 });
 
@@ -412,7 +412,7 @@ describe("4 · the chauffeur's bookings history (read-only)", () => {
     expect(facts.find((x) => x.label === "Plate")!.value).toBe("ZH 123 456");
     const nina = fleet("en", { chauffeurId: NINA }).vals().profileFacts as { label: string; value: string }[];
     expect(nina.find((x) => x.label === "Class")!.value).toBe("No class");
-    const tpl = templateOf(readDc("OpsFleet.dc.html"));
+    const tpl = templateOf(readDc("OpsChauffeurs.dc.html"));
     expect(tpl).toMatch(/<sc-for list="\{\{ historyRows \}\}"/);
     expect(tpl).not.toMatch(/liveTrips|pastBookings/);
     // Read-only: rows are links to the booking, no buttons.

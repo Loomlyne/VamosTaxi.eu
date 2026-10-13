@@ -32,7 +32,7 @@ describe("Phase 6 finalize — class line-up and staff hash", () => {
       /KNOWN_CLASS_SLUGS = \["economy", "business", "first", "van"\]/,
     );
     expect(rateBook).toMatch(/CLASS_SLUG = \/\^\[a-z0-9\]/);
-    const fleet = read("app/ops/OpsFleet.dc.html");
+    const fleet = read("app/ops/OpsChauffeurs.dc.html");
     expect(fleet).not.toMatch(/'Economy', 'Business', 'Van luxury'/);
   });
 
@@ -43,12 +43,12 @@ describe("Phase 6 finalize — class line-up and staff hash", () => {
     expect(newTrip).not.toMatch(/'saden'|'mercedes-benz-v-class'|'van-luxury'/);
     expect(newTrip).not.toMatch(/\|\| 'economy'/);
 
-    for (const name of ["OpsFleet", "OpsBoard", "OpsReviews", "OpsDash", "OpsNewTrip", "OpsPricing", "OpsCalendar", "OpsCalendarBoard"]) {
+    for (const name of ["OpsChauffeurs", "OpsBoard", "OpsReviews", "OpsDash", "OpsNewTrip", "OpsPricing", "OpsCalendar", "OpsCalendarBoard"]) {
       const html = read(`app/ops/${name}.dc.html`);
       expect(html, name).not.toMatch(/'First'|"First"/);
       expect(html, name).not.toMatch(/mahaha/);
     }
-    for (const name of ["OpsBoard", "OpsDash", "OpsFleet", "OpsReviews"]) {
+    for (const name of ["OpsBoard", "OpsDash", "OpsChauffeurs", "OpsReviews"]) {
       expect(read(`app/ops/${name}.dc.html`), name).not.toMatch(/\['Economy', 'Business', 'Van luxury'\]/);
     }
     expect(read("app/home/HowItWorks.dc.html")).not.toMatch(/mahaha/);
@@ -64,7 +64,7 @@ describe("Phase 6 finalize — class line-up and staff hash", () => {
   });
 
   it("fleet photo is a chooser, chauffeur association, nested add-chauffeur", () => {
-    const fleet = read("app/ops/OpsFleet.dc.html");
+    const fleet = read("app/ops/OpsChauffeurs.dc.html");
     const table = read("app/ops/OpsTable.dc.html");
     expect(fleet).toMatch(/choosePhoto/);
     expect(fleet).toMatch(/fChauffeurs/);

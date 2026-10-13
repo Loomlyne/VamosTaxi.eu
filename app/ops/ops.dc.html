@@ -209,8 +209,8 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 <!-- Save POSTs /api/checkout/intent from OpsNewTrip after POST /api/quote -->
 <dc-import name="OpsNewTrip" hint-size="100%,900px"></dc-import>
 </sc-if>
-<sc-if value="{{ isFleet }}" hint-placeholder-val="{{ false }}">
-<dc-import name="OpsFleet" chauffeur-id="{{ chauffeurId }}" hint-size="100%,900px"></dc-import>
+<sc-if value="{{ isChauffeurs }}" hint-placeholder-val="{{ false }}">
+<dc-import name="OpsChauffeurs" chauffeur-id="{{ chauffeurId }}" hint-size="100%,900px"></dc-import>
 </sc-if>
 <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
 <dc-import name="OpsDetail" id="{{ detailId }}" hint-size="100%,900px"></dc-import>
@@ -257,7 +257,7 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;start&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Console&quot;},&quot;requireSignIn&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Console&quot;}}">
-const FLEET = ['chauffeurs'];
+const CHAUFFEURS = ['chauffeurs'];
 const CONTENT = ['pages', 'legal'];
 const HASH_TO_PATH = {
   dashboard: '/dashboard', bookings: '/bookings', calendar: '/calendar',
@@ -440,7 +440,7 @@ class Component extends DCLogic {
       chauffeurId: r === 'chauffeurs' ? (this.state.detailId || '') : '',
       contentSection: r === 'legal' ? 'legal' : 'pages',
       isContent: CONTENT.indexOf(r) !== -1,
-      isDash: r === 'dashboard', isFleet: FLEET.indexOf(r) !== -1,
+      isDash: r === 'dashboard', isChauffeurs: CHAUFFEURS.indexOf(r) !== -1,
       isBookings: r === 'bookings', isNewTrip: r === 'newTrip', isDetail: r === 'detail',
       isPricing: r === 'pricing' && isAdmin,
       isNotFound: pricingDenied || r === 'notFound',

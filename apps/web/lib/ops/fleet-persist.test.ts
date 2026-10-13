@@ -44,8 +44,8 @@ describe("fleet persist — 08-03", () => {
     expect(write).toMatch(/default_vehicle_id = \$\{parsed\.defaultVehicleId\}/);
   });
 
-  it("OpsFleet onSave waits for upsert/update and has no hash hrefs", () => {
-    const fleet = read("app/ops/OpsFleet.dc.html");
+  it("OpsChauffeurs onSave waits for upsert/update and has no hash hrefs", () => {
+    const fleet = read("app/ops/OpsChauffeurs.dc.html");
     expect(fleet).toMatch(/onSave/);
     expect(fleet).toMatch(/upsert/);
     expect(fleet).toMatch(/\.then\(/);
@@ -56,18 +56,18 @@ describe("fleet persist — 08-03", () => {
     expect(fleet).not.toMatch(/status\s*=\s*['"]cancelled['"]/);
   });
 
-  it("chauffeur detail is /fleet/chauffeurs/{id} with read-only trips", () => {
+  it("chauffeur detail is /chauffeurs/{id} with read-only trips", () => {
     const ops = read("app/ops/ops.dc.html");
-    expect(ops).toMatch(/path\.indexOf\('\/fleet\/chauffeurs\/'\) === 0/);
+    expect(ops).toMatch(/path\.indexOf\('\/chauffeurs\/'\) === 0/);
     expect(ops).toMatch(/chauffeur-id="\{\{ chauffeurId \}\}"/);
-    const fleet = read("app/ops/OpsFleet.dc.html");
+    const fleet = read("app/ops/OpsChauffeurs.dc.html");
     expect(fleet).toMatch(/\/chauffeurs\/' \+ encodeURIComponent/);
     expect(fleet).toMatch(/cannotAssignNoEmail/);
     expect(fleet).not.toMatch(/\bonAssign\b/);
     expect(fleet).not.toMatch(/>Assign</);
   });
 
-  it("off-road must-fix mail is server-side, not OpsFleet JS", () => {
+  it("off-road must-fix mail is server-side, not OpsChauffeurs JS", () => {
     const write = read("apps/web/lib/ops/fleet-write.ts");
     expect(write).toMatch(/workshop/);
     expect(write).toMatch(/MustFix/);
@@ -76,7 +76,7 @@ describe("fleet persist — 08-03", () => {
     expect(route).toMatch(/deliverOpsMustFix/);
     expect(route).toMatch(/off-road/);
     expect(route).not.toMatch(/status\s*=\s*['\"]cancelled['\"]/);
-    const fleet = read("app/ops/OpsFleet.dc.html");
+    const fleet = read("app/ops/OpsChauffeurs.dc.html");
     expect(fleet).not.toMatch(/sendOpsMustFix/);
     expect(fleet).not.toMatch(/deliverOpsMustFix/);
     expect(fleet).not.toMatch(/RESEND_API_KEY/);

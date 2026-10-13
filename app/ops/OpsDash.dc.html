@@ -224,7 +224,7 @@ class Component extends DCLogic {
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     this._off = window.VamosOps.bookings.onChange(() => this.forceUpdate());
-    this._offFleet = window.VamosOps.chauffeurs.onChange(() => this.forceUpdate());
+    this._offChauffeurs = window.VamosOps.chauffeurs.onChange(() => this.forceUpdate());
     this.forceUpdate();
   };
   select = (key) => this.setState({ period: key }, this.loadMoney);
@@ -252,7 +252,7 @@ class Component extends DCLogic {
   componentWillUnmount() {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._off) this._off();
-    if (this._offFleet) this._offFleet();
+    if (this._offChauffeurs) this._offChauffeurs();
     clearTimeout(this._retry);
   }
   renderVals() {

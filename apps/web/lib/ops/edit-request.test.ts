@@ -69,7 +69,7 @@ describe("08-09 must-fix mail", () => {
     expect(src).toMatch(/deliverOverlapMustFix/);
     expect(src).toMatch(/must-fix/);
     expect(src).not.toMatch(/status\s*=\s*['\"]cancelled['\"]/);
-    expect(src).not.toMatch(/OpsFleet/);
+    expect(src).not.toMatch(/OpsChauffeurs/);
     const mail = read("apps/web/lib/ops/must-fix-mail.ts");
     expect(mail).toContain("SUPPORT_EMAIL");
     expect(mail).toContain("sendOpsMustFix");
