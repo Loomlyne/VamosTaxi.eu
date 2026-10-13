@@ -1216,7 +1216,7 @@ Plans:
 **Decisions:** `.planning/decisions/2026-10-11-fleet-lifecycle.md` (signed 2026-10-11)
 **Requirements**: CLS-01, CLS-02, CLS-03, CLS-04, CLS-05, CLS-06, CLS-07, CLS-08, CLS-09, CLS-10, CLS-11, CLS-12, CLS-13, CLS-14 (INT-08 superseded by CLS-04/05)
 **Depends on:** Phase 29
-**Plans:** 6/11 plans executed
+**Plans:** 7/11 plans executed
 
 Plans:
 - [x] 30-01-PLAN.md — DB: class state RPC + missing function, test-classes guard (no backfill), empty seats/bags until Go live, assign guard + shared paid rule, pgTAP, types (owner decisions signed 2026-10-12)
@@ -1228,7 +1228,7 @@ Plans:
 - [ ] 30-07-PLAN.md — Chauffeurs screen flag/select/count and Assign left-out line
 - [ ] 30-08-PLAN.md — Pricing: badges, Go live dialog, Retire dialog, Retired list
 - [ ] 30-09-PLAN.md — Owner-run removal script for 5 test classes + rv-1..rv-5, native-lab proof
-- [ ] 30-11-PLAN.md — Atomic rename OpsFleet -> OpsChauffeurs with every reference and the moved integration spec
+- [x] 30-11-PLAN.md — Atomic rename OpsFleet -> OpsChauffeurs with every reference and the moved integration spec
 - [ ] 30-10-PLAN.md — Merge main, sweep, full gates, lab brief, REQUIREMENTS, hand-over
 
 ## Progress
