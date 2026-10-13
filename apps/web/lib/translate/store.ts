@@ -257,3 +257,40 @@ export const fillExtraLabel = async (
       sql<{ n: number }[]>`select * from public.system_extra_label_fill(${code}, ${sql.json(labels as Parameters<typeof sql.json>[0])}) as n`,
     )
   )[0]?.n ?? 0;
+
+// ---------------------------------------------------------------------------------------------
+// House-rule bump (plan 32-05, F-06): machine cache rows written under an older prompt_version
+// ---------------------------------------------------------------------------------------------
+
+export type StaleTranslationRow = { id: string; origin: "machine" | "human"; prompt_version: number | null };
+export type StaleTranslationSourceRow = {
+  source_hash: string;
+  source_lang: string;
+  target_lang: string;
+  source_text: string;
+  context: "review";
+};
+
+/** Ids of machine rows older than `promptVersion` (human rows are never listed). Max 200. */
+export const staleMachineTranslations = async (
+  env: CloudflareEnv,
+  promptVersion: number,
+  limit: number,
+): Promise<StaleTranslationRow[]> =>
+  (
+    await asSystem(env, (sql) =>
+      sql<StaleTranslationRow[]>`select * from public.system_translation_stale(${promptVersion}::int, ${limit}::int)`,
+    )
+  ).map((r) => ({ id: String(r.id), origin: r.origin, prompt_version: r.prompt_version }));
+
+/** Source of one stale machine row, or null when it is human, current or gone. */
+export const staleTranslationSource = async (
+  env: CloudflareEnv,
+  translationId: string,
+  promptVersion: number,
+): Promise<StaleTranslationSourceRow | null> =>
+  (
+    await asSystem(env, (sql) =>
+      sql<StaleTranslationSourceRow[]>`select * from public.system_translation_stale_source(${translationId}::bigint, ${promptVersion}::int)`,
+    )
+  )[0] ?? null;

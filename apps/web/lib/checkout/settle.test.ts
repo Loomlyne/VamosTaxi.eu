@@ -877,9 +877,12 @@ describe("applyHandleResult (worker queue loop)", () => {
     // The sweep sits in the hourly path, after the 03:00 early return.
     expect(worker.indexOf("sweepUnprocessedEvents(env)")).toBeGreaterThan(worker.indexOf('controller.cron === "0 3 * * *"'));
     const wrangler = readFileSync(join(here, "..", "..", "wrangler.jsonc"), "utf8");
-    // staging and production, main consumer and DLQ consumer: four retry_delay entries.
-    expect(wrangler.match(/"retry_delay":\s*\d+/g)?.length).toBe(4);
-    expect(wrangler.match(/"retry_delay":\s*30\b/g)?.length).toBe(2);
+    // staging and production, main consumer and DLQ consumer: four retry_delay entries. Scoped to the
+    // Stripe consumer blocks (Phase 32 adds translate consumers with their own retry_delay).
+    const stripe = (wrangler.match(/\{\s*"queue":\s*"vamos-stripe-events-[^"]+"[^}]*\}/g) ?? []).join("\n");
+    expect(wrangler.match(/\{\s*"queue":\s*"vamos-stripe-events-[^"]+"[^}]*\}/g)?.length).toBe(4);
+    expect(stripe.match(/"retry_delay":\s*\d+/g)?.length).toBe(4);
+    expect(stripe.match(/"retry_delay":\s*30\b/g)?.length).toBe(2);
   });
 });
 

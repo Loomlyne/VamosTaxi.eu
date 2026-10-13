@@ -4576,6 +4576,24 @@ export type Database = {
           translated_text: string
         }[]
       }
+      system_translation_stale: {
+        Args: { p_limit: number; p_prompt_version: number }
+        Returns: {
+          id: string
+          origin: string
+          prompt_version: number
+        }[]
+      }
+      system_translation_stale_source: {
+        Args: { p_id: number; p_prompt_version: number }
+        Returns: {
+          context: string
+          source_hash: string
+          source_lang: string
+          source_text: string
+          target_lang: string
+        }[]
+      }
       translation_read: {
         Args: { p_hash: string; p_lang: string }
         Returns: {

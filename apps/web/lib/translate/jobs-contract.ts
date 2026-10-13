@@ -15,12 +15,16 @@ export type TranslateJob =
   | { v: 1; kind: "support-form"; submissionId: string }
   | { v: 1; kind: "note"; bookingId: string }
   | { v: 1; kind: "review"; reviewId: string }
-  | { v: 1; kind: "extra"; code: string };
+  | { v: 1; kind: "extra"; code: string }
+  // Plan 32-05: a public-safe review cache row written under an older prompt_version (F-06).
+  | { v: 1; kind: "cache"; translationId: string };
 
 export type TranslateJobKind = TranslateJob["kind"];
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const EXTRA_CODE = /^[a-z0-9_]{1,40}$/;
+/** `public.translations.id` (bigint identity) as a decimal string. */
+const TRANSLATION_ID = /^[1-9][0-9]{0,17}$/;
 
 /** The one id field each kind carries, and the rule its value must match. */
 const ID_FIELD: Record<TranslateJobKind, { key: string; re: RegExp }> = {
@@ -29,6 +33,7 @@ const ID_FIELD: Record<TranslateJobKind, { key: string; re: RegExp }> = {
   note: { key: "bookingId", re: UUID },
   review: { key: "reviewId", re: UUID },
   extra: { key: "code", re: EXTRA_CODE },
+  cache: { key: "translationId", re: TRANSLATION_ID },
 };
 
 function isKind(x: unknown): x is TranslateJobKind {
@@ -37,8 +42,8 @@ function isKind(x: unknown): x is TranslateJobKind {
 
 /**
  * Parses a queue body into a job. Strict: a plain object, `v === 1`, a known kind, exactly the keys
- * `v`, `kind` and that kind's id field, and an id matching its rule (uuid, or `^[a-z0-9_]{1,40}$` for
- * an extra code). Anything else returns `null`.
+ * `v`, `kind` and that kind's id field, and an id matching its rule (uuid, `^[a-z0-9_]{1,40}$` for an
+ * extra code, a positive decimal integer for a cache row). Anything else returns `null`.
  */
 export function parseTranslateJob(body: unknown): TranslateJob | null {
   if (typeof body !== "object" || body === null || Array.isArray(body)) return null;

@@ -5,7 +5,7 @@
 -- translation_read returns review rows only, the table itself is unreadable by every client role, the
 -- writers are vamos_system only, and every write leaves an audit row.
 begin;
-select plan(47);
+select plan(60);
 
 select has_table('public', 'translations', 'translations exists');
 select ok((select relrowsecurity from pg_class where oid = 'public.translations'::regclass), 'RLS is on');
@@ -125,6 +125,35 @@ select is((select status || '|' || (last_error is null)::text from public.transl
 -- Writes: human insert, b insert, b update, c insert, c update (mark), d insert, c update (put) = 7.
 select is((select count(*)::int from public.audit_log where table_name = 'translations' and record_id is not null),
   7, 'every row change wrote an audit row with a record_id');
+
+-- ── House-rule bump: stale machine rows re-queued, human rows never (plan 32-05) ────────── 13
+-- State here: a/de human v1, b/fr machine v2, c/ar machine v1, d/ar machine failed (no version).
+select function_privs_are('public', 'system_translation_stale', '{integer,integer}'::text[], 'vamos_system', '{EXECUTE}'::text[], 'stale: vamos_system has EXECUTE');
+select function_privs_are('public', 'system_translation_stale', '{integer,integer}'::text[], 'anon', '{}'::text[], 'stale: anon has no EXECUTE');
+select function_privs_are('public', 'system_translation_stale', '{integer,integer}'::text[], 'vamos_public', '{}'::text[], 'stale: vamos_public has no EXECUTE');
+select function_privs_are('public', 'system_translation_stale_source', '{bigint,integer}'::text[], 'vamos_system', '{EXECUTE}'::text[], 'stale source: vamos_system has EXECUTE');
+select function_privs_are('public', 'system_translation_stale_source', '{bigint,integer}'::text[], 'anon', '{}'::text[], 'stale source: anon has no EXECUTE');
+select function_privs_are('public', 'system_translation_stale_source', '{bigint,integer}'::text[], 'vamos_public', '{}'::text[], 'stale source: vamos_public has no EXECUTE');
+
+set local role vamos_system;
+select is((select count(*)::int from public.system_translation_stale(2, 100)), 1, 'version 2: one stale machine row (as vamos_system)');
+reset role;
+-- The rest compares with table rows, which only the test owner may read.
+select is((select s.id from public.system_translation_stale(2, 100) as s),
+  (select t.id::text from public.translations as t where t.source_hash = repeat('c', 64) and t.target_lang = 'ar'),
+  'version 2: the stale row is the version-1 machine row');
+select is((select string_agg(s.origin, ',') from public.system_translation_stale(3, 100) as s), 'machine,machine',
+  'version 3: both machine rows, never the version-1 human row');
+select is((select count(*)::int from public.system_translation_stale(3, 1)), 1, 'the limit is applied');
+select is((select count(*)::int from public.system_translation_stale_source(
+    (select t.id from public.translations as t where t.source_hash = repeat('a', 64) and t.target_lang = 'de'), 3)),
+  0, 'stale source: a human row returns nothing');
+select is((select count(*)::int from public.system_translation_stale_source(
+    (select t.id from public.translations as t where t.source_hash = repeat('b', 64) and t.target_lang = 'fr'), 2)),
+  0, 'stale source: a row at the current version returns nothing');
+select is((select s.target_lang || '|' || s.source_text || '|' || s.context from public.system_translation_stale_source(
+    (select t.id from public.translations as t where t.source_hash = repeat('c', 64) and t.target_lang = 'ar'), 2) as s),
+  'ar|Clean car|review', 'stale source: a stale machine row returns its source');
 
 select * from finish();
 rollback;

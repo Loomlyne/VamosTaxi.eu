@@ -177,13 +177,58 @@ begin
 end
 $$;
 
+-- ---------------------------------------------------------------------------
+-- House-rule bump (plan 32-05, F-06): the nightly sweep re-queues machine rows written under an older
+-- prompt_version. Human rows are never listed and never returned (F-05). Ids only from the list; the
+-- job reads the source at run time and re-checks origin and version, so a row that turned human (or was
+-- refreshed) between the sweep and the job is skipped.
+-- ---------------------------------------------------------------------------
+create or replace function public.system_translation_stale(p_prompt_version pg_catalog.int4, p_limit pg_catalog.int4)
+returns table (id pg_catalog.text, origin pg_catalog.text, prompt_version pg_catalog.int4)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select t.id::pg_catalog.text, t.origin, t.prompt_version
+    from public.translations as t
+   where t.origin = 'machine'
+     and t.prompt_version is not null
+     and t.prompt_version < p_prompt_version
+   order by t.updated_at, t.id
+   limit least(greatest(coalesce(p_limit, 100), 1), 200)
+$$;
+
+create or replace function public.system_translation_stale_source(p_id pg_catalog.int8, p_prompt_version pg_catalog.int4)
+returns table (
+  source_hash pg_catalog.text,
+  source_lang pg_catalog.text,
+  target_lang pg_catalog.text,
+  source_text pg_catalog.text,
+  context pg_catalog.text
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select t.source_hash, t.source_lang, t.target_lang, t.source_text, t.context
+    from public.translations as t
+   where t.id = p_id
+     and t.origin = 'machine'
+     and t.prompt_version is not null
+     and t.prompt_version < p_prompt_version
+$$;
+
 do $$
 declare
   f pg_catalog.regprocedure;
 begin
   foreach f in array array[
     'public.system_translation_put_machine(pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.int4)',
-    'public.system_translation_mark(pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text)'
+    'public.system_translation_mark(pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text)',
+    'public.system_translation_stale(pg_catalog.int4, pg_catalog.int4)',
+    'public.system_translation_stale_source(pg_catalog.int8, pg_catalog.int4)'
   ]::pg_catalog.regprocedure[]
   loop
     execute pg_catalog.format('revoke all on function %s from public, anon, authenticated', f);
@@ -195,5 +240,10 @@ begin
   end loop;
 end
 $$;
+
+comment on function public.system_translation_stale(pg_catalog.int4, pg_catalog.int4) is
+  'Phase 32 plan 05 (F-06): ids of machine rows written under an older prompt_version, for the nightly re-queue. Human rows never listed. EXECUTE: vamos_system only.';
+comment on function public.system_translation_stale_source(pg_catalog.int8, pg_catalog.int4) is
+  'Phase 32 plan 05 (F-06): source of one stale machine row for the re-translation job; nothing for a human or current row. EXECUTE: vamos_system only.';
 
 commit;

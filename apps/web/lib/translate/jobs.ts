@@ -22,12 +22,14 @@ import * as db from "./store";
 import type {
   BookingNoteSourceRow,
   ExtraLabelMissingRow,
+  PutMachineRow,
   ReviewLanguageSourceRow,
+  StaleTranslationSourceRow,
   SupportSourceRow,
   TranslationRowsInput,
 } from "./store";
 import type { TranslateJob } from "./jobs-contract";
-import { LANGS, PROMPT_VERSION, type Lang } from "./model";
+import { isLang, LANGS, PROMPT_VERSION, type Lang } from "./model";
 import { translateText, translateUnknown, type AiLike, type TranslateFailReason } from "./translate";
 
 export type Emit = (level: "debug" | "info" | "warn" | "error", type: string, fields?: Record<string, ScalarValue>) => void;
@@ -56,6 +58,16 @@ export type TranslateStore = {
   setReviewLanguage(reviewId: string, lang: string): Promise<void>;
   extraLabelsMissing(): Promise<ExtraLabelMissingRow[]>;
   fillExtraLabel(code: string, labels: Partial<Record<"de" | "fr" | "ar", string>>): Promise<number>;
+  staleTranslationSource(translationId: string, promptVersion: number): Promise<StaleTranslationSourceRow | null>;
+  putMachineTranslation(args: {
+    hash: string;
+    sourceLang: string;
+    targetLang: Lang;
+    sourceText: string;
+    text: string;
+    context: "review";
+    promptVersion: number;
+  }): Promise<PutMachineRow | null>;
 };
 
 export type JobDeps = { ai: AiLike | null | undefined; store: TranslateStore; emit: Emit };
@@ -104,6 +116,8 @@ export function bindTranslateStore(env: CloudflareEnv): TranslateStore {
     setReviewLanguage: (reviewId, lang) => db.setReviewLanguage(env, reviewId, lang),
     extraLabelsMissing: () => db.extraLabelsMissing(env),
     fillExtraLabel: (code, labels) => db.fillExtraLabel(env, code, labels),
+    staleTranslationSource: (translationId, pv) => db.staleTranslationSource(env, translationId, pv),
+    putMachineTranslation: (args) => db.putMachineTranslation(env, args),
   };
 }
 
@@ -277,6 +291,54 @@ async function extraJob(deps: JobDeps, code: string): Promise<JobOutcome> {
   return "done";
 }
 
+/**
+ * A public-safe review cache row written under an older prompt_version (F-06). The definer returns the
+ * source only while the row is still machine and older than PROMPT_VERSION, so a human row is never
+ * touched; the put itself also never overwrites a human row. A rejected re-translation writes nothing:
+ * the earlier text stays served.
+ */
+async function cacheJob(deps: JobDeps, translationId: string): Promise<JobOutcome> {
+  const { store, emit } = deps;
+  const src = await storeStep(emit, "cache", "staleTranslationSource", () =>
+    store.staleTranslationSource(translationId, PROMPT_VERSION),
+  );
+  if (!src || !isLang(src.target_lang) || !src.source_text.trim()) {
+    emit("info", "translate_job", { kind: "cache", outcome: "skipped" });
+    return "skipped";
+  }
+  const target = src.target_lang;
+  const res = isLang(src.source_lang)
+    ? await translateText(deps.ai, { text: src.source_text, from: src.source_lang, to: [target] })
+    : await translateUnknown(deps.ai, { text: src.source_text, to: [target], fallbackLang: src.source_lang });
+  if (!res.ok) {
+    if (res.reason === "no_binding") {
+      emit("info", "translate_job", { kind: "cache", outcome: "no_binding" });
+      return "no_binding";
+    }
+    if (isTransient(res.reason)) throw new TranslateRetryError(res.reason);
+    emit("warn", "translate_job", { kind: "cache", outcome: "failed", reason: res.reason, lang: target });
+    return "failed";
+  }
+  const text = res.out[target];
+  if (typeof text !== "string" || !text.trim()) {
+    emit("warn", "translate_job", { kind: "cache", outcome: "failed", reason: "missing", lang: target });
+    return "failed";
+  }
+  await storeStep(emit, "cache", "putMachineTranslation", () =>
+    store.putMachineTranslation({
+      hash: src.source_hash,
+      sourceLang: src.source_lang,
+      targetLang: target,
+      sourceText: src.source_text,
+      text,
+      context: "review",
+      promptVersion: PROMPT_VERSION,
+    }),
+  );
+  emit("info", "translate_job", { kind: "cache", outcome: "done", lang: target });
+  return "done";
+}
+
 /** Runs one parsed translate job. Throws only when the message should be retried. */
 export async function handleTranslateJob(deps: JobDeps, job: TranslateJob): Promise<JobOutcome> {
   switch (job.kind) {
@@ -298,13 +360,15 @@ export async function handleTranslateJob(deps: JobDeps, job: TranslateJob): Prom
       return reviewJob(deps, job.reviewId);
     case "extra":
       return extraJob(deps, job.code);
+    case "cache":
+      return cacheJob(deps, job.translationId);
   }
 }
 
 /**
  * The final give-up after max_retries (the dead-letter queue). Marks what the dashboard reads as
- * "Translation not available"; never retries, never mails. Review and extra jobs write nothing (the
- * nightly sweep tries them again). Throws on a store error; the consumer logs it and acks anyway.
+ * "Translation not available"; never retries, never mails. Review, extra and cache jobs write nothing
+ * (the nightly sweep tries them again). Throws on a store error; the consumer logs it and acks anyway.
  */
 export async function handleDeadTranslateJob(deps: JobDeps, job: TranslateJob): Promise<"marked" | "acked"> {
   const { store, emit } = deps;
@@ -328,6 +392,7 @@ export async function handleDeadTranslateJob(deps: JobDeps, job: TranslateJob): 
     }
     case "review":
     case "extra":
+    case "cache":
       return "acked";
   }
 }
