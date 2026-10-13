@@ -31,7 +31,7 @@ export type DistanceRateRow = {
   minFareRappen: number | null;
   /** Comment 11. NULL until staff set it. */
   airportStartRappen: number | null;
-  maxPax: number;
+  maxPax: number | null;
   available: boolean;
   hideFromPublic: boolean;
 };
@@ -363,7 +363,7 @@ type DistanceSqlRow = {
   per_km_rappen: number | string | null;
   min_fare_rappen: number | string | null;
   airport_start_rappen: number | string | null;
-  max_pax: number;
+  max_pax: number | null;
   available: boolean;
   hide_from_public: boolean;
 };
@@ -687,6 +687,7 @@ export { vehicleClassLabelKey } from "./vehicle-class-label";
  * Clone a live or retired book into a new draft (D-06 / D-09).
  * When `tx` is passed, the copy joins that asStaff transaction — Publish
  * must clone in the same tx as the public_chf / VAT flip.
+ * Phase 30 CLS-06: new price books skip retired classes; frozen books keep theirs.
  */
 async function cloneRateVersionFrom(
   tx: StaffTx,
@@ -724,25 +725,37 @@ async function cloneRateVersionFrom(
       min_fare_rappen, airport_start_rappen, city_price_rappen,
       max_pax, available, hide_from_public
     )
-    select ${newId}, vehicle_class_id, base_fare_rappen, per_km_rappen,
-           min_fare_rappen, airport_start_rappen, city_price_rappen,
-           max_pax, available, hide_from_public
-      from public.distance_rates
-     where rate_version_id = ${source.id}
+    select ${newId}, d.vehicle_class_id, d.base_fare_rappen, d.per_km_rappen,
+           d.min_fare_rappen, d.airport_start_rappen, d.city_price_rappen,
+           d.max_pax, d.available, d.hide_from_public
+      from public.distance_rates d
+      join public.vehicle_classes vc
+        on vc.id = d.vehicle_class_id and vc.hidden_at is null
+     where d.rate_version_id = ${source.id}
   `;
   await tx`
     insert into public.fixed_routes (
       rate_version_id, origin_zone_id, dest_zone_id, vehicle_class_id, price_rappen, live
     )
-    select ${newId}, origin_zone_id, dest_zone_id, vehicle_class_id, price_rappen, live
-      from public.fixed_routes
-     where rate_version_id = ${source.id}
+    select ${newId}, f.origin_zone_id, f.dest_zone_id, f.vehicle_class_id, f.price_rappen, f.live
+      from public.fixed_routes f
+      join public.vehicle_classes vc
+        on vc.id = f.vehicle_class_id and vc.hidden_at is null
+     where f.rate_version_id = ${source.id}
   `;
   await tx`
     insert into public.rate_version_rules (rate_version_id, kind, payload)
     select ${newId}, kind, payload
       from public.rate_version_rules
      where rate_version_id = ${source.id}
+       and not (
+         kind = 'city_pair'
+         and exists (
+           select 1 from public.vehicle_classes vc
+            where vc.id::text = payload ->> 'vehicleClassId'
+              and vc.hidden_at is not null
+         )
+       )
      order by id
   `;
   await tx`
@@ -770,9 +783,11 @@ async function cloneRateVersionFrom(
     insert into public.distance_bands (
       rate_version_id, vehicle_class_id, from_km, to_km, per_km_rappen
     )
-    select ${newId}, vehicle_class_id, from_km, to_km, per_km_rappen
-      from public.distance_bands
-     where rate_version_id = ${source.id}
+    select ${newId}, b.vehicle_class_id, b.from_km, b.to_km, b.per_km_rappen
+      from public.distance_bands b
+      left join public.vehicle_classes vc on vc.id = b.vehicle_class_id
+     where b.rate_version_id = ${source.id}
+       and (b.vehicle_class_id is null or vc.hidden_at is null)
   `;
   await tx`
     insert into public.region_premiums (
