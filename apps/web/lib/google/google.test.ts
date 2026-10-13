@@ -202,7 +202,7 @@ describe("flag open", () => {
     expect(calls[2]).toEqual([
       "consent",
       "update",
-      { ad_storage: "granted", ad_user_data: "granted", ad_personalization: "granted", analytics_storage: "granted" },
+      { ad_storage: "granted", ad_user_data: "granted", ad_personalization: "denied", analytics_storage: "granted" },
     ]);
     expect(calls[3]).toEqual([
       "config",
