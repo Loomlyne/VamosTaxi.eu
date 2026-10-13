@@ -141,7 +141,7 @@ describe("dc mock URL gate", () => {
     expect(gatePublicRequest(req("/api/geo/suggest"))).toBeNull();
   });
 
-  it("does not serve staff JSON as a document; chauffeur API goes to the fleet page", () => {
+  it("does not serve staff JSON as a document; chauffeur API goes to the chauffeurs page", () => {
     const gated = gatePublicRequest(
       doc("/api/staff/chauffeurs", { host: "dashboard.vamostaxi.site" }),
     );
@@ -149,7 +149,7 @@ describe("dc mock URL gate", () => {
     const res = gated as Response;
     expect(res.status).toBe(308);
     expect(res.headers.get("location")).toBe(
-      "https://dashboard.vamostaxi.site/fleet/chauffeurs",
+      "https://dashboard.vamostaxi.site/chauffeurs",
     );
     expect(
       gatePublicRequest(req("/api/staff/chauffeurs", { host: "dashboard.vamostaxi.site" })),

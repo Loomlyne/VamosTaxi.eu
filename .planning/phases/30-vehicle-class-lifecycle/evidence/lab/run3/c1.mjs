@@ -1,0 +1,31 @@
+import { start, open, goPricing, signIn, dlgText, S, db, goLiveInfo, gl, BASE } from "./lib.mjs";
+await start({ evidenceDir: process.argv[2] });
+const s = await open({ viewport: 1440, name: "s1440" });
+await signIn(s);
+s.page.on("response", async (r) => { if (r.url().includes("/api/staff") && r.request().method() !== "GET") console.log("API", r.request().method(), r.url().replace(/^.*\/api/, "/api"), r.status(), (await r.text().catch(() => "")).slice(0, 200)); });
+await goPricing(s);
+const rowOf = (n) => s.page.locator("tr", { has: s.page.locator("[data-class-name]", { hasText: new RegExp(`^${n}$`) }) });
+await S("S13", "stand-in price, publish, Go live list", async () => {
+  console.log("before:", db("select id,status from public.rate_versions order by id").replace(/\n/g, " ; "));
+  await rowOf("Lab Draft Class").locator('button[aria-label="Edit"]').click(); await s.page.waitForTimeout(900);
+  const inputs = s.page.locator('[role="dialog"] input:not([type=file])');
+  const n = await inputs.count();
+  console.log("inputs", n, (await dlgText(s.page)).slice(0, 300));
+  // labels order: Name, Start, Airport pickup fee, Per kilometre, pax, bags
+  await inputs.nth(1).fill("0.01"); await inputs.nth(3).fill("0.01"); await s.page.waitForTimeout(300);
+  console.log("values:", await inputs.evaluateAll(a => a.map(i => i.value)));
+  await s.page.locator('[role="dialog"] button', { hasText: /^save class$/i }).click(); await s.page.waitForTimeout(3000);
+  console.log("after save:", db("select id,status from public.rate_versions order by id").replace(/\n/g, " ; "));
+  console.log("draft row:", db("select base_fare_rappen, per_km_rappen, airport_start_rappen from public.distance_rates dr join public.vehicle_classes vc on vc.id=dr.vehicle_class_id join public.rate_versions rv on rv.id=dr.rate_version_id where vc.name='Lab Draft Class' and rv.status='draft'"));
+  await s.page.getByRole("button", { name: /publish fare book/i }).first().click(); await s.page.waitForTimeout(1500);
+  const d1 = await dlgText(s.page);
+  await s.page.locator('[role="dialog"] button', { hasText: /^publish fare book$/i }).click(); await s.page.waitForTimeout(3500);
+  const d2 = await dlgText(s.page);
+  const vers = db("select id,status from public.rate_versions order by id").replace(/\n/g, " ; ");
+  await s.page.locator("[data-draft-btn]").first().click(); await s.page.waitForTimeout(800);
+  const g = await goLiveInfo(s.page);
+  await s.shot("S13-golive");
+  const ok = g.items.length === 4 && g.items.every(i => i.includes("=done(")) && g.why === null && /go live:enabled/i.test(g.btns.join());
+  return { s, ok, evidence: `publish confirm "${d1}"; after confirm "${d2}"; versions ${vers}; ${gl(g)}` };
+}, { s });
+process.exit(0);

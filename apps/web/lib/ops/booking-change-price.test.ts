@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 import { checkoutCharge, type CheckoutChargeCoupon, type ExtraCatalogRow } from "../checkout/checkout-charge";
 import { snapshotLinesFromCharge } from "../checkout/lock-to-rpc";
 import { farePartsFromLines } from "../checkout/price-rows";
+import { evaluateEligibility } from "../pricing/eligibility";
 import { preCouponTotalOfClass } from "../pricing/policy";
 import { priceQuote } from "../pricing/priceQuote";
 import type { SettingsVersionRow } from "../pricing/policy";
@@ -424,5 +425,35 @@ describe("savedChargeFromSnapshot", () => {
         ],
       }),
     ).toBeNull();
+  });
+});
+
+describe("Phase 30: retired class (decision 8)", () => {
+  const f = facts();
+  const open = book(18, RATES);
+  /** Today's book after a class left the offer: Retired and Draft are both `active: false` there. */
+  const without = (slug: string): RateBook => ({
+    ...open,
+    classes: open.classes.map((c) => (c.slug === slug ? { ...c, active: false, hidden_at: "2026-10-12T00:00:00Z" } : c)),
+  });
+
+  it("a class change into a class that left today's book is refused with class-not-sold; another class still prices", () => {
+    const booked = checkout(open, f, EXACT_M, ECO.slug);
+    const result = run({ booked, today: without(BIZ.slug) });
+    expect(priceOf(result, BIZ.slug)).toEqual(expect.objectContaining({ ok: false, code: "class-not-sold" }));
+    expect(priceOf(result, VAN.slug)).toMatchObject({ ok: true });
+  });
+
+  it("a booking in a class that left today's book: the class as booked is refused (pins the code the run returns)", () => {
+    const booked = checkout(open, f, EXACT_M, ECO.slug);
+    const result = run({ booked, today: without(ECO.slug) });
+    expect(priceOf(result, ECO.slug)).toMatchObject({ ok: false, current: true, code: "class-not-sold" });
+  });
+
+  it("the New trip / website quote path: no eligible entry for the inactive class", () => {
+    const today = without(BIZ.slug);
+    const board = evaluateEligibility(today, quoteInputFromFacts(f, EXACT_M, AT));
+    expect(board.classes.map((c) => c.slug)).not.toContain(BIZ.slug);
+    expect(board.classes.map((c) => c.slug)).toContain(ECO.slug);
   });
 });

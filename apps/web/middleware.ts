@@ -17,6 +17,11 @@ import {
 } from "./lib/dc-mock-urls";
 import { publicDashboardPath } from "./lib/ops/paths";
 import {
+  isOpsConsolePath,
+  legacyChauffeursPath,
+  normalizeDashboardPath,
+} from "./lib/ops/console-paths";
+import {
   dashboardConsoleAllowed,
   passkeyGateInputs,
   vamosRoleFromAccessToken,
@@ -302,42 +307,6 @@ function dashboardAbs(request: NextRequest, targetPath: string): URL {
   return new URL(href || "/", request.url);
 }
 
-/** D-10 console paths on the dashboard host. Same ops.dc.html document. */
-const OPS_CONSOLE_EXACT = new Set([
-  "/dashboard",
-  "/bookings",
-  "/bookings/new",
-  "/calendar",
-  "/customers",
-  "/fleet",
-  "/fleet/chauffeurs",
-  "/support",
-  "/pricing",
-  "/profile",
-  "/settings",
-  "/coupons",
-  "/reviews",
-  "/pages",
-  "/legal",
-]);
-
-function normalizeDashboardPath(path: string): string {
-  if (path.length > 1 && path.endsWith("/")) return path.slice(0, -1);
-  return path;
-}
-
-function isOpsConsolePath(path: string): boolean {
-  const p = normalizeDashboardPath(path);
-  if (OPS_CONSOLE_EXACT.has(p)) return true;
-  const segments = p.split("/").filter(Boolean);
-  if (segments.length === 2 && segments[0] === "bookings") return true;
-  if (segments.length === 2 && segments[0] === "customers") return true;
-  if (segments.length === 3 && segments[0] === "fleet" && segments[1] === "chauffeurs") {
-    return true;
-  }
-  return false;
-}
-
 function opsConsoleNotFound(request: NextRequest, cookieSource: NextResponse): NextResponse {
   const headers = new Headers();
   headers.set("content-type", "text/plain; charset=utf-8");
@@ -378,6 +347,8 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
     if (normalizeDashboardPath(path) === "/") {
       return applyStagingNoindex(request, dashboardRedirect(dashboardAbs(request, "/dashboard")));
     }
+    const legacy = legacyChauffeursPath(path);
+    if (legacy) return applyStagingNoindex(request, dashboardRedirect(dashboardAbs(request, legacy)));
     if (isOpsConsolePath(path)) {
       return serveOpsDc(request, new NextResponse(), "ops.dc.html", true);
     }
@@ -406,6 +377,15 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
       return applyStagingNoindex(
         request,
         copyCookies(client.response, dashboardRedirect(dashboardAbs(request, "/dashboard"))),
+      );
+    }
+    // Phase 30 CLS-11: old /fleet addresses forward for signed-in staff only; a signed-out
+    // visitor falls through to /login like any other path, so the route is not confirmed.
+    const legacy = legacyChauffeursPath(path);
+    if (legacy) {
+      return applyStagingNoindex(
+        request,
+        copyCookies(client.response, dashboardRedirect(dashboardAbs(request, legacy))),
       );
     }
     if (isOpsConsolePath(path)) {

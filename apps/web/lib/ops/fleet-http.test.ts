@@ -17,7 +17,8 @@ vi.mock("../supabase/server", () => ({
   createServerSupabaseClient: (...args: unknown[]) => createSupabaseServerClient(...args),
 }));
 
-import { VehicleInputError } from "./fleet";
+import { VehicleInputError, loadVehicleClasses, type VehicleClassRow } from "./fleet";
+import { asStaff } from "../db/identity";
 import { ChauffeurDuplicateEmailError, ChauffeurInputError } from "./chauffeurs-model";
 import { jsonErr, jsonOk, withStaff } from "./staff-json";
 import {
@@ -29,6 +30,7 @@ import {
   parseVehicleBody,
   parseVehicleClassPatch,
   presentChauffeur,
+  presentVehicleClass,
   presentVehicles,
   slugToKlass,
 } from "./fleet-http";
@@ -158,6 +160,90 @@ describe("parseVehicleBody", () => {
     expect(slugToKlass("van-luxury")).toBe("Van luxury");
     expect(slugToKlass("van")).toBe("Van luxury");
     expect(slugToKlass("business")).toBe("Business");
+  });
+});
+
+describe("presentVehicleClass (Phase 30 state fields)", () => {
+  const base: VehicleClassRow = {
+    id: "11111111-1111-4111-8111-111111111111",
+    slug: "economy-sedan",
+    passengerCapacity: 3,
+    luggageCapacity: 2,
+    sortOrder: 1,
+    active: true,
+    vehicleCount: 0,
+    status: "live",
+    retiredReason: "",
+    inLiveBook: true,
+    missing: "",
+    unassignedPaidTrips: 0,
+    name: "Economy Sedan",
+    photoPath: "classes/a.webp",
+  };
+
+  it("live: carries state, live-book flag and an empty missing string", () => {
+    const out = presentVehicleClass(base);
+    expect(out).toMatchObject({
+      status: "live",
+      retiredReason: "",
+      inLiveBook: true,
+      missing: "",
+      unassignedPaidTrips: 0,
+      active: true,
+    });
+  });
+
+  it("draft: missing is a comma string, never an array; empty counts stay null", () => {
+    const out = presentVehicleClass({
+      ...base,
+      active: false,
+      status: "draft",
+      inLiveBook: false,
+      missing: "photo,price",
+      passengerCapacity: null,
+      luggageCapacity: null,
+    });
+    expect(out.status).toBe("draft");
+    expect(out.missing).toBe("photo,price");
+    expect(typeof out.missing).toBe("string");
+    expect(Array.isArray(out.missing)).toBe(false);
+    expect(out.passengerCapacity).toBeNull();
+    expect(out.luggageCapacity).toBeNull();
+  });
+
+  it("retired: carries the reason and the unassigned trip count as a number", () => {
+    const out = presentVehicleClass({
+      ...base,
+      active: false,
+      status: "retired",
+      retiredReason: "sold the van",
+      unassignedPaidTrips: 2,
+    });
+    expect(out.status).toBe("retired");
+    expect(out.retiredReason).toBe("sold the van");
+    expect(out.unassignedPaidTrips).toBe(2);
+    expect(typeof out.unassignedPaidTrips).toBe("number");
+  });
+});
+
+describe("loadVehicleClasses mapping (Phase 30)", () => {
+  it("maps state, reason and counts; a string count becomes a number, null becomes 0", async () => {
+    const sqlRows = [
+      { id: "a", slug: "economy-sedan", passenger_capacity: 3, luggage_capacity: 2, sort_order: 1,
+        active: false, vehicle_count: 0, state: "retired", hidden_reason: "sold", in_live_book: false,
+        missing: "", unassigned_paid_trips: "2" },
+      { id: "b", slug: "x", passenger_capacity: null, luggage_capacity: null, sort_order: 2,
+        active: false, vehicle_count: 0, state: "weird", hidden_reason: null, in_live_book: false,
+        missing: "photo,seats,bags,price", unassigned_paid_trips: null },
+    ];
+    vi.mocked(asStaff).mockImplementationOnce((async (_e: unknown, _c: unknown, fn: (sql: unknown) => unknown) =>
+      fn(async () => sqlRows)) as never);
+    const rows = await loadVehicleClasses({} as never, {} as never);
+    expect(rows[0]).toMatchObject({ status: "retired", retiredReason: "sold", unassignedPaidTrips: 2 });
+    expect(rows[1]).toMatchObject({
+      status: "draft", retiredReason: "", unassignedPaidTrips: 0,
+      passengerCapacity: null, luggageCapacity: null, missing: "photo,seats,bags,price",
+    });
   });
 });
 
@@ -298,6 +384,15 @@ describe("chauffeurJsonError", () => {
       code: "42804",
       message: "The chauffeur could not be saved.",
     });
+  });
+});
+
+describe("class-retired copy (30-03)", () => {
+  it("is the signed dictionary string, no period", async () => {
+    expect(chauffeurErrorCopy("class-retired")).toBe("Retired class: pick a new one");
+    const result = await readJson(chauffeurJsonError(new ChauffeurInputError("class-retired")));
+    expect(result.status).toBe(400);
+    expect(result.body).toMatchObject({ ok: false, message: "Retired class: pick a new one" });
   });
 });
 

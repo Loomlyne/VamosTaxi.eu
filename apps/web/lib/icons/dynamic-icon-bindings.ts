@@ -6,11 +6,11 @@ const PLACE = ["plane", "bed", "train-front", "map-pin", "map", "snowflake", "pl
 const CONTACT = ["message-circle", "phone", "mail", "x"];
 const CHEVRONS = ["chevron-up", "chevron-down"];
 // Every field icon the dashboard table editor can show: its own FIELD_ICONS map plus the `icon:` of the
-// field lists the Board, Fleet, Pricing, Coupons and Customers screens hand it.
+// field lists the Board, Chauffeurs, Pricing, Coupons and Customers screens hand it.
 const OPS_FIELD = [
   "receipt", "ticket", "user", "briefcase", "mail", "phone", "shield-check", "calendar", "clock", "globe", "plane",
   "map-pin", "navigation", "car", "users", "luggage", "banknote", "check", "file-text", "settings", "car-front",
-  "sun", "moon", "tag", "arrow-left-right",
+  "tag", "arrow-left-right",
 ];
 const BRAND_SELECT = ["globe", "banknote", "calendar", "car", "funnel", "layout-dashboard", "settings", "star"];
 
@@ -36,9 +36,11 @@ export const DYNAMIC_ICON_BINDINGS: Array<{ files: string[]; expr: string; value
   { files: ["app/ops/OpsDash.dc.html"], expr: "c.icon", values: ["list", "car-front", "users"], from: "counts" },
   { files: ["app/ops/OpsDash.dc.html"], expr: "a.icon", values: ["triangle-alert", "clock", "pencil"], from: "attention rows" },
   { files: ["app/ops/OpsDetail.dc.html"], expr: "g.icon", values: ["user", "clock", "car-front", "users", "luggage", "plane", "ticket", "plus", "credit-card", "car"], from: "booking tags" },
-  { files: ["app/ops/OpsFleet.dc.html"], expr: "f.icon", values: ["mail", "car-front", "car", "shield-check", "globe"], from: "chauffeur profileFacts" },
-  { files: ["app/ops/OpsFleet.dc.html"], expr: "c.icon", values: ["users", "clock", "car-front"], from: "counts" },
+  { files: ["app/ops/OpsChauffeurs.dc.html"], expr: "f.icon", values: ["mail", "car-front", "car", "shield-check", "globe"], from: "chauffeur profileFacts" },
+  { files: ["app/ops/OpsChauffeurs.dc.html"], expr: "c.icon", values: ["users", "clock", "car-front"], from: "counts" },
   { files: ["app/ops/OpsPricing.dc.html"], expr: "p.icon", values: ["map-pin", "arrow-left-right", "banknote", "ticket"], from: "PANES" },
+  { files: ["app/ops/OpsPricing.dc.html"], expr: "retiredChevron", values: CHEVRONS, from: "Retired classes list open or folded (Phase 30)" },
+  { files: ["app/ops/OpsPricing.dc.html"], expr: "i.icon", values: ["circle-check", "circle-alert"], from: "Go live checklist row: done or missing (Phase 30)" },
   { files: ["app/ops/OpsProfile.dc.html"], expr: "p.icon", values: ["user", "image"], from: "panes" },
   { files: ["app/ops/OpsReviews.dc.html"], expr: "r.publishIcon", values: ["eye", "eye-off"], from: "published or hidden" },
   { files: ["app/ops/OpsReviews.dc.html"], expr: "r.removeIcon", values: ["circle-alert", "trash-2"], from: "armed or not" },

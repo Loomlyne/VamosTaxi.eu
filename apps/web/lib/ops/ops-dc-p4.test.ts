@@ -200,9 +200,9 @@ function pricing(rows: Json[]): { comp: PricingComp; T: Copy } {
     removeEventListener: noop,
   };
   const out = new Function(
-    "DCLogic", "window", "document",
+    "DCLogic", "window", "document", "React",
     `${scriptOf("OpsPricing.dc.html")}\nreturn { Component, T };`,
-  )(StubLogic, win, { addEventListener: noop, removeEventListener: noop }) as {
+  )(StubLogic, win, { addEventListener: noop, removeEventListener: noop }, { createElement: (...args: unknown[]) => ({ args }) }) as {
     Component: new () => PricingComp;
     T: Copy;
   };

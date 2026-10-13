@@ -71,6 +71,8 @@ export type ChangeContext = {
   status: string;
   refundStatus: string;
   legClassSlug: string;
+  /** Phase 30 decision 8: the booked class is retired (hidden_at set). Absent means not retired. */
+  legClassRetired?: boolean;
   pickupAtMs: number | null;
   paid: boolean;
   paidRappen: number;
@@ -217,6 +219,7 @@ async function defaultLoadContext(env: CloudflareEnv, claims: VamosClaims, booki
              l.scheduled_local, l.flight_no, l.pax, l.bags, l.estimated_duration_minutes,
              l.assigned_chauffeur_id::text as assigned_chauffeur_id, l.turnaround_buffer_minutes,
              lvc.slug as leg_class_slug,
+             (lvc.hidden_at is not null) as leg_class_retired,
              (select min(x.scheduled_at) from public.booking_legs as x where x.booking_id = b.id) as pickup_at,
              s.id as snapshot_id, s.total_rappen, s.lines, s.rate_version_id, s.shown_alternatives,
              s.distance_km, s.duration_min, svc.slug as snapshot_class_slug,
@@ -252,6 +255,7 @@ async function defaultLoadContext(env: CloudflareEnv, claims: VamosClaims, booki
     status: s(row.status),
     refundStatus: s(row.refund_status) || "none",
     legClassSlug: s(row.leg_class_slug),
+    legClassRetired: row.leg_class_retired === true,
     pickupAtMs: Number.isFinite(pickupAt) ? pickupAt : null,
     paid: n(row.captured_count) > 0,
     paidRappen: n(row.captured_rappen) - n(row.refunded_rappen),

@@ -500,3 +500,48 @@ describe("live-book board (D-29 D-31 D-32 D-33)", () => {
     expect(mapped.classes[0]?.slug).toBe("suv");
   });
 });
+
+describe("Phase 30: Draft and Retired classes are not on offer", () => {
+  it("classOnOffer is false for a retired class and for a draft class that a book still rates (CLS-07)", () => {
+    const live = classRow({ slug: "p30-live", sort_order: 1 });
+    const draft = classRow({ slug: "p30-draft", sort_order: 2, active: false });
+    const retired = { ...classRow({ slug: "p30-retired", sort_order: 3, active: false }), hidden_at: "2026-10-12T00:00:00Z" };
+    const book: RateBook = {
+      rate_version: { id: 1, slug: "live" },
+      classes: [live, draft, retired],
+      distance_rates: [
+        rateRow({ id: 1, vehicle_class_id: live.id }),
+        rateRow({ id: 2, vehicle_class_id: draft.id }),
+        rateRow({ id: 3, vehicle_class_id: retired.id }),
+      ],
+      distance_bands: [],
+      region_premiums: [],
+      fixed_routes: [],
+      surcharges: [],
+      zones: [],
+    };
+    expect(classOnOffer(book, live.id)).toBe(true);
+    expect(classOnOffer(book, draft.id)).toBe(false);
+    expect(classOnOffer(book, retired.id)).toBe(false);
+  });
+
+  it("a Draft with empty seats and bags yields no entry; every entry has a finite seat count (decision 6)", () => {
+    const book = mapRateBook({
+      rate_version: { id: 1, slug: "live", status: "live" },
+      classes: [
+        { id: "vc-live", slug: "p30-live", passenger_capacity: 3, luggage_capacity: 3, sort_order: 1, active: true },
+        { id: "vc-draft", slug: "p30-draft", passenger_capacity: null, luggage_capacity: null, sort_order: 2, active: false },
+      ],
+      distance_rates: [
+        { id: 1, rate_version_id: 1, vehicle_class_id: "vc-live", max_pax: 3, available: true },
+        { id: 2, rate_version_id: 1, vehicle_class_id: "vc-draft", max_pax: null, available: true },
+      ],
+      fixed_routes: [],
+      surcharges: [],
+      zones: [],
+    });
+    const board = evaluateEligibility(book, input({ pax: 2, bags: 1 }));
+    expect(board.classes.map((c) => c.slug)).toEqual(["p30-live"]);
+    for (const entry of board.classes) expect(Number.isFinite(entry.effective_max_pax)).toBe(true);
+  });
+});

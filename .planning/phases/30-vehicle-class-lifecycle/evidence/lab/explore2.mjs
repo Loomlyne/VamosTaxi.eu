@@ -1,0 +1,14 @@
+import { start, finish, open, DASH, db } from "/Users/koss/.vamos-scratch/p30-clean/scripts/test-lab/lab-browser.mjs";
+import { signIn } from "./common.mjs";
+await start({ evidenceDir: process.argv[2] });
+const s = await open({ viewport: 1440, name: "x" });
+console.log(await signIn(s));
+await s.page.goto(DASH + "/pricing", { waitUntil: "networkidle" });
+await s.page.waitForTimeout(2000);
+await s.page.locator("button[data-set-item]").nth(1).click();
+await s.page.waitForTimeout(1500);
+console.log(await s.page.evaluate(() => document.body.innerText.slice(0, 3500)));
+console.log(await s.page.evaluate(() => [...document.querySelectorAll("[data-class-id],[data-retired],button")].map(e=>e.tagName+" "+(e.getAttribute('aria-label')||'')+" | "+e.innerText.slice(0,40).replace(/\n/g,' ')+" | "+[...e.attributes].filter(a=>a.name.startsWith('data-')).map(a=>a.name+'='+a.value).join(' ')).join("\n")));
+console.log(db("select rv.id, rv.status, rv.label from public.rate_versions rv order by 1"));
+await s.shot("explore2");
+await finish();
