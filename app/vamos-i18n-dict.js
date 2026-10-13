@@ -2420,7 +2420,6 @@
       'Cancel this booking. The pay link stops working.': { de: 'Diese Buchung stornieren. Der Zahlungslink funktioniert dann nicht mehr.', fr: 'Annuler cette réservation. Le lien de paiement cessera de fonctionner.', ar: 'إلغاء هذا الحجز. سيتوقف رابط الدفع عن العمل.' },
       'Customer': { de: 'Kunde', fr: 'Client', ar: 'العميل' },
       'Pricing': { de: 'Preise', fr: 'Tarifs', ar: 'الأسعار' },
-      'Pages': { de: 'Seiten', fr: 'Pages', ar: 'الصفحات' },
       /* 26.2 audit U08-11 legal lines, owner-approved 2026-10-03
          (.planning/decisions/2026-10-03-legal-translations-approved.md), used verbatim.
          The register number (terms 01) and the figure 10 (privacy 06) sit in
