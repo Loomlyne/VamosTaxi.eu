@@ -1,0 +1,1651 @@
+{
+ "distance_bands": [
+  {
+   "from_km": 20,
+   "id": 26,
+   "per_km_rappen": 380,
+   "rate_version_id": 3,
+   "to_km": 50,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 100,
+   "id": 27,
+   "per_km_rappen": 320,
+   "rate_version_id": 1,
+   "to_km": 150,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 50,
+   "id": 28,
+   "per_km_rappen": 340,
+   "rate_version_id": 3,
+   "to_km": 100,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 200,
+   "id": 29,
+   "per_km_rappen": 280,
+   "rate_version_id": 2,
+   "to_km": null,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 100,
+   "id": 30,
+   "per_km_rappen": 320,
+   "rate_version_id": 1,
+   "to_km": 150,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 50,
+   "id": 31,
+   "per_km_rappen": 340,
+   "rate_version_id": 3,
+   "to_km": 100,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 200,
+   "id": 32,
+   "per_km_rappen": 280,
+   "rate_version_id": 2,
+   "to_km": null,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 150,
+   "id": 33,
+   "per_km_rappen": 300,
+   "rate_version_id": 5,
+   "to_km": 200,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 100,
+   "id": 34,
+   "per_km_rappen": 320,
+   "rate_version_id": 5,
+   "to_km": 150,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 20,
+   "id": 35,
+   "per_km_rappen": 380,
+   "rate_version_id": 4,
+   "to_km": 50,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 200,
+   "id": 36,
+   "per_km_rappen": 280,
+   "rate_version_id": 1,
+   "to_km": null,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 150,
+   "id": 37,
+   "per_km_rappen": 300,
+   "rate_version_id": 2,
+   "to_km": 200,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 50,
+   "id": 38,
+   "per_km_rappen": 340,
+   "rate_version_id": 4,
+   "to_km": 100,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 20,
+   "id": 39,
+   "per_km_rappen": 380,
+   "rate_version_id": 4,
+   "to_km": 50,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 200,
+   "id": 40,
+   "per_km_rappen": 280,
+   "rate_version_id": 2,
+   "to_km": null,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 50,
+   "id": 41,
+   "per_km_rappen": 340,
+   "rate_version_id": 3,
+   "to_km": 100,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 150,
+   "id": 42,
+   "per_km_rappen": 300,
+   "rate_version_id": 1,
+   "to_km": 200,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 100,
+   "id": 43,
+   "per_km_rappen": 320,
+   "rate_version_id": 1,
+   "to_km": 150,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 200,
+   "id": 44,
+   "per_km_rappen": 280,
+   "rate_version_id": 5,
+   "to_km": null,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 100,
+   "id": 45,
+   "per_km_rappen": 320,
+   "rate_version_id": 5,
+   "to_km": 150,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 150,
+   "id": 46,
+   "per_km_rappen": 300,
+   "rate_version_id": 2,
+   "to_km": 200,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 100,
+   "id": 47,
+   "per_km_rappen": 320,
+   "rate_version_id": 5,
+   "to_km": 150,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 150,
+   "id": 48,
+   "per_km_rappen": 300,
+   "rate_version_id": 2,
+   "to_km": 200,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 20,
+   "id": 49,
+   "per_km_rappen": 380,
+   "rate_version_id": 4,
+   "to_km": 50,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 20,
+   "id": 50,
+   "per_km_rappen": 380,
+   "rate_version_id": 5,
+   "to_km": 50,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 150,
+   "id": 51,
+   "per_km_rappen": 300,
+   "rate_version_id": 4,
+   "to_km": 200,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 100,
+   "id": 52,
+   "per_km_rappen": 320,
+   "rate_version_id": 4,
+   "to_km": 150,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 50,
+   "id": 53,
+   "per_km_rappen": 340,
+   "rate_version_id": 2,
+   "to_km": 100,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 200,
+   "id": 54,
+   "per_km_rappen": 280,
+   "rate_version_id": 3,
+   "to_km": null,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 20,
+   "id": 55,
+   "per_km_rappen": 380,
+   "rate_version_id": 5,
+   "to_km": 50,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 50,
+   "id": 56,
+   "per_km_rappen": 340,
+   "rate_version_id": 5,
+   "to_km": 100,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 150,
+   "id": 57,
+   "per_km_rappen": 300,
+   "rate_version_id": 3,
+   "to_km": 200,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 20,
+   "id": 58,
+   "per_km_rappen": 380,
+   "rate_version_id": 1,
+   "to_km": 50,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 150,
+   "id": 59,
+   "per_km_rappen": 300,
+   "rate_version_id": 3,
+   "to_km": 200,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 100,
+   "id": 60,
+   "per_km_rappen": 320,
+   "rate_version_id": 4,
+   "to_km": 150,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 200,
+   "id": 61,
+   "per_km_rappen": 280,
+   "rate_version_id": 3,
+   "to_km": null,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 50,
+   "id": 62,
+   "per_km_rappen": 340,
+   "rate_version_id": 2,
+   "to_km": 100,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 20,
+   "id": 63,
+   "per_km_rappen": 380,
+   "rate_version_id": 5,
+   "to_km": 50,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 200,
+   "id": 64,
+   "per_km_rappen": 280,
+   "rate_version_id": 3,
+   "to_km": null,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 50,
+   "id": 65,
+   "per_km_rappen": 340,
+   "rate_version_id": 2,
+   "to_km": 100,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 100,
+   "id": 66,
+   "per_km_rappen": 320,
+   "rate_version_id": 4,
+   "to_km": 150,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 20,
+   "id": 67,
+   "per_km_rappen": 380,
+   "rate_version_id": 1,
+   "to_km": 50,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 50,
+   "id": 68,
+   "per_km_rappen": 340,
+   "rate_version_id": 1,
+   "to_km": 100,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 20,
+   "id": 69,
+   "per_km_rappen": 380,
+   "rate_version_id": 1,
+   "to_km": 50,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 100,
+   "id": 70,
+   "per_km_rappen": 320,
+   "rate_version_id": 3,
+   "to_km": 150,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 150,
+   "id": 71,
+   "per_km_rappen": 300,
+   "rate_version_id": 3,
+   "to_km": 200,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 200,
+   "id": 72,
+   "per_km_rappen": 280,
+   "rate_version_id": 4,
+   "to_km": null,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 20,
+   "id": 73,
+   "per_km_rappen": 380,
+   "rate_version_id": 3,
+   "to_km": 50,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 150,
+   "id": 74,
+   "per_km_rappen": 300,
+   "rate_version_id": 1,
+   "to_km": 200,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 200,
+   "id": 75,
+   "per_km_rappen": 280,
+   "rate_version_id": 5,
+   "to_km": null,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 150,
+   "id": 76,
+   "per_km_rappen": 300,
+   "rate_version_id": 1,
+   "to_km": 200,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 200,
+   "id": 77,
+   "per_km_rappen": 280,
+   "rate_version_id": 5,
+   "to_km": null,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 100,
+   "id": 78,
+   "per_km_rappen": 320,
+   "rate_version_id": 5,
+   "to_km": 150,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 150,
+   "id": 79,
+   "per_km_rappen": 300,
+   "rate_version_id": 5,
+   "to_km": 200,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 200,
+   "id": 80,
+   "per_km_rappen": 280,
+   "rate_version_id": 1,
+   "to_km": null,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 100,
+   "id": 81,
+   "per_km_rappen": 320,
+   "rate_version_id": 2,
+   "to_km": 150,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 50,
+   "id": 82,
+   "per_km_rappen": 340,
+   "rate_version_id": 4,
+   "to_km": 100,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 20,
+   "id": 83,
+   "per_km_rappen": 380,
+   "rate_version_id": 3,
+   "to_km": 50,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 50,
+   "id": 84,
+   "per_km_rappen": 340,
+   "rate_version_id": 3,
+   "to_km": 100,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 100,
+   "id": 85,
+   "per_km_rappen": 320,
+   "rate_version_id": 1,
+   "to_km": 150,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 150,
+   "id": 86,
+   "per_km_rappen": 300,
+   "rate_version_id": 1,
+   "to_km": 200,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 20,
+   "id": 87,
+   "per_km_rappen": 380,
+   "rate_version_id": 3,
+   "to_km": 50,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 200,
+   "id": 88,
+   "per_km_rappen": 280,
+   "rate_version_id": 5,
+   "to_km": null,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 50,
+   "id": 89,
+   "per_km_rappen": 340,
+   "rate_version_id": 4,
+   "to_km": 100,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 150,
+   "id": 90,
+   "per_km_rappen": 300,
+   "rate_version_id": 5,
+   "to_km": 200,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 100,
+   "id": 91,
+   "per_km_rappen": 320,
+   "rate_version_id": 2,
+   "to_km": 150,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 200,
+   "id": 92,
+   "per_km_rappen": 280,
+   "rate_version_id": 1,
+   "to_km": null,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 150,
+   "id": 93,
+   "per_km_rappen": 300,
+   "rate_version_id": 5,
+   "to_km": 200,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 100,
+   "id": 94,
+   "per_km_rappen": 320,
+   "rate_version_id": 2,
+   "to_km": 150,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 50,
+   "id": 95,
+   "per_km_rappen": 340,
+   "rate_version_id": 4,
+   "to_km": 100,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 200,
+   "id": 96,
+   "per_km_rappen": 280,
+   "rate_version_id": 1,
+   "to_km": null,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 20,
+   "id": 97,
+   "per_km_rappen": 380,
+   "rate_version_id": 4,
+   "to_km": 50,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 20,
+   "id": 98,
+   "per_km_rappen": 380,
+   "rate_version_id": 2,
+   "to_km": 50,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 100,
+   "id": 99,
+   "per_km_rappen": 320,
+   "rate_version_id": 4,
+   "to_km": 150,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 150,
+   "id": 100,
+   "per_km_rappen": 300,
+   "rate_version_id": 4,
+   "to_km": 200,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 200,
+   "id": 101,
+   "per_km_rappen": 280,
+   "rate_version_id": 3,
+   "to_km": null,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 20,
+   "id": 102,
+   "per_km_rappen": 380,
+   "rate_version_id": 2,
+   "to_km": 50,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 50,
+   "id": 103,
+   "per_km_rappen": 340,
+   "rate_version_id": 5,
+   "to_km": 100,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 200,
+   "id": 104,
+   "per_km_rappen": 280,
+   "rate_version_id": 4,
+   "to_km": null,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 100,
+   "id": 105,
+   "per_km_rappen": 320,
+   "rate_version_id": 3,
+   "to_km": 150,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 20,
+   "id": 106,
+   "per_km_rappen": 380,
+   "rate_version_id": 1,
+   "to_km": 50,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 50,
+   "id": 107,
+   "per_km_rappen": 340,
+   "rate_version_id": 1,
+   "to_km": 100,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 100,
+   "id": 108,
+   "per_km_rappen": 320,
+   "rate_version_id": 3,
+   "to_km": 150,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 200,
+   "id": 109,
+   "per_km_rappen": 280,
+   "rate_version_id": 4,
+   "to_km": null,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 50,
+   "id": 110,
+   "per_km_rappen": 340,
+   "rate_version_id": 1,
+   "to_km": 100,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 20,
+   "id": 111,
+   "per_km_rappen": 380,
+   "rate_version_id": 2,
+   "to_km": 50,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 150,
+   "id": 112,
+   "per_km_rappen": 300,
+   "rate_version_id": 4,
+   "to_km": 200,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 50,
+   "id": 113,
+   "per_km_rappen": 340,
+   "rate_version_id": 5,
+   "to_km": 100,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 20,
+   "id": 114,
+   "per_km_rappen": 380,
+   "rate_version_id": 5,
+   "to_km": 50,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 50,
+   "id": 115,
+   "per_km_rappen": 340,
+   "rate_version_id": 5,
+   "to_km": 100,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "from_km": 150,
+   "id": 116,
+   "per_km_rappen": 300,
+   "rate_version_id": 4,
+   "to_km": 200,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "from_km": 50,
+   "id": 117,
+   "per_km_rappen": 340,
+   "rate_version_id": 1,
+   "to_km": 100,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 150,
+   "id": 118,
+   "per_km_rappen": 300,
+   "rate_version_id": 3,
+   "to_km": 200,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "from_km": 100,
+   "id": 119,
+   "per_km_rappen": 320,
+   "rate_version_id": 3,
+   "to_km": 150,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "from_km": 200,
+   "id": 120,
+   "per_km_rappen": 280,
+   "rate_version_id": 4,
+   "to_km": null,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  }
+ ],
+ "distance_rates": [
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 2,
+   "max_pax": 4,
+   "min_fare_rappen": 10000,
+   "per_km_rappen": 400,
+   "rate_version_id": 1,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 3,
+   "max_pax": 7,
+   "min_fare_rappen": 15000,
+   "per_km_rappen": 520,
+   "rate_version_id": 1,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 4,
+   "max_pax": 3,
+   "min_fare_rappen": 8000,
+   "per_km_rappen": 320,
+   "rate_version_id": 2,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 5,
+   "max_pax": 3,
+   "min_fare_rappen": 10000,
+   "per_km_rappen": 400,
+   "rate_version_id": 2,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 6,
+   "max_pax": 8,
+   "min_fare_rappen": 15000,
+   "per_km_rappen": 520,
+   "rate_version_id": 2,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 8,
+   "max_pax": 3,
+   "min_fare_rappen": 8000,
+   "per_km_rappen": 320,
+   "rate_version_id": 3,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 9,
+   "max_pax": 3,
+   "min_fare_rappen": 10000,
+   "per_km_rappen": 400,
+   "rate_version_id": 3,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 10,
+   "max_pax": 8,
+   "min_fare_rappen": 15000,
+   "per_km_rappen": 520,
+   "rate_version_id": 3,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 11,
+   "max_pax": 3,
+   "min_fare_rappen": 13000,
+   "per_km_rappen": 320,
+   "rate_version_id": 3,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 12,
+   "max_pax": 4,
+   "min_fare_rappen": 8000,
+   "per_km_rappen": 320,
+   "rate_version_id": 4,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 13,
+   "max_pax": 4,
+   "min_fare_rappen": 10000,
+   "per_km_rappen": 400,
+   "rate_version_id": 4,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 14,
+   "max_pax": 7,
+   "min_fare_rappen": 15000,
+   "per_km_rappen": 520,
+   "rate_version_id": 4,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 15,
+   "max_pax": 4,
+   "min_fare_rappen": 13000,
+   "per_km_rappen": 320,
+   "rate_version_id": 4,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 16,
+   "max_pax": 4,
+   "min_fare_rappen": 13000,
+   "per_km_rappen": 320,
+   "rate_version_id": 1,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 17,
+   "max_pax": 4,
+   "min_fare_rappen": 8000,
+   "per_km_rappen": 320,
+   "rate_version_id": 5,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 18,
+   "max_pax": 4,
+   "min_fare_rappen": 10000,
+   "per_km_rappen": 400,
+   "rate_version_id": 5,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 19,
+   "max_pax": 7,
+   "min_fare_rappen": 15000,
+   "per_km_rappen": 520,
+   "rate_version_id": 5,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 0,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 20,
+   "max_pax": 4,
+   "min_fare_rappen": 13000,
+   "per_km_rappen": 320,
+   "rate_version_id": 5,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 4400,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 24,
+   "max_pax": 4,
+   "min_fare_rappen": null,
+   "per_km_rappen": 320,
+   "rate_version_id": 7,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 8800,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 25,
+   "max_pax": 7,
+   "min_fare_rappen": null,
+   "per_km_rappen": 520,
+   "rate_version_id": 7,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 2000,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 26,
+   "max_pax": 4,
+   "min_fare_rappen": null,
+   "per_km_rappen": 400,
+   "rate_version_id": 7,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 4400,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 27,
+   "max_pax": 4,
+   "min_fare_rappen": null,
+   "per_km_rappen": 320,
+   "rate_version_id": 8,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 8800,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 28,
+   "max_pax": 7,
+   "min_fare_rappen": null,
+   "per_km_rappen": 520,
+   "rate_version_id": 8,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 2000,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 29,
+   "max_pax": 2,
+   "min_fare_rappen": null,
+   "per_km_rappen": 400,
+   "rate_version_id": 8,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 4400,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 31,
+   "max_pax": 4,
+   "min_fare_rappen": null,
+   "per_km_rappen": 320,
+   "rate_version_id": 9,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 8800,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 32,
+   "max_pax": 7,
+   "min_fare_rappen": null,
+   "per_km_rappen": 520,
+   "rate_version_id": 9,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 2000,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 33,
+   "max_pax": 4,
+   "min_fare_rappen": null,
+   "per_km_rappen": 400,
+   "rate_version_id": 9,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 1000,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 35,
+   "max_pax": 4,
+   "min_fare_rappen": null,
+   "per_km_rappen": 200,
+   "rate_version_id": 9,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 4400,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 36,
+   "max_pax": 4,
+   "min_fare_rappen": null,
+   "per_km_rappen": 320,
+   "rate_version_id": 10,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 8800,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 37,
+   "max_pax": 7,
+   "min_fare_rappen": null,
+   "per_km_rappen": 520,
+   "rate_version_id": 10,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 1000,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 38,
+   "max_pax": 4,
+   "min_fare_rappen": null,
+   "per_km_rappen": 200,
+   "rate_version_id": 10,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 2000,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 39,
+   "max_pax": 4,
+   "min_fare_rappen": null,
+   "per_km_rappen": 400,
+   "rate_version_id": 10,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 4400,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 44,
+   "max_pax": 4,
+   "min_fare_rappen": null,
+   "per_km_rappen": 320,
+   "rate_version_id": 12,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 8800,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 45,
+   "max_pax": 7,
+   "min_fare_rappen": null,
+   "per_km_rappen": 520,
+   "rate_version_id": 12,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 1000,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 46,
+   "max_pax": 4,
+   "min_fare_rappen": null,
+   "per_km_rappen": 200,
+   "rate_version_id": 12,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 20000,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 51,
+   "max_pax": 4,
+   "min_fare_rappen": null,
+   "per_km_rappen": 4000,
+   "rate_version_id": 14,
+   "vehicle_class_id": "ff1a5aa5-fffe-4383-b1eb-a41c232728c7"
+  },
+  {
+   "airport_start_rappen": null,
+   "available": true,
+   "base_fare_rappen": 20000,
+   "city_price_rappen": null,
+   "hide_from_public": false,
+   "id": 52,
+   "max_pax": 4,
+   "min_fare_rappen": null,
+   "per_km_rappen": 4000,
+   "rate_version_id": 15,
+   "vehicle_class_id": "ff1a5aa5-fffe-4383-b1eb-a41c232728c7"
+  }
+ ],
+ "exported_at": "2026-10-13T19:29:45.945786+00:00",
+ "fixed_routes": [
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 6,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 10000,
+   "rate_version_id": 10,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 7,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 2000,
+   "rate_version_id": 10,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 8,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 5000,
+   "rate_version_id": 10,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 9,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 60000,
+   "rate_version_id": 10,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 14,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 10000,
+   "rate_version_id": 12,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 15,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 2000,
+   "rate_version_id": 12,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 16,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 5000,
+   "rate_version_id": 12,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 17,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 60000,
+   "rate_version_id": 12,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 18,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 10000,
+   "rate_version_id": 13,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 19,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 2000,
+   "rate_version_id": 13,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 20,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 5000,
+   "rate_version_id": 13,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 21,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 60000,
+   "rate_version_id": 13,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 22,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 10000,
+   "rate_version_id": 14,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 23,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 2000,
+   "rate_version_id": 14,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 24,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 5000,
+   "rate_version_id": 14,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 25,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 60000,
+   "rate_version_id": 14,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 26,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 10000,
+   "rate_version_id": 15,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 27,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 2000,
+   "rate_version_id": 15,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 28,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 5000,
+   "rate_version_id": 15,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 29,
+   "live": true,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 60000,
+   "rate_version_id": 15,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 30,
+   "live": false,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 10000,
+   "rate_version_id": 16,
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 31,
+   "live": false,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 2000,
+   "rate_version_id": 16,
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 32,
+   "live": false,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 5000,
+   "rate_version_id": 16,
+   "vehicle_class_id": "0163c084-ee0c-4ac8-bc54-fb384086501e"
+  },
+  {
+   "dest_zone_id": "be814c7c-9485-4b71-981e-1af0dd9aadac",
+   "id": 33,
+   "live": false,
+   "origin_zone_id": "fd90b175-3571-4c42-91bf-fdf694132cc9",
+   "price_rappen": 60000,
+   "rate_version_id": 16,
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417"
+  }
+ ],
+ "rate_version_rules_city_pair": null,
+ "reviews": [
+  {
+   "author_name": "1",
+   "author_role": "Airport transfer, Zurich",
+   "avatar_path": null,
+   "body": "One verbatim sentence from a real review sits here — pasted from the platform, never rewritten.",
+   "booking_id": null,
+   "created_at": "2026-08-24T16:38:18.661342+00:00",
+   "external_ref": "rv-1",
+   "id": "24c57923-f9eb-4f55-817c-1b677a32f399",
+   "locked": true,
+   "photo_path": null,
+   "published": true,
+   "rating": 5,
+   "rating_chauffeur": null,
+   "rating_company": null,
+   "rating_overall": null,
+   "route_label": "ZRH → Zurich city",
+   "sort_order": 1,
+   "source": "google",
+   "source_url": "https://iconscout.com/icons/tripadvisor",
+   "updated_at": "2026-10-11T18:10:40.421706+00:00",
+   "vehicle_class_id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089",
+   "verified": true
+  },
+  {
+   "author_name": "First L.",
+   "author_role": "Ski transfer, Zermatt",
+   "avatar_path": null,
+   "body": "Two or three sentences is the length this block is drawn for. Longer reviews are cut at the end and marked with an ellipsis; nothing inside the quote is edited, reordered or tidied up.",
+   "booking_id": null,
+   "created_at": "2026-08-24T16:38:18.661342+00:00",
+   "external_ref": "rv-2",
+   "id": "ac6cce5c-29f5-45e9-9ada-22ab14938115",
+   "locked": true,
+   "photo_path": null,
+   "published": true,
+   "rating": 5,
+   "rating_chauffeur": null,
+   "rating_company": null,
+   "rating_overall": null,
+   "route_label": "ZRH → Zermatt",
+   "sort_order": 2,
+   "source": "tripadvisor",
+   "source_url": null,
+   "updated_at": "2026-09-20T13:25:52.482457+00:00",
+   "vehicle_class_id": "32d2f4f4-1f09-4701-bc75-922899d68417",
+   "verified": true
+  },
+  {
+   "author_name": "First L.",
+   "author_role": "Corporate account",
+   "avatar_path": null,
+   "body": "This is about the longest excerpt the measure holds before it is trimmed. A review that runs past it keeps its opening and loses only its tail, so the words a traveller chose first are the words that show…",
+   "booking_id": null,
+   "created_at": "2026-08-24T16:38:18.661342+00:00",
+   "external_ref": "rv-3",
+   "id": "1796e2e0-7aa9-4a28-9cd7-209f18f8ad5c",
+   "locked": true,
+   "photo_path": null,
+   "published": true,
+   "rating": 5,
+   "rating_chauffeur": null,
+   "rating_company": null,
+   "rating_overall": null,
+   "route_label": "Zurich → Basel EuroAirport",
+   "sort_order": 3,
+   "source": "trustpilot",
+   "source_url": null,
+   "updated_at": "2026-09-20T13:25:52.70132+00:00",
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd",
+   "verified": true
+  },
+  {
+   "author_name": "First L.",
+   "author_role": "Airport pickup, ZRH",
+   "avatar_path": null,
+   "body": "German reviews land here too. Strings grow around 30 per cent and the block takes it without the card reflowing.",
+   "booking_id": null,
+   "created_at": "2026-08-24T16:38:18.661342+00:00",
+   "external_ref": "rv-4",
+   "id": "b527e8e6-2e31-4bf2-bb1d-6ad5d2acc277",
+   "locked": true,
+   "photo_path": null,
+   "published": true,
+   "rating": 5,
+   "rating_chauffeur": null,
+   "rating_company": null,
+   "rating_overall": null,
+   "route_label": "ZRH → Zurich city",
+   "sort_order": 4,
+   "source": "google",
+   "source_url": null,
+   "updated_at": "2026-09-20T13:25:52.831893+00:00",
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd",
+   "verified": true
+  },
+  {
+   "author_name": "First L.",
+   "author_role": "Chauffeur by the hour",
+   "avatar_path": null,
+   "body": "Whichever platform a review came from, that platform’s own mark sits at the top of the card — one review, one source, no borrowed logos.",
+   "booking_id": null,
+   "created_at": "2026-08-24T16:38:18.661342+00:00",
+   "external_ref": "rv-5",
+   "id": "00fb5084-dd0b-4b88-a834-da38127b09bd",
+   "locked": false,
+   "photo_path": null,
+   "published": true,
+   "rating": 5,
+   "rating_chauffeur": null,
+   "rating_company": null,
+   "rating_overall": null,
+   "route_label": "Zurich, four hours",
+   "sort_order": 5,
+   "source": "manual",
+   "source_url": null,
+   "updated_at": "2026-09-20T13:25:53.155205+00:00",
+   "vehicle_class_id": "64147cf7-2927-481e-9788-d5fdb1ad65dd",
+   "verified": false
+  }
+ ],
+ "vehicle_classes": [
+  {
+   "active": false,
+   "hidden_at": null,
+   "hidden_reason": null,
+   "id": "64147cf7-2927-481e-9788-d5fdb1ad65dd",
+   "luggage_capacity": 4,
+   "name": "Business",
+   "passenger_capacity": 4,
+   "photo_path": "classes/64147cf7-2927-481e-9788-d5fdb1ad65dd/brand.jpg",
+   "slug": "business",
+   "sort_order": 2
+  },
+  {
+   "active": false,
+   "hidden_at": null,
+   "hidden_reason": null,
+   "id": "87b8ede8-365e-4a44-8c08-1dc5bfeaf089",
+   "luggage_capacity": 3,
+   "name": "Economy",
+   "passenger_capacity": 4,
+   "photo_path": "classes/841038a7-9ff2-406b-98c2-5c626a756904/ca880b6f-7e97-4a7a-a79e-2adc833d95da.png",
+   "slug": "economy",
+   "sort_order": 1
+  },
+  {
+   "active": false,
+   "hidden_at": null,
+   "hidden_reason": null,
+   "id": "0163c084-ee0c-4ac8-bc54-fb384086501e",
+   "luggage_capacity": 3,
+   "name": "First",
+   "passenger_capacity": 4,
+   "photo_path": "classes/0163c084-ee0c-4ac8-bc54-fb384086501e/brand.jpg",
+   "slug": "first",
+   "sort_order": 3
+  },
+  {
+   "active": false,
+   "hidden_at": null,
+   "hidden_reason": null,
+   "id": "ff1a5aa5-fffe-4383-b1eb-a41c232728c7",
+   "luggage_capacity": 4,
+   "name": "mahaha",
+   "passenger_capacity": 4,
+   "photo_path": "classes/ff1a5aa5-fffe-4383-b1eb-a41c232728c7/dcfa6d98-0197-49ae-9a7c-53a5b1e53f08.png",
+   "slug": "mahaha",
+   "sort_order": 0
+  },
+  {
+   "active": false,
+   "hidden_at": null,
+   "hidden_reason": null,
+   "id": "32d2f4f4-1f09-4701-bc75-922899d68417",
+   "luggage_capacity": 8,
+   "name": "Van",
+   "passenger_capacity": 7,
+   "photo_path": "classes/32d2f4f4-1f09-4701-bc75-922899d68417/brand.jpg",
+   "slug": "van",
+   "sort_order": 4
+  }
+ ]
+}
