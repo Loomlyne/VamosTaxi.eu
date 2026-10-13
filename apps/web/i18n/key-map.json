@@ -960,7 +960,6 @@
   "Ref": "common.ref",
   "Reference, name, phone or address": "ops.reference-name-phone-or-address",
   "Reference, place or class": "account.reference-place-or-class",
-  "Refund · waiting on review": "account.refund-waiting-on-review",
   "Refund due": "ops.refund-due",
   "Refunded to the card you paid with. Or take the full value as a voucher instead — see section": "legal.refunded-to-the-card-you-paid-with-or-take-the-f",
   "Refunds only ever go back to this card. If it is gone, call us and we will sort it out.": "common.refunds-only-ever-go-back-to-this-card-if-it-is",
