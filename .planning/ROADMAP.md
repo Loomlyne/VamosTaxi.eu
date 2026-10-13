@@ -1227,13 +1227,13 @@ Plans:
 **Decisions:** `.planning/decisions/2026-10-12-refunds-in-stripe.md` (signed 2026-10-12); context `.planning/phases/31-refunds-in-stripe/31-CONTEXT.md`
 **Requirements**: R31-01, R31-02, R31-03, R31-04, R31-05, R31-06, R31-07, R31-08, R31-09, R31-10
 **Depends on:** Phase 29 (no code dependency on Phase 30; shares only `app/vamos-i18n-dict.js`)
-**Plans:** 3/13 plans executed (4 waves; owner answered every gate 2026-10-13)
+**Plans:** 4/13 plans executed (4 waves; owner answered every gate 2026-10-13)
 
 Plans:
 - [x] 31-01-PLAN.md — Stripe Dashboard URL builder, admin GET /stripe-payments on both mounts, STRIPE_ACCOUNT_ID declared (wave 1)
 - [x] 31-02-PLAN.md — remove the site-sent refund (refund.ts, refund/refund-decision routes, parsers); webhook and duplicate path untouched (wave 1)
 - [x] 31-03-PLAN.md — refund_check_reader migration + pgTAP + types, gated on the migration number (wave 1)
-- [ ] 31-04-PLAN.md — customer refund mail sender, gated on the owner's copy signature (wave 1)
+- [x] 31-04-PLAN.md — customer refund mail sender, gated on the owner's copy signature (wave 1)
 - [ ] 31-05-PLAN.md — webhook sends the customer mail on 'recorded' only; sweep retries kind 'refund' (wave 2)
 - [ ] 31-06-PLAN.md — nightly read-only refund check at 03:00 UTC, English mail to info@ (wave 2)
 - [ ] 31-07-PLAN.md — customer cancel answers and cancelled booking reads carry no refund amount (wave 1)
