@@ -40,17 +40,20 @@ vi.mock("@/lib/ops/edit-request", () => ({
   }),
   writeCustomerFlightNo: async () => ({ ok: true, bookingId: BOOKING_ID, flightNo: "LX318" }),
 }));
-vi.mock("@/lib/lifecycle/paid-cancel", () => ({
-  paidCancelCustomer: async () => ({
+// Phase 31 D-04: a cancel answer carries no refund amount. The library result no longer has one; the
+// stray `refundRappen` below stands for a library that leaks it again, and the routes must still not echo it.
+vi.mock("@/lib/lifecycle/paid-cancel", () => {
+  const cancelled = async () => ({
     ok: true,
     bookingId: BOOKING_ID,
     refundMode: "auto",
     refundStatus: "pending",
-    refundRappen: 0,
+    refundRappen: 4000,
     payoutCountry: null,
     availableOn: null,
-  }),
-}));
+  });
+  return { paidCancelCustomer: cancelled, paidCancelGuest: cancelled };
+});
 vi.mock("@/lib/db/system-reads", () => ({
   loadManageReviewState: async () => ({ review_submitted: false, price_total_rappen: 0 }),
 }));
@@ -105,6 +108,7 @@ import { POST as accountTimeChange } from "../../app/api/account/bookings/time-c
 import { POST as manageFlight } from "../../app/api/manage/flight/route";
 import { POST as accountFlight } from "../../app/api/account/bookings/flight/route";
 import { POST as accountPaidCancel } from "../../app/api/account/bookings/paid-cancel/route";
+import { POST as manageCancel } from "../../app/api/manage/cancel/route";
 import { POST as reviewSubmit } from "../../app/api/reviews/submit/route";
 
 function post(path: string, body: unknown): Request {
@@ -202,11 +206,15 @@ describe("guest and customer booking answers carry no internal id (exact keys)",
     noUuid(body);
   });
 
-  it("POST /api/account/bookings/paid-cancel: refund fields only (no bookingId)", async () => {
+  it("POST /api/account/bookings/paid-cancel: refund status only (no bookingId, no amount: Phase 31 D-04)", async () => {
     const body = await okBody(await accountPaidCancel(post("/api/account/bookings/paid-cancel", { ref: REF })));
-    expect(keys(body)).toStrictEqual(
-      ["availableOn", "ok", "payoutCountry", "refundMode", "refundRappen", "refundStatus"].sort(),
-    );
+    expect(keys(body)).toStrictEqual(["availableOn", "ok", "payoutCountry", "refundMode", "refundStatus"].sort());
+    noUuid(body);
+  });
+
+  it("POST /api/manage/cancel: refund status only (no bookingId, no amount: Phase 31 D-04)", async () => {
+    const body = await okBody(await manageCancel(post("/api/manage/cancel", { ref: REF })));
+    expect(keys(body)).toStrictEqual(["availableOn", "ok", "payoutCountry", "refundMode", "refundStatus"].sort());
     noUuid(body);
   });
 
