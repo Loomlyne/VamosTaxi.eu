@@ -13,6 +13,23 @@ import type { EmailLocale } from "./lib/types";
 
 const LOCALES: EmailLocale[] = ["en", "de", "fr", "ar"];
 
+/** The four-language rows under a "### Wn" heading of the signed Phase 31 wording file. */
+function signedTable(tag: string): Record<EmailLocale, string> {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const src = readFileSync(join(here, "../../../.planning/decisions/2026-10-12-refund-wording-signed.md"), "utf8");
+  const start = src.indexOf(`### ${tag} `);
+  expect(start, `${tag} heading`).toBeGreaterThan(-1);
+  const next = src.indexOf("\n#", start + 4);
+  const block = src.slice(start, next === -1 ? undefined : next);
+  const out: Partial<Record<EmailLocale, string>> = {};
+  for (const lang of LOCALES) {
+    const m = block.match(new RegExp(`^\\| ${lang} \\| (.+) \\|$`, "m"));
+    expect(m, `${tag} ${lang}`).not.toBeNull();
+    out[lang] = m![1];
+  }
+  return out as Record<EmailLocale, string>;
+}
+
 function payload(locale: EmailLocale, kind: OpsMustFixForEmail["kind"] = "off-road"): OpsMustFixForEmail {
   return {
     locale,
@@ -127,24 +144,25 @@ describe("OpsMustFixEmail paid-after-cancel", () => {
   });
 });
 
-// 261002 settle safety: T1, signed by the owner 2026-10-02, word for word.
+// 261002 settle safety: T1 signed 2026-10-02; action sentence changed by Phase 31 D-08, 2026-10-12
+// (accepted by the owner 2026-10-13, S-09). Word for word; W4 of 2026-10-12-refund-wording-signed.md.
 describe("OpsMustFixEmail difference-not-applied (T1)", () => {
   const T1: Record<EmailLocale, { headline: string; body: string }> = {
     en: {
       headline: "Difference paid, change not applied",
-      body: "The customer paid the difference for this booking, but the change was not applied: the trip was cancelled, a newer change replaced it, or it no longer fits. The payment is recorded and shows as Refund due. Send it back from the dashboard, or make the change again.",
+      body: "The customer paid the difference for this booking, but the change was not applied: the trip was cancelled, a newer change replaced it, or it no longer fits. The payment is recorded. Refund it in Stripe, or make the change again.",
     },
     de: {
       headline: "Differenz bezahlt, Änderung nicht übernommen",
-      body: "Der Kunde hat die Differenz für diese Buchung bezahlt, aber die Änderung wurde nicht übernommen: Die Fahrt wurde storniert, eine neuere Änderung hat sie ersetzt, oder sie passt nicht mehr. Die Zahlung ist verbucht und erscheint als fällige Rückerstattung. Senden Sie sie im Dashboard zurück oder nehmen Sie die Änderung erneut vor.",
+      body: "Der Kunde hat die Differenz für diese Buchung bezahlt, aber die Änderung wurde nicht übernommen: Die Fahrt wurde storniert, eine neuere Änderung hat sie ersetzt, oder sie passt nicht mehr. Die Zahlung ist verbucht. Erstatten Sie sie in Stripe oder nehmen Sie die Änderung erneut vor.",
     },
     fr: {
       headline: "Différence payée, modification non appliquée",
-      body: "Le client a payé la différence pour cette réservation, mais la modification n’a pas été appliquée : le trajet a été annulé, une modification plus récente l’a remplacée, ou elle ne convient plus. Le paiement est enregistré et apparaît comme remboursement dû. Renvoyez-le depuis le tableau de bord ou refaites la modification.",
+      body: "Le client a payé la différence pour cette réservation, mais la modification n’a pas été appliquée : le trajet a été annulé, une modification plus récente l’a remplacée, ou elle ne convient plus. Le paiement est enregistré. Remboursez-le dans Stripe ou refaites la modification.",
     },
     ar: {
       headline: "دُفع الفرق ولم يُطبَّق التغيير",
-      body: "دفع العميل الفرق لهذا الحجز، لكن التغيير لم يُطبَّق: أُلغيت الرحلة، أو حلّ محله تغيير أحدث، أو لم يعد مناسبًا. الدفعة مسجّلة وتظهر كاسترداد مستحق. أعِدها من لوحة التحكم، أو أجرِ التغيير مرة أخرى.",
+      body: "دفع العميل الفرق لهذا الحجز، لكن التغيير لم يُطبَّق: أُلغيت الرحلة، أو حلّ محله تغيير أحدث، أو لم يعد مناسبًا. الدفعة مسجّلة. نفّذ الاسترداد في Stripe، أو أجرِ التغيير مرة أخرى.",
     },
   };
 
@@ -179,6 +197,63 @@ describe("OpsMustFixEmail difference-not-applied (T1)", () => {
 
   it("subject carries the reference", () => {
     expect(opsMustFixSubject(differencePayload("de"))).toContain("VT-30003");
+  });
+
+  const OLD_ACTION: Record<EmailLocale, string> = {
+    en: "Send it back from the dashboard",
+    de: "Senden Sie sie im Dashboard zurück",
+    fr: "Renvoyez-le depuis le tableau de bord",
+    ar: "أعِدها من لوحة التحكم",
+  };
+
+  it.each(LOCALES)("%s: the old dashboard action sentence is gone", (locale) => {
+    expect(opsMustFixPlainText(differencePayload(locale))).not.toContain(OLD_ACTION[locale]);
+  });
+
+  it.each(LOCALES)("%s: the body is W4 of the signed wording file", (locale) => {
+    expect(signedTable("W4")[locale]).toBe(T1[locale].body);
+  });
+});
+
+// Phase 31 D-08 / R31-09 (accepted 2026-10-13, S-09): the refund-failed must-fix mail points to Stripe.
+// W5 of 2026-10-12-refund-wording-signed.md. refundFailed.body (the other mail) is unchanged.
+describe("OpsMustFixEmail refund-failed body (Phase 31 W5)", () => {
+  const BODY: Record<EmailLocale, string> = {
+    en: "Stripe reported a refund as failed after it was recorded. Open the payment in Stripe to try again.",
+    de: "Stripe hat eine bereits verbuchte Rückerstattung als fehlgeschlagen gemeldet. Öffnen Sie die Zahlung in Stripe, um es erneut zu versuchen.",
+    fr: "Stripe a signalé comme échoué un remboursement déjà enregistré. Ouvrez le paiement dans Stripe pour réessayer.",
+    ar: "أبلغت Stripe عن فشل استرداد سبق تسجيله. افتح الدفعة في Stripe لإعادة المحاولة.",
+  };
+  const OLD_ACTION: Record<EmailLocale, string> = {
+    en: "send the refund again",
+    de: "senden Sie die Rückerstattung erneut",
+    fr: "renvoyez le remboursement",
+    ar: "أعد إرسال الاسترداد",
+  };
+  function failedPayload(locale: EmailLocale): OpsMustFixForEmail {
+    return {
+      locale,
+      kind: "refund-failed",
+      trips: [{ reference: "VT-40005", pickupText: "", dropoffText: "", scheduledLocal: "" }],
+      detail: { eventId: "evt_rf_1", eventType: "refund.failed", objectId: "re_rf_1" },
+    };
+  }
+
+  it.each(LOCALES)("%s: plain text carries the new body and not the old action", (locale) => {
+    const text = opsMustFixPlainText(failedPayload(locale));
+    expect(text).toContain(BODY[locale]);
+    expect(text).not.toContain(OLD_ACTION[locale]);
+    expect(text).not.toContain("dashboard");
+  });
+
+  it.each(LOCALES)("%s: the body is W5 of the signed wording file", (locale) => {
+    expect(signedTable("W5")[locale]).toBe(BODY[locale]);
+  });
+
+  it("refundFailed.body stays 'The trip stays cancelled. Retry the refund in Stripe.'", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const en = JSON.parse(readFileSync(join(here, "messages/en.json"), "utf8")) as { refundFailed: { body: string } };
+    expect(en.refundFailed.body).toBe("The trip stays cancelled. Retry the refund in Stripe.");
   });
 });
 
