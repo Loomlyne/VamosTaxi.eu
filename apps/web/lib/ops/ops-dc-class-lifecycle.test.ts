@@ -351,3 +351,201 @@ describe("source rules (plan 08)", () => {
     expect(SRC).toContain('aria-haspopup');
   });
 });
+
+describe("Retire dialog: facts, warning, reason and result", () => {
+  const retireRow = (id: string, extra: Json = {}) => [
+    { id: "c-sedan", name: "Economy Sedan", status: "live", unassignedPaidTrips: 0 },
+    { id: "c-van", name: "Economy Van", status: "draft", unassignedPaidTrips: 0 },
+    ...[],
+  ].map((r) => (r.id === id ? { ...r, ...extra } : r));
+  const chauf = (n: number, cls = "c-sedan") => Array.from({ length: n }, (_, i) => ({ id: `d${i}`, vehicleClassId: cls }));
+  const open = (p: ReturnType<typeof page>, id = "c-sedan") => {
+    p.comp.askRetire({ vehicleClassId: id, klass: "Economy Sedan" });
+    return p.vals();
+  };
+
+  it("opens only from a row that has a class id, with the class name", () => {
+    const p = page();
+    p.comp.askRetire({ klass: "x" });
+    expect(p.vals().retireOpen).toBe(false);
+    const v = open(p);
+    expect(v.retireOpen).toBe(true);
+    expect(v.retireClassName).toBe("Economy Sedan");
+  });
+
+  it("the table's delete paths all open Retire (no removed function)", () => {
+    const p = page();
+    p.vals().deleteDistance("r1", { vehicleClassId: "c-sedan", klass: "Economy Sedan" });
+    expect(p.vals().retireOpen).toBe(true);
+  });
+
+  it("trips line (R1) is hidden when unassignedPaidTrips is 0 or missing", () => {
+    for (const extra of [{ unassignedPaidTrips: 0 }, { unassignedPaidTrips: undefined }, { unassignedPaidTrips: null }]) {
+      const p = page({ rows: retireRow("c-sedan", extra) });
+      expect(open(p).retireUnassignedShow, JSON.stringify(extra)).toBe(false);
+    }
+  });
+
+  it("trips line reads the signed one/many wording in en, de and fr", () => {
+    const want = {
+      en: ["paid trip ahead has no chauffeur yet", "paid trips ahead have no chauffeur yet"],
+      de: ["kommende bezahlte Fahrt hat noch keinen Chauffeur", "kommende bezahlte Fahrten haben noch keinen Chauffeur"],
+      fr: ["course payée à venir n’a pas encore de chauffeur", "courses payées à venir n’ont pas encore de chauffeur"],
+    } as const;
+    for (const lang of ["en", "de", "fr"] as const) {
+      const one = open(page({ lang, rows: retireRow("c-sedan", { unassignedPaidTrips: 1 }) }));
+      expect([one.retireUnassignedShow, one.retireUnassignedN, one.retireUnassignedWords, one.retireUnassignedNumShow]).toEqual([true, "1", want[lang][0], true]);
+      const two = open(page({ lang, rows: retireRow("c-sedan", { unassignedPaidTrips: 2 }) }));
+      expect([two.retireUnassignedN, two.retireUnassignedWords]).toEqual(["2", want[lang][1]]);
+    }
+    expect(page().T.en.retireUnassignedOne).toBe("paid trip ahead has no chauffeur yet");
+  });
+
+  it("trips line in Arabic: five forms, number span only from 3 up", () => {
+    const want: Record<number, string> = {
+      1: "رحلة واحدة مدفوعة قادمة بلا سائق بعد",
+      2: "رحلتان مدفوعتان قادمتان بلا سائق بعد",
+      5: "رحلات مدفوعة قادمة بلا سائق بعد",
+      11: "رحلةً مدفوعةً قادمةً بلا سائق بعد",
+      100: "رحلة مدفوعة قادمة بلا سائق بعد",
+    };
+    for (const [n, words] of Object.entries(want)) {
+      const v = open(page({ lang: "ar", rows: retireRow("c-sedan", { unassignedPaidTrips: Number(n) }) }));
+      expect(v.retireUnassignedWords, `n=${n}`).toBe(words);
+      expect(v.retireUnassignedNumShow, `n=${n}`).toBe(Number(n) >= 3);
+      expect(v.retireUnassignedN).toBe(n);
+    }
+  });
+
+  it("the trips line sits between the chauffeur line and the last-Live warning", () => {
+    const block = SRC.slice(SRC.indexOf('<div data-retire-notes="1">'));
+    const iCount = block.indexOf('data-retire-count="1"');
+    const iTrips = block.indexOf('data-retire-unassigned="1"');
+    const iLast = block.indexOf('data-retire-lastlive="1"');
+    expect(iCount).toBeGreaterThan(-1);
+    expect(iTrips).toBeGreaterThan(iCount);
+    expect(iLast).toBeGreaterThan(iTrips);
+  });
+
+  it("chauffeur count line: hidden at 0 and while the list is not loaded; one/many in en, de, fr", () => {
+    expect(open(page({ chauffeurs: [] })).retireCountShow).toBe(false);
+    const want = {
+      en: ["chauffeur is on this class", "chauffeurs are on this class"],
+      de: ["Chauffeur ist in dieser Klasse", "Chauffeure sind in dieser Klasse"],
+      fr: ["chauffeur est dans cette classe", "chauffeurs sont dans cette classe"],
+    } as const;
+    for (const lang of ["en", "de", "fr"] as const) {
+      const one = open(page({ lang, chauffeurs: chauf(1) }));
+      expect([one.retireCountShow, one.retireCountN, one.retireCountWords]).toEqual([true, "1", want[lang][0]]);
+      const two = open(page({ lang, chauffeurs: chauf(2) }));
+      expect([two.retireCountN, two.retireCountWords]).toEqual(["2", want[lang][1]]);
+    }
+    // chauffeurs of another class do not count
+    expect(open(page({ chauffeurs: chauf(3, "c-van") })).retireCountShow).toBe(false);
+  });
+
+  it("chauffeur count line in Arabic: forms 1, 2, 5, 11, 100", () => {
+    const want: Record<number, string> = {
+      1: "سائق واحد في هذه الفئة", 2: "سائقان في هذه الفئة", 5: "سائقين في هذه الفئة", 11: "سائقًا في هذه الفئة", 100: "سائق في هذه الفئة",
+    };
+    for (const [n, words] of Object.entries(want)) {
+      const v = open(page({ lang: "ar", chauffeurs: chauf(Number(n)) }));
+      expect(v.retireCountWords, `n=${n}`).toBe(words);
+      expect(v.retireCountNumShow).toBe(Number(n) >= 3);
+    }
+  });
+
+  it("last-Live warning only for the last Live class, never blocks RETIRE", () => {
+    const lastLive = [
+      { id: "c-sedan", name: "Economy Sedan", status: "live" },
+      { id: "c-van", name: "Economy Van", status: "draft" },
+    ];
+    expect(open(page({ rows: lastLive })).retireLastLiveShow).toBe(true);
+    // a Draft class never shows it
+    expect(open(page({ rows: lastLive }), "c-van").retireLastLiveShow).toBe(false);
+    // another Live class exists
+    const two = [...lastLive, { id: "c-x", name: "X", status: "live" }];
+    expect(open(page({ rows: two })).retireLastLiveShow).toBe(false);
+    // RETIRE is enabled with the warning showing
+    const p = page({ rows: lastLive });
+    const v = open(p);
+    expect(v.retireLastLiveShow).toBe(true);
+    expect(v.retireBusy).toBe(false);
+    expect(SRC).toMatch(/<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1\.Button"[^>]*onClick="\{\{ submitRetire \}\}" disabled="\{\{ retireBusy \}\}"/);
+  });
+
+  it("the reason is capped at 140 characters (attribute and handler) with a live counter", () => {
+    expect(SRC).toContain('max-length="{{ retireReasonMax }}"');
+    const p = page();
+    open(p);
+    p.comp.setRetireReason({ target: { value: "x".repeat(200) } });
+    const v = p.vals();
+    expect(v.retireReasonMax).toBe(140);
+    expect(p.comp.state.retireReason.length).toBe(140);
+    expect(v.retireReasonCount).toBe("140 / 140");
+  });
+
+  it("RETIRE calls retireClass(id, trimmed reason or null) and closes on success", async () => {
+    const p = page();
+    open(p);
+    p.comp.setRetireReason("  No longer offered  ");
+    p.comp.submitRetire();
+    expect(p.vals().retireBusy).toBe(true);
+    expect(p.vals().retireSubmitLabel).toBe(p.T.en.retiring);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(p.calls.retire).toEqual([["c-sedan", "No longer offered"]]);
+    expect(p.vals().retireOpen).toBe(false);
+    expect(p.comp._pendingFocus).toEqual({ sel: "[data-retired-head]" });
+
+    const q = page();
+    open(q);
+    q.comp.submitRetire();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(q.calls.retire).toEqual([["c-sedan", null]]);
+  });
+
+  for (const lang of LANGS) {
+    it(`${lang}: a refused RETIRE shows the error, keeps the reason and re-enables the buttons`, async () => {
+      const p = page({ lang, retireAnswer: { ok: false, code: "not-admin" } });
+      open(p);
+      p.comp.setRetireReason("Because");
+      p.comp.submitRetire();
+      await new Promise((r) => setTimeout(r, 0));
+      const v = p.vals();
+      expect(v.retireOpen).toBe(true);
+      expect(v.retireErrorText).toBe(p.T[lang].retireError);
+      expect(v.retireReason).toBe("Because");
+      expect(v.retireBusy).toBe(false);
+    });
+  }
+
+  it("CANCEL and Escape-style close do nothing while saving", () => {
+    const p = page();
+    open(p);
+    p.comp.state = { ...p.comp.state, retireBusy: true };
+    p.comp.closeRetire();
+    expect(p.vals().retireOpen).toBe(true);
+    p.comp.state = { ...p.comp.state, retireBusy: false };
+    p.comp.closeRetire();
+    expect(p.vals().retireOpen).toBe(false);
+  });
+
+  it("the old delete/hide dialog is gone from the source", () => {
+    for (const bad of ["hideConflict", "deleteClassTitle", "hideWithReason", "deleteClassRow", "ops.deleteClass", "tDeleteClass", "hideTarget"]) {
+      expect(SRC, bad).not.toContain(bad);
+    }
+  });
+
+  it("the class table carries footDelete, actionsGap, tapArea and the Retire row icon", () => {
+    const tag = SRC.match(/<dc-import name="OpsTable"[^>]*rows="\{\{ distanceRows \}\}"[^>]*>/)?.[0] ?? "";
+    expect(tag).toContain('footDelete="{{ no }}"');
+    expect(tag).toContain("actionsGap=");
+    expect(tag).toContain('tapArea="{{ yes }}"');
+    expect(tag).toContain('delete-icon="eye-off"');
+    expect(tag).toContain('onAskDelete="{{ askRetire }}"');
+    const v = page().vals();
+    expect(v.no).toBe(false);
+    expect(v.n12).toBe(12);
+    expect(v.tRetire).toBe("Retire");
+  });
+});
