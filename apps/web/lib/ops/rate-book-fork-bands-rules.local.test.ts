@@ -3,15 +3,17 @@
 // Owner-signed pricing fix (decision 2026-10-13 item 2, finding D-30-03-1): `forkLiveRateVersion` on a real
 // local database, through the real Worker client (asStaff: login `vamos_edge`, role vamos_staff,
 // `fetch_types: false`). A new price book copied from a source book carries every distance band (with a
-// class and without) and every rate_version_rules row, and a staff session reads them back.
+// class and without), every rate_version_rules row and every region premium, and a staff session reads
+// them back. The real Discard route then removes that new draft, region premiums included.
 //
-// Before migration 20261012250000 these two tables had only RESTRICTIVE policies for vamos_staff, so a staff
-// session read zero rows and the fork copied none of them. This test uses NO temporary policy: it relies on
-// that migration being applied to the lab.
+// Before migration 20261012250000 these three tables had only RESTRICTIVE policies for vamos_staff, so a
+// staff session read zero rows, the fork copied none of them, and Discard of a draft with region premiums
+// hit their foreign key. This test uses NO temporary policy: it relies on that migration being applied to
+// the lab. Only the admin session check and the extras prune are replaced.
 //
 // Skipped unless VAMOS_LOCAL_DB_PORT names a DISPOSABLE local stack (the test lab). It commits rows (one
-// staff user, one private draft source book, the new draft book, two classes) on that throwaway stack only,
-// and removes the books and classes afterwards: a leftover draft would be the "newest draft" every later lab run previews
+// staff user, one private draft source book, the new draft book, two classes, one zone) on that throwaway
+// stack only, and removes the books, classes and zone afterwards: a leftover draft would be the "newest draft" every later lab run previews
 // and saves into. Synthetic integer rappen only.
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { workerSql } from "../../../../packages/db/test/support/worker-client";
@@ -27,11 +29,25 @@ const tag = Math.random().toString(16).slice(2, 10).padEnd(8, "0");
 const adminId = `${tag}-0000-4000-a000-0000000000c2`;
 const STAFF = { sub: adminId, role: "authenticated", aal: "aal2", app_metadata: { vamos_role: "admin" } } as VamosClaims;
 
+vi.mock("@/lib/ops/staff-json", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/ops/staff-json")>();
+  return {
+    ...actual,
+    withAdmin: (handler: (claims: unknown, request: Request) => Promise<Response> | Response) => (request: Request) =>
+      handler(STAFF, request),
+  };
+});
+vi.mock("@/lib/ops/rate-book", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/ops/rate-book")>();
+  return { ...actual, pruneExtraLabels: async () => undefined };
+});
+
 describe.skipIf(!PORT)("a new price book keeps every distance band and rule of its source (local lab)", () => {
   let su!: ReturnType<typeof workerSql>;
   const env = () => ctx.env as unknown as CloudflareEnv;
   const books: string[] = [];
   const classes: string[] = [];
+  const zones: string[] = [];
 
   beforeAll(async () => {
     su = workerSql(`postgres://postgres:postgres@127.0.0.1:${PORT}/postgres`);
@@ -52,6 +68,7 @@ describe.skipIf(!PORT)("a new price book keeps every distance band and rule of i
       }
       if (books.length) await su`delete from public.rate_versions where id::text in ${su(books)}`;
       if (classes.length) await su`delete from public.vehicle_classes where id::text in ${su(classes)}`;
+      if (zones.length) await su`delete from public.service_zones where id::text in ${su(zones)}`;
       // The staff user stays: audit_log is append-only and references it (as publish-label leaves its own).
     }
     await su?.end({ timeout: 5 });
@@ -81,6 +98,10 @@ describe.skipIf(!PORT)("a new price book keeps every distance band and rule of i
              values (${src}, null, 50, 200, 7)`;
     await su`insert into public.rate_version_rules (rate_version_id, kind, payload)
              values (${src}, 'waiting', '{}'::jsonb)`;
+    const zone = (await su<{ id: string }[]>`
+      insert into public.service_zones (slug) values (${`fb-zone-${tag}`}) returning id::text as id`)[0]!.id;
+    zones.push(zone);
+    await su`insert into public.region_premiums (rate_version_id, zone_id, percent) values (${src}, ${zone}, 5)`;
 
     const { forkLiveRateVersion, loadQuoteBookDocForVersion } = await import("@/lib/ops/rate-book");
     const { asStaff } = await import("@/lib/db/identity");
@@ -110,5 +131,22 @@ describe.skipIf(!PORT)("a new price book keeps every distance band and rule of i
       tx<{ n: number }[]>`select count(*)::int as n from public.rate_version_rules where rate_version_id = ${draftId}`,
     );
     expect(seen[0]!.n).toBe(3);
+
+    type Premium = { zone: string; percent: string };
+    const premiumsOf = (id: string | number) => su<Premium[]>`
+      select zone_id::text as zone, percent::text as percent from public.region_premiums where rate_version_id = ${id}`;
+    expect(await premiumsOf(draftId)).toEqual([{ zone, percent: "5.00" }]);
+    const seenPremiums = await asStaff(env(), STAFF, (tx) =>
+      tx<{ n: number }[]>`select count(*)::int as n from public.region_premiums where rate_version_id = ${draftId}`,
+    );
+    expect(seenPremiums[0]!.n).toBe(1);
+
+    // Discard the new draft through the real route: before the migration its region premium survived the
+    // staff delete and the rate_versions delete failed on the foreign key.
+    const { POST } = await import("@/app/[locale]/(ops)/api/staff/rate-versions/[id]/discard/route");
+    const res = await POST(new Request(`https://dashboard.localhost/api/staff/rate-versions/${draftId}/discard`, { method: "POST" }));
+    expect(await res.json()).toMatchObject({ ok: true });
+    expect(await su`select 1 from public.rate_versions where id = ${draftId}`).toHaveLength(0);
+    expect(await premiumsOf(draftId)).toEqual([]);
   });
 });
