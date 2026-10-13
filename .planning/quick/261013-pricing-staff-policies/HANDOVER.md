@@ -21,6 +21,9 @@ Each is `drop policy if exists` then `create`, so it can run twice. Every existi
 
 ## Verified (clock +04)
 
+Logs named below are gitignored (`*.log`): they exist only in this worktree, `/Users/koss/.t3/worktrees/VamosTaxi.eu/fix-pricing-staff-policies/.planning/quick/261013-pricing-staff-policies/logs/`, until it is removed.
+
+
 - 2026-10-13 23:45: `lab.sh pgtap pricing-pol` PASS, Files=118 Tests=3474 (first version, 25 assertions).
 - 23:46:14: local test passes with the migration. 23:46:27: it **fails** with the two policies dropped on the lab (new draft had 0 bands). 23:46:33: it passes again after re-applying the file verbatim.
 - 2026-10-14 00:08:14 → 00:11:05: `pnpm gate:local` exit=0 at edf958c5 (unit 5972 passed / 53 skipped; db-lab 76 + 11 + 40 passed; the new local test is picked up by the `*.local.test.ts` glob). Log: `logs/gate-local.log`.
