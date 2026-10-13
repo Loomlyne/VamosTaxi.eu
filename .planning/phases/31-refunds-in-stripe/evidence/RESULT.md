@@ -61,3 +61,31 @@ The Refund-row coverage half of C8 is BLOCKED for the same reason as C3. It ran 
 - D12: dictionary lacked "Mark arrival" and had a different fr for "Assign driver" than the dashboard T table (pre-existing); fixed in ec7c148c.
 - C8: cancel-sheet route (place names) was not marked untranslatable (pre-existing); fixed in 4a966216.
 - Gates: check:numbers fixed in 8066fb89; lab.sh quoting of parenthesised paths fixed in 10be254f.
+
+## Run 2 — failed and blocked steps only (one re-run)
+
+Part 1 (2026-10-13 18:36 +04, commit 15f19abe; cut by a Mac restart at about 18:38 after these two steps), `run-2/results-dashboard.json`:
+
+| step | result | evidence |
+|---|---|---|
+| D6 | PASS | refund to check (ci) false; "Refund issued" visible true |
+| D12 | PASS | de/fr/ar: menu 0, region 0 (rows 2), note[Alert] 0 |
+
+Part 2 — vamos-tester reply, verbatim (2026-10-13 23:17 +04, commit 4843dd9c), evidence `run-2/`:
+
+| step | result | evidence | screenshot |
+|---|---|---|---|
+| C3 | PASS | /booking-detail?ref=VT-99-31304; row "REFUND Refund follows the cancellation policy" | C3.png |
+| C4 | PASS | row "المبلغ المسترد الاسترداد وفق سياسة الإلغاء"; scrollWidth 390/390 | C4.png |
+| C5 | PASS | 12 pages read (C1, C2, C6, C8 sheets de/fr/ar, C3, C4, C7, C8 rows de/fr/ar); none contain "Stripe" | (none) |
+| C7 | PASS | row "REFUND Refund follows the cancellation policy"; scrollWidth 768/768 | C7.png |
+| C8 | PASS | cancel sheet of (a) coverage: de 0, fr 0, ar 0 | C8-sheet-de.png, C8-sheet-fr.png, C8-sheet-ar.png |
+| C8 (Refund row, step id C8b) | PASS | Refund row of (d) coverage: de 0 "Rückerstattung gemäss Stornierungsbedingungen"; fr 0 "Remboursement selon la politique d’annulation"; ar 0 "الاسترداد وفق سياسة الإلغاء" | C8-row-de.png, C8-row-fr.png, C8-row-ar.png |
+
+Gates (`scripts/test-lab/lab.sh gates`, `run-2/gates.log`): typecheck, eslint (75 changed files), i18n:check (2698 keys), check:numbers, check:db-fences (8 checks, 1289 files), check:legal-claims, vitest:apps/web, vitest:packages/db, vitest:packages/emails: all PASS.
+
+Not re-run (results from run 1): D1-D5, D7-D11 (PASS), C1, C2, C6 (PASS). D9 request log is from run 1.
+
+## Final per-step result
+
+D1 PASS · D2 PASS · D3 PASS · D4 PASS · D5 PASS · D6 PASS (run 2) · D7 PASS · D8 PASS · D9 PASS · D10 PASS · D11 PASS · D12 PASS (run 2) · C1 PASS · C2 PASS · C3 PASS (run 2) · C4 PASS (run 2) · C5 PASS (run 2) · C6 PASS · C7 PASS (run 2) · C8 PASS (run 2, both halves).

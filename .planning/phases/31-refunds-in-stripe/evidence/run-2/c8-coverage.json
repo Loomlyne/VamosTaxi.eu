@@ -1,0 +1,41 @@
+[
+ {
+  "lang": "de",
+  "target": "cancel sheet (a)",
+  "count": 0,
+  "strings": []
+ },
+ {
+  "lang": "fr",
+  "target": "cancel sheet (a)",
+  "count": 0,
+  "strings": []
+ },
+ {
+  "lang": "ar",
+  "target": "cancel sheet (a)",
+  "count": 0,
+  "strings": []
+ },
+ {
+  "lang": "de",
+  "target": "refund row (d)",
+  "count": 0,
+  "strings": [],
+  "text": "RÜCKERSTATTUNG Rückerstattung gemäss Stornierungsbedingungen"
+ },
+ {
+  "lang": "fr",
+  "target": "refund row (d)",
+  "count": 0,
+  "strings": [],
+  "text": "REMBOURSEMENT Remboursement selon la politique d’annulation"
+ },
+ {
+  "lang": "ar",
+  "target": "refund row (d)",
+  "count": 0,
+  "strings": [],
+  "text": "المبلغ المسترد الاسترداد وفق سياسة الإلغاء"
+ }
+]
