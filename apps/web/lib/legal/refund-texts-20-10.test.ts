@@ -1,6 +1,8 @@
 // 20-10 refunds by hand: the five owner-approved texts and the customer's Refund row label are pinned
 // byte for byte against .planning/decisions/2026-09-30-refunds-by-hand.md in every file where they live.
 // No customer surface may say "Pending Ops" or promise an automatic cancellation refund.
+// Phase 31 (S-02): the cancellation e-mail line is now W3 of
+// .planning/decisions/2026-10-12-refund-wording-signed.md, pinned byte for byte below.
 
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -15,13 +17,14 @@ type Lang = (typeof LANGS)[number];
 type Texts = Record<Lang, string>;
 
 const decision = read(".planning/decisions/2026-09-30-refunds-by-hand.md");
+const signed = read(".planning/decisions/2026-10-12-refund-wording-signed.md");
 
-/** The four-language table under a "### Tn" heading of the decision file. */
-function table(tag: string): Texts {
-  const start = decision.indexOf(`### ${tag} `);
+/** The four-language rows under a "### <tag>" heading of a decision file. */
+function readTable(src: string, tag: string, stop: string): Texts {
+  const start = src.indexOf(`### ${tag} `);
   expect(start, `${tag} heading`).toBeGreaterThan(-1);
-  const next = decision.indexOf("\n### ", start + 4);
-  const block = decision.slice(start, next === -1 ? undefined : next);
+  const next = src.indexOf(stop, start + 4);
+  const block = src.slice(start, next === -1 ? undefined : next);
   const out: Partial<Texts> = {};
   for (const lang of LANGS) {
     const m = block.match(new RegExp(`^\\| ${lang} \\| (.+) \\|$`, "m"));
@@ -31,10 +34,15 @@ function table(tag: string): Texts {
   return out as Texts;
 }
 
+/** A "### Tn" table of 2026-09-30-refunds-by-hand.md. */
+const table = (tag: string) => readTable(decision, tag, "\n### ");
+/** A "### Wn" table of 2026-10-12-refund-wording-signed.md (Phase 31, S-02); stops at any next heading. */
+const signedTable = (tag: string) => readTable(signed, tag, "\n#");
+
 const T1 = table("T1");
 const T2 = table("T2");
 const T3 = table("T3");
-const T4 = table("T4");
+const W3 = signedTable("W3");
 // T5 is prose in the decision file (the second sentence of cancelSheetOps); its four languages are
 // the ones in BUILD-SPEC B.4 and dict line "Our team decides the refund ...".
 const T5: Texts = {
@@ -68,8 +76,13 @@ function expectInJson(dir: string, path: string[], texts: Texts) {
 }
 
 describe("the decision file itself", () => {
-  it("has the four languages of T1 to T4", () => {
-    for (const t of [T1, T2, T3, T4]) for (const lang of LANGS) expect(t[lang].length).toBeGreaterThan(10);
+  it("has the four languages of T1 to T3", () => {
+    for (const t of [T1, T2, T3]) for (const lang of LANGS) expect(t[lang].length).toBeGreaterThan(10);
+  });
+
+  it("the signed Phase 31 file has the four languages of W3, sharp-s free", () => {
+    for (const lang of LANGS) expect(W3[lang].length).toBeGreaterThan(10);
+    expect(signed).not.toContain("ß");
   });
 });
 
@@ -96,12 +109,20 @@ describe("T3 tiers line", () => {
   });
 });
 
-describe("T4 and T5 cancellation e-mail", () => {
-  it("cancellation.refundFullCaptured is T4, cancellation.refundPendingOps is T5", () => {
-    expectInJson("packages/emails/src/messages", ["cancellation", "refundFullCaptured"], T4);
-    expectInJson("packages/emails/src/messages", ["cancellation", "refundPendingOps"], T5);
+describe("W3 cancellation e-mail", () => {
+  it("cancellation.refundPolicy is W3 in every language; the old two keys are gone", () => {
+    expectInJson("packages/emails/src/messages", ["cancellation", "refundPolicy"], W3);
+    for (const lang of LANGS) {
+      const c = (JSON.parse(read(`packages/emails/src/messages/${lang}.json`)) as { cancellation: Record<string, unknown> })
+        .cancellation;
+      expect(c.refundPendingOps, `${lang} refundPendingOps`).toBeUndefined();
+      expect(c.refundFullCaptured, `${lang} refundFullCaptured`).toBeUndefined();
+    }
   });
+});
 
+// Kept until plan 31-10 retires the cancel sheet's ops line.
+describe("T5 cancel sheet ops line", () => {
   it("T5 is the second sentence of checkout.cancelSheetOps in every language, and in the dict", () => {
     for (const lang of LANGS) {
       const ops = (JSON.parse(read(`apps/web/i18n/messages/${lang}.json`)) as { checkout: Record<string, string | undefined> }).checkout
