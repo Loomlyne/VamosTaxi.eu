@@ -979,12 +979,8 @@
       'Refunds to issue': { de: 'Offene Rückerstattungen', fr: 'Remboursements à émettre', ar: 'استردادات مستحقة' },
       'Cancelled inside the free window': { de: 'Innerhalb der kostenlosen Frist storniert', fr: 'Annulé dans la fenêtre gratuite', ar: 'أُلغي داخل مدة الإلغاء المجاني' },
 
-      /* ── Ops · fleet ───────────────────────────────────────────────── */
-      'Vehicles': { de: 'Fahrzeuge', fr: 'Véhicules', ar: 'المركبات' },
+      /* ── Ops · chauffeurs ───────────────────────────────────────────────── */
       'Chauffeurs': { de: 'Chauffeure', fr: 'Chauffeurs', ar: 'السائقون' },
-      'In service': { de: 'Im Einsatz', fr: 'En service', ar: 'في الخدمة' },
-      'Free': { de: 'Frei', fr: 'Libre', ar: 'متاحة' },
-      'In the workshop': { de: 'In der Werkstatt', fr: 'À l’atelier', ar: 'في الورشة' },
       'On shift': { de: 'Im Dienst', fr: 'En service', ar: 'في الدورية' },
       'Off duty': { de: 'Ausser Dienst', fr: 'Hors service', ar: 'خارج الدوام' },
       'seats': { de: 'Plätze', fr: 'places', ar: 'مقاعد' },
@@ -1108,7 +1104,6 @@
       'To': { de: 'Nach', fr: 'À', ar: 'إلى' },
       'Live': { de: 'Live', fr: 'Actif', ar: 'مفعّل' },
       'Draft': { de: 'Entwurf', fr: 'Brouillon', ar: 'مسودة' },
-      'Base fare': { de: 'Grundpreis', fr: 'Tarif de base', ar: 'السعر الأساسي' },
       'Per kilometre': { de: 'Pro Kilometer', fr: 'Au kilomètre', ar: 'لكل كيلومتر' },
       'Minimum fare': { de: 'Mindestpreis', fr: 'Tarif minimum', ar: 'الحد الأدنى للأجرة' },
       'Max passengers': { de: 'Max. Passagiere', fr: 'Passagers max.', ar: 'أقصى عدد ركاب' },
