@@ -385,6 +385,7 @@ describe("deliverRefundCheckAlert / deliverRefundCheckDidNotRun", () => {
 });
 
 describe("source pins", () => {
+  const worker = readFileSync(join(WEB_ROOT, "worker.ts"), "utf8");
   const src = readFileSync(join(WEB_ROOT, "lib/checkout/refund-check.ts"), "utf8");
   const reads = readFileSync(join(WEB_ROOT, "lib/db/system-reads.ts"), "utf8");
 
@@ -402,5 +403,21 @@ describe("source pins", () => {
     expect(body).toContain("asSystem");
     expect(body).not.toContain("JSON.stringify");
     expect(body).not.toContain("sql.array");
+  });
+
+  it("the 03:00 cron runs the check in its own try/catch, after the other two blocks and before return", () => {
+    const branch = worker.indexOf('if (controller.cron === "0 3 * * *")');
+    expect(branch).toBeGreaterThan(-1);
+    const ret = worker.indexOf("return;", branch);
+    const at = worker.indexOf("await refundCheck(env)");
+    expect(worker.split("refundCheck(env)")).toHaveLength(2);
+    expect(at).toBeGreaterThan(worker.indexOf('"meta_purchase_sweep", { outcome: "failed" }', branch));
+    expect(at).toBeGreaterThan(branch);
+    expect(at).toBeLessThan(ret);
+    const block = worker.slice(worker.lastIndexOf("try {", at), ret);
+    expect(block).toMatch(/\} catch \{\s*emit\("error", "refund_check", \{ outcome: "failed" \}\);\s*\}\s*$/);
+    expect(block).toContain('emit(check.outcome === "ok" ? "info" : "error", "refund_check", {');
+    // Counts and booleans only.
+    expect(block).not.toMatch(/reference|refundId|amountRappen|err\b/);
   });
 });
