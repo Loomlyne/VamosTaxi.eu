@@ -154,6 +154,16 @@ Not checked by the map (planner reads): webhook route body, `manage_money_for` b
 - **S-04** Q2 = A. "Refund to check" shows until Stripe records a refund or the pickup time has passed. No NO REFUND button.
 - **S-05** No next-step line for "This booking has no Stripe payment to open." (ui-checker suggestion left out).
 
+## Owner signatures, round 2 (question form, 2026-10-13 ~16:20 +04, via the controller)
+
+- **S-06** Refund email copy SIGNED as drafted below ("Customer refund mail"), en/de/fr/ar, used verbatim. Heading inside the mail = the subject words; greeting without a name drops the name ("Hello," / "Guten Tag" / "Bonjour," / "مرحبًا،") — derived from the signed text, listed in the hand-over.
+- **S-07** O-1 = A, SIGNED: one line under "Cancel this transfer" for both windows: en "Read the cancellation policy before anything is confirmed." / de "Lesen Sie die Stornierungsbedingungen, bevor etwas bestätigt wird." / fr "Consultez la politique d’annulation avant toute confirmation." / ar "اطّلع على سياسة الإلغاء قبل تأكيد أي شيء."
+- **S-08** KEEP both extra customer lines: the "See what comes back" button and "— keep it, because that is what your refund is calculated from."
+- **S-09** Ops mails that say Stripe (31-08, changes the signed 2026-10-02 T1 action sentence): ACCEPTED.
+- **S-10** Migration file: `20261012220000_refund_check_reader.sql` (owner's word). No other Phase 31 file takes a number.
+- **S-11** `STRIPE_ACCOUNT_ID` = `acct_1UIZmAQbJiSLxJfu`, confirmed by the controller against the live publishable key (`apps/web/wrangler.jsonc`, `pk_live_51UIZmAQbJiSLxJfu…`).
+- **S-12** Execution: owner said "Start building". The 23514 notification-kinds bug is NOT in Phase 31 (separate job, migration 20261012230000); do not touch `booking_notifications_kind_check`.
+
 ## Open questions as asked (answered above)
 
 - **Q1 — When you refund in Stripe, does the customer get an email from Vamos?**
@@ -201,7 +211,7 @@ merges `origin/main` and resolves the dictionary by keeping both sets of keys.
 | fr | Votre remboursement pour {reference} | Bonjour {name}, / Nous avons remboursé {amount} sur le moyen de paiement utilisé pour {reference}. Votre banque peut mettre quelques jours à l’afficher. / Une question ? Écrivez-nous à info@vamostaxi.site. |
 | ar | استرداد مبلغ حجزك {reference} | مرحبًا {name}، / أعدنا {amount} إلى وسيلة الدفع التي استخدمتها في الحجز {reference}. قد يحتاج مصرفك بضعة أيام لإظهاره. / لديك سؤال؟ راسلنا على info@vamostaxi.site. |
 
-**Owner question still open (O-1), recommended first.** Two customer lines under "Cancel this transfer" still talk about a refund amount: "See the refund you are due before anything is confirmed." and "See what comes back at this notice before you decide." (`booking-detail.dc.html:1158-1160`, `manage-booking.dc.html:1187-1189`).
+**O-1 (answered 2026-10-13: A, see S-07).** Two customer lines under "Cancel this transfer" still talk about a refund amount: "See the refund you are due before anything is confirmed." and "See what comes back at this notice before you decide." (`booking-detail.dc.html:1158-1160`, `manage-booking.dc.html:1187-1189`).
 - A (recommended): one line for both: "Read the cancellation policy before anything is confirmed." / de "Lesen Sie die Stornierungsbedingungen, bevor etwas bestätigt wird." / fr "Consultez la politique d’annulation avant toute confirmation." / ar "اطّلع على سياسة الإلغاء قبل تأكيد أي شيء."
 - B: keep both lines as they are.
-Until he answers, the plan keeps the lines unchanged and carries A as a gated task.
+Answered A (S-07); 31-12 applies it.

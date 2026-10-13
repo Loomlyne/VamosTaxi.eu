@@ -13,3 +13,11 @@
 - Which Stripe page the button opens: PaymentIntent, Charge or Customer; test or live mode path. With several payments on one booking (extras, class change), there are one or more targets.
 - What happens to the stored "owed" amount and the ops refund queue.
 - Customer emails that state a refund amount today.
+
+## Owner signatures, 2026-10-13 ~16:20 (+04), question form via the controller
+
+1. Customer refund email copy (subject + body, en/de/fr/ar) SIGNED as drafted in `.planning/phases/31-refunds-in-stripe/31-CONTEXT.md` ("Customer refund mail"); used verbatim, pinned in `2026-10-12-refund-mail-copy.md` by plan 31-04.
+2. O-1 = A, SIGNED: "Read the cancellation policy before anything is confirmed." / "Lesen Sie die Stornierungsbedingungen, bevor etwas bestätigt wird." / "Consultez la politique d’annulation avant toute confirmation." / "اطّلع على سياسة الإلغاء قبل تأكيد أي شيء." (pinned as W6 by plan 31-12).
+3. KEEP both extra customer lines: "See what comes back" and "— keep it, because that is what your refund is calculated from."
+4. Ops mails that say Stripe (31-08): ACCEPTED, replacing the action sentence of the signed 2026-10-02 T1 wording.
+Also: migration `20261012220000_refund_check_reader.sql`; `STRIPE_ACCOUNT_ID` `acct_1UIZmAQbJiSLxJfu` (controller-verified against the live publishable key); owner said "Start building".
