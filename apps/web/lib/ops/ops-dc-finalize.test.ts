@@ -63,12 +63,11 @@ describe("Phase 6 finalize — class line-up and staff hash", () => {
     expect(shell).toMatch(/isSupport: r === 'support'/);
   });
 
-  it("fleet photo is a chooser, chauffeur association, nested add-chauffeur", () => {
+  it("chauffeur photo is a chooser; the vehicle form and its nested add are gone (Phase 30, 30-07)", () => {
     const fleet = read("app/ops/OpsChauffeurs.dc.html");
     const table = read("app/ops/OpsTable.dc.html");
     expect(fleet).toMatch(/choosePhoto/);
-    expect(fleet).toMatch(/fChauffeurs/);
-    expect(fleet).toMatch(/chauffeurIds|nested-title|on-nested-save/);
+    expect(fleet).not.toMatch(/fChauffeurs|nested-title|on-nested-save|nestedFields/);
     expect(table).toMatch(/nestedOpen|nested-title|\[data-vt-photo\]/);
   });
 

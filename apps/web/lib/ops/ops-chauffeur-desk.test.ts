@@ -39,12 +39,11 @@ describe("Ops chauffeur desk Wave 0 (D-01 D-07 D-10 D-14)", () => {
     expect(html).not.toContain("cStatusOptions");
   });
 
-  it("has no chauffeurIds multi-select and names Morning and Night seats", () => {
+  it("has no chauffeurIds multi-select and no Morning/Night vehicle seats (Phase 30: vehicle wording removed)", () => {
     const html = read(CHAUFFEURS);
     expect(html).not.toContain("key:'chauffeurIds'");
     expect(html).not.toContain('key:"chauffeurIds"');
-    expect(html).toMatch(/Morning/);
-    expect(html).toMatch(/Night/);
+    expect(html).not.toMatch(/morning:|night:/);
   });
 
   it("overlay verb is Save chauffeur; dismiss is Keep editing; shift and leave cards are gone", () => {
@@ -140,7 +139,7 @@ describe("dedicated chauffeur desk (D-15 D-16 D-17 D-18)", () => {
     expect(html).toMatch(/dutyLabel/);
     expect(html).toMatch(/profileFacts/);
     expect(html).toContain("shield-check");
-    expect(html).toContain("fVehicle");
+    expect(html).toContain("fClass");
     expect(html).not.toContain("profileRows");
     expect(html).toContain("Live trips");
     expect(html).toContain("Past bookings");
