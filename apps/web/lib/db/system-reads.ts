@@ -238,3 +238,34 @@ export const staffActiveForEmail = async (env: CloudflareEnv, email: string): Pr
   (await asSystem(env, (sql) =>
     sql<{ active: boolean | null }[]>`select public.staff_active_for_email(${email}) as active`,
   ))[0]?.active === true;
+
+/** Phase 31 D-09: what the site holds for one Stripe refund (refund_check_read, one row per input element). */
+export type RefundCheckRow = {
+  stripe_refund_id: string | null;
+  payment_intent_id: string | null;
+  payment_found: boolean | null;
+  payment_status: string | null;
+  booking_reference: string | null;
+  /** int8 columns arrive as strings through the Worker client (no bigint parser); the caller converts. */
+  site_refund_rappen: number | string | null;
+  site_reason: string | null;
+  site_reversed: boolean | null;
+  booking_refunded_rappen: number | string | null;
+  booking_rows_sum_rappen: number | string | null;
+  booking_refund_status: string | null;
+};
+
+/**
+ * Phase 31 D-09 / C-02: the nightly refund check's only database read. Read-only STABLE definer
+ * (20261012220000), booking reference only, never a name or an e-mail. The Stripe list goes in as one jsonb
+ * through sql.json (a JS array or JSON.stringify(...)::jsonb breaks on the Worker client). Max 500 elements.
+ */
+export const loadRefundCheckRows = async (
+  env: CloudflareEnv,
+  items: { id: string; payment_intent: string | null }[],
+): Promise<RefundCheckRow[]> => {
+  const rows = await asSystem(env, (sql) =>
+    sql<RefundCheckRow[]>`select * from public.refund_check_read(${sql.json(items)})`,
+  );
+  return [...rows];
+};

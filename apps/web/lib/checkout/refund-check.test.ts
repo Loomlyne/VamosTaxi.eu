@@ -34,6 +34,7 @@ import {
   type StripeRefundLite,
 } from "./refund-check";
 import type { RefundCheckRow } from "../db/system-reads";
+import type { RefundCheckReport } from "@vamos/emails/confirmation";
 import { deliverRefundCheckAlert, deliverRefundCheckDidNotRun, MustFixMailError } from "../ops/must-fix-mail";
 import { SUPPORT_EMAIL } from "../contact-channels";
 
@@ -73,11 +74,11 @@ function row(over: Partial<RefundCheckRow> = {}): RefundCheckRow {
 
 function deps(refunds: StripeRefundLite[], rows: Record<string, Partial<RefundCheckRow>> = {}, truncated = false) {
   const d = {
-    listRefunds: vi.fn(async () => ({ refunds, truncated })),
+    listRefunds: vi.fn(async (_range: { gte: number; lt: number }) => ({ refunds, truncated })),
     readSite: vi.fn(async (items: { id: string; payment_intent: string | null }[]) =>
       items.map((item) => row({ stripe_refund_id: item.id, payment_intent_id: item.payment_intent, ...rows[item.id] })),
     ),
-    sendAlert: vi.fn(async () => undefined),
+    sendAlert: vi.fn(async (_report: RefundCheckReport) => undefined),
     sendDidNotRun: vi.fn(async () => undefined),
     emit: vi.fn(),
   } satisfies RefundCheckDeps;
