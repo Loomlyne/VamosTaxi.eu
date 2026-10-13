@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Meta measurement
 status: executing
-last_updated: "2026-10-13T13:10:17.926Z"
+last_updated: "2026-10-13T13:19:05.659Z"
 progress:
   total_phases: 37
   completed_phases: 31
   total_plans: 367
-  completed_plans: 359
+  completed_plans: 360
   percent: 84
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-09-23)
 ## Current Position
 
 Phase: 31 (Refunds in Stripe) — EXECUTING
-Plan: 7 of 13
+Plan: 8 of 13
 Last updated: 2026-10-05 18:09 (+04), by the bookkeeping job `docs/gsd-bookkeeping-1005` (planning files only).
 Source: `.planning/CONTROL-BOARD.md` (last update 2026-10-05 17:45), `.planning/audits/2026-10-05-repo-investigation.md` and origin/main `16f1cfa7`.
 main = origin/main `16f1cfa7` (planning note) over `001f4d40` (checks and tests, 17:44). Last deploy on the board: Worker `vamos` `13ed22ae` (2026-10-05 17:44; the same site code as `8c8ef984` of 17:40), gateway `vamos-dashboard` `71a307da`.
@@ -88,7 +88,7 @@ History up to 2026-09-29. Later quick jobs are listed on the control board ("Shi
 
 ## Session Continuity
 
-Last session: 2026-10-13T13:10:13.702Z
+Last session: 2026-10-13T13:18:57.778Z
 Stopped at: branch `docs/gsd-bookkeeping-1005` pushed for the control session to review and land.
 Resume: a job session takes its job from the control board's landing queue, in its own app worktree, and hands over to
 the controller (the Claude desktop session "Vamos Taxi controller", named on the board). Do not `phases.clear`. Do not new-project.
@@ -149,6 +149,7 @@ Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/
 - [Phase 31]: 31-01: Stripe Dashboard links are built on the server only (fixed origin, mode from the Worker key, malformed STRIPE_ACCOUNT_ID dropped); the stripe-payments list keeps fully refunded payments and the page decides
 - [Phase 31]: 31-02: refund.test.ts pins the exact export set of refund-map.ts (absence pin without naming removed symbols)
 - [Phase 31]: 31-03: migration 20261012220000_refund_check_reader.sql (owner S-10), md5 a7f3ae95a3130a0ce3943cfa27cf660a: refund_check_read, notification_claim_refund, notification_refund_read, vamos_system only; not applied live
+- [Phase 31]: 31-05: customer refund mail starts only after stripe_charge_refunded_record 'recorded' for a non-app CHF refund (guard on the mail line); the notification sweep routes kind 'refund' to deliverRefundMailByClaim, default kinds confirmation+refund
 
 ## Performance Metrics
 
@@ -170,3 +171,4 @@ Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/
 | Phase 31 P04 | 8 min | 3 tasks | 9 files |
 | Phase 31 P07 | 3 min | 2 tasks | 8 files |
 | Phase 31 P08 | 4 min | 2 tasks | 9 files |
+| Phase 31 P05 | 9 min | 2 tasks | 9 files |
