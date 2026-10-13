@@ -55,10 +55,12 @@ describe.skipIf(!PORT)("customer refund mail: claim, dedupe and sweep retry thro
       bookingId = booking[0]!.id;
       await tx`
         insert into public.booking_legs (booking_id, leg_seq, direction, pickup_text, dropoff_text,
-                                         scheduled_at, scheduled_local, vehicle_class_id, status)
+                                         scheduled_at, original_scheduled_at, scheduled_local, vehicle_class_id,
+                                         estimated_duration_minutes, pax, bags, status)
         select ${bookingId}::uuid, 1, 'outbound', 'ZRH Airport', 'Zurich HB',
-               now() + interval '3 days', to_char(now() + interval '3 days', 'YYYY-MM-DD"T"HH24:MI'),
-               (select id from public.vehicle_classes order by id limit 1), 'pending'`;
+               now() + interval '3 days', now() + interval '3 days',
+               to_char(now() + interval '3 days', 'YYYY-MM-DD"T"HH24:MI'),
+               (select id from public.vehicle_classes order by id limit 1), 60, 1, 1, 'pending'`;
       const snap = await tx<{ id: string }[]>`
         insert into public.price_snapshots (
           quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
