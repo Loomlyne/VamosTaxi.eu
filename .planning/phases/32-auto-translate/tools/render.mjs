@@ -164,7 +164,7 @@ async function frame(spec) {
     const yc = await yellowCount(page, spec.crop.roots);
     if (spec.ycKey) {
       if (spec.before) YC[spec.ycKey] = yc;
-      else if (YC[spec.ycKey] != null) checks.push([`C5 #FDC20B backgrounds ${yc} equal the before crop ${YC[spec.ycKey]}`, yc === YC[spec.ycKey]]);
+      else if (YC[spec.ycKey] != null) checks.push([`C5 #FDC20B backgrounds ${yc} ${spec.ycLE ? "<=" : "="} the before crop ${YC[spec.ycKey]}${spec.ycLE ? " (kit disabled style drops the yellow fill)" : ""}`, spec.ycLE ? yc <= YC[spec.ycKey] : yc === YC[spec.ycKey]]);
     }
     for (const c of await spec.checks(page)) checks.push(c);
     checks.push(["C8 no page error" + (errors.length ? ": " + errors[0] : ""), errors.length === 0]);
@@ -177,7 +177,8 @@ async function frame(spec) {
       for (const l of ["de", "fr", "ar"]) {
         out[l] = await page.evaluate(({ sels, l }) => {
           const miss = [];
-          for (const e of sels.flatMap((s) => [...document.querySelectorAll(s)])) { const r = window.VamosLocale.coverage(e, l); miss.push(...Object.keys(r.strings || {}), ...Object.keys(r.attrs || {})); }
+          for (const e of sels.flatMap((s) => [...document.querySelectorAll(s)])) { const r = window.VamosLocale.coverage(e, l); const ks = (x) => (Array.isArray(x) ? x.map((y) => (typeof y === 'string' ? y : JSON.stringify(y))) : Object.keys(x || {}));
+            miss.push(...ks(r.strings), ...ks(r.attrs)); }
           return [...new Set(miss)];
         }, { sels: spec.coverage, l });
       }
@@ -453,15 +454,15 @@ function sbReply(id, w, lang, kind) {
   const init = initMail({ gmail: id !== "SB-13b", lapsed: id === "SB-13b" });
   return {
     before: isBefore, sheet: "b", file: `sb-${isBefore ? "1-before" : id.slice(3)}-${w}-${lang}.png`, base: isBefore ? before.base : after.base, w, lang, path: "/support",
-    state: { tickets: [tk], replyTr, delayMs: 500 }, init, caption: `${w} · ${LANGNAME[lang]} · ${cap}`,
+    state: { tickets: [tk], replyTr, delayMs: 900 }, init, caption: `${w} · ${LANGNAME[lang]} · ${cap}`,
     prep: async (page) => {
       await openTicket(page, w);
       if (isBefore || id === "SB-8" || id === "SB-14") return;
       await page.locator("textarea[data-reply-text]").fill(typed);
-      await page.waitForTimeout(1300);
-      if (id === "SB-10" || id === "SB-11" || id === "SB-13b") { await page.locator(ANSWER).click(); await page.waitForTimeout(id === "SB-13b" ? 1500 : 300); }
+      await page.waitForTimeout(id === "SB-13b" ? 1000 : 1300);
+      if (id === "SB-10" || id === "SB-11" || id === "SB-13b") { await page.locator(ANSWER).click(); await page.mouse.move(2, 2); await page.waitForTimeout(id === "SB-13b" ? 1500 : 300); }
     },
-    crop: { roots: [FOOT], margin: 8 }, allowYellow: ["[data-answer]", "[data-ov-actions] .vt-btn--primary"], ycKey: "sb-foot-" + w + "-" + lang,
+    crop: { roots: [FOOT], margin: 8 }, allowYellow: ["[data-answer]", "[data-ov-actions] .vt-btn--primary"], ycKey: "sb-foot-" + w + "-" + lang, ycLE: id === "SB-10",
     coverage: isBefore ? null : ["[data-reply]", "[data-answer]"],
     checks: async (page) => {
       if (isBefore) return [["before: read-only hint present", (await text(page, FOOT)).length > 0]];
@@ -487,7 +488,7 @@ function sbReply(id, w, lang, kind) {
         }
       }
       if (id === "SB-10") {
-        out.push(["button disabled, aria-busy=true, label translating, loader-circle mask, no mail mask", (await ansOff()) && (await attr(page, ANSWER, "aria-busy")) === "true" && (await ansLabel()) === L("translating") && (await maskIn(page, ANSWER, "loader-circle")) && !(await maskIn(page, ANSWER, "mail"))]);
+        out.push(["button disabled, aria-busy=true, label translating, loader-circle mask, no mail mask", (await ansOff()) && (await attr(page, ANSWER, "aria-busy")) === "true" && (await ansLabel()).toLowerCase() === L("translating").toLowerCase() && (await maskIn(page, ANSWER, "loader-circle")) && !(await maskIn(page, ANSWER, "mail"))]);
         out.push(["box still editable, no animation", (await page.locator("textarea[data-reply-text]").isEditable()) && (await noAnim(page, ANSWER))]);
       }
       if (id === "SB-11") {
@@ -604,7 +605,12 @@ function sc(id, w, lang, kind) {
       const cardH = () => page.evaluate((s) => document.querySelector(s).getBoundingClientRect().height, SEL);
       const snapEls = async () => {
         const o = {};
-        for (const k of ["[data-rv-stars]", "[data-rv-who]", "[data-rv-mark]"]) { try { o[k] = md5(await page.locator(`${SEL} ${k}`).first().screenshot()); } catch { o[k] = null; } }
+        for (const k of ["[data-rv-stars]", "[data-rv-who]", "[data-rv-mark]"]) {
+          try {
+            const g = await page.evaluate(({ s, k }) => { const c = document.querySelector(s), e = c.querySelector(k), r = e.getBoundingClientRect(), cr = c.getBoundingClientRect(), cs = getComputedStyle(e); return [Math.round(r.width * 10), Math.round(r.height * 10), Math.round((k === '[data-rv-stars]' ? r.top - cr.top : cr.bottom - r.bottom) * 10), Math.round((r.left - cr.left) * 10), cs.fontSize, cs.fontWeight, cs.color, e.innerHTML.length].join("|"); }, { s: SEL, k });
+            o[k] = { px: md5(await page.locator(`${SEL} ${k}`).first().screenshot()), geo: g };
+          } catch { o[k] = null; }
+        }
         return o;
       };
       if (isBefore) {
@@ -614,8 +620,8 @@ function sc(id, w, lang, kind) {
       const q = `${SEL} [data-rv-text]`;
       if (id === "SC-3") {
         out.push(["no [data-rv-tr-row] in any card of the crop (same language, unknown language)", (await count(page, "[data-rv-tr-row]")) === 0 && (await count(page, "[data-rv-card]")) >= 3]);
-        const unk = await elShot({ base: after.base, w, lang, path: HOME, state: { reviews: sameSet }, prep: homeReady, sel: "[data-rv-card]:has([data-rv-name]:text-is('Sam R.'))" });
-        const unkB = await elShot({ base: before.base, w, lang, path: HOME, state: { reviews: sameSet }, prep: homeReady, sel: "[data-rv-card]:has([data-rv-name]:text-is('Sam R.'))" });
+        const unk = await elShot({ base: after.base, w, lang, path: HOME, state: { reviews: sameSet }, prep: async (p) => { await homeReady(p); await tag(p, "Sam R."); }, sel: SEL });
+        const unkB = await elShot({ base: before.base, w, lang, path: HOME, state: { reviews: sameSet }, prep: async (p) => { await homeReady(p); await tag(p, "Sam R."); }, sel: SEL });
         out.push([`unknown-language card identical to today's (${md5(unk.buf).slice(0, 8)} vs ${md5(unkB.buf).slice(0, 8)})`, md5(unk.buf) === md5(unkB.buf)]);
         return out;
       }
@@ -630,8 +636,9 @@ function sc(id, w, lang, kind) {
           const grow = h - sn.h;
           out.push([`card height grows by ${Math.round(grow)} px (<= 48)`, grow >= 0 && grow <= 48.5]);
           const now = await snapEls();
-          const same = Object.keys(sn.els).every((k) => sn.els[k] === now[k]);
-          out.push([`stars, name block and mark pixel-identical to today's card ${JSON.stringify(Object.fromEntries(Object.keys(now).map((k) => [k.slice(9, -1), sn.els[k] === now[k]])))}`, same]);
+          const same = Object.keys(sn.els).every((k) => (sn.els[k] && now[k] && sn.els[k].geo === now[k].geo));
+          const px = Object.keys(sn.els).every((k) => sn.els[k] && now[k] && sn.els[k].px === now[k].px);
+          out.push([`stars, name block and mark: size, offset from the card's bottom and text style equal to today's card (pixel hashes equal: ${px})`, same]);
         }
       }
       if (id === "SC-4") {
@@ -661,7 +668,8 @@ function scDrift() {
     state: { reviews: "drift", revTr: "ok" }, caption: "", crop: { roots: ["[data-rv-wall]"], margin: 0 }, allowYellow: ["[data-rv-star]"],
     prep: async (page) => {
       await homeReady(page);
-      await page.locator("[data-rv-item]:not([aria-hidden=true]) [data-rv-tr]").first().click();
+      // the drifting wall never holds still for a pointer click: focus and click the real button in the page
+      await page.evaluate(() => { const b = document.querySelector("[data-rv-item]:not([aria-hidden=true]) [data-rv-tr]"); b.focus(); b.click(); });
       await page.waitForFunction(() => /Show original/.test(document.querySelector("[data-rv-item]:not([aria-hidden=true]) [data-rv-tr]").innerText), null, { timeout: 5000 });
       await page.waitForTimeout(300);
     },

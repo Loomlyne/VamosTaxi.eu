@@ -1,7 +1,8 @@
 ---
 phase: 32
 slug: auto-translate
-status: draft
+status: approved
+reviewed_at: 2026-10-13
 shadcn_initialized: false
 preset: none
 created: 2026-10-12
@@ -262,7 +263,7 @@ Rows marked (existing) reuse the entry already in `app/vamos-i18n-dict.js` or th
 
 | Key | EN | DE | FR | AR |
 |-----|----|----|----|----|
-| answer (existing) | Answer by e-mail | Per E-Mail antworten | Répondre par e-mail | الرد عبر البريد الإلكتروني |
+| answer (existing in the page `T` table; new in `app/vamos-i18n-dict.js`) | Answer by e-mail | Per E-Mail antworten | Répondre par e-mail | الرد عبر البريد الإلكتروني |
 | translatedFrom (`%s` = language name via `langName()`) | Translated from %s | Übersetzt (Original: %s) | Traduit (original : %s) | تُرجم من %s |
 | translatedNoLang | Translated | Übersetzt | Traduit | مترجم |
 | translating (also the busy button label and the home busy label) | Translating… | Wird übersetzt … | Traduction en cours… | جارٍ الترجمة… |
@@ -318,7 +319,7 @@ Law checks on copy: no emoji, no invented price or stat, no placeholder text. `Z
 
 ## Signing
 
-The owner signs pictures and copy before any code. Offline renders from the real shells (dashboard `ops.dc.html` with base href and auth flag and stubbed `/api/*`; the public `home.dc.html` with a stubbed `/api/reviews`), bare crops on a plain white ground, no frames, no cookie sheet over a crop. Harness: `.planning/phases/32-auto-translate/tools/render.mjs` (frame, stub, assert, compose; `stubs.mjs` extended for the stubs below). Every crop is drawn at **1440 en, 1440 ar, 390 en, 390 ar**. "Before" crops come from `git archive` of `HEAD` for any screen that exists today (rail, ticket thread, ticket footer, review card). Sheets: (a) `screens/sheet-a-sidebar-content.png`, (b) `screens/sheet-b-support-ticket.png`, (c) `screens/sheet-c-review-translate.png`. Crop ids are `SA-n`, `SB-n`, `SC-n` so they never collide with the common assertions C1–C10.
+The owner signs pictures and copy before any code. Offline renders from the real shells (dashboard `ops.dc.html` with base href and auth flag and stubbed `/api/*`; the public `home.dc.html` with a stubbed `/api/reviews`), bare crops on a plain white ground, no frames, no cookie sheet over a crop. Harness: `.planning/phases/32-auto-translate/tools/render.mjs` (frame, stub, assert, compose; `stubs.mjs` extended for the stubs below). Every crop is drawn at **1440 en, 1440 ar, 390 en, 390 ar**. "Before" crops come from `git archive` of `HEAD` for any screen that exists today (rail, ticket thread, ticket footer, review card). Sheets: (a) `screens/sheet-a-sidebar-content.png`, (b) `screens/sheet-b-support-ticket-part-a.png` + `-part-b.png` (split for size), (c) `screens/sheet-c-review-translate.png`. Crop ids are `SA-n`, `SB-n`, `SC-n` so they never collide with the common assertions C1–C10.
 
 Stub data. Dashboard: a German customer message, an Arabic customer message, an Italian customer message (language outside the four), one message in the dashboard's own language, one pending, one failed; an open ticket with a German customer, one with an Italian customer, one closed. Home: at least 3 published reviews, among them one German, one English, one Arabic, one with unknown language; the site language is the frame's language. A second home stub has 7 reviews (drift) for the DOM-only assertions.
 
@@ -347,7 +348,7 @@ Stub data. Dashboard: a German customer message, an Arabic customer message, an 
 | SA-4 | After: rail collapsed to icons (1440 only; 390 uses the drawer) | Content icon `file-text` present; clicking it expands the rail and opens the group with one child |
 | SA-5 | Address check (assertion, not a picture) | Loading `/pages` and `/legal` on the dashboard host renders the dashboard route; no `OpsContent` node in the DOM |
 
-**Sheet b: support ticket** (`screens/sheet-b-support-ticket.png`; before from git for the own-language bubble and the footer)
+**Sheet b: support ticket** (`screens/sheet-b-support-ticket-part-a.png` + `-part-b.png`; before from git for the own-language bubble and the footer)
 
 | Crop | State | Assertions |
 |------|-------|-----------|
@@ -388,13 +389,13 @@ Owner signs: (a) the three sheets, (b) every string in the Copywriting Contract 
 
 ## Checker Sign-Off
 
-Pending: gsd-ui-checker has not yet run on this revision (the 2026-10-12 approval applied to the superseded spec).
+gsd-ui-checker, 2026-10-13 ~17:00 +04, revision 2 (run in the foreground): **VERIFIED**. D-05 to D-10 are all honoured, and the spec matches 32-STRINGS.md character for character.
 
-- [ ] Dimension 1 Copywriting
-- [ ] Dimension 2 Visuals
-- [ ] Dimension 3 Color
-- [ ] Dimension 4 Typography
-- [ ] Dimension 5 Spacing
-- [ ] Dimension 6 Registry Safety
+- [x] Dimension 1 Copywriting: FLAG (non-blocking: "Translate" is a bare verb; kept, because the button is small and `aria-describedby` names the review)
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS (no new yellow)
+- [x] Dimension 4 Typography: PASS (3 sizes, 2 weights)
+- [x] Dimension 5 Spacing: FLAG (non-blocking: a 12 px gap in the review failed note)
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** none yet. This is not the owner's signature.
+**Approval:** approved by the checker. This is not the owner's signature; the three sheets, the strings and the defaults still need his answer.

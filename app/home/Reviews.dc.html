@@ -95,14 +95,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-rv-link]:active{background:var(--vt-grey-100);color:var(--vt-charcoal-900)}
 [data-rv-link]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
 [data-rv-q]{margin:0;padding:0;min-width:0}
-/* Translate on tap (Phase 32): borderless 44px text button, the [data-rv-link] pattern; the kit has no text-button variant. */
-[data-rv-tr-row]{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;align-self:flex-start;margin-block:-8px}
-[data-rv-tr]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:8px;min-block-size:44px;min-inline-size:44px;padding-inline:8px;border-radius:var(--vt-radius-pill);font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);cursor:pointer}
-@media (hover:hover){[data-rv-tr]:hover:not([aria-busy="true"]){background:var(--vt-grey-50)}}
-[data-rv-tr]:active:not([aria-busy="true"]){background:var(--vt-grey-100);transform:translateY(1px)}
-[data-rv-tr]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
-[data-rv-tr][aria-busy="true"]{cursor:progress}
-[data-rv-tr-note]{min-width:0;overflow-wrap:anywhere;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);color:var(--vt-text-secondary)}
 [data-rv-text]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-regular);line-height:1.5;text-align:start;text-wrap:pretty;overflow-wrap:break-word;white-space:pre-line;color:var(--vt-text-primary);quotes:"\201C" "\201D"}
 [dir="rtl"] [data-rv-text]{quotes:"\00AB" "\00BB"}
 [data-rv-text]::before{content:open-quote}
@@ -171,20 +163,9 @@ a[data-rv-mark]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="external-link" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
 </a>
 </div>
-<blockquote data-rv-q="1" id="{{ r.qid }}" aria-live="polite">
-<p data-rv-text="1" data-vt-no-i18n="1" lang="{{ r.qLang }}" dir="{{ r.qDir }}"><bdi>{{ r.shown }}</bdi></p>
+<blockquote data-rv-q="1">
+<p data-rv-text="1" data-vt-no-i18n="1" dir="auto"><bdi>{{ r.text }}</bdi></p>
 </blockquote>
-<sc-if value="{{ r.trShow }}" hint-placeholder-val="{{ false }}">
-<div data-rv-tr-row="1">
-<sc-if value="{{ r.trFailed }}" hint-placeholder-val="{{ false }}">
-<span data-rv-tr-note="1" role="status">Translation not available</span>
-</sc-if>
-<button type="button" data-rv-tr="1" aria-busy="{{ r.trBusy }}" aria-disabled="{{ r.trBusy }}" aria-describedby="{{ r.qid }}" onClick="{{ r.tap }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ r.trIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
-<span>{{ r.trLabel }}</span>
-</button>
-</div>
-</sc-if>
 <div data-rv-who="1" data-vt-no-i18n="1">
 <strong data-rv-name="1" dir="auto">{{ r.name }}</strong>
 <span data-rv-sub="1" dir="auto" style="display:{{ r.routeShow }}">{{ r.route }}</span>
@@ -218,20 +199,9 @@ a[data-rv-mark]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="external-link" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
 </a>
 </div>
-<blockquote data-rv-q="1" id="{{ r.qid }}" aria-live="polite">
-<p data-rv-text="1" data-vt-no-i18n="1" lang="{{ r.qLang }}" dir="{{ r.qDir }}"><bdi>{{ r.shown }}</bdi></p>
+<blockquote data-rv-q="1">
+<p data-rv-text="1" data-vt-no-i18n="1" dir="auto"><bdi>{{ r.text }}</bdi></p>
 </blockquote>
-<sc-if value="{{ r.trShow }}" hint-placeholder-val="{{ false }}">
-<div data-rv-tr-row="1">
-<sc-if value="{{ r.trFailed }}" hint-placeholder-val="{{ false }}">
-<span data-rv-tr-note="1" role="status">Translation not available</span>
-</sc-if>
-<button type="button" data-rv-tr="1" aria-busy="{{ r.trBusy }}" aria-disabled="{{ r.trBusy }}" aria-describedby="{{ r.qid }}" onClick="{{ r.tap }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ r.trIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
-<span>{{ r.trLabel }}</span>
-</button>
-</div>
-</sc-if>
 <div data-rv-who="1" data-vt-no-i18n="1">
 <strong data-rv-name="1" dir="auto">{{ r.name }}</strong>
 <span data-rv-sub="1" dir="auto" style="display:{{ r.routeShow }}">{{ r.route }}</span>
@@ -269,7 +239,7 @@ a[data-rv-mark]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
  * only when sourceUrl is an http(s) URL on that platform's own domain.
  */
 class Component extends DCLogic {
-  state = { lang: 'en', settled: false, cols: 3, tr: {} };
+  state = { lang: 'en', settled: false, cols: 3 };
   componentDidMount() {
     this._onReviews = () => {
       clearTimeout(this._settle);
@@ -291,9 +261,7 @@ class Component extends DCLogic {
       this._mqs.forEach((m) => { if (m.addEventListener) m.addEventListener('change', this._onMq); else if (m.addListener) m.addListener(this._onMq); });
     }
     if (window.VamosLocale) {
-      /* The translate button compares each review's language with the site language, so the first render needs the real one. */
-      this.setState({ lang: window.VamosLocale.lang() });
-      this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang, tr: {} }));
+      this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang }));
     }
   }
   bindReviews() {
@@ -310,7 +278,6 @@ class Component extends DCLogic {
     clearInterval(this._reviewsWait);
     clearTimeout(this._reviewsStop);
     clearTimeout(this._settle);
-    Object.keys(this._ceil || {}).forEach((k) => clearTimeout(this._ceil[k]));
     if (this._onReviews) window.removeEventListener('vamos:reviews', this._onReviews);
     if (this._offReviews) this._offReviews();
     if (this._offLocale) this._offLocale();
@@ -348,31 +315,6 @@ class Component extends DCLogic {
       const u = new URL(v);
       return (u.protocol === 'http:' || u.protocol === 'https:') && u.hostname ? v : '';
     } catch (e) { return ''; }
-  }
-  /** Translate on tap. State per review id and site language; nothing is stored beyond this page view. */
-  tap(id, lang) {
-    const cur = this.state.tr[id];
-    if (cur && cur.lang === lang) {
-      if (cur.st === 'busy') return;
-      if (cur.st === 'done') { this.setTr(id, { show: !cur.show }); return; }
-    }
-    const store = window.VamosReviews;
-    if (!store || typeof store.translate !== 'function') return;
-    this.setTr(id, { lang: lang, st: 'busy', text: '', show: false });
-    this._ceil = this._ceil || {};
-    clearTimeout(this._ceil[id]);
-    const stale = () => { const c = this.state.tr[id]; return !c || c.lang !== lang || c.st !== 'busy'; };
-    this._ceil[id] = setTimeout(() => { if (!stale()) this.setTr(id, { st: 'failed' }); }, 20000);
-    store.translate(id, lang).then((res) => {
-      if (stale()) return;
-      clearTimeout(this._ceil[id]);
-      this.setTr(id, res && res.ok ? { st: 'done', text: res.text, show: true } : { st: 'failed' });
-    });
-  }
-  setTr(id, patch) {
-    const tr = Object.assign({}, this.state.tr);
-    tr[id] = Object.assign({}, tr[id] || {}, patch);
-    this.setState({ tr: tr });
   }
   renderVals() {
     const store = window.VamosReviews;
@@ -420,21 +362,6 @@ class Component extends DCLogic {
         linkShow: linkUrl ? 'inline-flex' : 'none',
         linkHidden: linkUrl ? null : true,
       };
-      const tr = this.state.tr[r.id];
-      const cur = tr && tr.lang === lang ? tr : null;
-      const known = !!r.lang && r.lang !== lang;
-      const st = cur ? cur.st : 'idle';
-      const done = st === 'done' && cur.show;
-      o.qid = 'rvq-' + r.id;
-      o.shown = done ? cur.text : (r.text || '');
-      o.qLang = done ? lang : undefined;
-      o.qDir = done ? (lang === 'ar' ? 'rtl' : 'ltr') : 'auto';
-      o.trShow = known;
-      o.trFailed = st === 'failed';
-      o.trBusy = st === 'busy' ? 'true' : null;
-      o.trIcon = st === 'busy' ? 'loader-circle' : 'globe';
-      o.trLabel = st === 'busy' ? 'Translating…' : (done ? 'Show original' : (st === 'failed' ? 'Try again' : 'Translate'));
-      o.tap = () => this.tap(r.id, lang);
       for (let s = 1; s <= 5; s++) o['off' + s] = s <= r.rating ? null : '1';
       return o;
     });
@@ -448,7 +375,7 @@ class Component extends DCLogic {
       cols.forEach((col) => {
         col.count = col.items.length;
         const set = col.items;
-        for (let k = 0; k < 3; k++) col.items = col.items.concat(set.map((o) => Object.assign({}, o, { cloneAttr: '1', hiddenAttr: 'true', inertAttr: '', qid: o.qid + '-c' + k })));
+        for (let k = 0; k < 3; k++) col.items = col.items.concat(set.map((o) => Object.assign({}, o, { cloneAttr: '1', hiddenAttr: 'true', inertAttr: '' })));
       });
     }
     return {
