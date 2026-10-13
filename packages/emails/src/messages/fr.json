@@ -75,11 +75,11 @@
     "paidAfterCancelHeadline": "Payé après annulation — remboursé",
     "paidAfterCancelBody": "Un paiement est arrivé pour une réservation qui ne pouvait pas avoir lieu. Le montant a été remboursé automatiquement. Aucune action n'est nécessaire, sauf si le client écrit.",
     "differenceNotAppliedHeadline": "Différence payée, modification non appliquée",
-    "differenceNotAppliedBody": "Le client a payé la différence pour cette réservation, mais la modification n’a pas été appliquée : le trajet a été annulé, une modification plus récente l’a remplacée, ou elle ne convient plus. Le paiement est enregistré et apparaît comme remboursement dû. Renvoyez-le depuis le tableau de bord ou refaites la modification.",
+    "differenceNotAppliedBody": "Le client a payé la différence pour cette réservation, mais la modification n’a pas été appliquée : le trajet a été annulé, une modification plus récente l’a remplacée, ou elle ne convient plus. Le paiement est enregistré. Remboursez-le dans Stripe ou refaites la modification.",
     "amountMismatchHeadline": "Paiement retenu : le montant ne correspond pas",
     "amountMismatchBody": "Stripe a encaissé un paiement qui ne correspond pas au montant, à la devise ou à la réservation attendus par ce paiement. L’argent est enregistré et la réservation n’est PAS confirmée. Rien n’a été remboursé. Ouvrez la réservation dans le tableau de bord et le paiement dans Stripe, puis confirmez la réservation ou remboursez le paiement.",
     "refundFailedHeadline": "Un remboursement a été annulé par Stripe",
-    "refundFailedBody": "Stripe a signalé comme échoué un remboursement déjà enregistré. La réservation affiche à nouveau le remboursement comme dû. Ouvrez la réservation dans le tableau de bord et renvoyez le remboursement, ou vérifiez-le dans Stripe.",
+    "refundFailedBody": "Stripe a signalé comme échoué un remboursement déjà enregistré. Ouvrez le paiement dans Stripe pour réessayer.",
     "disputeHeadline": "Un litige de carte a été ouvert ou modifié",
     "disputeBody": "Stripe a signalé un litige sur un paiement de cette réservation. Ouvrez-le dans Stripe pour voir son statut et la date limite des preuves. La réservation affiche le litige dans le tableau de bord."
   },

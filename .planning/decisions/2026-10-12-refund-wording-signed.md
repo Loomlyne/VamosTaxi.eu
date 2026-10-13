@@ -52,3 +52,27 @@ under "Cancel this transfer" for both windows, replacing the two lines that stil
   refund is calculated from." They are not retired by this phase.
 - S-09: the internal ops mails that say Stripe (W4, W5 below) are ACCEPTED. They replace the action sentence of the
   signed 2026-10-02 T1 wording.
+
+## Internal (ops must-fix mails)
+
+### W4 — `opsMustFix.differenceNotAppliedBody` (`packages/emails/src/messages/*.json`)
+
+Internal (to info@, not a customer surface); first sentence signed 2026-10-02, action sentence from the 2026-10-12 signed dashboard strings (D-08). Accepted by the owner 2026-10-13 ~16:20 (+04), S-09.
+
+| Language | Text |
+|---|---|
+| en | The customer paid the difference for this booking, but the change was not applied: the trip was cancelled, a newer change replaced it, or it no longer fits. The payment is recorded. Refund it in Stripe, or make the change again. |
+| de | Der Kunde hat die Differenz für diese Buchung bezahlt, aber die Änderung wurde nicht übernommen: Die Fahrt wurde storniert, eine neuere Änderung hat sie ersetzt, oder sie passt nicht mehr. Die Zahlung ist verbucht. Erstatten Sie sie in Stripe oder nehmen Sie die Änderung erneut vor. |
+| fr | Le client a payé la différence pour cette réservation, mais la modification n’a pas été appliquée : le trajet a été annulé, une modification plus récente l’a remplacée, ou elle ne convient plus. Le paiement est enregistré. Remboursez-le dans Stripe ou refaites la modification. |
+| ar | دفع العميل الفرق لهذا الحجز، لكن التغيير لم يُطبَّق: أُلغيت الرحلة، أو حلّ محله تغيير أحدث، أو لم يعد مناسبًا. الدفعة مسجّلة. نفّذ الاسترداد في Stripe، أو أجرِ التغيير مرة أخرى. |
+
+### W5 — `opsMustFix.refundFailedBody` (`packages/emails/src/messages/*.json`)
+
+Internal (to info@, not a customer surface); first sentence signed 2026-10-02, action sentence from the 2026-10-12 signed dashboard strings (D-08). Accepted by the owner 2026-10-13 ~16:20 (+04), S-09.
+
+| Language | Text |
+|---|---|
+| en | Stripe reported a refund as failed after it was recorded. Open the payment in Stripe to try again. |
+| de | Stripe hat eine bereits verbuchte Rückerstattung als fehlgeschlagen gemeldet. Öffnen Sie die Zahlung in Stripe, um es erneut zu versuchen. |
+| fr | Stripe a signalé comme échoué un remboursement déjà enregistré. Ouvrez le paiement dans Stripe pour réessayer. |
+| ar | أبلغت Stripe عن فشل استرداد سبق تسجيله. افتح الدفعة في Stripe لإعادة المحاولة. |
