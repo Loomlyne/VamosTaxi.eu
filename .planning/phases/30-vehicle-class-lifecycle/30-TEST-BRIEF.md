@@ -1,7 +1,7 @@
 ---
 worktree: /Users/koss/.vamos-scratch/p30-clean
 branch: phase-30-vehicle-class-lifecycle
-commit: c23c7800
+commit: 0064cfbc
 lab: p30c
 evidence: /Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/phase-30-vehicle-class-lifecycle/.planning/phases/30-vehicle-class-lifecycle/evidence
 ---
@@ -16,7 +16,7 @@ The owner now runs each vehicle class through three states on the dashboard Pric
 
 ## Gates
 
-Skip `lab.sh gates`: the lead ran the full gates (pgTAP, `pnpm gate:local`, the OpenNext build) in this clean clone before this brief. Run everything from the clean clone `/Users/koss/.vamos-scratch/p30-clean` (branch `phase-30-vehicle-class-lifecycle` at `c23c7800`, own lockfile install, Worker already built there). Do not run the lab from the Phase 30 worktree: its `node_modules` are links into the main checkout and its Worker build fails on `sharp`. Bring the lab up with `scripts/test-lab/lab.sh up p30c` (it rebuilds only if a source file is newer than the built Worker). Write screenshots, `results.json` and the step script into the evidence folder named in the header (the worktree's), not into the clone.
+Skip `lab.sh gates`: the lead ran the full gates (pgTAP, `pnpm gate:local`, the OpenNext build) in this clean clone before this brief. Run everything from the clean clone `/Users/koss/.vamos-scratch/p30-clean` (branch `phase-30-vehicle-class-lifecycle` at `0064cfbc`, own lockfile install, Worker already built there). Do not run the lab from the Phase 30 worktree: its `node_modules` are links into the main checkout and its Worker build fails on `sharp`. Bring the lab up with `scripts/test-lab/lab.sh up p30c` (it rebuilds only if a source file is newer than the built Worker). Write screenshots, `results.json` and the step script into the evidence folder named in the header (the worktree's), not into the clone.
 
 ## Setup beyond the lab
 
