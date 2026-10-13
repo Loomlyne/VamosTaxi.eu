@@ -284,8 +284,25 @@ Filled by the roadmapper.
 - [x] **INT-05**: All 26 cantons as boundary zones with canton → different canton CHF 50 for every class; duplicate/POI zones cleaned; every amount from the dashboard; version 18 stays a labelled placeholder and the agent never publishes (D-10, D-10a, D-13)
 - [x] **INT-06**: A pay link locks the booking 24 h and auto-cancels when unpaid; the recipient's payment confirms; "already paid" when the customer paid first; a race accepts one and auto-refunds a second charge (D-20, D-21, D-22)
 - [x] **INT-07**: Customer cancel > 24 h before pickup refunds in full automatically; < 24 h needs admin approval with a percentage; after the trip the admin accepts or rejects (D-23, D-24, D-25)
-- [ ] **INT-08**: Classes are Economy, Business, Van luxury; dashboard delete is hard when unreferenced, otherwise hidden with a reason; `mahaha` goes (D-14, D-15)
+- [ ] **INT-08**: Classes are Economy, Business, Van luxury; dashboard delete is hard when unreferenced, otherwise hidden with a reason; `mahaha` goes (D-14, D-15) — **superseded by CLS-04/CLS-05 (Phase 30)**: a class is retired, never deleted.
 - [x] **INT-09**: Only the admin signs in; passkey, TOTP and password ↔ magic link all work end to end from account settings; aal2 once a factor is enrolled; re-auth before password or email change; leaked-password protection on (D-16, D-16a, D-17)
+
+### Vehicle class lifecycle (CLS) — Phase 30
+
+- [ ] **CLS-01**: ADD CLASS creates a Draft (`active=false`, `hidden_at null`): never on `/api/quote`, About/home cards, new-trip form
+- [ ] **CLS-02**: Go live is a DB-guarded transition: photo, seats, bags present and a live-book row for the class; refusal returns the missing list; never publishes
+- [ ] **CLS-03**: Pricing class table: LIVE/DRAFT badge, DRAFT opens the Go live dialog (4-item checklist, why-line, EDIT CLASS, GO LIVE)
+- [ ] **CLS-04**: Retire (reason <= 140) replaces Delete; count line and last-Live warning; Edit-class foot keeps Cancel and Save only; no hard-delete path reachable
+- [ ] **CLS-05**: Retired list under the table, Bring back returns the class as a Draft (checked again, needs new price)
+- [ ] **CLS-06**: New price books skip retired classes; an open draft drops them on Retire
+- [ ] **CLS-07**: Only Live classes reach customers and staff pickers (quote, new trip, chauffeur class options)
+- [ ] **CLS-08**: Chauffeur on a retired class: red flag, class select offers Live only, WITH A CLASS counts Live only, server refuses writing a retired class
+- [ ] **CLS-09**: Assign never offers or accepts a chauffeur on a retired class; "left out" line; retired-class trip shows no false "No chauffeur has the class"
+- [ ] **CLS-10**: Arabic count forms (1, 2, 3-10, 11-99, 100+) on the Retire count line and Assign "left out" line
+- [ ] **CLS-11**: `/chauffeurs` (+ `/chauffeurs/<id>`); `/fleet`, `/fleet/chauffeurs[/<id>]` forward; `OpsFleet.dc.html` -> `OpsChauffeurs.dc.html`; no "fleet"/"vehicle" wording left on the screen
+- [ ] **CLS-12**: About/home `VehicleClasses` title "Pick the class that fits." (four languages), dead fleet strings removed
+- [ ] **CLS-13**: One-off removal of the 5 test classes and reviews rv-1..rv-5: owner-run SQL + runbook + local proof; agents never run it on live
+- [ ] **CLS-14**: Class state changes are audited; four platform laws, tap areas, RTL, `VamosLocale.coverage` empty on every touched surface
 
 ## v2 Requirements
 
@@ -508,7 +525,29 @@ Populated during v1.1 roadmap creation.
 
 **Phase 26.1 coverage:** 9 requirements, 9 mapped, unmapped 0 ✓
 
+### Phase 30 traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| CLS-01 | Phase 30 | Built; owner UAT after Ship |
+| CLS-02 | Phase 30 | Built; owner UAT after Ship |
+| CLS-03 | Phase 30 | Built; owner UAT after Ship |
+| CLS-04 | Phase 30 | Built; owner UAT after Ship |
+| CLS-05 | Phase 30 | Built; owner UAT after Ship |
+| CLS-06 | Phase 30 | Built; owner UAT after Ship |
+| CLS-07 | Phase 30 | Built; owner UAT after Ship |
+| CLS-08 | Phase 30 | Built; owner UAT after Ship |
+| CLS-09 | Phase 30 | Built; owner UAT after Ship |
+| CLS-10 | Phase 30 | Built; owner UAT after Ship |
+| CLS-11 | Phase 30 | Built; owner UAT after Ship |
+| CLS-12 | Phase 30 | Built; owner UAT after Ship |
+| CLS-13 | Phase 30 | Built; owner UAT after Ship |
+| CLS-14 | Phase 30 | Built; owner UAT after Ship |
+
+**Phase 30 coverage:** 14 requirements, 14 mapped, unmapped 0 ✓
+
 ---
 *Requirements defined: 2026-08-17*
 *Last updated: 2026-09-22 — v1.2 Traceability filled (PAY-08…PAY-18 → phases 21–25). v1/v1.1 rows unchanged.*
 *Updated 2026-09-27 — INT-01…INT-09 added for inserted Phase 26.1 (payment and pricing integrity).*
+*Updated 2026-10-13 — CLS-01…CLS-14 added for Phase 30 (vehicle class lifecycle); INT-08 retired by CLS-04/CLS-05.*
