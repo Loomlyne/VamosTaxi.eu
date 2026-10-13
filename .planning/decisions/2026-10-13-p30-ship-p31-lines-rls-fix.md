@@ -8,3 +8,10 @@
 ## 2026-10-13 ~23:45 (+04)
 
 4. **PR #79 (GA4 + Tag Manager GTM-KPKGT4VH on, adopted wording): Ship after Phase 30 lands.** Before deploy the owner confirms: GA4 Enhanced measurement OFF; container GTM-KPKGT4VH holds no Meta pixel, no GA4/Ads tag, no Custom HTML, no trigger on purchase/page_view. Grok round 2 approve with notes; clean clone a76c049a gate exit=0.
+
+## 2026-10-14 ~00:20 (+04)
+
+5. **Region premiums join the PR #81 fix** (same restrictive-only bug): same migration file `20261012250000` (not live), tests extended.
+6. **Phase 32: five more Arabic-letter spellings of "Vamos Taxi" become Latin** (3 e-mails, dashboard Reviews screen, sidebar), same rule as the 44 (D-14a); approved legal lines untouched.
+7. **Phase 32: booking notes are translated and stored; no screen until the owner signs a design.**
+8. Phase 32 plans and migration numbers 20261012260000–290000: owner asked to see the plans before signing (not signed yet).
