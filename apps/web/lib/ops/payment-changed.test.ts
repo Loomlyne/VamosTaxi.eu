@@ -5,9 +5,10 @@
 // and pressing again is safe. This file pins how the Worker names it and how the dashboard says it:
 //   1. the three maps (refund, edit-request, booking-change) answer code `payment-changed`;
 //   2. the routes answer it as a 409 conflict (statuses come from the map files the routes import);
-//   3. each dashboard path that calls the nine functions hands it back: Refund (plan), Accept,
-//      class change, trip change (the last two have their own cases in booking-change.test.ts and
-//      booking-trip-change.test.ts);
+//   3. each dashboard path that calls the nine functions hands it back: Accept, class change, trip
+//      change (the last two have their own cases in booking-change.test.ts and
+//      booking-trip-change.test.ts). Phase 31 (D-01): the site no longer sends refunds, so the
+//      Refund (plan) path and its route are gone; the refund map stays because the others share it;
 //   4. the dashboard (app/ops/OpsDetail.dc.html) shows the owner's signed sentence in four languages
 //      (.planning/decisions/2026-10-04-payment-changed-message.md), in the refund error, the class and
 //      trip change error and the Accept notice. No DOM: the DC logic class is run with a stubbed window,
@@ -51,7 +52,6 @@ vi.mock("./must-fix-mail", () => ({ deliverOverlapMustFix: vi.fn(async () => und
 import { changeFailStatus, mapChangeSqlError } from "./booking-change-map";
 import { acceptPaidEdit } from "./edit-request";
 import { failStatus, mapEditSqlError } from "./edit-request-map";
-import { refundBooking } from "./refund";
 import { isPaymentChanged, mapRefundSqlError, refundFailStatus } from "./refund-map";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -106,7 +106,7 @@ describe("the three maps name a payment that settled in the same instant", () =>
 });
 
 describe("the routes answer it as a conflict (409): look again, nothing was written", () => {
-  it("Refund (POST ../refund), Accept (../edit-accept, ../edit-request), class and trip change (../change)", () => {
+  it("the refund map (shared), Accept (../edit-accept, ../edit-request), class and trip change (../change)", () => {
     expect(refundFailStatus("payment-changed")).toBe(409);
     expect(failStatus("payment-changed")).toBe(409);
     expect(changeFailStatus("payment-changed")).toBe(409);
@@ -127,8 +127,6 @@ describe("the routes answer it as a conflict (409): look again, nothing was writ
   });
 
   it("each route takes its status from these maps and hands the code through jsonErr", () => {
-    const refund = read("apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/refund/route.ts");
-    expect(refund).toMatch(/jsonErr\(result\.code, refundFailStatus\(result\.code\)\)/);
     const accept = read("apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/edit-accept/route.ts");
     expect(accept).toMatch(/import \{ failStatus \} from "@\/lib\/ops\/edit-request-map"/);
     expect(accept).toMatch(/jsonErr\(result\.code, failStatus\(result\.code\)\)/);
@@ -137,7 +135,7 @@ describe("the routes answer it as a conflict (409): look again, nothing was writ
     const change = read("apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/change/route.ts");
     expect(change).toMatch(/jsonErr\(result\.code, changeFailStatus\(result\.code\)/);
     // The public mounts re-export the same handlers.
-    for (const name of ["refund", "edit-accept", "change"]) {
+    for (const name of ["edit-accept", "change"]) {
       expect(read(`apps/web/app/api/staff/bookings/[id]/${name}/route.ts`)).toMatch(new RegExp(`${name}/route`));
     }
   });
@@ -165,27 +163,6 @@ describe("a dashboard path whose database call raises it hands the code back", (
       return result;
     });
   }
-
-  it("Refund: ops_refund_plan raises it; no Stripe call, the answer is payment-changed", async () => {
-    // readRefundState (as staff): one booking row, one captured payment with 250.00 left.
-    asStaff.mockImplementation(async (_env: unknown, _claims: unknown, fn: (sql: unknown) => Promise<unknown>) => {
-      let call = 0;
-      const sql = async () => {
-        call += 1;
-        if (call === 1) return [{ status: "confirmed", refund_status: "none", refund_owed_rappen: 0, refunded_rappen: 0, last_change: null }];
-        return [{
-          id: 1, stripe_payment_intent_id: "pi_1", charged_rappen: 25_000, captured_at: "2026-10-04T10:00:00Z",
-          is_extra: false, refunded: 0, open_amount: null, open_state: null,
-        }];
-      };
-      return fn(sql);
-    });
-    systemRaises(raised());
-    const result = await refundBooking(env, claims, "VT-26-0801", { percent: 100 });
-    expect(result).toEqual(PAYMENT_CHANGED);
-    expect(asSystem).toHaveBeenCalledTimes(1);
-    expect(refundFailStatus((result as { code: string }).code)).toBe(409);
-  });
 
   it("Accept: booking_edit_request_accept raises it; nothing else is tried", async () => {
     systemRaises(raised());
