@@ -66,7 +66,7 @@ with need as (
                             'min_advance_minutes', 180, 'policy_doc', 'lab'),
          1, 0, 0, 1, now() + interval '1 day', now() + interval '1 day'
     from need n
-    cross join lateral (select id from public.rate_versions order by id limit 1) rv
+    cross join lateral (select id from public.rate_versions where status = 'live' order by id desc limit 1) rv
     cross join lateral (select id from public.settings_versions order by id limit 1) sv
   returning id, vehicle_class_id
 )
