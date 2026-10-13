@@ -9,6 +9,7 @@ import { asStaff, type VamosClaims } from "@/lib/db/identity";
 import { loadRateVersions } from "@/lib/ops/pricing";
 import {
   assertDistanceRateInput,
+  draftRowAvailable,
   assertFixedRouteInput,
   assertSurchargeInput,
   classifyPricingFailure,
@@ -807,6 +808,14 @@ export const PUT = withAdmin(async (claims, request) => {
         slug,
         book.vehicleClasses,
       );
+      const existingClass =
+        classPlan.mode === "update"
+          ? book.vehicleClasses.find((row) => row.id === classPlan.id)
+          : undefined;
+      // Phase 30 pitfall 4: a retired class stays hidden; typing its name must not write to it.
+      if (existingClass && existingClass.hiddenReason != null) return jsonErr("class-retired", 409);
+      // A class created by this request is a Draft.
+      const classIsLive = !!existingClass && existingClass.active === true;
       let vehicleClassId = classPlan.mode === "update" ? classPlan.id : classPlan.id ?? "";
       await asStaff(env, claims, async (tx) => {
         if (classPlan.mode === "insert") {
@@ -820,7 +829,7 @@ export const PUT = withAdmin(async (claims, request) => {
               insert into public.vehicle_classes (
                 id, slug, passenger_capacity, luggage_capacity, sort_order, active, name, photo_path
               ) values (
-                ${classPlan.id}, ${slug}, ${incoming.maxPax}, ${maxBags}, ${nextSort}, true,
+                ${classPlan.id}, ${slug}, ${incoming.maxPax}, ${maxBags}, ${nextSort}, false,
                 ${className || slug}, ${photoPath ?? null}
               )
               returning id
@@ -831,7 +840,7 @@ export const PUT = withAdmin(async (claims, request) => {
               insert into public.vehicle_classes (
                 slug, passenger_capacity, luggage_capacity, sort_order, active, name, photo_path
               ) values (
-                ${slug}, ${incoming.maxPax}, ${maxBags}, ${nextSort}, true, ${className || slug},
+                ${slug}, ${incoming.maxPax}, ${maxBags}, ${nextSort}, false, ${className || slug},
                 ${photoPath ?? null}
               )
               returning id
@@ -856,6 +865,7 @@ export const PUT = withAdmin(async (claims, request) => {
           `;
         }
         const parsed = assertDistanceRateInput({ ...incoming, vehicleClassId });
+        // Phase 30 decision 5: a Draft class's empty row is parked; a priced one counts.
         const existing = findExistingDistanceRate(book, id, parsed.vehicleClassId);
         if (existing) {
           await tx`
@@ -866,7 +876,7 @@ export const PUT = withAdmin(async (claims, request) => {
               min_fare_rappen = ${parsed.minFareRappen},
               airport_start_rappen = ${parsed.airportStartRappen},
               max_pax = ${parsed.maxPax},
-              available = ${parsed.available},
+              available = ${draftRowAvailable(classIsLive, parsed, incoming.maxPax, maxBags)},
               hide_from_public = ${parsed.hideFromPublic}
             where id = ${existing.id} and rate_version_id = ${versionId}
           `;
@@ -880,7 +890,8 @@ export const PUT = withAdmin(async (claims, request) => {
               ${versionId}, ${parsed.vehicleClassId}, ${parsed.baseFareRappen},
               ${parsed.perKmRappen}, ${parsed.minFareRappen},
               ${parsed.airportStartRappen},
-              ${parsed.maxPax}, ${parsed.available}, ${parsed.hideFromPublic}
+              ${parsed.maxPax}, ${draftRowAvailable(classIsLive, parsed, incoming.maxPax, maxBags)},
+              ${parsed.hideFromPublic}
             )
           `;
         }

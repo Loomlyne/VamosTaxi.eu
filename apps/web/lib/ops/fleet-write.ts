@@ -167,6 +167,7 @@ export async function insertVehicleClassOnDraft(
   draftVersionId: number,
 ): Promise<string> {
   return asStaff(env, claims, async (sql) => {
+    // Phase 30 CLS-01: a new class starts as a Draft (active false); Go live turns it on.
     const rows = await sql<{ id: string }[]>`
       insert into public.vehicle_classes (
         slug, passenger_capacity, luggage_capacity, sort_order, active, name, photo_path
@@ -175,7 +176,7 @@ export async function insertVehicleClassOnDraft(
         ${parsed.passengerCapacity},
         ${parsed.luggageCapacity},
         ${parsed.sortOrder},
-        ${parsed.active},
+        false,
         ${parsed.name ?? parsed.slug},
         ${parsed.photoPath ?? null}
       )
@@ -183,11 +184,13 @@ export async function insertVehicleClassOnDraft(
     `;
     const id = rows[0]?.id;
     if (!id) throw new Error("insertVehicleClass");
+    // Phase 30 decision 5: the empty draft price row is parked (not available) so it never blocks
+    // Publish; saving a price on Pricing makes it count.
     await sql`
       insert into public.distance_rates (
         rate_version_id, vehicle_class_id, max_pax, available, hide_from_public
       ) values (
-        ${draftVersionId}, ${id}, ${parsed.passengerCapacity}, true, false
+        ${draftVersionId}, ${id}, ${parsed.passengerCapacity}, false, false
       )
     `;
     return id;

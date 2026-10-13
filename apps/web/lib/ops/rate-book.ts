@@ -96,6 +96,8 @@ export type VehicleClassRef = {
   sortOrder?: number;
   /** 26.1-19 D-15: why an admin hid this class (null while it is not hidden). */
   hiddenReason?: string | null;
+  /** Phase 30: the class's `active` flag (Live when true and not retired). */
+  active?: boolean;
 };
 
 export type RateBook = {
@@ -260,6 +262,24 @@ export function assertDistanceRateInput(input: DistanceRateInput): DistanceRateI
     available: input.available,
     hideFromPublic: input.hideFromPublic === true,
   };
+}
+
+/**
+ * Phase 30 decision 5: whether a Pricing save of a class's distance row counts (available).
+ * A Draft class's row counts only when start fare, per-km, seats and bags are all set (the
+ * publish guard refuses an available row with any of them empty); a Live class keeps the
+ * `available` the save asked for, so an unpriced Live row still blocks Publish.
+ */
+export function draftRowAvailable(
+  classIsLive: boolean,
+  parsed: { available: boolean; baseFareRappen: number | null; perKmRappen: number | null },
+  seats: number | null,
+  bags: number | null,
+): boolean {
+  if (classIsLive) return parsed.available;
+  return (
+    parsed.baseFareRappen != null && parsed.perKmRappen != null && seats != null && bags != null
+  );
 }
 
 export function assertFixedRouteInput(input: FixedRouteInput): FixedRouteInput {
@@ -428,6 +448,7 @@ type ClassSqlRow = {
   sort_order?: number | null;
   hidden_at?: Date | string | null;
   hidden_reason?: string | null;
+  active?: boolean | null;
 };
 
 type ZoneSqlRow = {
@@ -543,7 +564,7 @@ export async function loadRateBook(
     `;
 
     const classes = await tx<ClassSqlRow[]>`
-      select id, slug, name, photo_path, luggage_capacity, sort_order, hidden_at, hidden_reason
+      select id, slug, name, photo_path, luggage_capacity, sort_order, hidden_at, hidden_reason, active
         from public.vehicle_classes
        order by sort_order, slug
     `;
@@ -631,6 +652,7 @@ export async function loadRateBook(
           row.hidden_at != null
             ? (typeof row.hidden_reason === "string" && row.hidden_reason) || ""
             : null,
+        active: row.active === true,
       })),
     };
   });
