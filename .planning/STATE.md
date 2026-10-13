@@ -3,15 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Meta measurement
 status: executing
-stopped_at: "branch `docs/gsd-bookkeeping-1005` pushed for the control session to review and land."
-last_updated: "2026-10-05T14:09:00.000Z"
-last_activity: "2026-10-05 18:09 (+04) - GSD bookkeeping: phases 28 and 29 ticked as shipped, STATE brought to the 2026-10-05 investigation jobs (all live 14:25 to 17:44), quick 260819-279 and 260819-vjz closed as superseded"
+last_updated: "2026-10-13T12:22:13.464Z"
 progress:
-  total_phases: 42
-  completed_phases: 41
-  total_plans: 352
-  completed_plans: 352
-  percent: 100
+  total_phases: 37
+  completed_phases: 31
+  total_plans: 367
+  completed_plans: 353
+  percent: 84
 ---
 
 # Project State
@@ -22,10 +20,12 @@ See: .planning/PROJECT.md (updated 2026-09-23)
 
 **Core value:** quote → pay → confirmation. A customer books a fixed-price transfer in under a minute and the driver is there.
 **Live:** https://vamostaxi.site and https://dashboard.vamostaxi.site, Worker `vamos`. The control board is the live source: `.planning/CONTROL-BOARD.md`.
-**Current focus:** the control board's landing queue. GSD has no current phase: every phase is ticked except 26.2 (open for its found rows only). 28 and 29 are shipped and live; the owner holds the Meta test event code and the Events Manager Test events check.
+**Current focus:** Phase 31 — Refunds in Stripe
 
 ## Current Position
 
+Phase: 31 (Refunds in Stripe) — EXECUTING
+Plan: 1 of 13
 Last updated: 2026-10-05 18:09 (+04), by the bookkeeping job `docs/gsd-bookkeeping-1005` (planning files only).
 Source: `.planning/CONTROL-BOARD.md` (last update 2026-10-05 17:45), `.planning/audits/2026-10-05-repo-investigation.md` and origin/main `16f1cfa7`.
 main = origin/main `16f1cfa7` (planning note) over `001f4d40` (checks and tests, 17:44). Last deploy on the board: Worker `vamos` `13ed22ae` (2026-10-05 17:44; the same site code as `8c8ef984` of 17:40), gateway `vamos-dashboard` `71a307da`.
