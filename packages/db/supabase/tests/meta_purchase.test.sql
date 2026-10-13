@@ -80,13 +80,13 @@ select ok((select p.proconfig @> array['search_path=""'] from pg_proc p where p.
 set local session_replication_role = replica;
 
 insert into public.consent_log (consent_subject_id, policy_version, method, necessary, functional, analytics, marketing, locale, recorded_at) values
-  ('29a00000-0000-4000-8000-000000000001', '2026-10-09', 'accept_all',  true, true,  true,  true,  'en', now() - interval '3 hours'),
-  ('29a00000-0000-4000-8000-000000000002', '2026-10-09', 'accept_all',  true, true,  true,  true,  'en', now() - interval '3 hours'),
-  ('29a00000-0000-4000-8000-000000000002', '2026-10-09', 'reject_all',  true, false, false, false, 'en', now() - interval '2 hours'),
+  ('29a00000-0000-4000-8000-000000000001', '2026-10-13', 'accept_all',  true, true,  true,  true,  'en', now() - interval '3 hours'),
+  ('29a00000-0000-4000-8000-000000000002', '2026-10-13', 'accept_all',  true, true,  true,  true,  'en', now() - interval '3 hours'),
+  ('29a00000-0000-4000-8000-000000000002', '2026-10-13', 'reject_all',  true, false, false, false, 'en', now() - interval '2 hours'),
   ('29a00000-0000-4000-8000-000000000003', '2026-09-12', 'accept_all',  true, true,  true,  true,  'en', now() - interval '3 hours'),
-  ('29a00000-0000-4000-8000-000000000004', '2026-10-09', 'accept_all',  true, true,  true,  true,  'en', now() - interval '4 hours'),
-  ('29a00000-0000-4000-8000-000000000004', '2026-10-09', 'reject_all',  true, false, false, false, 'en', now() - interval '3 hours'),
-  ('29a00000-0000-4000-8000-000000000004', '2026-10-09', 'accept_all',  true, true,  true,  true,  'en', now() - interval '2 hours');
+  ('29a00000-0000-4000-8000-000000000004', '2026-10-13', 'accept_all',  true, true,  true,  true,  'en', now() - interval '4 hours'),
+  ('29a00000-0000-4000-8000-000000000004', '2026-10-13', 'reject_all',  true, false, false, false, 'en', now() - interval '3 hours'),
+  ('29a00000-0000-4000-8000-000000000004', '2026-10-13', 'accept_all',  true, true,  true,  true,  'en', now() - interval '2 hours');
 
 insert into public.bookings (id, contact_name, contact_email, status, is_test, erased_at, meta_fbp, meta_fbc, meta_consent_subject)
 select ('c2900000-0000-0000-0000-0000000000' || lpad(n::text, 2, '0'))::uuid, 'Purchase ' || n, 'purchase-' || n || '@example.test',
@@ -217,7 +217,7 @@ select throws_ok($$ update public.bookings set meta_consent_subject = '29a00000-
 select lives_ok($$ update public.bookings set meta_consent_subject = null where id = pg_temp.bid(23) $$, 'trigger: subject set to NULL on a paid booking succeeds');
 
 -- ── claim: send ──────────────────────────────────────────────────────────────────────────────
-create temp table r01 as select * from public.meta_purchase_claim(pg_temp.bid(1), pg_temp.pid('01'), '2026-10-09', false, false, null);
+create temp table r01 as select * from public.meta_purchase_claim(pg_temp.bid(1), pg_temp.pid('01'), '2026-10-13', false, false, null);
 select is((select decision from r01), 'send', 'send: decision');
 select is((select reason from r01), null, 'send: reason null');
 select isnt((select event_id from r01), null, 'send: event id returned');
@@ -232,7 +232,7 @@ select ok((select e.event_id::text not like '%' || b.reference || '%' and e.even
              from public.meta_purchase_events e join public.bookings b on b.id = e.booking_id where e.booking_id = pg_temp.bid(1)),
           'send: event id is not the booking reference');
 
-create temp table r01b as select * from public.meta_purchase_claim(pg_temp.bid(1), pg_temp.pid('01'), '2026-10-09', false, false, null);
+create temp table r01b as select * from public.meta_purchase_claim(pg_temp.bid(1), pg_temp.pid('01'), '2026-10-13', false, false, null);
 select is((select decision from r01b), 'already', 'again: decision already');
 select is((select event_id from r01b), null, 'again: no event id');
 select is((select count(*)::int from public.meta_purchase_events where booking_id = pg_temp.bid(1)), 1, 'again: still one row');
@@ -240,20 +240,20 @@ select is((select event_id from public.meta_purchase_events where booking_id = p
 
 -- ── claim: skip branches (each: one skipped row with the reason, three columns emptied) ──────
 create temp table sk (n int, reason text);
-insert into sk select 2, reason from public.meta_purchase_claim(pg_temp.bid(2), pg_temp.pid('02'), '2026-10-09', false, true, null);
-insert into sk select 3, reason from public.meta_purchase_claim(pg_temp.bid(3), pg_temp.pid('03'), '2026-10-09', false, false, null);
-insert into sk select 4, reason from public.meta_purchase_claim(pg_temp.bid(4), pg_temp.pid('04'), '2026-10-09', false, false, null);
-insert into sk select 5, reason from public.meta_purchase_claim(pg_temp.bid(5), pg_temp.pid('05'), '2026-10-09', false, false, null);
-insert into sk select 6, reason from public.meta_purchase_claim(pg_temp.bid(6), pg_temp.pid('06'), '2026-10-09', false, false, null);
-insert into sk select 7, reason from public.meta_purchase_claim(pg_temp.bid(7), pg_temp.pid('07'), '2026-10-09', false, false, null);
-insert into sk select 8, reason from public.meta_purchase_claim(pg_temp.bid(8), pg_temp.pid('08'), '2026-10-09', false, false, null);
-insert into sk select 9, reason from public.meta_purchase_claim(pg_temp.bid(9), pg_temp.pid('09'), '2026-10-09', true, false, 'no_test_code');
-insert into sk select 10, reason from public.meta_purchase_claim(pg_temp.bid(10), pg_temp.pid('10'), '2026-10-09', false, false, 'gate_closed');
-insert into sk select 11, reason from public.meta_purchase_claim(pg_temp.bid(11), pg_temp.pid('11'), '2026-10-09', false, false, 'no_token');
-insert into sk select 12, reason from public.meta_purchase_claim(pg_temp.bid(12), pg_temp.pid('12'), '2026-10-09', false, false, null);
-insert into sk select 13, reason from public.meta_purchase_claim(pg_temp.bid(13), pg_temp.pid('13'), '2026-10-09', false, false, null);
-insert into sk select 14, reason from public.meta_purchase_claim(pg_temp.bid(14), pg_temp.pid('14'), '2026-10-09', false, false, null);
-insert into sk select 15, reason from public.meta_purchase_claim(pg_temp.bid(15), pg_temp.pid('15'), '2026-10-09', false, false, null);
+insert into sk select 2, reason from public.meta_purchase_claim(pg_temp.bid(2), pg_temp.pid('02'), '2026-10-13', false, true, null);
+insert into sk select 3, reason from public.meta_purchase_claim(pg_temp.bid(3), pg_temp.pid('03'), '2026-10-13', false, false, null);
+insert into sk select 4, reason from public.meta_purchase_claim(pg_temp.bid(4), pg_temp.pid('04'), '2026-10-13', false, false, null);
+insert into sk select 5, reason from public.meta_purchase_claim(pg_temp.bid(5), pg_temp.pid('05'), '2026-10-13', false, false, null);
+insert into sk select 6, reason from public.meta_purchase_claim(pg_temp.bid(6), pg_temp.pid('06'), '2026-10-13', false, false, null);
+insert into sk select 7, reason from public.meta_purchase_claim(pg_temp.bid(7), pg_temp.pid('07'), '2026-10-13', false, false, null);
+insert into sk select 8, reason from public.meta_purchase_claim(pg_temp.bid(8), pg_temp.pid('08'), '2026-10-13', false, false, null);
+insert into sk select 9, reason from public.meta_purchase_claim(pg_temp.bid(9), pg_temp.pid('09'), '2026-10-13', true, false, 'no_test_code');
+insert into sk select 10, reason from public.meta_purchase_claim(pg_temp.bid(10), pg_temp.pid('10'), '2026-10-13', false, false, 'gate_closed');
+insert into sk select 11, reason from public.meta_purchase_claim(pg_temp.bid(11), pg_temp.pid('11'), '2026-10-13', false, false, 'no_token');
+insert into sk select 12, reason from public.meta_purchase_claim(pg_temp.bid(12), pg_temp.pid('12'), '2026-10-13', false, false, null);
+insert into sk select 13, reason from public.meta_purchase_claim(pg_temp.bid(13), pg_temp.pid('13'), '2026-10-13', false, false, null);
+insert into sk select 14, reason from public.meta_purchase_claim(pg_temp.bid(14), pg_temp.pid('14'), '2026-10-13', false, false, null);
+insert into sk select 15, reason from public.meta_purchase_claim(pg_temp.bid(15), pg_temp.pid('15'), '2026-10-13', false, false, null);
 
 select is((select reason from sk where n = 2), 'refunded', 'skip: refund required by the Worker -> refunded');
 select is((select reason from sk where n = 3), 'erased', 'skip: erased booking -> erased');
@@ -271,7 +271,7 @@ select is((select reason from sk where n = 14), 'consent_off', 'skip: accept the
 select is((select reason from sk where n = 15), 'consent_off', 'skip: consent only under an older policy -> consent_off');
 select is((select count(*)::int from sk where reason is not null), 14, 'skip: every skip branch answered a reason');
 select is((select string_agg(distinct decision, ',') from (
-            select (select decision from public.meta_purchase_claim(pg_temp.bid(2), pg_temp.pid('02'), '2026-10-09', false, false, null)) as decision) d),
+            select (select decision from public.meta_purchase_claim(pg_temp.bid(2), pg_temp.pid('02'), '2026-10-13', false, false, null)) as decision) d),
           'already', 'skip: asking again answers already');
 select is((select count(*)::int from public.meta_purchase_events e where e.state = 'skipped' and e.skip_reason is not null
             and e.booking_id in (select pg_temp.bid(n) from generate_series(2, 15) n)), 14, 'skip: 14 skipped rows with a reason');
@@ -280,20 +280,20 @@ select is((select count(*)::int from public.meta_purchase_events where booking_i
 select ok((select bool_and(pg_temp.wiped(n)) from generate_series(2, 15) n), 'skip: every skip emptied fbp, fbc and consent subject');
 
 -- ── accept, refuse, accept: latest wins ──────────────────────────────────────────────────────
-select is((select decision from public.meta_purchase_claim(pg_temp.bid(16), pg_temp.pid('16'), '2026-10-09', false, false, null)), 'send', 'consent: accept, refuse, accept -> send');
+select is((select decision from public.meta_purchase_claim(pg_temp.bid(16), pg_temp.pid('16'), '2026-10-13', false, false, null)), 'send', 'consent: accept, refuse, accept -> send');
 
 -- ── not the first payment ────────────────────────────────────────────────────────────────────
-select is((select decision || '|' || reason from public.meta_purchase_claim(pg_temp.bid(17), pg_temp.pid('17b'), '2026-10-09', false, false, null)),
+select is((select decision || '|' || reason from public.meta_purchase_claim(pg_temp.bid(17), pg_temp.pid('17b'), '2026-10-13', false, false, null)),
   'skip|not_first_payment', 'later payment: skip not_first_payment');
 select is((select count(*)::int from public.meta_purchase_events where booking_id = pg_temp.bid(17)), 0, 'later payment: no row written');
 select ok(not pg_temp.wiped(17), 'later payment: nothing cleared');
-select is((select decision from public.meta_purchase_claim(pg_temp.bid(17), pg_temp.pid('17a'), '2026-10-09', false, false, null)), 'send', 'first payment still sends after the later one was refused');
-select is((select decision || '|' || reason from public.meta_purchase_claim(pg_temp.bid(18), pg_temp.pid('01'), '2026-10-09', false, false, null)),
+select is((select decision from public.meta_purchase_claim(pg_temp.bid(17), pg_temp.pid('17a'), '2026-10-13', false, false, null)), 'send', 'first payment still sends after the later one was refused');
+select is((select decision || '|' || reason from public.meta_purchase_claim(pg_temp.bid(18), pg_temp.pid('01'), '2026-10-13', false, false, null)),
   'skip|not_first_payment', 'payment of another booking: skip not_first_payment');
 select is((select count(*)::int from public.meta_purchase_events where booking_id = pg_temp.bid(18)), 0, 'payment of another booking: no row written');
 select ok(not pg_temp.wiped(18), 'payment of another booking: nothing cleared');
-select throws_ok($$ select * from public.meta_purchase_claim(pg_temp.bid(19), pg_temp.pid('19'), '2026-10-09', false, false, 'bogus') $$, '22023', null, 'claim: unknown worker skip raises 22023');
-select throws_ok($$ select * from public.meta_purchase_claim('c2900000-0000-0000-0000-0000000000ff', 1, '2026-10-09', false, false, null) $$, 'P0002', null, 'claim: unknown booking raises P0002');
+select throws_ok($$ select * from public.meta_purchase_claim(pg_temp.bid(19), pg_temp.pid('19'), '2026-10-13', false, false, 'bogus') $$, '22023', null, 'claim: unknown worker skip raises 22023');
+select throws_ok($$ select * from public.meta_purchase_claim('c2900000-0000-0000-0000-0000000000ff', 1, '2026-10-13', false, false, null) $$, 'P0002', null, 'claim: unknown booking raises P0002');
 
 -- ── finish ───────────────────────────────────────────────────────────────────────────────────
 select lives_ok($$ select public.meta_purchase_finish(pg_temp.bid(1), '00000000-0000-4000-8000-0000000000aa', 'sent', 200, null, null) $$, 'finish: wrong event id does nothing');
@@ -337,12 +337,12 @@ set local role vamos_system;
 select is(public.meta_purchase_sweep(), 0, 'sweep: a second run has nothing left to clean');
 select is(pg_typeof(public.meta_purchase_sweep())::text, 'integer', 'sweep: returns one int4');
 reset role;
-select is((select decision from public.meta_purchase_claim(pg_temp.bid(28), pg_temp.pid('28'), '2026-10-09', false, false, null)), 'already', 'sweep: a late claim on a swept booking answers already');
+select is((select decision from public.meta_purchase_claim(pg_temp.bid(28), pg_temp.pid('28'), '2026-10-13', false, false, null)), 'already', 'sweep: a late claim on a swept booking answers already');
 
 -- ── role path: the system role can run claim, finish, clear_ids ──────────────────────────────
 select set_config('t29.pid26', pg_temp.pid('26')::text, false);
 set local role vamos_system;
-select lives_ok($$ select * from public.meta_purchase_claim(pg_temp.bid(26), current_setting('t29.pid26')::int8, '2026-10-09', false, false, null) $$, 'vamos_system can call the claim');
+select lives_ok($$ select * from public.meta_purchase_claim(pg_temp.bid(26), current_setting('t29.pid26')::int8, '2026-10-13', false, false, null) $$, 'vamos_system can call the claim');
 select lives_ok($$ select public.meta_purchase_clear_ids(pg_temp.bid(26)) $$, 'vamos_system can call clear_ids');
 reset role;
 select is((select count(*)::int from public.meta_purchase_events where booking_id = pg_temp.bid(26)), 1, 'vamos_system claim wrote its row');

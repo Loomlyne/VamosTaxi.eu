@@ -113,7 +113,7 @@ describe("meta legal gate", () => {
     }
   });
 
-  it("policy version is the consent version: set once, and 2026-10-09 until the owner moves it", () => {
+  it("policy version is the consent version: set once, and 2026-10-13 until the owner moves it", () => {
     const assignment = /CONSENT_POLICY_VERSION\s*=(?!=)\s*(["'])([^"']+)\1/g;
     const found: string[] = [];
     for (const rel of walk("")) {
@@ -130,7 +130,8 @@ describe("meta legal gate", () => {
     // Owner, 2026-10-05: the legal pages show their own "Last updated" day (app/vamos-legal-updated.js)
     // and that never moves this version. A new version asks every visitor for consent again, so
     // change this line only with the owner's word.
-    expect(version).toBe("2026-10-09");
+    // 2026-10-13: the GA4 wording (owner adopted 2026-10-11 with this bump).
+    expect(version).toBe("2026-10-13");
   }, 30_000);
 
   it("Meta strings only where allowed (Phase 28 per-needle allow map, Phase 29 server Purchase)", () => {
@@ -145,6 +146,12 @@ describe("meta legal gate", () => {
       // Google (owner decision 2026-10-09): the tag id and Google's script host, only where the tag lives.
       "googletagmanager.com": ["app/vamos-google.js", "apps/web/public/app/vamos-google.js", "apps/web/lib/security/headers.ts"],
       "AW-368142830": ["app/vamos-google.js", "apps/web/public/app/vamos-google.js", "apps/web/lib/google/flag.ts"],
+      // GA4 (adopted wording 2026-10-11) and Tag Manager (behind GTM_ON): the ids in the loader and the flag file,
+      // GA4's collection hosts in the policy builder only.
+      "G-K5MZME44P6": ["app/vamos-google.js", "apps/web/public/app/vamos-google.js", "apps/web/lib/google/flag.ts"],
+      "GTM-KPKGT4VH": ["app/vamos-google.js", "apps/web/public/app/vamos-google.js", "apps/web/lib/google/flag.ts"],
+      "google-analytics.com": ["apps/web/lib/security/headers.ts"],
+      "gtm.js": ["app/vamos-google.js", "apps/web/public/app/vamos-google.js", "apps/web/lib/security/headers.ts"],
       META_CAPI_ACCESS_TOKEN: ["apps/web/lib/meta/purchase.ts", "apps/web/lib/meta/funnel.ts", "apps/web/lib/env.d.ts"],
     };
     const hits: string[] = [];
@@ -276,7 +283,7 @@ describe("meta legal gate", () => {
     }
     for (const [rel, cls, hook, keys] of [
       ["app/[locale]/cookies/page.tsx", "vt-legal-blank--row", "cookies", ["meta-row", "google-row"]],
-      ["app/[locale]/privacy/page.tsx", "vt-legal-blank", "privacy", ["meta-privacy-line", "google-privacy-line"]],
+      ["app/[locale]/privacy/page.tsx", "vt-legal-blank", "privacy", ["meta-privacy-line", "google-privacy-line", "ga-privacy-line"]],
     ] as const) {
       const body = slotBody(source(rel), cls, hook);
       // Only t.rich calls, one paragraph per owner text: no literal prose in the slot.

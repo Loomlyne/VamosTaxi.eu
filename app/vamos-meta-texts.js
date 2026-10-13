@@ -2,6 +2,7 @@
    Sources, verbatim, never reword (D-16):
      .planning/decisions/2026-10-09-ad-tracking-wording.md  (banner, googleRow, privacyLine, googlePrivacyLine, googleProcessor)
      .planning/decisions/2026-09-30-meta-wording.md section 2 (cookiesRow, the Meta cookies row, unchanged)
+     .planning/decisions/2026-10-11-ga4-wording.md  (analyticsRow, gaRow, gaPrivacyLine, gaProcessor)
    Generated from those files; owner-texts.test.ts byte-compares this file against them.
    Segments: plain strings, { b: 'bold' }, { code: 'code' }. */
 (function () {
@@ -42,6 +43,30 @@
     fr: ['Mesure publicitaire, uniquement avec votre consentement · Google Ads'],
     ar: ['قياس الإعلانات، بموافقتك فقط · Google Ads'],
   },
+  analyticsRow: {
+    en: ['Tells us how many people visit, which pages they open and which step of a booking they abandon. Cloudflare counts without cookies; Google Analytics sets two cookies.'],
+    de: ['Zeigt uns, wie viele Personen die Website besuchen, welche Seiten sie öffnen und bei welchem Buchungsschritt sie abbrechen. Cloudflare zählt ohne Cookies; Google Analytics setzt zwei Cookies.'],
+    fr: ['Nous indique combien de personnes visitent le site, quelles pages elles ouvrent et à quelle étape elles abandonnent une réservation. Cloudflare compte sans cookies ; Google Analytics dépose deux cookies.'],
+    ar: ['يخبرنا بعدد الزوار والصفحات التي يفتحونها والمرحلة التي يتوقفون عندها أثناء الحجز. تَعُدّ Cloudflare الزيارات دون ملفات تعريف ارتباط؛ ويضع Google Analytics ملفَّي تعريف ارتباط.'],
+  },
+  gaRow: {
+    en: [{ b: 'Google Analytics' }, ' (Google Ireland Ltd). Cookies ', { code: '_ga' }, ' and ', { code: '_ga_<id>' }, '. Set only after you accept Analytics. They let Google Analytics count visits and recognise a returning browser. Kept for up to 90 days.'],
+    de: [{ b: 'Google Analytics' }, ' (Google Ireland Ltd). Cookies ', { code: '_ga' }, ' und ', { code: '_ga_<id>' }, '. Werden erst gesetzt, wenn Sie Analyse zustimmen. Sie ermöglichen Google Analytics, Besuche zu zählen und einen wiederkehrenden Browser zu erkennen. Speicherdauer bis zu 90 Tage.'],
+    fr: [{ b: 'Google Analytics' }, ' (Google Ireland Ltd). Cookies ', { code: '_ga' }, ' et ', { code: '_ga_<id>' }, '. Déposés uniquement après votre accord pour l\'analyse. Ils permettent à Google Analytics de compter les visites et de reconnaître un navigateur qui revient. Conservés jusqu\'à 90 jours.'],
+    ar: [{ b: 'Google Analytics' }, ' (Google Ireland Ltd). ملفا تعريف الارتباط ', { code: '_ga' }, ' و', { code: '_ga_<id>' }, '. لا يُوضعان إلا بعد موافقتك على التحليلات. يسمحان لـ Google Analytics بعدّ الزيارات والتعرّف على متصفح يعود إلى الموقع. يُحفظان لمدة تصل إلى 90 يومًا.'],
+  },
+  gaPrivacyLine: {
+    en: [{ b: 'Google Ireland Ltd. Site analytics, only with your consent.' }, ' After you accept Analytics, Google Analytics records which pages of this site were opened, without the part of the address after the page name, the site you came from (its name only), the buttons and booking steps listed for Meta above, and for a paid booking the amount and the booking reference. We do not send your name, email, phone number, route or flight. Google receives your IP address and browser details when its script loads. Google may process this data outside Switzerland. We keep the data in Google Analytics for 2 months. You can withdraw your consent at any time in Cookie preferences.'],
+    de: [{ b: 'Google Ireland Ltd. Website-Analyse, nur mit Ihrer Einwilligung.' }, ' Nach Ihrer Zustimmung zur Analyse erfasst Google Analytics, welche Seiten dieser Website geöffnet wurden, ohne den Teil der Adresse nach dem Seitennamen, die Website, von der Sie kamen (nur ihren Namen), die oben bei Meta genannten Schaltflächen und Buchungsschritte sowie bei einer bezahlten Buchung den Betrag und die Buchungsreferenz. Wir senden weder Ihren Namen noch E-Mail-Adresse, Telefonnummer, Strecke oder Flug. Google erhält beim Laden seines Skripts Ihre IP-Adresse und Browserangaben. Google kann diese Daten ausserhalb der Schweiz verarbeiten. Wir bewahren die Daten in Google Analytics 2 Monate auf. Sie können Ihre Einwilligung jederzeit in den Cookie-Einstellungen widerrufen.'],
+    fr: [{ b: 'Google Ireland Ltd. Analyse du site, uniquement avec votre consentement.' }, ' Après votre accord pour l\'analyse, Google Analytics enregistre quelles pages de ce site ont été ouvertes, sans la partie de l\'adresse après le nom de la page, le site d\'où vous venez (son nom uniquement), les boutons et étapes de réservation énumérés pour Meta ci-dessus et, pour une réservation payée, le montant et la référence de réservation. Nous n\'envoyons ni votre nom, ni votre e-mail, ni votre numéro de téléphone, ni le trajet ou le vol. Google reçoit votre adresse IP et les données de votre navigateur lorsque son script se charge. Google peut traiter ces données hors de Suisse. Nous conservons les données dans Google Analytics pendant 2 mois. Vous pouvez retirer votre consentement à tout moment dans les préférences de cookies.'],
+    ar: [{ b: 'Google Ireland Ltd. تحليلات الموقع، بموافقتك فقط.' }, ' بعد موافقتك على التحليلات، يسجّل Google Analytics الصفحات التي فُتحت من هذا الموقع، دون الجزء من العنوان الذي يلي اسم الصفحة، والموقع الذي أتيت منه (اسمه فقط)، والأزرار ومراحل الحجز المذكورة لـ Meta أعلاه، والمبلغ ومرجع الحجز عند الحجز المدفوع. لا نرسل اسمك ولا بريدك الإلكتروني ولا رقم هاتفك ولا المسار ولا رقم الرحلة. تتلقى Google عنوان IP الخاص بك وبيانات متصفحك عند تحميل برنامجها النصي. قد تعالج Google هذه البيانات خارج سويسرا. نحتفظ بالبيانات في Google Analytics لمدة شهرين. يمكنك سحب موافقتك في أي وقت من إعدادات ملفات تعريف الارتباط.'],
+  },
+  gaProcessor: {
+    en: ['Site analytics, only with your consent · Google Analytics'],
+    de: ['Website-Analyse, nur mit Ihrer Einwilligung · Google Analytics'],
+    fr: ['Analyse du site, uniquement avec votre consentement · Google Analytics'],
+    ar: ['تحليلات الموقع، بموافقتك فقط · Google Analytics'],
+  },
   };
 
   /** Returns the segment array of one owner text for a language, falling back to English. */
@@ -58,6 +83,10 @@
     privacyLine: TEXTS.privacyLine,
     googlePrivacyLine: TEXTS.googlePrivacyLine,
     googleProcessor: TEXTS.googleProcessor,
+    analyticsRow: TEXTS.analyticsRow,
+    gaRow: TEXTS.gaRow,
+    gaPrivacyLine: TEXTS.gaPrivacyLine,
+    gaProcessor: TEXTS.gaProcessor,
     segments: segments,
   };
 })();

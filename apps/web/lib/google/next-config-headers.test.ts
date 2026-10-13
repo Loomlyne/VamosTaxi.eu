@@ -28,6 +28,7 @@ describe("next.config headers()", () => {
     const r = await rows(false);
     expect(cspRows(r).map((x) => x.source)).toEqual(["/:path*"]);
     expect(JSON.stringify(r).includes(G)).toBe(false);
+    expect(JSON.stringify(r).includes("analytics.com")).toBe(false);
   });
 
   it("flag open: Google's policy on /checkout and /confirmation/:ref (and the language forms), listed after the catch-all", async () => {
@@ -43,6 +44,9 @@ describe("next.config headers()", () => {
     for (const row of withCsp.slice(1)) {
       const csp = row.headers.find((h) => h.key === "Content-Security-Policy")!.value;
       expect(csp).toContain(G);
+      // GA4 (adopted 2026-10-11): its collection hosts ride on the same rows.
+      expect(csp).toContain("https://*.google-" + "analytics.com");
+      expect(csp).toContain("https://*.analytics.google.com");
       expect(csp).not.toContain("face" + "book");
     }
     expect(withCsp[0]!.headers.find((h) => h.key === "Content-Security-Policy")!.value.includes(G)).toBe(false);

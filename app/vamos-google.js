@@ -1,29 +1,50 @@
-/* Vamos Taxi — the Google tag loader (Google Ads, tag AW-368142830). Owner decisions 2026-10-09 (D2, D4).
+/* Vamos Taxi — the Google tag loader: Google Ads (AW-368142830, owner decisions 2026-10-09 D2, D4) and Google
+   Analytics 4 (G-K5MZME44P6, adopted wording .planning/decisions/2026-10-11-ga4-wording.md). One gtag.js library,
+   one script, two configs, each under its own consent choice. Google Tag Manager (GTM-KPKGT4VH) sits behind
+   GTM_ON, which stays false until its draft wording (.planning/decisions/2026-10-13-gtm-wording-DRAFT.md) is adopted.
 
    Runs on the mock pages AND the Next pages (it asks the server itself, it does not need the mock consent
    runtime). Loaded from the cookie banner (mock) and from the locale layout (Next).
 
-   Before the visitor accepts Marketing nothing leaves the browser: the only thing done is a local
+   Before the visitor accepts Analytics or Marketing nothing leaves the browser: the only thing done is a local
    `gtag('consent','default', denied)` (no request). Google's script is added to the page after ALL of these
    are true, checked in the browser:
      1. GOOGLE_ON    the owner's Google wording is live (apps/web/lib/google/flag.ts holds the same value).
      2. The address is on the list below (a path list; the query and hash never decide, and are never sent).
-     3. GET /api/consent/state says marketing is on under the current consent version: the server, never the
-        browser cache and never a consent event alone. Asked on every page load, so "already accepted" and
-        "accepted a moment ago" are the same path.
+     3. GET /api/consent/state says Marketing or Analytics is on under the current consent version: the server,
+        never the browser cache and never a consent event alone. Asked on every page load, so "already
+        accepted" and "accepted a moment ago" are the same path.
+   Then, each config only under its own choice:
+     Marketing on  -> the Google Ads config; ad_storage and ad_user_data granted; ad_personalization stays
+                      denied (remarketing wording not adopted).
+     Analytics on  -> the GA4 config (ANALYTICS_ON); analytics_storage granted; one page_view; cookies kept
+                      90 days; Google signals and ad personalisation signals off.
+     Analytics only -> every ad_* signal denied, no Ads config. Marketing only -> no GA4, analytics_storage denied.
+     A later choice on the same page (Analytics then Marketing, or the reverse) adds the other config to the
+     script already there, without loading it again.
+     Both on and GTM_ON -> Google Tag Manager's container, after the consent default; no noscript frame, ever.
 
-   What Google is told: the tag id; `page_location` = origin + path with the booking reference replaced by
+   What Google is told: the tag ids; `page_location` = origin + path with the booking reference replaced by
    :ref (never a query, never a hash, never a token); `page_referrer` = the bare origin of the previous site or
-   empty; consent state; and, once, the conversion (amount, CHF, booking reference). No page_view event.
+   empty; `page_title` = that same path (the confirmation title holds the reference); consent state. Ads: once,
+   the conversion (amount, CHF, booking reference); no page_view. GA4: one page_view, the button and booking-step
+   events Meta gets (a fixed list, no value, no word but the contact kind) and, once, the purchase (amount, CHF,
+   booking reference). Never a name, email, phone, route, flight or typed text.
 
-   Withdrawing (Necessary only, or Marketing off) sets every consent signal to denied, forgets the queued
-   conversion and deletes Google's cookies (every domain form). Our code never writes a value into them.
+   Withdrawing a choice stops only that choice on this page and never starts it again here: Marketing off
+   denies the ad signals, forgets the queued conversion and deletes the Ads cookies; Analytics off denies
+   analytics_storage, forgets the queued events and deletes `_ga` and `_ga_*`. Every domain form. Once Tag
+   Manager has run on the page it cannot be unloaded, so withdrawing either choice there stops everything
+   Google on that page. Our code never writes a value into Google's cookies.
 
-   API: VamosGoogle.conversion({ value, transactionId }) -> true if sent or queued, false if refused;
+   API: VamosGoogle.conversion({ value, transactionId }) -> true if sent or queued, false if refused (the Ads
+   conversion under Marketing, the GA4 purchase under Analytics);
    a page that runs before this script loads pushes { value, transactionId } onto window.VamosGoogleQueue (an
    array); on load each item goes through conversion() (every guard applies) and the queue object's push()
    then does the same;
-   for tests: .allowed(href), .scrub(href, referrer), .loaded(), .revoked(), .pending()
+   VamosGoogle.track(name, params) -> the GA4 event for one of Meta's event names (below);
+   for tests: .allowed(href), .scrub(href, referrer), .loaded(), .revoked(), .pending(), .analyticsLoaded(),
+   .analyticsRevoked(), .tagManagerLoaded(), .pendingEvents()
 
    Plain browser script (not transpiled): var, function. */
 (function () {
@@ -31,20 +52,37 @@
 
   /* Same value as apps/web/lib/google/flag.ts. Opened 2026-10-09. */
   var GOOGLE_ON = true;
+  /* GA4, same value as GA4_OPEN in apps/web/lib/google/flag.ts. Wording adopted 2026-10-11. */
+  var ANALYTICS_ON = true;
+  /* Google Tag Manager, same value as GTM_OPEN in apps/web/lib/google/flag.ts. Its wording is a draft. */
+  var GTM_ON = false;
 
   var TAG_ID = 'AW-368142830';
   var SEND_TO = 'AW-368142830/liI8CIe79pUdEO7Txa8B';
-  var SRC = 'https://www.googletagmanager.com/gtag/js?id=' + TAG_ID;
+  var GA_ID = 'G-K5MZME44P6';
+  var GTM_ID = 'GTM-KPKGT4VH';
+  var GOOGLE_HOST = 'https://www.googletagmanager.com';
+  var GA_COOKIE_SECONDS = 7776000; /* 90 days, the adopted cookies row */
   var HOST = 'vamostaxi.site';
   var ORIGIN = 'https://' + HOST;
   var SEEN_PREFIX = 'vamosGoogleConv:';
+  var GA_SEEN_PREFIX = 'vamosGaPurchase:';
   var MAX_QUEUED = 3;
+  var MAX_EVENTS = 5;
 
-  var loaded = false;
-  var revokedHere = false;
+  var scriptAdded = false;
+  var adsOn = false;
+  var gaOn = false;
+  var gtmOn = false;
+  var adsRevoked = false;
+  var gaRevoked = false;
+  var gtmRevoked = false;
+  var answered = false;
   var withdrawSeq = 0;
   var defaulted = false;
   var queued = [];
+  var events = [];
+  var lastSent = {};
 
   /* ---- address list: the same pages as the Meta page view, plus the one-page checkout and the confirmation.
      Pay links, manage-booking, sign-in confirm, reset-password, review, dashboard and ops are never on it. ---- */
@@ -93,7 +131,12 @@
     var ref = '';
     var r = referrer ? parse(referrer) : null;
     if (r && (r.protocol === 'https:' || r.protocol === 'http:')) ref = r.origin + '/';
-    return { location: ORIGIN + path, referrer: ref };
+    return { location: ORIGIN + path, referrer: ref, title: path };
+  }
+
+  /* Read each time: a page that changes its address in place is described by the current path. */
+  function pageFields() {
+    return scrub(location.href, document.referrer);
   }
 
   /* ---- consent mode: the default is written in the page, no request ---- */
@@ -114,60 +157,90 @@
     defaulted = true;
   }
 
+  /* What is granted on this page now. Each purpose only while its own config runs. */
+  function consentNow() {
+    var ads = adsOn && !adsRevoked ? 'granted' : 'denied';
+    return {
+      ad_storage: ads,
+      ad_user_data: ads,
+      /* Owner 2026-10-12: remarketing off until he adopts its wording. Measurement only. */
+      ad_personalization: 'denied',
+      analytics_storage: gaOn && !gaRevoked ? 'granted' : 'denied',
+    };
+  }
+
   /* ---- withdraw: deny, forget, delete what Google's script wrote. Never writes a value. ---- */
 
-  var COOKIE_NAMES = ['_gcl_au', '_gcl_aw', '_gcl_dc', '_gcl_gb', '_gcl_gs', '_gcl_ag', '_ga', '_gid', '_gat', 'FPLC', 'FPID', '_gac_gb'];
-  var COOKIE_PREFIXES = ['_ga_', '_gac_', '_gcl_', '_gat_'];
+  var ADS_NAMES = ['_gcl_au', '_gcl_aw', '_gcl_dc', '_gcl_gb', '_gcl_gs', '_gcl_ag', '_gac_gb'];
+  var ADS_PREFIXES = ['_gac_', '_gcl_'];
+  var GA_NAMES = ['_ga', '_gid', '_gat', 'FPLC', 'FPID'];
+  var GA_PREFIXES = ['_ga_', '_gat_'];
 
-  function cookieNames() {
-    var out = COOKIE_NAMES.slice();
+  function cookieNames(names, prefixes) {
+    var out = names.slice();
     try {
       var all = String(document.cookie || '').split(';');
       for (var i = 0; i < all.length; i++) {
         var name = all[i].replace(/^\s+/, '').split('=')[0];
-        for (var p = 0; p < COOKIE_PREFIXES.length; p++) {
-          if (name.indexOf(COOKIE_PREFIXES[p]) === 0 && !inList(out, name)) out.push(name);
+        for (var p = 0; p < prefixes.length; p++) {
+          if (name.indexOf(prefixes[p]) === 0 && !inList(out, name)) out.push(name);
         }
       }
     } catch (e) { /* nothing to read */ }
     return out;
   }
 
-  function clearGoogle() {
+  function clearCookies(names, prefixes) {
     try {
       var parts = (location.hostname || '').split('.');
       var domains = [''];
       for (var i = parts.length - 2; i >= 0; i--) domains.push('.' + parts.slice(i).join('.'));
-      var names = cookieNames();
-      for (var n = 0; n < names.length; n++) {
+      var list = cookieNames(names, prefixes);
+      for (var n = 0; n < list.length; n++) {
         for (var d = 0; d < domains.length; d++) {
-          document.cookie = names[n] + '=; Max-Age=0; path=/' + (domains[d] ? '; domain=' + domains[d] : '');
+          document.cookie = list[n] + '=; Max-Age=0; path=/' + (domains[d] ? '; domain=' + domains[d] : '');
         }
       }
     } catch (e) { /* nothing to clear is not an error */ }
   }
 
-  function withdraw() {
-    withdrawSeq += 1;
-    queued = [];
+  /* ads: Marketing is off; analytics: Analytics is off. Where Tag Manager has run, either stops both.
+     fromServer: the server's own answer, which must not cancel another answer still on its way. */
+  function withdraw(ads, analytics, fromServer) {
+    if (!ads && !analytics) return;
+    if (!fromServer) withdrawSeq += 1;
+    if (gtmOn) { ads = true; analytics = true; gtmRevoked = true; }
+    if (ads && analytics) queued = [];
+    if (analytics) events = [];
+    var changed = (ads && adsOn && !adsRevoked) || (analytics && gaOn && !gaRevoked);
+    if (ads && adsOn) adsRevoked = true;
+    if (analytics && gaOn) gaRevoked = true;
     try {
-      if (defaulted || loaded) { ensureGtag(); window.gtag('consent', 'update', DENIED); }
-      if (loaded) revokedHere = true;
+      /* Both off: everything denied, as it always was. One off: the update only when it ran on this page. */
+      if (ads && analytics ? defaulted || scriptAdded : changed) {
+        ensureGtag();
+        window.gtag('consent', 'update', ads && analytics ? DENIED : consentNow());
+      }
     } catch (e) { /* the cookies below are still removed */ }
-    clearGoogle();
+    if (ads) clearCookies(ADS_NAMES, ADS_PREFIXES);
+    if (analytics) clearCookies(GA_NAMES, GA_PREFIXES);
   }
 
-  /* ---- start Google's script: after the server said yes ---- */
+  /* ---- the conversion (Ads) and the purchase (GA4): once per booking reference each ---- */
 
-  function seenKey(id) { return SEEN_PREFIX + id; }
+  /* Writes the once-only key before the send; false when this browser already sent it. */
+  function firstTime(prefix, id) {
+    try {
+      var key = prefix + id;
+      if (window.localStorage.getItem(key)) return false; /* a reload, a second tab: once only */
+      window.localStorage.setItem(key, String(new Date().getTime()));
+    } catch (e) { /* storage unavailable: Google's own de-duplication on transaction_id still applies */ }
+    return true;
+  }
 
   function sendConversion(item) {
     try {
-      var key = seenKey(item.transactionId);
-      try {
-        if (window.localStorage.getItem(key)) return; /* a reload, a second tab: once only */
-        window.localStorage.setItem(key, String(new Date().getTime()));
-      } catch (e) { /* storage unavailable: Google's own de-duplication on transaction_id still applies */ }
+      if (!firstTime(SEEN_PREFIX, item.transactionId)) return;
       window.gtag('event', 'conversion', {
         send_to: SEND_TO,
         value: item.value,
@@ -177,39 +250,174 @@
     } catch (e) { /* ignore */ }
   }
 
+  function sendPurchase(item) {
+    try {
+      if (!firstTime(GA_SEEN_PREFIX, item.transactionId)) return;
+      var p = pageFields();
+      window.gtag('event', 'purchase', {
+        send_to: GA_ID,
+        value: item.value,
+        currency: 'CHF',
+        transaction_id: item.transactionId,
+        page_location: p.location,
+        page_referrer: p.referrer,
+        page_title: p.title,
+      });
+    } catch (e) { /* ignore */ }
+  }
+
+  function sendPaid(item) {
+    if (adsOn && !adsRevoked) sendConversion(item);
+    if (gaOn && !gaRevoked) sendPurchase(item);
+  }
+
   function flushQueued() {
     var list = queued;
     queued = [];
-    for (var i = 0; i < list.length; i++) sendConversion(list[i]);
+    for (var i = 0; i < list.length; i++) sendPaid(list[i]);
   }
 
-  function bootGoogle(analyticsOn) {
-    if (loaded || revokedHere) return;
-    if (!allowed(location.href)) return; /* re-checked right before the script is added */
+  /* ---- GA4 events: Meta's browser and booking-step events, a fixed list, no value, no free text ---- */
+
+  var GA_EVENTS = {
+    ViewContent: { ga: 'view_item', key: 'content_name', words: ['transfer'], out: null }, /* the price button */
+    Lead: { ga: 'generate_lead', key: null, words: [], out: null }, /* the contact form was sent */
+    Contact: { ga: 'contact', key: 'content_category', words: ['whatsapp', 'phone', 'email'], out: 'method' },
+    InitiateCheckout: { ga: 'begin_checkout', key: null, words: [], out: null }, /* a vehicle was chosen */
+    AddPaymentInfo: { ga: 'add_payment_info', key: null, words: [], out: null }, /* going to payment */
+  };
+
+  /* Returns { ga, word } or null when the name or the word is not on the list. */
+  function gaEvent(name, params) {
+    if (!Object.prototype.hasOwnProperty.call(GA_EVENTS, name)) return null;
+    var def = GA_EVENTS[name];
+    if (def.key === null) return { ga: def.ga, out: null, word: '' };
+    var word = params && typeof params === 'object' ? params[def.key] : undefined;
+    if (typeof word !== 'string' || !inList(def.words, word)) return null;
+    return { ga: def.ga, out: def.out, word: word };
+  }
+
+  function sendEvent(ev) {
     try {
-      ensureGtag();
-      setDefault();
-      loaded = true;
-      var s = document.createElement('script');
-      s.async = true;
-      s.src = SRC;
-      document.head.appendChild(s);
-      window.gtag('js', new Date());
-      window.gtag('consent', 'update', {
-        ad_storage: 'granted',
-        ad_user_data: 'granted',
-        ad_personalization: 'granted',
-        analytics_storage: analyticsOn ? 'granted' : 'denied',
-      });
-      var page = scrub(location.href, document.referrer);
-      window.gtag('config', TAG_ID, { send_page_view: false, page_location: page.location, page_referrer: page.referrer });
+      var p = pageFields();
+      var out = { send_to: GA_ID, page_location: p.location, page_referrer: p.referrer, page_title: p.title };
+      if (ev.out) out[ev.out] = ev.word;
+      window.gtag('event', ev.ga, out);
+    } catch (e) { /* ignore */ }
+  }
+
+  function flushEvents() {
+    var list = events;
+    events = [];
+    for (var i = 0; i < list.length; i++) sendEvent(list[i]);
+  }
+
+  /* Before the server has answered the event waits (at most five); after it answered without Analytics, or
+     after a withdraw, it is dropped. */
+  function track(name, params) {
+    try {
+      if (!GOOGLE_ON || !ANALYTICS_ON || gaRevoked) return false;
+      var ev = gaEvent(name, params);
+      if (ev === null) return false;
+      if (!allowed(location.href)) return false;
+      if (answered && !gaOn) return false;
+      var stamp = ev.ga + ':' + ev.word;
+      var now = new Date().getTime();
+      if (lastSent[stamp] && now - lastSent[stamp] < 1500) return false;
+      lastSent[stamp] = now;
+      if (gaOn) { sendEvent(ev); return true; }
+      if (events.length < MAX_EVENTS) events.push(ev);
+      return true;
+    } catch (e) { return false; }
+  }
+
+  /* One capturing listener for every WhatsApp, phone and email link (also the ones a component adds later).
+     It reads the kind from the link address and sends only the kind. */
+  function contactKind(href) {
+    var h = String(href || '').replace(/^\s+/, '').toLowerCase();
+    if (h.indexOf('tel:') === 0) return 'phone';
+    if (h.indexOf('mailto:') === 0) return 'email';
+    if (/^https?:\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)(\/|\?|$)/.test(h)) return 'whatsapp';
+    return null;
+  }
+
+  function onContactClick(e) {
+    try {
+      var el = e && e.target;
+      for (var i = 0; el && i < 8; i++, el = el.parentNode) {
+        if (el.getAttribute && el.tagName && String(el.tagName).toLowerCase() === 'a') {
+          var kind = contactKind(el.getAttribute('href'));
+          if (kind) track('Contact', { content_category: kind });
+          return;
+        }
+      }
+    } catch (err) { /* a click is never an error for the visitor */ }
+  }
+
+  /* ---- start Google's script: after the server said yes, each config under its own choice ---- */
+
+  function addScript(src) {
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = src;
+    document.head.appendChild(s);
+  }
+
+  /* Tag Manager: only with both choices on, never again on a page where either was withdrawn. */
+  function bootTagManager() {
+    if (!GTM_ON || gtmOn || gtmRevoked) return;
+    if (!(adsOn && !adsRevoked && gaOn && !gaRevoked)) return;
+    if (!allowed(location.href)) return;
+    try {
+      gtmOn = true;
+      window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+      addScript(GOOGLE_HOST + '/gtm.js?id=' + GTM_ID);
+    } catch (e) { /* no container is never an error for the visitor */ }
+  }
+
+  function bootGoogle(marketing, analytics) {
+    if (!allowed(location.href)) return; /* re-checked right before the script is added */
+    var addAds = marketing && !adsOn && !adsRevoked;
+    var addGa = analytics && ANALYTICS_ON && !gaOn && !gaRevoked;
+    try {
+      if (addAds || addGa) {
+        ensureGtag();
+        setDefault();
+        if (!scriptAdded) {
+          scriptAdded = true;
+          addScript(GOOGLE_HOST + '/gtag/js?id=' + (addAds ? TAG_ID : GA_ID));
+          window.gtag('js', new Date());
+          window.gtag('set', 'ads_data_redaction', true);
+        }
+        if (addAds) adsOn = true;
+        if (addGa) gaOn = true;
+        window.gtag('consent', 'update', consentNow());
+        var p = pageFields();
+        if (addAds) {
+          window.gtag('config', TAG_ID, { send_page_view: false, page_location: p.location, page_referrer: p.referrer });
+        }
+        if (addGa) {
+          window.gtag('config', GA_ID, {
+            send_page_view: false,
+            page_location: p.location,
+            page_referrer: p.referrer,
+            page_title: p.title,
+            cookie_expires: GA_COOKIE_SECONDS,
+            allow_google_signals: false,
+            allow_ad_personalization_signals: false,
+          });
+          window.gtag('event', 'page_view', { send_to: GA_ID, page_location: p.location, page_referrer: p.referrer, page_title: p.title });
+        }
+      }
+      bootTagManager();
       flushQueued();
+      flushEvents();
     } catch (e) { /* no tag is never an error for the visitor */ }
   }
 
   function check() {
     if (!GOOGLE_ON) return;
-    if (revokedHere) return;
+    if (adsRevoked && (gaRevoked || !ANALYTICS_ON)) return;
     var seq = withdrawSeq;
     var mayStart = allowed(location.href);
     try {
@@ -218,20 +426,23 @@
       }).then(function (r) {
         if (seq !== withdrawSeq) return; /* a withdraw happened while we asked */
         if (!r || r.ok !== true) return; /* server unreachable: do nothing */
-        if (r.chosen === true && r.choice && r.choice.marketing === true) {
-          if (mayStart) bootGoogle(r.choice.analytics === true);
-        } else {
-          withdraw();
-        }
+        answered = true;
+        var chosen = r.chosen === true && r.choice;
+        var marketing = !!(chosen && r.choice.marketing === true);
+        var analytics = !!(chosen && r.choice.analytics === true);
+        withdraw(!marketing, !analytics, true);
+        if ((marketing || analytics) && mayStart) bootGoogle(marketing, analytics);
+        else { queued = []; events = []; }
       }, function () { /* ignore */ });
     } catch (e) { /* ignore */ }
   }
 
-  /* The conversion. Asked for while the tag is still starting it waits (at most three); after a withdraw, or
-     when Marketing is not on, it is dropped and a later Accept does not replay it. */
+  /* The conversion. Asked for while the tag is still starting it waits (at most three); after a withdraw of
+     both choices, or when neither is on, it is dropped and a later Accept does not replay it. */
   function conversion(info) {
     try {
-      if (!GOOGLE_ON || revokedHere) return false;
+      if (!GOOGLE_ON) return false;
+      if (adsRevoked && (gaRevoked || !ANALYTICS_ON)) return false;
       if (!info || typeof info !== 'object') return false;
       var value = info.value;
       var id = info.transactionId;
@@ -239,7 +450,7 @@
       if (typeof id !== 'string' || !/^VT-[0-9]{2}-[0-9]{4,5}$/.test(id)) return false;
       if (!allowed(location.href)) return false;
       var item = { value: Math.round(value * 100) / 100, transactionId: id };
-      if (loaded && typeof window.gtag === 'function') { sendConversion(item); return true; }
+      if ((adsOn || gaOn) && typeof window.gtag === 'function') { sendPaid(item); return true; }
       if (queued.length < MAX_QUEUED) queued.push(item);
       return true;
     } catch (e) { return false; }
@@ -249,12 +460,16 @@
     if (!GOOGLE_ON) return;
     if (!allowed(location.href)) return;
     setDefault();
-    /* A saved choice (either runtime) or a withdraw: the server answers, not the event. */
+    /* A saved choice (either runtime) or a withdraw: what was turned off stops now; the server answers what
+       may start, not the event. */
     window.addEventListener('vamos:consent', function (e) {
       var d = e && e.detail;
-      if (d && d.marketing === true) check(); else if (d) withdraw();
+      if (!d) return;
+      withdraw(d.marketing !== true, d.analytics !== true);
+      if (d.marketing === true || d.analytics === true) check();
     });
     window.addEventListener('vamos:consent-recorded', function () { check(); });
+    if (typeof document.addEventListener === 'function') document.addEventListener('click', onContactClick, true);
     check();
   }
 
@@ -264,21 +479,26 @@
     check();
   });
 
-  /* Necessary only in another tab. */
+  /* A choice turned off in another tab. */
   window.addEventListener('storage', function (e) {
     if (!GOOGLE_ON || !e || e.key !== 'vamosCookieConsent') return;
     var c = null;
     try { c = JSON.parse(e.newValue || 'null'); } catch (err) { c = null; }
-    if (!c || c.marketing !== true) withdraw();
+    withdraw(!c || c.marketing !== true, !c || c.analytics !== true);
   });
 
   window.VamosGoogle = {
     conversion: conversion,
+    track: track,
     allowed: allowed,
     scrub: scrub,
-    loaded: function () { return loaded; },
-    revoked: function () { return revokedHere; },
+    loaded: function () { return scriptAdded; },
+    revoked: function () { return adsRevoked; },
     pending: function () { return queued.length; },
+    analyticsLoaded: function () { return gaOn; },
+    analyticsRevoked: function () { return gaRevoked; },
+    tagManagerLoaded: function () { return gtmOn; },
+    pendingEvents: function () { return events.length; },
   };
 
   /* Items pushed before this script loaded (the confirmation page can run first): each goes through the same

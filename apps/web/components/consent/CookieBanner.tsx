@@ -359,8 +359,9 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
       key: "analytics",
       title: t("analytics"),
       aria: t("analytics-cookies"),
-      body: t("tells-us-which-step-of-a-booking-people-abandon"),
-      meta: [t("sheet-analytics-providers"), t("sheet-not-used")],
+      // Owner text, .planning/decisions/2026-10-11-ga4-wording.md §1 (GA4 sits under Analytics).
+      body: t("ga-banner-row"),
+      meta: [t("sheet-analytics-providers"), t("sheet-analytics-duration")],
       checked: cats.analytics,
       set: (v) => setCats((c) => ({ ...c, analytics: v })),
     },

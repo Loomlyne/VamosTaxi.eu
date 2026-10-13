@@ -236,11 +236,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-dl-r="1"><span data-dl-k="1" data-vt-no-i18n="1">Mapbox</span><span data-dl-v="1">Address lookup and route distance · United States</span></div>
 <div data-dl-r="1"><span data-dl-k="1" data-vt-no-i18n="1">Resend</span><span data-dl-v="1">Confirmation and driver-detail emails</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Cloudflare Web Analytics (cookieless)</span><span data-dl-v="1">Site analytics, only with your consent · Cloudflare</span></div>
-<div data-dl-r="1"><span data-dl-k="1" data-vt-no-i18n="1">Google Ireland Ltd</span><span data-dl-v="1" data-vt-no-i18n="1">{{ googleProcessor }}</span></div>
+<div data-dl-r="1"><span data-dl-k="1" data-vt-no-i18n="1">Google Ireland Ltd</span><span data-dl-v="1" data-vt-no-i18n="1">{{ googleProcessor }}<br>{{ gaProcessor }}</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Partner carriers</span><span data-dl-v="1">The driver assigned to your journey receives your name, mobile number, pickup and drop-off address and the time. Nothing else.</span></div>
 </div>
 <p data-vt-no-i18n="1" data-privacy-line="1"><sc-for list="{{ lineSegs }}" as="g" hint-placeholder-count="2"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if></sc-for></p>
 <p data-vt-no-i18n="1" data-privacy-line="1" data-privacy-google="1"><sc-for list="{{ googleLineSegs }}" as="g" hint-placeholder-count="2"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if></sc-for></p>
+<p data-vt-no-i18n="1" data-privacy-line="1" data-privacy-ga="1"><sc-for list="{{ gaLineSegs }}" as="g" hint-placeholder-count="2"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if></sc-for></p>
 
 </section>
 
@@ -393,6 +394,8 @@ class Component extends DCLogic {
       lineSegs: this.segs('privacyLine', lang),
       googleProcessor: this.segs('googleProcessor', lang).map((g) => g.t).join(''),
       googleLineSegs: this.segs('googlePrivacyLine', lang),
+      gaProcessor: this.segs('gaProcessor', lang).map((g) => g.t).join(''),
+      gaLineSegs: this.segs('gaPrivacyLine', lang),
       n14: 14, n16: 16, n18: 18,
       tocOpen: this.state.tocOpen ? '1' : null,
       toggleToc: this.toggleToc, doPrint: this.doPrint, openCookiePrefs: this.openCookiePrefs,

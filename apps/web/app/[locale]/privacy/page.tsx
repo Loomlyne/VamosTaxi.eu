@@ -205,7 +205,16 @@ export default async function PrivacyPage({
               </>
             }
           />
-          <ListRow title="Google Ireland Ltd" subtitle={t("google-processor")} />
+          <ListRow
+            title="Google Ireland Ltd"
+            subtitle={
+              <>
+                {t("google-processor")}
+                <br />
+                {t("ga-processor")}
+              </>
+            }
+          />
           <ListRow
             title={t("partner-carriers")}
             subtitle={t("the-driver-assigned-to-your-journey-receives-you")}
@@ -349,6 +358,11 @@ export default async function PrivacyPage({
           </p>
           <p>
             {t.rich("google-privacy-line", {
+              b: (chunks) => <strong>{chunks}</strong>,
+            })}
+          </p>
+          <p>
+            {t.rich("ga-privacy-line", {
               b: (chunks) => <strong>{chunks}</strong>,
             })}
           </p>

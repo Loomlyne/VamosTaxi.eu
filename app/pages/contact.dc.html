@@ -451,6 +451,7 @@ class Component extends DCLogic {
       this.turnstileSendGeneration = 0;
       /* Meta Lead: the form was sent. No field, no text. */
       if (accepted) { try { if (window.VamosMeta && window.VamosMeta.track) window.VamosMeta.track('Lead'); } catch (e) { /* never blocks the visitor */ } }
+      if (accepted) { try { if (window.VamosGoogle && window.VamosGoogle.track) window.VamosGoogle.track('Lead'); } catch (e) { /* never blocks the visitor */ } }
       this.setState(accepted ? { phase: 'sent', token: '', idempotencyKey: crypto.randomUUID() } : { phase: 'failed', token: '' }, accepted ? undefined : this.retryTurnstile);
     } catch {
       if (this.turnstileSendGeneration !== generation) return;

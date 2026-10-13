@@ -29,6 +29,7 @@ import { PaymentSection, TopNotice } from "./sections/PaymentSection";
 import { PayBottomBar, SummaryRail, useIsDesktop } from "./sections/SummaryRail";
 import { TripEditor } from "./sections/TripEditor";
 import { TripStrip } from "./sections/TripStrip";
+import { googleStep } from "@/lib/google/steps";
 
 const { useRouter } = createNavigation(routing);
 
@@ -299,6 +300,8 @@ export function CheckoutPage({
     const picked = p.classes.find((c) => c.slug === slug);
     if (!picked || !picked.eligible || picked.totalRappen === null || picked.totalRappen <= 0) return;
     initiateSent.current = true;
+    // GA4 (wording 2026-10-11): the same step, the name only, through the loader (Analytics consent decides there).
+    googleStep("InitiateCheckout");
     // Same selection in this tab (a reload) keeps the same id, so Meta de-duplicates on event_id.
     // The id is kept only once Marketing is on; before that nothing is written and each load gets a fresh id.
     const t = tripRef.current;
