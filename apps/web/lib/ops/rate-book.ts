@@ -131,7 +131,8 @@ export type DistanceRateInput = {
   perKmRappen: number | null;
   minFareRappen: number | null;
   airportStartRappen: number | null;
-  maxPax: number;
+  /** Decision 6: null while a Draft class has no seat count yet. */
+  maxPax: number | null;
   available: boolean;
   hideFromPublic: boolean;
 };
@@ -246,7 +247,10 @@ export function assertDistanceRateInput(input: DistanceRateInput): DistanceRateI
   if (!input.vehicleClassId) {
     throw new RateBookInputError("rateBook.error-class-required");
   }
-  if (!Number.isInteger(input.maxPax) || input.maxPax < 1 || input.maxPax > 16) {
+  if (
+    input.maxPax !== null &&
+    (!Number.isInteger(input.maxPax) || input.maxPax < 1 || input.maxPax > 16)
+  ) {
     throw new RateBookInputError("rateBook.error-max-pax");
   }
   return {

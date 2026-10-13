@@ -297,7 +297,22 @@ export function parseChauffeurBody(body: unknown): { id: string | null; input: C
   };
 }
 
-export function parseVehicleClassPatch(body: unknown): { id: string; input: VehicleClassInput } {
+/**
+ * Decision 6: a seat or bag count from a JSON body. Absent, null or "" is null (empty, never 3
+ * or 0); a number keeps today's checks; text that is not a number is NaN so the assert refuses it.
+ */
+export function parseClassCount(value: unknown): number | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value === "string" && value.trim() === "") return null;
+  return asInt(value) ?? Number.NaN;
+}
+
+export function parseVehicleClassPatch(body: unknown): {
+  id: string;
+  input: VehicleClassInput;
+  /** Which counts the body named; an absent one is left as it is by the capacity writer. */
+  present: { passengerCapacity: boolean; luggageCapacity: boolean };
+} {
   const rec = asRecord(body);
   if (!rec) throw new VehicleClassInputError("fleet-failure-error");
   if (Object.prototype.hasOwnProperty.call(rec, "slug")) {
@@ -308,8 +323,12 @@ export function parseVehicleClassPatch(body: unknown): { id: string; input: Vehi
   return {
     id,
     input: {
-      passengerCapacity: asInt(rec.passengerCapacity) ?? 0,
-      luggageCapacity: asInt(rec.luggageCapacity) ?? 0,
+      passengerCapacity: parseClassCount(rec.passengerCapacity),
+      luggageCapacity: parseClassCount(rec.luggageCapacity),
+    },
+    present: {
+      passengerCapacity: Object.prototype.hasOwnProperty.call(rec, "passengerCapacity"),
+      luggageCapacity: Object.prototype.hasOwnProperty.call(rec, "luggageCapacity"),
     },
   };
 }

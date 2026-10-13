@@ -89,15 +89,16 @@ export type AssertedVehicleInput = {
 };
 
 export type VehicleClassInput = {
-  passengerCapacity: number;
-  luggageCapacity: number;
+  /** Decision 6: null means "not set yet" (allowed only on a Draft class). */
+  passengerCapacity: number | null;
+  luggageCapacity: number | null;
   sortOrder?: number;
   active?: boolean;
 };
 
 export type AssertedVehicleClassInput = {
-  passengerCapacity: number;
-  luggageCapacity: number;
+  passengerCapacity: number | null;
+  luggageCapacity: number | null;
   sortOrder: number;
   active: boolean;
 };
@@ -235,20 +236,19 @@ export function assertVehicleInput(input: VehicleInput): AssertedVehicleInput {
 export function assertVehicleClassInput(
   input: VehicleClassInput,
 ): AssertedVehicleClassInput {
-  const passengerCapacity = input.passengerCapacity;
+  // Decision 6: an empty count is null on both creation paths; a number keeps today's checks.
+  const passengerCapacity = input.passengerCapacity ?? null;
   if (
-    !Number.isInteger(passengerCapacity) ||
-    passengerCapacity < 1 ||
-    passengerCapacity > 16
+    passengerCapacity !== null &&
+    (!Number.isInteger(passengerCapacity) || passengerCapacity < 1 || passengerCapacity > 16)
   ) {
     throw new VehicleClassInputError("fleet-failure-passengers");
   }
 
-  const luggageCapacity = input.luggageCapacity;
+  const luggageCapacity = input.luggageCapacity ?? null;
   if (
-    !Number.isInteger(luggageCapacity) ||
-    luggageCapacity < 0 ||
-    luggageCapacity > 16
+    luggageCapacity !== null &&
+    (!Number.isInteger(luggageCapacity) || luggageCapacity < 0 || luggageCapacity > 16)
   ) {
     throw new VehicleClassInputError("fleet-failure-luggage");
   }

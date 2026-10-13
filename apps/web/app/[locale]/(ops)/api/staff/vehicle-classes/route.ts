@@ -10,6 +10,7 @@ import type { VamosClaims } from "@/lib/db/identity";
 import { assertVehicleClassInput, loadVehicleClasses } from "@/lib/ops/fleet";
 import {
   fleetJsonError,
+  parseClassCount,
   parseVehicleClassPatch,
   presentVehicleClass,
   readJsonBody,
@@ -37,6 +38,18 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 function slugFromName(value: unknown): string {
   if (typeof value !== "string") return "";
   return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+/**
+ * Decision 6: a seat or bag count in a PATCH body under any of `keys`. Undefined = not named
+ * (leave it); null = emptied (null or ""); an integer = set. Anything else is not a change.
+ */
+function countPatch(rec: Record<string, unknown>, keys: string[]): number | null | undefined {
+  const key = keys.find((k) => Object.prototype.hasOwnProperty.call(rec, k));
+  if (!key) return undefined;
+  const value = rec[key];
+  if (value === null || (typeof value === "string" && value.trim() === "")) return null;
+  return typeof value === "number" && Number.isInteger(value) ? value : undefined;
 }
 
 export const GET = withStaff(async (claims) => {
@@ -90,19 +103,22 @@ export const PATCH = withAdmin(async (claims, request) => {
     if (!id) return jsonErr("invalid", 400);
     const { env } = getCloudflareContext();
     if (rec.status !== undefined) return await patchStatus(env, claims, rec);
-    const hasCapacities =
-      rec.passengerCapacity != null || rec.luggageCapacity != null;
-    if (hasCapacities && !Object.prototype.hasOwnProperty.call(rec, "slug")) {
+    const own = (k: string) => Object.prototype.hasOwnProperty.call(rec, k);
+    const hasCapacities = own("passengerCapacity") || own("luggageCapacity");
+    const draftId = await resolveWritableDraftId(env, claims);
+    if (hasCapacities && !own("slug")) {
       const parsed = parseVehicleClassPatch(body);
       const input = assertVehicleClassInput(parsed.input);
-      await updateVehicleClassCapacities(env, claims, parsed.id, input);
+      // A 23514 (vehicle_classes_live_has_seats_bags) from this write is the second wall behind
+      // the Draft-only check in the writer; fleetJsonError answers it 400.
+      await updateVehicleClassCapacities(env, claims, parsed.id, input, {
+        present: parsed.present,
+        draftVersionId: draftId,
+      });
     }
-    const draftId = await resolveWritableDraftId(env, claims);
     if (draftId != null) {
       const hideRaw = rec.hideFromPublic ?? rec.hide_from_public;
-      const maxRaw = rec.maxPax ?? rec.max_pax;
       const name = typeof rec.name === "string" ? rec.name : "";
-      const bagsRaw = rec.maxBags ?? rec.luggageCapacity ?? rec.luggage_capacity;
       const photoRaw = rec.photoPath ?? rec.photo;
       const photoPath =
         photoRaw === null
@@ -112,11 +128,10 @@ export const PATCH = withAdmin(async (claims, request) => {
             : undefined;
       await patchDraftClass(env, claims, id, draftId, {
         hideFromPublic: typeof hideRaw === "boolean" ? hideRaw : undefined,
-        maxPax: typeof maxRaw === "number" && Number.isInteger(maxRaw) ? maxRaw : undefined,
+        maxPax: countPatch(rec, ["maxPax", "max_pax"]),
         name: name || undefined,
         photoPath,
-        luggageCapacity:
-          typeof bagsRaw === "number" && Number.isInteger(bagsRaw) ? bagsRaw : undefined,
+        luggageCapacity: countPatch(rec, ["maxBags", "luggageCapacity", "luggage_capacity"]),
       });
     }
     const rows = await loadVehicleClasses(env, claims);
@@ -134,19 +149,10 @@ export const POST = withAdmin(async (claims, request) => {
     if (!rec) return jsonErr("invalid", 400);
     const slug = slugFromName(rec.slug ?? rec.name ?? rec.klass);
     if (!CLASS_SLUG.test(slug)) return jsonErr("invalid", 400);
+    // Decision 6: empty seats and bags are stored as null, never 3 and never 0.
     const input = assertVehicleClassInput({
-      passengerCapacity:
-        typeof rec.passengerCapacity === "number"
-          ? rec.passengerCapacity
-          : typeof rec.maxPax === "number"
-            ? rec.maxPax
-            : 3,
-      luggageCapacity:
-        typeof rec.luggageCapacity === "number"
-          ? rec.luggageCapacity
-          : typeof rec.maxBags === "number"
-            ? rec.maxBags
-            : 3,
+      passengerCapacity: parseClassCount(rec.passengerCapacity ?? rec.maxPax),
+      luggageCapacity: parseClassCount(rec.luggageCapacity ?? rec.maxBags),
     });
     const { env } = getCloudflareContext();
     const draftId = await resolveWritableDraftId(env, claims);

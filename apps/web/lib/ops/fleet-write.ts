@@ -4,7 +4,11 @@
 // the route files never import postgres (D-08). Every write is asStaff (D-02).
 
 import { asStaff, type VamosClaims } from "../db/identity";
-import type { AssertedVehicleClassInput, AssertedVehicleInput } from "./fleet";
+import {
+  VehicleClassInputError,
+  type AssertedVehicleClassInput,
+  type AssertedVehicleInput,
+} from "./fleet";
 import { persistVehicleSeats } from "./chauffeur-desk";
 import { tripsFromRows, type OpsMustFixTrip } from "./must-fix-mail";
 
@@ -143,19 +147,75 @@ export async function deleteVehicleRow(
   });
 }
 
+/**
+ * Decision 6: a class's state (Draft = not active and not retired), read in the same callback
+ * as the write that depends on it. Undefined when the class does not exist.
+ */
+async function classIsDraft(
+  sql: Parameters<Parameters<typeof asStaff>[2]>[0],
+  id: string,
+): Promise<boolean | undefined> {
+  const rows = await sql<{ active: boolean; hidden_at: Date | string | null }[]>`
+    select active, hidden_at from public.vehicle_classes where id = ${id}
+  `;
+  const row = rows[0];
+  if (!row) return undefined;
+  return row.active !== true && row.hidden_at == null;
+}
+
+/**
+ * Keeps a Draft class's open draft price row in step with its seats and bags (decision 5/6):
+ * `max_pax` follows the seat count, and the row counts (available) only while start fare,
+ * per-km, seats and bags are all set, so it never sits available with an empty `max_pax`.
+ */
+async function syncDraftRowToClass(
+  sql: Parameters<Parameters<typeof asStaff>[2]>[0],
+  id: string,
+  draftVersionId: number,
+): Promise<void> {
+  await sql`
+    update public.distance_rates dr set
+      max_pax = vc.passenger_capacity,
+      available = (
+        dr.base_fare_rappen is not null and dr.per_km_rappen is not null
+        and vc.passenger_capacity is not null and vc.luggage_capacity is not null
+      )
+    from public.vehicle_classes vc
+    where vc.id = ${id} and dr.vehicle_class_id = vc.id and dr.rate_version_id = ${draftVersionId}
+  `;
+}
+
 export async function updateVehicleClassCapacities(
   env: CloudflareEnv,
   claims: VamosClaims,
   id: string,
   parsed: AssertedVehicleClassInput,
+  opts: {
+    present?: { passengerCapacity: boolean; luggageCapacity: boolean };
+    draftVersionId?: number | null;
+  } = {},
 ): Promise<void> {
+  const present = opts.present ?? { passengerCapacity: true, luggageCapacity: true };
   await asStaff(env, claims, async (sql) => {
+    const draft = await classIsDraft(sql, id);
+    if (draft === undefined) return null;
+    // Decision 6: seats and bags can be emptied only while the class is a Draft. The CHECK
+    // vehicle_classes_live_has_seats_bags (23514) is the second wall.
+    if (!draft && present.passengerCapacity && parsed.passengerCapacity === null) {
+      throw new VehicleClassInputError("fleet-failure-passengers");
+    }
+    if (!draft && present.luggageCapacity && parsed.luggageCapacity === null) {
+      throw new VehicleClassInputError("fleet-failure-luggage");
+    }
     await sql`
       update public.vehicle_classes set
-        passenger_capacity = ${parsed.passengerCapacity},
-        luggage_capacity = ${parsed.luggageCapacity}
+        passenger_capacity = case when ${present.passengerCapacity}::boolean
+          then ${parsed.passengerCapacity}::int else passenger_capacity end,
+        luggage_capacity = case when ${present.luggageCapacity}::boolean
+          then ${parsed.luggageCapacity}::int else luggage_capacity end
       where id = ${id}
     `;
+    if (draft && opts.draftVersionId != null) await syncDraftRowToClass(sql, id, opts.draftVersionId);
     return null;
   });
 }
@@ -204,13 +264,24 @@ export async function patchDraftClass(
   draftVersionId: number,
   patch: {
     hideFromPublic?: boolean;
-    maxPax?: number;
+    /** null empties the seat count (Draft only); undefined leaves it. */
+    maxPax?: number | null;
     name?: string;
     photoPath?: string | null;
-    luggageCapacity?: number;
+    /** null empties the bag count (Draft only); undefined leaves it. */
+    luggageCapacity?: number | null;
   },
 ): Promise<void> {
   await asStaff(env, claims, async (sql) => {
+    if (patch.maxPax === null || patch.luggageCapacity === null) {
+      // Decision 6: emptying only while the class is a Draft; refused before any write.
+      const draft = await classIsDraft(sql, id);
+      if (draft === false) {
+        throw new VehicleClassInputError(
+          patch.maxPax === null ? "fleet-failure-passengers" : "fleet-failure-luggage",
+        );
+      }
+    }
     if (patch.name) {
       const slug = patch.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       if (slug) {
@@ -233,11 +304,15 @@ export async function patchDraftClass(
         update public.vehicle_classes set luggage_capacity = ${patch.luggageCapacity} where id = ${id}
       `;
     }
-    if (patch.hideFromPublic !== undefined || patch.maxPax !== undefined) {
+    if (patch.hideFromPublic !== undefined) {
       await sql`
-        update public.distance_rates set
-          hide_from_public = coalesce(${patch.hideFromPublic ?? null}, hide_from_public),
-          max_pax = coalesce(${patch.maxPax ?? null}, max_pax)
+        update public.distance_rates set hide_from_public = ${patch.hideFromPublic}
+        where vehicle_class_id = ${id} and rate_version_id = ${draftVersionId}
+      `;
+    }
+    if (patch.maxPax !== undefined) {
+      await sql`
+        update public.distance_rates set max_pax = ${patch.maxPax}
         where vehicle_class_id = ${id} and rate_version_id = ${draftVersionId}
       `;
     }
