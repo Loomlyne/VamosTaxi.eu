@@ -5,12 +5,14 @@
 //
 // Dedupe via the claim RPC (built inside the function):
 //   {bookingId}:cancellation:
-//   {bookingId}:refund_failed:
 //   {bookingId}:reminder_24h:{legId}
-//   {bookingId}:assignment_customer:
+//   {bookingId}:assignment:                — the customer's driver-assigned mail
 //   {bookingId}:time_change:{requestId}  — pass booking_leg_id (FK); not an edit-request id
 //   {bookingId}:flight_no:
 //   {bookingId}:review_request:
+//
+// Every LifecycleKind must be allowed by booking_notifications_kind_check, or the claim raises 23514
+// and the mail never goes out (20261012230000; notify-lifecycle.test.ts compares the two lists).
 //
 // D-30 ops copies: BOOKINGS_OPS_EMAIL (bookings@vamostaxi.site). Never the public mailbox.
 // Do not edit paid-cancel.ts here. No WhatsApp. No SMS.
@@ -21,7 +23,6 @@ import {
   sendAssignmentCustomer,
   sendCancellation,
   sendFlightNumber,
-  sendRefundFailed,
   sendReminder24h,
   sendReviewRequest,
   sendTimeChange,
@@ -29,7 +30,6 @@ import {
   type CancellationForEmail,
   type EmailEnv,
   type FlightNumberForEmail,
-  type RefundFailedForEmail,
   type Reminder24hForEmail,
   type ReviewRequestForEmail,
   type SendOutcome,
@@ -41,18 +41,16 @@ const BOOKINGS_OPS_EMAIL = "bookings@vamostaxi.site";
 
 export type LifecycleKind =
   | "cancellation"
-  | "refund_failed"
   | "reminder_24h"
-  | "assignment_customer"
+  | "assignment"
   | "time_change"
   | "flight_no"
   | "review_request";
 
 const TEMPLATE_VERSION: Record<LifecycleKind, string> = {
   cancellation: "cancellation@2026-09-12-1",
-  refund_failed: "refund_failed@2026-09-12-1",
   reminder_24h: "reminder_24h@2026-09-12-1",
-  assignment_customer: "assignment_customer@2026-09-12-1",
+  assignment: "assignment_customer@2026-09-12-1",
   time_change: "time_change@2026-09-12-1",
   flight_no: "flight_no@2026-09-12-1",
   review_request: "review_request@2026-09-12-1",
@@ -158,23 +156,6 @@ export async function notifyCancellation(
   );
 }
 
-export type RefundFailedNotify = RefundFailedForEmail & {
-  bookingId: string;
-};
-
-export async function notifyRefundFailed(
-  env: CloudflareEnv,
-  trip: RefundFailedNotify,
-): Promise<void> {
-  const mail = mailEnv(env);
-  if (!mail) return;
-  await claimThenSend(
-    env,
-    { bookingId: trip.bookingId, kind: "refund_failed", locale: trip.locale },
-    () => sendRefundFailed(mail, trip, BOOKINGS_OPS_EMAIL),
-  );
-}
-
 export type Reminder24hNotify = Reminder24hForEmail & {
   bookingId: string;
   bookingLegId: string;
@@ -219,7 +200,7 @@ export async function notifyAssignmentCustomer(
   if (!mail) return;
   await claimThenSend(
     env,
-    { bookingId: trip.bookingId, kind: "assignment_customer", locale: trip.locale },
+    { bookingId: trip.bookingId, kind: "assignment", locale: trip.locale },
     () => sendAssignmentCustomer(mail, trip, trip.customerEmail),
   );
 }
