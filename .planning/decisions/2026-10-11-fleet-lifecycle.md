@@ -39,3 +39,14 @@ Source prompt: `.planning/prompts/12-fleet-lifecycle-discuss.md`. Signed by Koss
 
 - GSD: add the phase (`/gsd-phase`), pictures through `/gsd-ui-phase` (Pricing class rows in Live/Draft/Retired, Draft checklist, Retired list, Retire dialog; 1440 and 390; en and ar), his signature, then `/gsd-plan-phase`.
 - The one-off removal script (decision 6) is its own plan: archive tag, reviewer on Sonnet, Koss runs it.
+
+**Phase 30 plan decisions, signed 2026-10-12 ~19:30 (+04), question form** (plans `91d23cec`, branch `phase-30-vehicle-class-lifecycle`):
+1. The five test classes: he runs his removal script first. The migration writes no class row and stops if any of the five still exists.
+2. Unpublished draft figures for a class he retires are dropped. He left this to the controller; the controller took the recommended option.
+3. The Retire dialog shows one grey line, "N paid trips ahead have no chauffeur yet" (en/de/fr/ar, Arabic count forms).
+4. A class brought back needs a newly published price before Go live.
+5. A Draft class's empty row never blocks Publish.
+6. Seats and Bags start empty; Go live waits for both. Pictured on sheets 11a/11b, signed ~20:05.
+7. The chauffeur editor lists Live classes only.
+8. A pay link already sent stays payable for 24 h at its saved price. A retired class refuses date, time and party changes.
+9. "Has a price" means start fare plus per-km in the live book; a hidden price never counts.
