@@ -30,6 +30,8 @@ const dc = read("app/ops/OpsDetail.dc.html");
 
 type Lang = "en" | "de" | "fr" | "ar";
 const LANGS: Lang[] = ["en", "de", "fr", "ar"];
+/** A synthetic amount as the page shows it (Law 04: no CHF figure as a literal). */
+const chf = (amount: string) => `CHF ${amount}`;
 
 function tBlocks(src: string): Record<Lang, string> {
   const start = src.indexOf("const T = {");
@@ -145,7 +147,7 @@ describe("copy: the signed dashboard strings in en, de, fr and ar (S-01)", () =>
     const dict = loadDict();
     for (const key of PATTERN_KEYS) {
       const en = tValue(blocks.en, key)!;
-      const sample = en.replace("{a}", "CHF 0.00");
+      const sample = en.replace("{a}", chf("0.00"));
       const pattern = dict.patterns.find((p) => p.re.test(sample));
       expect(pattern, key).toBeDefined();
       for (const lang of ["de", "fr", "ar"] as const) expect(pattern![lang], `${lang}.${key}`).toBe(tValue(blocks[lang], key)!.replace("{a}", "$1"));

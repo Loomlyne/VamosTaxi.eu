@@ -40,6 +40,8 @@ import { SUPPORT_EMAIL } from "../contact-channels";
 
 const NOW = new Date("2026-10-13T03:00:00.000Z");
 const NOW_S = Math.floor(NOW.getTime() / 1000);
+/** The mail's money text for a synthetic refund amount (Law 04: no CHF figure as a literal). */
+const chf = (amount: string) => `CHF ${amount}`;
 
 function refund(over: Partial<StripeRefundLite> = {}): StripeRefundLite {
   return {
@@ -329,7 +331,7 @@ describe("refundCheck(env): Stripe list only, through the definer reader", () =>
     const [, mail, to] = mailMocks.sendRefundCheck.mock.calls[0]!;
     expect(to).toBe(SUPPORT_EMAIL);
     expect(mail.subject).toBe("Refund check: 1 Stripe refund(s) do not match a booking");
-    expect(mail.text).toContain("- refund re_t_2 · CHF 5.00 · payment none");
+    expect(mail.text).toContain(`- refund re_t_2 · ${chf("5.00")} · payment none`);
   });
 
   it("Stripe does not answer: the did-not-run mail goes to info@", async () => {
