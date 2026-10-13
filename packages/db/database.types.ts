@@ -2978,6 +2978,10 @@ export type Database = {
           request_id: string
         }[]
       }
+      booking_edit_request_class_retired: {
+        Args: { p_request_id: string }
+        Returns: boolean
+      }
       booking_edit_request_set_extra_session: {
         Args: { p_extra_session_id: string; p_request_id: string }
         Returns: undefined

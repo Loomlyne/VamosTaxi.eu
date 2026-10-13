@@ -73,7 +73,7 @@ describe("Accept on a trip in a retired class (decision 8)", () => {
     const result = await acceptPaidEdit(env, claims, "VT-26-0801", { requestId: REQUEST, payload: {} });
     expect(result).toEqual({ ok: false, code: "unknown-class" });
     expect(texts.some((t) => t.includes("booking_edit_request_accept"))).toBe(false);
-    expect(texts.some((t) => t.includes("hidden_at is not null"))).toBe(true);
+    expect(texts.some((t) => t.includes("public.booking_edit_request_class_retired("))).toBe(true);
   });
 
   it("goes through when the class is not retired", async () => {

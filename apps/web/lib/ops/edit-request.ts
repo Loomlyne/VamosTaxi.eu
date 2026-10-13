@@ -293,18 +293,9 @@ export async function acceptPaidEdit(
       // Phase 30 decision 8: a trip in a retired class (or a request naming one) is not moved by
       // Accept; the owner brings the class back first. Refused before the accept call, mapped
       // AROUND asSystem like every refusal here (postgres.js begin() rethrows a caught error).
+      // A definer function: vamos_system has no table grants (20261012220000).
       const gone = await sql<{ retired: boolean }[]>`
-        select exists (
-                 select 1 from public.booking_edit_requests as r
-                   join public.booking_legs as l on l.booking_id = r.booking_id
-                   join public.vehicle_classes as vc on vc.id = l.vehicle_class_id
-                  where r.id = ${requestId}::uuid and vc.hidden_at is not null
-               )
-            or exists (
-                 select 1 from public.booking_edit_requests as r
-                   join public.vehicle_classes as vc on vc.slug = r.payload ->> 'vehicle_class_slug'
-                  where r.id = ${requestId}::uuid and vc.hidden_at is not null
-               ) as retired
+        select public.booking_edit_request_class_retired(${requestId}::uuid) as retired
       `;
       if (gone[0]?.retired === true) throw Object.assign(new Error("unknown-class"), { code: "P0001" });
       const rows = await sql<AcceptRow[]>`
