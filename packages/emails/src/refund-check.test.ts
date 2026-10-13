@@ -76,6 +76,14 @@ describe("renderRefundCheckEmail (Phase 31 D-09)", () => {
     expect(text).not.toContain(TRUNCATED);
   });
 
+  it("footer is the phone only, never the sign-in link line", () => {
+    for (const mail of [renderRefundCheckEmail(full), renderRefundCheckDidNotRun()]) {
+      expect(mail.text.endsWith("\n\n+41 79 626 70 82")).toBe(true);
+      expect(mail.text).not.toContain("This link works once");
+      expect(mail.html).not.toContain("This link works once");
+    }
+  });
+
   it("only non-empty sections appear", () => {
     const { text, html } = renderRefundCheckEmail({ ...empty, unlinked: full.unlinked });
     expect(text).toContain(H_UNLINKED);

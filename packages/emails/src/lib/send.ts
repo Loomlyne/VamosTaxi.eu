@@ -539,6 +539,46 @@ export async function sendOpsMustFix(
   }
 }
 
+/**
+ * Phase 31 D-09: sends one nightly refund check mail (the report or "did not run"), already rendered by
+ * renderRefundCheckEmail / renderRefundCheckDidNotRun, to the ops inbox. Same From, Resend call and error
+ * mapping as sendOpsMustFix; never throws.
+ */
+export async function sendRefundCheck(
+  env: EmailEnv,
+  mail: { subject: string; html: string; text: string },
+  to: string,
+): Promise<SendOutcome> {
+  try {
+    if (!env.RESEND_API_KEY) {
+      return { ok: false, error: "RESEND_API_KEY is not bound" };
+    }
+    const recipient = to.trim().toLowerCase();
+    if (!recipient) {
+      return { ok: false, error: "no ops recipient" };
+    }
+    const resend = new Resend(env.RESEND_API_KEY);
+    const result = await resend.emails.send({
+      from: FROM,
+      to: recipient,
+      subject: mail.subject,
+      html: mail.html,
+      text: mail.text,
+    });
+    if (result.error) {
+      return { ok: false, error: result.error.message };
+    }
+    const id = result.data?.id;
+    if (!id) {
+      return { ok: false, error: "Resend returned no id" };
+    }
+    return { ok: true, providerMessageId: id };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "sendRefundCheck failed";
+    return { ok: false, error: message };
+  }
+}
+
 /** Phase 31: what the info@ alert names when a customer refund mail could not be prepared. Ids only. */
 export type RefundMailAlertInput = {
   /** The booking reference (e.g. VT-26-0753), or null when it could not be read. */
