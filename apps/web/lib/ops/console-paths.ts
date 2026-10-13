@@ -4,7 +4,7 @@
  */
 
 /** D-10 console paths on the dashboard host. Same ops.dc.html document. */
-export const OPS_CONSOLE_EXACT = new Set([
+export const OPS_CONSOLE_EXACT: readonly string[] = [
   "/dashboard",
   "/bookings",
   "/bookings/new",
@@ -19,7 +19,7 @@ export const OPS_CONSOLE_EXACT = new Set([
   "/reviews",
   "/pages",
   "/legal",
-]);
+];
 
 /** Drops one trailing slash (not on the root path). */
 export function normalizeDashboardPath(path: string): string {
@@ -30,7 +30,7 @@ export function normalizeDashboardPath(path: string): string {
 /** True when the (locale-stripped) path is a console screen the ops document serves. */
 export function isOpsConsolePath(path: string): boolean {
   const p = normalizeDashboardPath(path);
-  if (OPS_CONSOLE_EXACT.has(p)) return true;
+  if (OPS_CONSOLE_EXACT.includes(p)) return true;
   const segments = p.split("/").filter(Boolean);
   if (segments.length === 2 && segments[0] === "bookings") return true;
   if (segments.length === 2 && segments[0] === "customers") return true;

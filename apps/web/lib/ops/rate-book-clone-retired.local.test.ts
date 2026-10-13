@@ -39,17 +39,18 @@ describe.skipIf(!PORT)("new price book skips a retired class and keeps class-les
     ctx.env = {
       HYPERDRIVE_NOCACHE: { connectionString: `postgres://vamos_edge:vamos_edge@127.0.0.1:${PORT}/postgres` },
     };
-    for (const table of ["distance_bands", "rate_version_rules"]) {
-      await su.unsafe(`drop policy if exists p30_clone_test_all on public.${table}`);
-      await su.unsafe(`create policy p30_clone_test_all on public.${table} as permissive for all to vamos_staff using (true) with check (true)`);
-    }
+    await su`drop policy if exists p30_clone_test_all on public.distance_bands`;
+    await su`drop policy if exists p30_clone_test_all on public.rate_version_rules`;
+    await su`create policy p30_clone_test_all on public.distance_bands as permissive for all to vamos_staff using (true) with check (true)`;
+    await su`create policy p30_clone_test_all on public.rate_version_rules as permissive for all to vamos_staff using (true) with check (true)`;
     await su`insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
              values (${adminId}, ${`cl-admin-${tag}@example.test`}, 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now())`;
     await su`insert into public.staff (user_id, role, active, accepted_at, full_name) values (${adminId}, 'admin', true, now(), 'CL Admin')`;
   });
   afterAll(async () => {
-    for (const table of ["distance_bands", "rate_version_rules"]) {
-      await su?.unsafe(`drop policy if exists p30_clone_test_all on public.${table}`);
+    if (su) {
+      await su`drop policy if exists p30_clone_test_all on public.distance_bands`;
+      await su`drop policy if exists p30_clone_test_all on public.rate_version_rules`;
     }
     await su?.end({ timeout: 5 });
   });
