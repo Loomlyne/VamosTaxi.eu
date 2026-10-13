@@ -56,7 +56,7 @@ const ROWS: Json[] = [
 
 type Calls = { goLive: string[]; retire: Array<[string, string | null]>; bringBack: string[]; publish: unknown[]; classesReads: number };
 
-function page(opts: { rows?: Json[]; lang?: Lang; rates?: Json[]; chauffeurs?: Json[]; goLiveAnswer?: Json; retireAnswer?: Json; bringAnswer?: Json } = {}) {
+function page(opts: { rows?: Json[]; lang?: Lang; rates?: Json[]; chauffeurs?: Json[]; goLiveAnswer?: Json; doc?: Json; retireAnswer?: Json; bringAnswer?: Json } = {}) {
   const calls: Calls = { goLive: [], retire: [], bringBack: [], publish: [], classesReads: 0 };
   let rows = opts.rows ?? ROWS;
   const answer = (a: Json | undefined) => Promise.resolve(a ?? { ok: true, data: {} });
@@ -87,7 +87,7 @@ function page(opts: { rows?: Json[]; lang?: Lang; rates?: Json[]; chauffeurs?: J
   const out = new Function(
     "DCLogic", "window", "document", "React",
     `${scriptOf()}\nreturn { Component, T, AR_COUNT };`,
-  )(StubLogic, win, { addEventListener: noop, removeEventListener: noop }, { createElement: (...args: unknown[]) => ({ args }) }) as {
+  )(StubLogic, win, opts.doc ?? { addEventListener: noop, removeEventListener: noop }, { createElement: (...args: unknown[]) => ({ args }) }) as {
     Component: new () => Json;
     T: Record<Lang, Record<string, string>>;
     AR_COUNT: Record<string, string>;
@@ -672,5 +672,45 @@ describe("Go live dialog re-reads the class rows (30-08 lab defect)", () => {
     p.comp.afterPublish({ ok: true });
     await flush();
     expect(p.calls.classesReads).toBe(before + 1);
+  });
+});
+
+describe("focusSoon retries while the table re-renders (30-08 lab defect)", () => {
+  const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  const fakeDoc = () => {
+    const body = { name: "body" };
+    const els: Record<string, Json> = {};
+    const doc: Json = {
+      body, activeElement: body,
+      addEventListener: noop, removeEventListener: noop,
+      querySelector: (sel: string) => els[sel] ?? null,
+    };
+    const make = (sel: string) => { els[sel] = { focus() { doc.activeElement = this; } }; return els[sel]; };
+    return { doc, make };
+  };
+
+  it("a target inserted after about 150 ms ends up focused", async () => {
+    const { doc, make } = fakeDoc();
+    const p = page({ doc });
+    p.comp.focusSoon('[data-class-id="c-lux"]');
+    await wait(150);
+    const el = make('[data-class-id="c-lux"]');
+    await wait(200);
+    expect(doc.activeElement).toBe(el);
+    p.comp.componentWillUnmount();
+  });
+
+  it("focus the user moved to another real element is not taken", async () => {
+    const { doc, make } = fakeDoc();
+    const p = page({ doc });
+    const el = make('[data-class-id="c-lux"]');
+    const other = { name: "other", focus() { doc.activeElement = this; } };
+    p.comp.focusSoon('[data-class-id="c-lux"]');
+    await wait(20);
+    expect(doc.activeElement).toBe(el);
+    doc.activeElement = other;
+    await wait(300);
+    expect(doc.activeElement).toBe(other);
+    p.comp.componentWillUnmount();
   });
 });

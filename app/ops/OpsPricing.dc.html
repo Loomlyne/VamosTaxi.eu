@@ -944,6 +944,7 @@ class Component extends DCLogic {
     if (this._dateEsc) document.removeEventListener('keydown', this._dateEsc);
     if (this._dlgKey) document.removeEventListener('keydown', this._dlgKey);
     clearTimeout(this._retry);
+    (this._focusTimers || []).forEach(clearTimeout);
     clearTimeout(this._toastT);
     clearTimeout(this._okT);
   }
@@ -1182,10 +1183,15 @@ class Component extends DCLogic {
   /* Focus: a dialog opens on its safe button; closing returns to the element named in _pendingFocus. */
   focusSoon(sel) {
     if (typeof document === 'undefined' || typeof document.querySelector !== 'function') return;
-    setTimeout(() => {
+    /* The table re-renders after Go live, so the target may not exist yet: retry, but never take focus the user moved (only body/none allows a retry). */
+    (this._focusTimers || []).forEach(clearTimeout);
+    this._focusTimers = [0, 80, 200, 450, 900, 1500].map((ms, i) => setTimeout(() => {
       const el = document.querySelector(sel);
+      const cur = document.activeElement;
+      if (el && cur === el) { (this._focusTimers || []).forEach(clearTimeout); return; }
+      if (i > 0 && cur && cur !== document.body) { (this._focusTimers || []).forEach(clearTimeout); return; }
       if (el && typeof el.focus === 'function') el.focus();
-    }, 0);
+    }, ms));
   }
   closeDiscard = () => this.setState({ discardOpen: false });
   closeChanges = () => this.setState({ changesOpen: false, changesBody: '' });
