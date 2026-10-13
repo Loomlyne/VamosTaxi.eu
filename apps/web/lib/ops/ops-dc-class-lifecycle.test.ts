@@ -549,3 +549,73 @@ describe("Retire dialog: facts, warning, reason and result", () => {
     expect(v.tRetire).toBe("Retire");
   });
 });
+
+describe("Retired list and Bring back (plan 08, task 3)", () => {
+  const tick = () => new Promise((r) => setTimeout(r, 0));
+  const noRetired = ROWS.filter((r) => r.status !== "retired");
+
+  it("the section is absent when no class is retired, present with the count otherwise", () => {
+    expect(page({ rows: noRetired }).vals().hasRetired).toBe(false);
+    const v = page().vals();
+    expect(v.hasRetired).toBe(true);
+    expect(v.retiredCount).toBe("1");
+    expect(v.retiredItems.map((i: Json) => i.name)).toEqual(["Business"]);
+  });
+
+  it("is folded by default and the toggle label follows the open state", () => {
+    const p = page();
+    expect(p.vals().retiredOpen).toBe(false);
+    expect(p.vals().retiredToggleLabel).toBe(p.T.en.retiredToggleClosed);
+    p.comp.setState = (s: Json) => { p.comp.state = { ...p.comp.state, ...s }; };
+    p.comp.toggleRetired();
+    expect(p.vals().retiredOpen).toBe(true);
+    expect(p.vals().retiredToggleLabel).toBe(p.T.en.retiredToggleOpen);
+    expect(p.vals().retiredChevron).toBe("chevron-up");
+  });
+
+  it("the reason shows only when given", () => {
+    const rows = [...noRetired, { id: "c-a", name: "A", status: "retired", retiredReason: "  Because  " }, { id: "c-b", name: "B", status: "retired", retiredReason: "" }, { id: "c-c", name: "C", status: "retired" }];
+    const items = page({ rows }).vals().retiredItems;
+    expect(items.map((i: Json) => [i.name, i.hasReason, i.reason])).toEqual([["A", true, "Because"], ["B", false, ""], ["C", false, ""]]);
+  });
+
+  it("BRING BACK calls bringBackClass with the id, re-reads classes and the live region announces in four languages", async () => {
+    for (const lang of LANGS) {
+      const p = page({ lang });
+      expect(p.vals().announceText).toBe("");
+      const reads = p.calls.classesReads;
+      p.comp.bringBack("c-old");
+      expect(p.vals().retiredItems[0].busy).toBe(true);
+      expect(p.vals().retiredItems[0].label).toBe(p.T[lang].bringingBack);
+      await tick(); await tick();
+      expect(p.calls.bringBack, lang).toEqual(["c-old"]);
+      expect(p.calls.classesReads, lang).toBeGreaterThan(reads);
+      expect(p.vals().announceText, lang).toBe(p.T[lang].bringBackAnnounce);
+      expect(p.vals().announceText.length).toBeGreaterThan(0);
+    }
+  });
+
+  for (const lang of LANGS) {
+    it(`${lang}: a refused BRING BACK shows the error on that row and keeps it`, async () => {
+      const p = page({ lang, bringAnswer: { ok: false, code: "bad-transition" } });
+      p.comp.bringBack("c-old");
+      await tick(); await tick();
+      const v = p.vals();
+      expect(v.retiredItems[0].error).toBe(true);
+      expect(v.retiredItems[0].busy).toBe(false);
+      expect(v.tBringBackError).toBe(p.T[lang].bringBackError);
+      expect(v.announceText).toBe("");
+    });
+  }
+
+  it("source rules: on-scale padding, no medium weight in the retired rules, live region, inset hover", () => {
+    expect(SRC).not.toContain("padding:10px 16px");
+    expect(SRC).not.toContain("padding:8px 16px");
+    const retiredRules = SRC.split("\n").filter((l) => l.trimStart().startsWith("[data-retired"));
+    expect(retiredRules.length).toBeGreaterThan(3);
+    for (const l of retiredRules) { expect(l).not.toContain("vt-weight-medium"); expect(l).not.toMatch(/font-weight:\s*500/); }
+    expect(SRC).toContain('aria-live="polite"');
+    expect(SRC).toContain("var(--vt-bg-inset)");
+    expect(retiredRules.join("\n")).not.toMatch(/(margin|padding)-(left|right)|[^-]left:|[^-]right:/);
+  });
+});
