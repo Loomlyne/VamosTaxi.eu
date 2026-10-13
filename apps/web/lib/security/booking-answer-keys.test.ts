@@ -58,6 +58,9 @@ vi.mock("@/lib/db/system-reads", () => ({
   loadManageReviewState: async () => ({ review_submitted: false, price_total_rappen: 0 }),
 }));
 
+// Fields merged over the manage_booking_read row (Phase 31 D-04 cases below); reset before each test.
+let manageRowOver: Record<string, unknown> = {};
+
 function sqlFor(text: string): unknown[] {
   if (text.includes("manage_booking_read")) {
     return [
@@ -82,6 +85,7 @@ function sqlFor(text: string): unknown[] {
         refunded_rappen: 0,
         payout_country: null,
         available_on: null,
+        ...manageRowOver,
       },
     ];
   }
@@ -137,6 +141,7 @@ function noUuid(body: unknown): void {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  manageRowOver = {};
 });
 
 describe("guest and customer booking answers carry no internal id (exact keys)", () => {
@@ -228,5 +233,25 @@ describe("guest and customer booking answers carry no internal id (exact keys)",
   it("POST /api/reviews/submit signed in: {ok:true} only (no reviewId, no bookingId)", async () => {
     const body = await okBody(await reviewSubmit(post("/api/reviews/submit", { ...review, bookingRef: REF })));
     expect(body).toStrictEqual({ ok: true });
+  });
+});
+
+// Phase 31 D-04: the customer sees one policy line for a cancel and no computed refund, so the guest booking
+// read gives no owed amount for a cancelled booking. The refunded amount stays (D-02), and a live booking keeps
+// its owed amount for the class/trip difference line (owner-approved 2026-10-01). Synthetic rappen.
+describe("GET /api/manage/booking: no owed amount on a cancelled booking (Phase 31 D-04)", () => {
+  for (const status of ["cancelled", "refunded", "partially_cancelled"]) {
+    it(`${status}: refundOwedRappen 0, refundedRappen unchanged`, async () => {
+      manageRowOver = { status, refund_status: "pending_ops", refund_owed_rappen: "12000", refunded_rappen: "3000" };
+      const body = await okBody(await manageBooking(new Request("https://vamostaxi.site/api/manage/booking")));
+      const booking = body.booking as Record<string, unknown>;
+      expect(booking).toMatchObject({ status, refundStatus: "pending_ops", refundOwedRappen: 0, refundedRappen: 3000 });
+    });
+  }
+
+  it("a live booking (confirmed) keeps the stored owed amount for the difference line", async () => {
+    manageRowOver = { status: "confirmed", refund_status: "pending_ops", refund_owed_rappen: "1500", refunded_rappen: "0" };
+    const body = await okBody(await manageBooking(new Request("https://vamostaxi.site/api/manage/booking")));
+    expect(body.booking).toMatchObject({ status: "confirmed", refundOwedRappen: 1500, refundedRappen: 0 });
   });
 });
