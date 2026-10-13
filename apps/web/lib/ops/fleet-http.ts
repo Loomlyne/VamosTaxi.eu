@@ -148,6 +148,11 @@ export function presentVehicleClass(row: VehicleClassRow): Record<string, unknow
     luggageCapacity: row.luggageCapacity,
     sortOrder: row.sortOrder,
     active: row.active,
+    status: row.status,
+    retiredReason: row.retiredReason,
+    inLiveBook: row.inLiveBook,
+    missing: row.missing,
+    unassignedPaidTrips: row.unassignedPaidTrips,
     vehicleCount: row.vehicleCount,
     photoPath: photo && !String(photo).startsWith("data:") ? photo : "",
     photo: photo && !String(photo).startsWith("data:") ? photo : "",
@@ -324,6 +329,7 @@ export function chauffeurErrorCopy(code: string): string | null {
   if (code === "chauffeurs-failure-photo") return "Photo must be an uploaded file, not an embedded image.";
   if (code === "chauffeurs-failure-vehicle") return "That vehicle is missing.";
   if (code === "chauffeurs-failure-class") return "That class is missing.";
+  if (code === "class-retired") return "Retired class: pick a new one";
   if (code === "chauffeurs-failure-plate-required") return "Plate number is required.";
   if (code === "chauffeurs-failure-plate") return "The plate number is too long.";
   if (code === "chauffeurs-failure-error") return "The chauffeur could not be saved.";
