@@ -1147,9 +1147,7 @@ class Component extends DCLogic {
       modifySub: late
         ? 'Your pickup is close, so a change now needs a phone call — we will show you why.'
         : 'We confirm every change by email before it counts.',
-      cancelSub: windowKind === 'pending_ops'
-        ? 'See what comes back at this notice before you decide.'
-        : 'See the refund you are due before anything is confirmed.',
+      cancelSub: 'Read the cancellation policy before anything is confirmed.',
 
       startModify: this.startModify, startCancel: this.startCancel, backToBooking: this.backToBooking,
 
