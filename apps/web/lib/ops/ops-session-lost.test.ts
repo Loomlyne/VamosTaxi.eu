@@ -152,7 +152,7 @@ describe("dashboard shell: a dead session goes to /login, not a blank screen (U8
 
   it("a second 404 while the first is being checked or after it, still one redirect and one /api/staff/me call", async () => {
     const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : NO_SESSION));
-    await Promise.all([t.win.fetch(SCREEN), t.win.fetch("/app/ops/OpsFleet.dc.html")]);
+    await Promise.all([t.win.fetch(SCREEN), t.win.fetch("/app/ops/OpsChauffeurs.dc.html")]);
     await flush();
     await t.win.fetch("/app/ops/OpsReviews.dc.html");
     await flush();
@@ -183,7 +183,7 @@ describe("dashboard shell: a dead session goes to /login, not a blank screen (U8
 
   it("several screen files missing at once are one probe and one reload", async () => {
     const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: {} } }));
-    await Promise.all([t.win.fetch(SCREEN), t.win.fetch("/app/ops/OpsFleet.dc.html")]);
+    await Promise.all([t.win.fetch(SCREEN), t.win.fetch("/app/ops/OpsChauffeurs.dc.html")]);
     await flush();
     await t.win.fetch("/app/ops/OpsReviews.dc.html");
     await flush();

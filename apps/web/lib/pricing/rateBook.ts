@@ -225,7 +225,11 @@ export function mapRateBook(doc: unknown): MappedRateBook {
       zones: [],
     };
   }
-  const distance_rates = mapList(doc.distance_rates, mapDistanceRate);
+  // Phase 30 decision 6: only a non-Live class can have empty seats or bags, and a parked
+  // row can have an empty seat cap; neither ever reaches pricing (types stay `number`).
+  const distance_rates = mapList(doc.distance_rates, mapDistanceRate).filter(
+    (row) => row.max_pax != null,
+  );
   const fixed_routes = mapList(doc.fixed_routes, mapFixedRoute);
   const ratedIds = new Set<string>();
   for (const row of distance_rates) ratedIds.add(row.vehicle_class_id);
@@ -236,7 +240,12 @@ export function mapRateBook(doc: unknown): MappedRateBook {
   // 26.1-19 D-15: a hidden class is gone from every public board, even while a
   // frozen live version still rates it.
   const classes = mapList(doc.classes, mapClass).filter(
-    (cls) => ratedIds.has(cls.id) && !cls.hidden_at,
+    (cls) =>
+      ratedIds.has(cls.id) &&
+      !cls.hidden_at &&
+      // Phase 30 decision 6: only a non-Live class can have empty seats or bags; it never reaches pricing.
+      cls.passenger_capacity != null &&
+      cls.luggage_capacity != null,
   );
   return {
     rate_version: mapRateVersion(doc.rate_version),

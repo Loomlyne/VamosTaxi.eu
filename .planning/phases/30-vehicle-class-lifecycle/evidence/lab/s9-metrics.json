@@ -1,0 +1,2974 @@
+[
+ {
+  "w": 1440,
+  "lang": "en",
+  "view": "pricing-table",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null,
+  "badge": {
+   "badgeBelowName": true,
+   "sameLine": false,
+   "badgeInsideCell": true,
+   "clippedText": true,
+   "nameBidi": "isolate",
+   "liveBadgeW": 48
+  }
+ },
+ {
+  "w": 1440,
+  "lang": "en",
+  "view": "pricing-golive",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    520,
+    261,
+    920,
+    639
+   ]
+  }
+ },
+ {
+  "w": 1440,
+  "lang": "en",
+  "view": "pricing-retire",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    520,
+    202,
+    920,
+    698
+   ]
+  }
+ },
+ {
+  "w": 1440,
+  "lang": "en",
+  "view": "pricing-retired-open",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null
+ },
+ {
+  "w": 1440,
+  "lang": "en",
+  "view": "chauffeurs",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 25,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Who drives, in which class, and on which plate"
+  ],
+  "dcov": null,
+  "cells": [
+   {
+    "t": "Lab Old Driver +41 79 840 00 03",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "Lab old class Retired class: pick a new ",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "ZH 840 003",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "LIC-P30-3",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "",
+    "dir": "ltr",
+    "bidi": "isolate"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "lang": "en",
+  "view": "booking-detail",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 11,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null,
+  "ref": {
+   "dir": "ltr",
+   "bidi": "normal",
+   "cls": "sc-interp"
+  }
+ },
+ {
+  "w": 1440,
+  "lang": "en",
+  "view": "about",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 0,
+  "covStrings": [],
+  "dcov": null
+ },
+ {
+  "w": 1440,
+  "lang": "de",
+  "view": "pricing-table",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 21,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": null,
+  "badge": {
+   "badgeBelowName": true,
+   "sameLine": false,
+   "badgeInsideCell": true,
+   "clippedText": true,
+   "nameBidi": "isolate",
+   "liveBadgeW": 48
+  }
+ },
+ {
+  "w": 1440,
+  "lang": "de",
+  "view": "pricing-golive",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 22,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": {
+   "count": 1,
+   "strings": [
+    "Erledigt"
+   ]
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    520,
+    224,
+    920,
+    676
+   ]
+  }
+ },
+ {
+  "w": 1440,
+  "lang": "de",
+  "view": "pricing-retire",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 21,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    520,
+    180,
+    920,
+    720
+   ]
+  }
+ },
+ {
+  "w": 1440,
+  "lang": "de",
+  "view": "pricing-retired-open",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 21,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": null
+ },
+ {
+  "w": 1440,
+  "lang": "de",
+  "view": "chauffeurs",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 25,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Wer fährt, in welcher Klasse und mit welchem Kennzeichen"
+  ],
+  "dcov": null,
+  "cells": [
+   {
+    "t": "Lab Old Driver +41 79 840 00 03",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "Lab old class Stillgelegte Klasse: neue ",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "ZH 840 003",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "LIC-P30-3",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "",
+    "dir": "ltr",
+    "bidi": "isolate"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "lang": "de",
+  "view": "booking-detail",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 14,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": null,
+  "ref": {
+   "dir": "ltr",
+   "bidi": "normal",
+   "cls": "sc-interp"
+  }
+ },
+ {
+  "w": 1440,
+  "lang": "de",
+  "view": "about",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 0,
+  "covStrings": [],
+  "dcov": null
+ },
+ {
+  "w": 1440,
+  "lang": "fr",
+  "view": "pricing-table",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 30,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null,
+  "badge": {
+   "badgeBelowName": true,
+   "sameLine": false,
+   "badgeInsideCell": true,
+   "clippedText": true,
+   "nameBidi": "isolate",
+   "liveBadgeW": 77
+  }
+ },
+ {
+  "w": 1440,
+  "lang": "fr",
+  "view": "pricing-golive",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 31,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": {
+   "count": 1,
+   "strings": [
+    "Fait"
+   ]
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    520,
+    216,
+    920,
+    684
+   ]
+  }
+ },
+ {
+  "w": 1440,
+  "lang": "fr",
+  "view": "pricing-retire",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 30,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    520,
+    189,
+    920,
+    711
+   ]
+  }
+ },
+ {
+  "w": 1440,
+  "lang": "fr",
+  "view": "pricing-retired-open",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 30,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null
+ },
+ {
+  "w": 1440,
+  "lang": "fr",
+  "view": "chauffeurs",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 26,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Qui conduit, dans quelle classe et avec quelle plaque"
+  ],
+  "dcov": null,
+  "cells": [
+   {
+    "t": "Lab Old Driver +41 79 840 00 03",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "Lab old class Classe retirée : en choisi",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "ZH 840 003",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "LIC-P30-3",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "",
+    "dir": "ltr",
+    "bidi": "isolate"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "lang": "fr",
+  "view": "booking-detail",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 14,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null,
+  "ref": {
+   "dir": "ltr",
+   "bidi": "normal",
+   "cls": "sc-interp"
+  }
+ },
+ {
+  "w": 1440,
+  "lang": "fr",
+  "view": "about",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 0,
+  "covStrings": [],
+  "dcov": null
+ },
+ {
+  "w": 1440,
+  "lang": "ar",
+  "view": "pricing-table",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 28,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": null,
+  "badge": {
+   "badgeBelowName": true,
+   "sameLine": false,
+   "badgeInsideCell": true,
+   "clippedText": true,
+   "nameBidi": "isolate",
+   "liveBadgeW": 55
+  }
+ },
+ {
+  "w": 1440,
+  "lang": "ar",
+  "view": "pricing-golive",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 28,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    520,
+    261,
+    920,
+    639
+   ]
+  }
+ },
+ {
+  "w": 1440,
+  "lang": "ar",
+  "view": "pricing-retire",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 28,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    520,
+    215,
+    920,
+    685
+   ]
+  }
+ },
+ {
+  "w": 1440,
+  "lang": "ar",
+  "view": "pricing-retired-open",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 28,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": null
+ },
+ {
+  "w": 1440,
+  "lang": "ar",
+  "view": "chauffeurs",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 26,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "في السجل"
+  ],
+  "dcov": null,
+  "cells": [
+   {
+    "t": "Lab Old Driver +41 79 840 00 03",
+    "dir": "rtl",
+    "bidi": "isolate"
+   },
+   {
+    "t": "Lab old class فئة موقوفة: اختر فئة جديدة",
+    "dir": "rtl",
+    "bidi": "isolate"
+   },
+   {
+    "t": "ZH 840 003",
+    "dir": "rtl",
+    "bidi": "isolate"
+   },
+   {
+    "t": "LIC-P30-3",
+    "dir": "rtl",
+    "bidi": "isolate"
+   },
+   {
+    "t": "",
+    "dir": "rtl",
+    "bidi": "isolate"
+   }
+  ]
+ },
+ {
+  "w": 1440,
+  "lang": "ar",
+  "view": "booking-detail",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 15,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": null,
+  "ref": {
+   "dir": "rtl",
+   "bidi": "normal",
+   "cls": "sc-interp"
+  }
+ },
+ {
+  "w": 1440,
+  "lang": "ar",
+  "view": "about",
+  "sw": 1440,
+  "iw": 1440,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 0,
+  "covStrings": [],
+  "dcov": null
+ },
+ {
+  "w": 1024,
+  "lang": "en",
+  "view": "pricing-table",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null,
+  "badge": {
+   "badgeBelowName": true,
+   "sameLine": false,
+   "badgeInsideCell": true,
+   "clippedText": true,
+   "nameBidi": "isolate",
+   "liveBadgeW": 48
+  }
+ },
+ {
+  "w": 1024,
+  "lang": "en",
+  "view": "pricing-golive",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    312,
+    195,
+    712,
+    573
+   ]
+  }
+ },
+ {
+  "w": 1024,
+  "lang": "en",
+  "view": "pricing-retire",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    312,
+    136,
+    712,
+    632
+   ]
+  }
+ },
+ {
+  "w": 1024,
+  "lang": "en",
+  "view": "pricing-retired-open",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null
+ },
+ {
+  "w": 1024,
+  "lang": "en",
+  "view": "chauffeurs",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 25,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Who drives, in which class, and on which plate"
+  ],
+  "dcov": null,
+  "cells": [
+   {
+    "t": "Lab Old Driver +41 79 840 00 03",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "Lab old class Retired class: pick a new ",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "ZH 840 003",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "LIC-P30-3",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "",
+    "dir": "ltr",
+    "bidi": "isolate"
+   }
+  ]
+ },
+ {
+  "w": 1024,
+  "lang": "en",
+  "view": "booking-detail",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 11,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null,
+  "ref": {
+   "dir": "ltr",
+   "bidi": "normal",
+   "cls": "sc-interp"
+  }
+ },
+ {
+  "w": 1024,
+  "lang": "en",
+  "view": "about",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 0,
+  "covStrings": [],
+  "dcov": null
+ },
+ {
+  "w": 1024,
+  "lang": "de",
+  "view": "pricing-table",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 21,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": null,
+  "badge": {
+   "badgeBelowName": true,
+   "sameLine": false,
+   "badgeInsideCell": true,
+   "clippedText": true,
+   "nameBidi": "isolate",
+   "liveBadgeW": 48
+  }
+ },
+ {
+  "w": 1024,
+  "lang": "de",
+  "view": "pricing-golive",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 22,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": {
+   "count": 1,
+   "strings": [
+    "Erledigt"
+   ]
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    312,
+    158,
+    712,
+    610
+   ]
+  }
+ },
+ {
+  "w": 1024,
+  "lang": "de",
+  "view": "pricing-retire",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 21,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    312,
+    114,
+    712,
+    654
+   ]
+  }
+ },
+ {
+  "w": 1024,
+  "lang": "de",
+  "view": "pricing-retired-open",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 21,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": null
+ },
+ {
+  "w": 1024,
+  "lang": "de",
+  "view": "chauffeurs",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 25,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Wer fährt, in welcher Klasse und mit welchem Kennzeichen"
+  ],
+  "dcov": null,
+  "cells": [
+   {
+    "t": "Lab Old Driver +41 79 840 00 03",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "Lab old class Stillgelegte Klasse: neue ",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "ZH 840 003",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "LIC-P30-3",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "",
+    "dir": "ltr",
+    "bidi": "isolate"
+   }
+  ]
+ },
+ {
+  "w": 1024,
+  "lang": "de",
+  "view": "booking-detail",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 14,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": null,
+  "ref": {
+   "dir": "ltr",
+   "bidi": "normal",
+   "cls": "sc-interp"
+  }
+ },
+ {
+  "w": 1024,
+  "lang": "de",
+  "view": "about",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 0,
+  "covStrings": [],
+  "dcov": null
+ },
+ {
+  "w": 1024,
+  "lang": "fr",
+  "view": "pricing-table",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 30,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null,
+  "badge": {
+   "badgeBelowName": true,
+   "sameLine": false,
+   "badgeInsideCell": true,
+   "clippedText": true,
+   "nameBidi": "isolate",
+   "liveBadgeW": 77
+  }
+ },
+ {
+  "w": 1024,
+  "lang": "fr",
+  "view": "pricing-golive",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 31,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": {
+   "count": 1,
+   "strings": [
+    "Fait"
+   ]
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    312,
+    150,
+    712,
+    618
+   ]
+  }
+ },
+ {
+  "w": 1024,
+  "lang": "fr",
+  "view": "pricing-retire",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 30,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    312,
+    123,
+    712,
+    645
+   ]
+  }
+ },
+ {
+  "w": 1024,
+  "lang": "fr",
+  "view": "pricing-retired-open",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 30,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null
+ },
+ {
+  "w": 1024,
+  "lang": "fr",
+  "view": "chauffeurs",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 26,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Qui conduit, dans quelle classe et avec quelle plaque"
+  ],
+  "dcov": null,
+  "cells": [
+   {
+    "t": "Lab Old Driver +41 79 840 00 03",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "Lab old class Classe retirée : en choisi",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "ZH 840 003",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "LIC-P30-3",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "",
+    "dir": "ltr",
+    "bidi": "isolate"
+   }
+  ]
+ },
+ {
+  "w": 1024,
+  "lang": "fr",
+  "view": "booking-detail",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 14,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null,
+  "ref": {
+   "dir": "ltr",
+   "bidi": "normal",
+   "cls": "sc-interp"
+  }
+ },
+ {
+  "w": 1024,
+  "lang": "fr",
+  "view": "about",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 0,
+  "covStrings": [],
+  "dcov": null
+ },
+ {
+  "w": 1024,
+  "lang": "ar",
+  "view": "pricing-table",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 28,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": null,
+  "badge": {
+   "badgeBelowName": true,
+   "sameLine": false,
+   "badgeInsideCell": true,
+   "clippedText": true,
+   "nameBidi": "isolate",
+   "liveBadgeW": 55
+  }
+ },
+ {
+  "w": 1024,
+  "lang": "ar",
+  "view": "pricing-golive",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 28,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    312,
+    195,
+    712,
+    573
+   ]
+  }
+ },
+ {
+  "w": 1024,
+  "lang": "ar",
+  "view": "pricing-retire",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 28,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    312,
+    149,
+    712,
+    619
+   ]
+  }
+ },
+ {
+  "w": 1024,
+  "lang": "ar",
+  "view": "pricing-retired-open",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 28,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": null
+ },
+ {
+  "w": 1024,
+  "lang": "ar",
+  "view": "chauffeurs",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 26,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "في السجل"
+  ],
+  "dcov": null,
+  "cells": [
+   {
+    "t": "Lab Old Driver +41 79 840 00 03",
+    "dir": "rtl",
+    "bidi": "isolate"
+   },
+   {
+    "t": "Lab old class فئة موقوفة: اختر فئة جديدة",
+    "dir": "rtl",
+    "bidi": "isolate"
+   },
+   {
+    "t": "ZH 840 003",
+    "dir": "rtl",
+    "bidi": "isolate"
+   },
+   {
+    "t": "LIC-P30-3",
+    "dir": "rtl",
+    "bidi": "isolate"
+   },
+   {
+    "t": "",
+    "dir": "rtl",
+    "bidi": "isolate"
+   }
+  ]
+ },
+ {
+  "w": 1024,
+  "lang": "ar",
+  "view": "booking-detail",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 15,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": null,
+  "ref": {
+   "dir": "rtl",
+   "bidi": "normal",
+   "cls": "sc-interp"
+  }
+ },
+ {
+  "w": 1024,
+  "lang": "ar",
+  "view": "about",
+  "sw": 1024,
+  "iw": 1024,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 0,
+  "covStrings": [],
+  "dcov": null
+ },
+ {
+  "w": 768,
+  "lang": "en",
+  "view": "pricing-table",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null,
+  "badge": {
+   "badgeBelowName": true,
+   "sameLine": false,
+   "badgeInsideCell": true,
+   "clippedText": true,
+   "nameBidi": "isolate",
+   "liveBadgeW": 48
+  }
+ },
+ {
+  "w": 768,
+  "lang": "en",
+  "view": "pricing-golive",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    184,
+    323,
+    584,
+    701
+   ]
+  }
+ },
+ {
+  "w": 768,
+  "lang": "en",
+  "view": "pricing-retire",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    184,
+    264,
+    584,
+    760
+   ]
+  }
+ },
+ {
+  "w": 768,
+  "lang": "en",
+  "view": "pricing-retired-open",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null
+ },
+ {
+  "w": 768,
+  "lang": "en",
+  "view": "chauffeurs",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 25,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Who drives, in which class, and on which plate"
+  ],
+  "dcov": null,
+  "cells": [
+   {
+    "t": "Lab Old Driver +41 79 840 00 03",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "Lab old class Retired class: pick a new ",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "ZH 840 003",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "LIC-P30-3",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "",
+    "dir": "ltr",
+    "bidi": "isolate"
+   }
+  ]
+ },
+ {
+  "w": 768,
+  "lang": "en",
+  "view": "booking-detail",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 11,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null,
+  "ref": {
+   "dir": "ltr",
+   "bidi": "normal",
+   "cls": "sc-interp"
+  }
+ },
+ {
+  "w": 768,
+  "lang": "en",
+  "view": "about",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 0,
+  "covStrings": [],
+  "dcov": null
+ },
+ {
+  "w": 768,
+  "lang": "de",
+  "view": "pricing-table",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 21,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": null,
+  "badge": {
+   "badgeBelowName": true,
+   "sameLine": false,
+   "badgeInsideCell": true,
+   "clippedText": true,
+   "nameBidi": "isolate",
+   "liveBadgeW": 48
+  }
+ },
+ {
+  "w": 768,
+  "lang": "de",
+  "view": "pricing-golive",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 22,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": {
+   "count": 1,
+   "strings": [
+    "Erledigt"
+   ]
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    184,
+    286,
+    584,
+    738
+   ]
+  }
+ },
+ {
+  "w": 768,
+  "lang": "de",
+  "view": "pricing-retire",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 21,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    184,
+    242,
+    584,
+    782
+   ]
+  }
+ },
+ {
+  "w": 768,
+  "lang": "de",
+  "view": "pricing-retired-open",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 21,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": null
+ },
+ {
+  "w": 768,
+  "lang": "de",
+  "view": "chauffeurs",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 25,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Wer fährt, in welcher Klasse und mit welchem Kennzeichen"
+  ],
+  "dcov": null,
+  "cells": [
+   {
+    "t": "Lab Old Driver +41 79 840 00 03",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "Lab old class Stillgelegte Klasse: neue ",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "ZH 840 003",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "LIC-P30-3",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "",
+    "dir": "ltr",
+    "bidi": "isolate"
+   }
+  ]
+ },
+ {
+  "w": 768,
+  "lang": "de",
+  "view": "booking-detail",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 14,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": null,
+  "ref": {
+   "dir": "ltr",
+   "bidi": "normal",
+   "cls": "sc-interp"
+  }
+ },
+ {
+  "w": 768,
+  "lang": "de",
+  "view": "about",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 0,
+  "covStrings": [],
+  "dcov": null
+ },
+ {
+  "w": 768,
+  "lang": "fr",
+  "view": "pricing-table",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 30,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null,
+  "badge": {
+   "badgeBelowName": true,
+   "sameLine": false,
+   "badgeInsideCell": true,
+   "clippedText": true,
+   "nameBidi": "isolate",
+   "liveBadgeW": 77
+  }
+ },
+ {
+  "w": 768,
+  "lang": "fr",
+  "view": "pricing-golive",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 31,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": {
+   "count": 1,
+   "strings": [
+    "Fait"
+   ]
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    184,
+    278,
+    584,
+    746
+   ]
+  }
+ },
+ {
+  "w": 768,
+  "lang": "fr",
+  "view": "pricing-retire",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 30,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    184,
+    251,
+    584,
+    773
+   ]
+  }
+ },
+ {
+  "w": 768,
+  "lang": "fr",
+  "view": "pricing-retired-open",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 30,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null
+ },
+ {
+  "w": 768,
+  "lang": "fr",
+  "view": "chauffeurs",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 26,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Qui conduit, dans quelle classe et avec quelle plaque"
+  ],
+  "dcov": null,
+  "cells": [
+   {
+    "t": "Lab Old Driver +41 79 840 00 03",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "Lab old class Classe retirée : en choisi",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "ZH 840 003",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "LIC-P30-3",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "",
+    "dir": "ltr",
+    "bidi": "isolate"
+   }
+  ]
+ },
+ {
+  "w": 768,
+  "lang": "fr",
+  "view": "booking-detail",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 14,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null,
+  "ref": {
+   "dir": "ltr",
+   "bidi": "normal",
+   "cls": "sc-interp"
+  }
+ },
+ {
+  "w": 768,
+  "lang": "fr",
+  "view": "about",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 0,
+  "covStrings": [],
+  "dcov": null
+ },
+ {
+  "w": 768,
+  "lang": "ar",
+  "view": "pricing-table",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 28,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": null,
+  "badge": {
+   "badgeBelowName": true,
+   "sameLine": false,
+   "badgeInsideCell": true,
+   "clippedText": true,
+   "nameBidi": "isolate",
+   "liveBadgeW": 55
+  }
+ },
+ {
+  "w": 768,
+  "lang": "ar",
+  "view": "pricing-golive",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 28,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    184,
+    323,
+    584,
+    701
+   ]
+  }
+ },
+ {
+  "w": 768,
+  "lang": "ar",
+  "view": "pricing-retire",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 28,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    184,
+    277,
+    584,
+    747
+   ]
+  }
+ },
+ {
+  "w": 768,
+  "lang": "ar",
+  "view": "pricing-retired-open",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 28,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": null
+ },
+ {
+  "w": 768,
+  "lang": "ar",
+  "view": "chauffeurs",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 26,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "في السجل"
+  ],
+  "dcov": null,
+  "cells": [
+   {
+    "t": "Lab Old Driver +41 79 840 00 03",
+    "dir": "rtl",
+    "bidi": "isolate"
+   },
+   {
+    "t": "Lab old class فئة موقوفة: اختر فئة جديدة",
+    "dir": "rtl",
+    "bidi": "isolate"
+   },
+   {
+    "t": "ZH 840 003",
+    "dir": "rtl",
+    "bidi": "isolate"
+   },
+   {
+    "t": "LIC-P30-3",
+    "dir": "rtl",
+    "bidi": "isolate"
+   },
+   {
+    "t": "",
+    "dir": "rtl",
+    "bidi": "isolate"
+   }
+  ]
+ },
+ {
+  "w": 768,
+  "lang": "ar",
+  "view": "booking-detail",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 15,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": null,
+  "ref": {
+   "dir": "rtl",
+   "bidi": "normal",
+   "cls": "sc-interp"
+  }
+ },
+ {
+  "w": 768,
+  "lang": "ar",
+  "view": "about",
+  "sw": 768,
+  "iw": 768,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 0,
+  "covStrings": [],
+  "dcov": null
+ },
+ {
+  "w": 390,
+  "lang": "en",
+  "view": "pricing-table",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null,
+  "badge": {
+   "badgeBelowName": true,
+   "sameLine": false,
+   "badgeInsideCell": true,
+   "clippedText": true,
+   "nameBidi": "isolate",
+   "liveBadgeW": 48
+  }
+ },
+ {
+  "w": 390,
+  "lang": "en",
+  "view": "pricing-golive",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    16,
+    233,
+    374,
+    611
+   ]
+  }
+ },
+ {
+  "w": 390,
+  "lang": "en",
+  "view": "pricing-retire",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    16,
+    174,
+    374,
+    670
+   ]
+  }
+ },
+ {
+  "w": 390,
+  "lang": "en",
+  "view": "pricing-retired-open",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null
+ },
+ {
+  "w": 390,
+  "lang": "en",
+  "view": "chauffeurs",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 24,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Who drives, in which class, and on which plate"
+  ],
+  "dcov": null,
+  "cells": [
+   {
+    "t": "Lab Old Driver +41 79 840 00 03 Lab old ",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "ZH 840 003",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "LIC-P30-3",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "",
+    "dir": "ltr",
+    "bidi": "isolate"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "lang": "en",
+  "view": "booking-detail",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 11,
+  "covStrings": [
+   "Content",
+   "Collapse sidebar",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null,
+  "ref": {
+   "dir": "ltr",
+   "bidi": "normal",
+   "cls": "sc-interp"
+  }
+ },
+ {
+  "w": 390,
+  "lang": "en",
+  "view": "about",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 0,
+  "covStrings": [],
+  "dcov": null
+ },
+ {
+  "w": 390,
+  "lang": "de",
+  "view": "pricing-table",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 21,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": null,
+  "badge": {
+   "badgeBelowName": true,
+   "sameLine": false,
+   "badgeInsideCell": true,
+   "clippedText": true,
+   "nameBidi": "isolate",
+   "liveBadgeW": 48
+  }
+ },
+ {
+  "w": 390,
+  "lang": "de",
+  "view": "pricing-golive",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 22,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": {
+   "count": 1,
+   "strings": [
+    "Erledigt"
+   ]
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    16,
+    196,
+    374,
+    648
+   ]
+  }
+ },
+ {
+  "w": 390,
+  "lang": "de",
+  "view": "pricing-retire",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 21,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    16,
+    129,
+    374,
+    715
+   ]
+  }
+ },
+ {
+  "w": 390,
+  "lang": "de",
+  "view": "pricing-retired-open",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 21,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": null
+ },
+ {
+  "w": 390,
+  "lang": "de",
+  "view": "chauffeurs",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 25,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Wer fährt, in welcher Klasse und mit welchem Kennzeichen"
+  ],
+  "dcov": null,
+  "cells": [
+   {
+    "t": "Lab Old Driver +41 79 840 00 03 Lab old ",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "ZH 840 003",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "LIC-P30-3",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "",
+    "dir": "ltr",
+    "bidi": "isolate"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "lang": "de",
+  "view": "booking-detail",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 14,
+  "covStrings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Lab Admin",
+   "admin",
+   "Aktionen"
+  ],
+  "dcov": null,
+  "ref": {
+   "dir": "ltr",
+   "bidi": "normal",
+   "cls": "sc-interp"
+  }
+ },
+ {
+  "w": 390,
+  "lang": "de",
+  "view": "about",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 0,
+  "covStrings": [],
+  "dcov": null
+ },
+ {
+  "w": 390,
+  "lang": "fr",
+  "view": "pricing-table",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 30,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null,
+  "badge": {
+   "badgeBelowName": true,
+   "sameLine": false,
+   "badgeInsideCell": true,
+   "clippedText": true,
+   "nameBidi": "isolate",
+   "liveBadgeW": 77
+  }
+ },
+ {
+  "w": 390,
+  "lang": "fr",
+  "view": "pricing-golive",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 31,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": {
+   "count": 1,
+   "strings": [
+    "Fait"
+   ]
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    16,
+    188,
+    374,
+    656
+   ]
+  }
+ },
+ {
+  "w": 390,
+  "lang": "fr",
+  "view": "pricing-retire",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 30,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    16,
+    142,
+    374,
+    702
+   ]
+  }
+ },
+ {
+  "w": 390,
+  "lang": "fr",
+  "view": "pricing-retired-open",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 30,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null
+ },
+ {
+  "w": 390,
+  "lang": "fr",
+  "view": "chauffeurs",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 25,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Qui conduit, dans quelle classe et avec quelle plaque"
+  ],
+  "dcov": null,
+  "cells": [
+   {
+    "t": "Lab Old Driver +41 79 840 00 03 Lab old ",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "ZH 840 003",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "LIC-P30-3",
+    "dir": "ltr",
+    "bidi": "isolate"
+   },
+   {
+    "t": "",
+    "dir": "ltr",
+    "bidi": "isolate"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "lang": "fr",
+  "view": "booking-detail",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 14,
+  "covStrings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Lab Admin",
+   "admin",
+   "Actions"
+  ],
+  "dcov": null,
+  "ref": {
+   "dir": "ltr",
+   "bidi": "normal",
+   "cls": "sc-interp"
+  }
+ },
+ {
+  "w": 390,
+  "lang": "fr",
+  "view": "about",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "ltr",
+  "covCount": 0,
+  "covStrings": [],
+  "dcov": null
+ },
+ {
+  "w": 390,
+  "lang": "ar",
+  "view": "pricing-table",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 28,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": null,
+  "badge": {
+   "badgeBelowName": true,
+   "sameLine": false,
+   "badgeInsideCell": true,
+   "clippedText": true,
+   "nameBidi": "isolate",
+   "liveBadgeW": 55
+  }
+ },
+ {
+  "w": 390,
+  "lang": "ar",
+  "view": "pricing-golive",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 28,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    16,
+    233,
+    374,
+    611
+   ]
+  }
+ },
+ {
+  "w": 390,
+  "lang": "ar",
+  "view": "pricing-retire",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 28,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": {
+   "count": 0,
+   "strings": []
+  },
+  "dlg": {
+   "fits": true,
+   "scrollsInside": false,
+   "r": [
+    16,
+    174,
+    374,
+    670
+   ]
+  }
+ },
+ {
+  "w": 390,
+  "lang": "ar",
+  "view": "pricing-retired-open",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 28,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": null
+ },
+ {
+  "w": 390,
+  "lang": "ar",
+  "view": "chauffeurs",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 25,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "في السجل"
+  ],
+  "dcov": null,
+  "cells": [
+   {
+    "t": "Lab Old Driver +41 79 840 00 03 Lab old ",
+    "dir": "rtl",
+    "bidi": "isolate"
+   },
+   {
+    "t": "ZH 840 003",
+    "dir": "rtl",
+    "bidi": "isolate"
+   },
+   {
+    "t": "LIC-P30-3",
+    "dir": "rtl",
+    "bidi": "isolate"
+   },
+   {
+    "t": "",
+    "dir": "rtl",
+    "bidi": "isolate"
+   }
+  ]
+ },
+ {
+  "w": 390,
+  "lang": "ar",
+  "view": "booking-detail",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 15,
+  "covStrings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Lab Admin",
+   "admin",
+   "الإجراءات"
+  ],
+  "dcov": null,
+  "ref": {
+   "dir": "rtl",
+   "bidi": "normal",
+   "cls": "sc-interp"
+  }
+ },
+ {
+  "w": 390,
+  "lang": "ar",
+  "view": "about",
+  "sw": 390,
+  "iw": 390,
+  "noSideways": true,
+  "dir": "rtl",
+  "covCount": 0,
+  "covStrings": [],
+  "dcov": null
+ }
+]

@@ -1,0 +1,21 @@
+import { start, open, goPricing, signIn, S, db, goLiveInfo, gl } from "./lib.mjs";
+await start({ evidenceDir: process.argv[2] });
+const s = await open({ viewport: 1440, name: "s1440" });
+await signIn(s);
+await goPricing(s);
+await S("S14", "Bring back Lab Draft Class (first half only)", async () => {
+  await s.page.locator("[data-retired-head]").click(); await s.page.waitForTimeout(800);
+  const r = s.page.locator("[data-retired-row]", { hasText: "Lab Draft Class" });
+  await r.locator("button").filter({ hasText: /bring back/i }).first().click(); await s.page.waitForTimeout(3000);
+  const inTable = await s.page.locator("tr", { has: s.page.locator("[data-class-name]", { hasText: /^Lab Draft Class$/ }) }).count();
+  const badge = inTable ? await s.page.locator("tr", { has: s.page.locator("[data-class-name]", { hasText: /^Lab Draft Class$/ }) }).locator("[data-draft-btn]").innerText() : "none";
+  const inRetired = await s.page.locator("[data-retired-row]", { hasText: "Lab Draft Class" }).count();
+  const cnt = await s.page.locator("[data-retired-count]").innerText();
+  await s.page.locator("[data-draft-btn]").first().click(); await s.page.waitForTimeout(800);
+  const o = await goLiveInfo(s.page);
+  await s.shot("S14-after-bring-back");
+  const dbr = db("select hidden_at is null, active, hidden_reason is null from public.vehicle_classes where name = 'Lab Draft Class'");
+  const firstHalf = inTable === 1 && badge === "DRAFT" && inRetired === 0 && o.items.some((i) => i.startsWith("Price in the live price book=missing"));
+  return { s, ok: false, blocked: true, evidence: `BLOCKED (second half needs the stand-in Publish, blocked by S12). First half ${firstHalf ? "PASS" : "FAIL"}: in class table ${inTable}, badge ${badge}, still in Retired list ${inRetired}, Retired count ${cnt}; ${gl(o)}; db not hidden|active|reason null ${dbr}. Note: Lab Draft Class never had a price in a live book (S13 blocked), so "missing although the previous live book had its price" is not exercised.` };
+}, { s });
+process.exit(0);

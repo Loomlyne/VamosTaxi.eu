@@ -1,0 +1,869 @@
+diff --git a/app/ops/OpsDash.dc.html b/app/ops/OpsDash.dc.html
+index 8c3ea698..c4b30fb0 100644
+--- a/app/ops/OpsDash.dc.html
++++ b/app/ops/OpsDash.dc.html
+@@ -151,7 +151,7 @@
+ </span>
+ </div>
+ <div style="display:flex;flex-wrap:wrap;gap:10px;padding-top:14px;border-top:1px solid var(--vt-border-inverse)">
+-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="light" href="/fleet/chauffeurs" hint-size="130px,36px">Chauffeurs</x-import>
++<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="light" href="/chauffeurs" hint-size="130px,36px">Chauffeurs</x-import>
+ </div>
+ </section>
+ 
+@@ -335,7 +335,7 @@ class Component extends DCLogic {
+       counts: [
+         { label:'Bookings', value:String(bookedInPeriod), of:'', icon:'list', href:bookingsHref, foot:'Taken in this period' },
+         { label:'Pickups', value:String(pickups), of:'', icon:'car-front', href:pickupsHref, foot:'Scheduled to run' },
+-        { label:'Chauffeurs on shift', value:String(onShift), of:'/ ' + chauffeurs.length, icon:'users', href:'/fleet/chauffeurs', foot:'Available to assign' },
++        { label:'Chauffeurs on shift', value:String(onShift), of:'/ ' + chauffeurs.length, icon:'users', href:'/chauffeurs', foot:'Available to assign' },
+       ],
+       income: classLines.map((l) => ({ label: String(l.klass || '').trim() || (window.VamosLocale && window.VamosLocale.t ? window.VamosLocale.t('Class not stated') : 'Class not stated'), amount: fareLabel(Number(l.rappen) || 0) })),
+       expenses: moneyOut,
+diff --git a/app/ops/OpsFleet.dc.html b/app/ops/OpsFleet.dc.html
+index 05a435dd..81d87494 100644
+--- a/app/ops/OpsFleet.dc.html
++++ b/app/ops/OpsFleet.dc.html
+@@ -143,21 +143,21 @@ function languageOptions(t) { return LANGUAGE_CODES.map((code) => ({ value: code
+ const T = {
+   en: {
+     vehicles:'Vehicles', chauffeurs:'Chauffeurs',
+-    vSub:'What the fleet is, what it seats, and whether it is on the road',
++    vSub:'Which classes you run, what each seats, and whether it is on the road',
+     cSub:'Who drives, in which class, and on which plate',
+     colVehicle:'Vehicle', colPlate:'Plate', colCapacity:'Capacity', colBase:'Base fare',
+     colChauffeur:'Chauffeur', colStatus:'Status', colPhone:'Phone', colLicence:'Licence',
+     unassigned:'No chauffeur', noVehicle:'No vehicle', noClass:'No class',
+     cntVehicles:'Vehicles', cntInService:'In service', cntSeats:'Largest party',
+     cntChauffeurs:'Chauffeurs', cntOnShift:'On shift', cntWithVehicle:'With a vehicle',
+-    footVehicles:'Rest are free or in the workshop', footFleet:'Across the whole fleet', footSeats:'Seats in the largest vehicle',
++    footVehicles:'Rest are free or in the workshop', footFleet:'Across all classes', footSeats:'Seats in the largest vehicle',
+     seats:'seats', footShift:'Available to assign now', footPaired:'Paired to a vehicle', footChauffeurs:'On the books',
+     addVehicle:'Add a vehicle', addChauffeur:'Add a chauffeur',
+     nounV:'vehicle', nounVs:'vehicles', nounC:'chauffeur', nounCs:'chauffeurs',
+     editV:'Edit vehicle', editC:'Edit chauffeur', delV:'Delete this vehicle?', delC:'Delete this chauffeur?',
+     searchVehicles:'Class, model or plate', searchChauffeurs:'Name, phone, plate or licence',
+     emptyCTitle:'No chauffeurs yet', emptyCBody:'Add a chauffeur and choose his class.',
+-    delVBody:'The vehicle leaves the fleet, and any chauffeur paired with it is left without one.',
++    delVBody:'The vehicle leaves the list, and any chauffeur paired with it is left without one.',
+     delCBody:'He leaves the Chauffeurs list and Assign. His finished trips keep his name; his trips that are not finished go back to unassigned.',
+     fClass:'Class', fModel:'Model', fPlate:'Plate', fSeats:'Seats', fBags:'Bags', fYear:'Year', fStatus:'Status', fNote:'Note',
+     fName:'Name', fPhone:'Phone', fEmail:'Email', fLicence:'Licence number', fLanguages:'Languages', fVehicle:'Vehicle',
+@@ -171,7 +171,8 @@ const T = {
+     hLanguages:'Shown to the traveller. Pick every language this chauffeur speaks.',
+     none:'No vehicle',
+     vNote:'A vehicle is priced by its class, so changing a class price on the Pricing screen changes every vehicle in it. Add vehicles first; chauffeurs are attached to them afterwards.',
+-    cNote:'Assign lists only the chauffeurs of the trip’s class. A chauffeur without a class cannot be given a transfer.',
++    cNote:'Assign lists only the chauffeurs of the trip’s class. A chauffeur without a class, or on a retired class, cannot be given a transfer.',
++    retiredClassFlag:'Retired class: pick a new one', retiredTag:'Retired',
+     cannotAssignNoEmail:'Cannot assign until an email is saved.',
+     liveTrips:'Live trips', noLiveTrips:'No live trips', noLiveTripsBody:'Assigned trips that are not finished show here. Open a trip to see it on the board.', pastBookings:'Past bookings', noPastBookings:'No past bookings', noPastBookingsBody:'Finished assigned trips show here. Open a booking to see it on the board.', saveChauffeur:'Save chauffeur', keepEditing:'Keep editing', morning:'Morning', night:'Night', fShiftDays:'Shift days', fShiftStart:'Starts', fShiftEnd:'Ends', dupEmail:'This email is already on file.', dupOpen:'Open existing chauffeur', profile:'Profile',
+     saveFailed:'Save failed. Try again.',
+@@ -185,21 +186,21 @@ const T = {
+   },
+   de: {
+     vehicles:'Fahrzeuge', chauffeurs:'Chauffeure',
+-    vSub:'Was die Flotte ist, wie viele Plätze sie hat und ob sie unterwegs ist',
++    vSub:'Welche Klassen Sie fahren, wie viele Plätze sie hat und ob sie unterwegs ist',
+     cSub:'Wer fährt, in welcher Klasse und mit welchem Kennzeichen',
+     colVehicle:'Fahrzeug', colPlate:'Kennzeichen', colCapacity:'Kapazität', colBase:'Grundpreis',
+     colChauffeur:'Chauffeur', colStatus:'Status', colPhone:'Telefon', colLicence:'Führerausweis',
+     unassigned:'Kein Chauffeur', noVehicle:'Kein Fahrzeug', noClass:'Keine Klasse',
+     cntVehicles:'Fahrzeuge', cntInService:'Im Einsatz', cntSeats:'Grösste Gruppe',
+     cntChauffeurs:'Chauffeure', cntOnShift:'Im Dienst', cntWithVehicle:'Mit Fahrzeug',
+-    footVehicles:'Der Rest ist frei oder in der Werkstatt', footFleet:'In der ganzen Flotte', footSeats:'Plätze im grössten Fahrzeug',
++    footVehicles:'Der Rest ist frei oder in der Werkstatt', footFleet:'In allen Klassen', footSeats:'Plätze im grössten Fahrzeug',
+     seats:'Plätze', footShift:'Jetzt zuweisbar', footPaired:'Einem Fahrzeug zugeordnet', footChauffeurs:'Im Bestand',
+     addVehicle:'Fahrzeug hinzufügen', addChauffeur:'Chauffeur hinzufügen',
+     nounV:'Fahrzeug', nounVs:'Fahrzeuge', nounC:'Chauffeur', nounCs:'Chauffeure',
+     editV:'Fahrzeug bearbeiten', editC:'Chauffeur bearbeiten', delV:'Dieses Fahrzeug löschen?', delC:'Diesen Chauffeur löschen?',
+     searchVehicles:'Klasse, Modell oder Kennzeichen', searchChauffeurs:'Name, Telefon, Kennzeichen oder Ausweis',
+     emptyCTitle:'Noch keine Chauffeure', emptyCBody:'Chauffeur hinzufügen und seine Klasse wählen.',
+-    delVBody:'Das Fahrzeug verlässt die Flotte, und ein damit verbundener Chauffeur steht ohne da.',
++    delVBody:'Das Fahrzeug verlässt die Liste, und ein damit verbundener Chauffeur steht ohne da.',
+     delCBody:'Er verschwindet aus der Chauffeur-Liste und beim Zuweisen. Beendete Fahrten behalten seinen Namen; nicht beendete Fahrten sind wieder ohne Fahrer.',
+     fClass:'Klasse', fModel:'Modell', fPlate:'Kennzeichen', fSeats:'Plätze', fBags:'Gepäck', fYear:'Jahr', fStatus:'Status', fNote:'Notiz',
+     fName:'Name', fPhone:'Telefon', fEmail:'E-Mail', fLicence:'Ausweisnummer', fLanguages:'Sprachen', fVehicle:'Fahrzeug',
+@@ -213,7 +214,8 @@ const T = {
+     hLanguages:'Für den Reisenden sichtbar. Alle Sprachen wählen, die dieser Chauffeur spricht.',
+     none:'Kein Fahrzeug',
+     vNote:'Ein Fahrzeug wird über seine Klasse bepreist — eine Preisänderung auf dem Preis-Bildschirm gilt für alle Fahrzeuge dieser Klasse. Zuerst Fahrzeuge anlegen, die Chauffeure kommen danach dazu.',
+-    cNote:'Beim Zuweisen erscheinen nur die Chauffeure der Klasse der Fahrt. Ein Chauffeur ohne Klasse kann keinen Transfer bekommen.',
++    cNote:'Beim Zuweisen erscheinen nur die Chauffeure der Klasse der Fahrt. Ein Chauffeur ohne Klasse oder in einer stillgelegten Klasse kann keinen Transfer bekommen.',
++    retiredClassFlag:'Stillgelegte Klasse: neue wählen', retiredTag:'Stillgelegt',
+     cannotAssignNoEmail:'Kann nicht zugewiesen werden, bis eine E-Mail gespeichert ist.',
+     liveTrips:'Laufende Fahrten', noLiveTrips:'Keine laufenden Fahrten', noLiveTripsBody:'Zugewiesene Fahrten, die noch nicht beendet sind, erscheinen hier. Eine Fahrt öffnen, um sie auf dem Board zu sehen.', pastBookings:'Frühere Buchungen', noPastBookings:'Keine früheren Buchungen', noPastBookingsBody:'Beendete zugewiesene Fahrten erscheinen hier. Eine Buchung öffnen, um sie auf dem Board zu sehen.', saveChauffeur:'Chauffeur speichern', keepEditing:'Weiter bearbeiten', morning:'Morgen', night:'Nacht', fShiftDays:'Schichttage', fShiftStart:'Beginn', fShiftEnd:'Ende', dupEmail:'Diese E-Mail ist bereits erfasst.', dupOpen:'Bestehenden Chauffeur öffnen', profile:'Profil',
+     saveFailed:'Speichern fehlgeschlagen. Bitte erneut versuchen.',
+@@ -227,21 +229,21 @@ const T = {
+   },
+   fr: {
+     vehicles:'Véhicules', chauffeurs:'Chauffeurs',
+-    vSub:'Ce qu’est la flotte, ce qu’elle transporte et si elle roule',
++    vSub:'Quelles classes vous exploitez, ce qu’elles transportent et si elles roulent',
+     cSub:'Qui conduit, dans quelle classe et avec quelle plaque',
+     colVehicle:'Véhicule', colPlate:'Plaque', colCapacity:'Capacité', colBase:'Tarif de base',
+     colChauffeur:'Chauffeur', colStatus:'Statut', colPhone:'Téléphone', colLicence:'Permis',
+     unassigned:'Aucun chauffeur', noVehicle:'Aucun véhicule', noClass:'Aucune classe',
+     cntVehicles:'Véhicules', cntInService:'En service', cntSeats:'Groupe le plus grand',
+     cntChauffeurs:'Chauffeurs', cntOnShift:'En service', cntWithVehicle:'Avec véhicule',
+-    footVehicles:'Le reste est libre ou à l’atelier', footFleet:'Sur toute la flotte', footSeats:'Places dans le plus grand véhicule',
++    footVehicles:'Le reste est libre ou à l’atelier', footFleet:'Sur toutes les classes', footSeats:'Places dans le plus grand véhicule',
+     seats:'places', footShift:'Attribuables maintenant', footPaired:'Associés à un véhicule', footChauffeurs:'Au registre',
+     addVehicle:'Ajouter un véhicule', addChauffeur:'Ajouter un chauffeur',
+     nounV:'véhicule', nounVs:'véhicules', nounC:'chauffeur', nounCs:'chauffeurs',
+     editV:'Modifier le véhicule', editC:'Modifier le chauffeur', delV:'Supprimer ce véhicule ?', delC:'Supprimer ce chauffeur ?',
+     searchVehicles:'Classe, modèle ou plaque', searchChauffeurs:'Nom, téléphone, plaque ou permis',
+     emptyCTitle:'Aucun chauffeur', emptyCBody:'Ajoutez un chauffeur et choisissez sa classe.',
+-    delVBody:'Le véhicule quitte la flotte, et le chauffeur qui y était associé se retrouve sans.',
++    delVBody:'Le véhicule quitte la liste, et le chauffeur qui y était associé se retrouve sans.',
+     delCBody:'Il disparaît de la liste des chauffeurs et de l’attribution. Ses courses terminées gardent son nom ; ses courses non terminées repassent sans chauffeur.',
+     fClass:'Classe', fModel:'Modèle', fPlate:'Plaque', fSeats:'Places', fBags:'Bagages', fYear:'Année', fStatus:'Statut', fNote:'Note',
+     fName:'Nom', fPhone:'Téléphone', fEmail:'E-mail', fLicence:'Numéro de permis', fLanguages:'Langues', fVehicle:'Véhicule',
+@@ -255,7 +257,8 @@ const T = {
+     hLanguages:'Visibles par le voyageur. Choisissez toutes les langues parlées par ce chauffeur.',
+     none:'Aucun véhicule',
+     vNote:'Un véhicule est tarifé par sa classe : changer le prix d’une classe sur l’écran Tarifs change tous ses véhicules. Ajoutez d’abord les véhicules ; les chauffeurs y sont rattachés ensuite.',
+-    cNote:'L’attribution ne montre que les chauffeurs de la classe de la course. Un chauffeur sans classe ne peut pas recevoir de transfert.',
++    cNote:'L’attribution ne montre que les chauffeurs de la classe de la course. Un chauffeur sans classe, ou dans une classe retirée, ne peut pas recevoir de transfert.',
++    retiredClassFlag:'Classe retirée : en choisir une autre', retiredTag:'Retirée',
+     cannotAssignNoEmail:'Impossible d’attribuer tant qu’un e-mail n’est pas enregistré.',
+     liveTrips:'Courses en cours', noLiveTrips:'Aucune course en cours', noLiveTripsBody:'Les courses assignées non terminées s’affichent ici. Ouvrez une course pour la voir au tableau.', pastBookings:'Réservations passées', noPastBookings:'Aucune réservation passée', noPastBookingsBody:'Les courses assignées terminées s’affichent ici. Ouvrez une réservation pour la voir au tableau.', saveChauffeur:'Enregistrer le chauffeur', keepEditing:'Continuer l’édition', morning:'Matin', night:'Nuit', fShiftDays:'Jours de service', fShiftStart:'Début', fShiftEnd:'Fin', dupEmail:'Cet e-mail est déjà enregistré.', dupOpen:'Ouvrir le chauffeur existant', profile:'Profil',
+     saveFailed:'Enregistrement impossible. Réessayez.',
+@@ -269,21 +272,21 @@ const T = {
+   },
+   ar: {
+     vehicles:'المركبات', chauffeurs:'السائقون',
+-    vSub:'ما هي المركبات، وكم تتسع، وهل هي على الطريق',
++    vSub:'ما الفئات التي تشغّلها، وكم تتسع كل فئة، وهل هي على الطريق',
+     cSub:'من يقود، وفي أي فئة، وبأي لوحة',
+     colVehicle:'المركبة', colPlate:'اللوحة', colCapacity:'السعة', colBase:'الأجرة الأساسية',
+     colChauffeur:'السائق', colStatus:'الحالة', colPhone:'الهاتف', colLicence:'الرخصة',
+     unassigned:'بلا سائق', noVehicle:'بلا مركبة', noClass:'بلا فئة',
+     cntVehicles:'المركبات', cntInService:'في الخدمة', cntSeats:'أكبر مجموعة',
+     cntChauffeurs:'السائقون', cntOnShift:'في الدورية', cntWithVehicle:'لديهم مركبة',
+-    footVehicles:'البقية متاحة أو في الورشة', footFleet:'في كامل الأسطول', footSeats:'مقاعد أكبر مركبة',
++    footVehicles:'البقية متاحة أو في الورشة', footFleet:'في جميع الفئات', footSeats:'مقاعد أكبر مركبة',
+     seats:'مقاعد', footShift:'متاحون للإسناد الآن', footPaired:'مرتبطون بمركبة', footChauffeurs:'في السجل',
+     addVehicle:'إضافة مركبة', addChauffeur:'إضافة سائق',
+     nounV:'مركبة', nounVs:'مركبات', nounC:'سائق', nounCs:'سائقون',
+     editV:'تعديل المركبة', editC:'تعديل السائق', delV:'حذف هذه المركبة؟', delC:'حذف هذا السائق؟',
+     searchVehicles:'الفئة أو الطراز أو اللوحة', searchChauffeurs:'الاسم أو الهاتف أو اللوحة أو الرخصة',
+     emptyCTitle:'لا يوجد سائقون بعد', emptyCBody:'أضف سائقًا واختر فئته.',
+-    delVBody:'تخرج المركبة من الأسطول، ويبقى السائق المرتبط بها بلا مركبة.',
++    delVBody:'تخرج المركبة من القائمة، ويبقى السائق المرتبط بها بلا مركبة.',
+     delCBody:'يختفي من قائمة السائقين ومن الإسناد. تحتفظ رحلاته المنتهية باسمه، وتعود رحلاته غير المنتهية بلا سائق.',
+     fClass:'الفئة', fModel:'الطراز', fPlate:'اللوحة', fSeats:'المقاعد', fBags:'الحقائب', fYear:'السنة', fStatus:'الحالة', fNote:'ملاحظة',
+     fName:'الاسم', fPhone:'الهاتف', fEmail:'البريد الإلكتروني', fLicence:'رقم الرخصة', fLanguages:'اللغات', fVehicle:'المركبة',
+@@ -297,7 +300,8 @@ const T = {
+     hLanguages:'تظهر للمسافر. اختر كل اللغات التي يتحدثها هذا السائق.',
+     none:'بلا مركبة',
+     vNote:'تُسعَّر المركبة حسب فئتها، وتغيير سعر الفئة في شاشة الأسعار يغيّر كل مركباتها. أضف المركبات أولًا، ثم يُربط بها السائقون.',
+-    cNote:'عند الإسناد يظهر فقط سائقو فئة الرحلة. السائق بلا فئة لا يمكن إسناد رحلة إليه.',
++    cNote:'عند الإسناد يظهر فقط سائقو فئة الرحلة. السائق بلا فئة، أو في فئة موقوفة، لا يمكن إسناد رحلة إليه.',
++    retiredClassFlag:'فئة موقوفة: اختر فئة جديدة', retiredTag:'موقوفة',
+     cannotAssignNoEmail:'لا يمكن الإسناد حتى يُحفظ بريد إلكتروني.',
+     liveTrips:'الرحلات الجارية', noLiveTrips:'لا رحلات جارية', noLiveTripsBody:'الرحلات المسندة غير المنتهية تظهر هنا. افتح رحلة لرؤيتها على اللوحة.', pastBookings:'حجوزات سابقة', noPastBookings:'لا حجوزات سابقة', noPastBookingsBody:'الرحلات المسندة المنتهية تظهر هنا. افتح حجزًا لرؤيته على اللوحة.', saveChauffeur:'حفظ السائق', keepEditing:'متابعة التحرير', morning:'صباح', night:'ليل', fShiftDays:'أيام الوردية', fShiftStart:'البداية', fShiftEnd:'النهاية', dupEmail:'هذا البريد مسجّل مسبقًا.', dupOpen:'فتح السائق الحالي', profile:'الملف',
+     saveFailed:'فشل الحفظ. حاول مرة أخرى.',
+@@ -312,7 +316,7 @@ const T = {
+ };
+ 
+ class Component extends DCLogic {
+-  state = { lang: 'en', saveMsg: '', notice: '', deskEditTick: 0, deskEditId: '', history: null, historyFor: '', historyFailed: false };
++  state = { lang: 'en', saveMsg: '', notice: '', deskEditTick: 0, deskEditId: '', history: null, historyFor: '', historyFailed: false, narrow: false };
+   bind = () => {
+     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
+     this._off = window.VamosOps.onAny(() => this.forceUpdate());
+@@ -333,11 +337,21 @@ class Component extends DCLogic {
+     };
+     api.request('GET', '/api/staff/chauffeurs/' + encodeURIComponent(key) + '/bookings').then(done, () => done(null));
+   };
++  // Phase 30: which classes are retired comes from /api/staff/vehicle-classes (status, or active false).
++  loadClassRows = () => {
++    const ops = window.VamosOps;
++    if (!ops || typeof ops.classes !== 'function') { this._classRetry = setTimeout(this.loadClassRows, 120); return; }
++    ops.classes().then((rows) => this.setState({ classRows: rows }));
++  };
+   chauffeurId() { return String(this.props.chauffeurId || this.props['chauffeur-id'] || ''); }
+   componentDidMount() {
+     this.bind();
++    this._onResize = () => { const n = window.innerWidth <= 680; if (n !== this.state.narrow) this.setState({ narrow: n }); };
++    window.addEventListener('resize', this._onResize);
++    this._onResize();
+     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
+     window.addEventListener('vamos:locale', this._onLocale);
++    this.loadClassRows();
+     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
+     if (this.chauffeurId()) this.loadHistory(this.chauffeurId());
+   }
+@@ -347,8 +361,10 @@ class Component extends DCLogic {
+   }
+   componentWillUnmount() {
+     if (this._off) this._off();
++    if (this._onResize) window.removeEventListener('resize', this._onResize);
+     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+     clearTimeout(this._retry);
++    clearTimeout(this._classRetry);
+     clearTimeout(this._historyRetry);
+   }
+ 
+@@ -377,6 +393,14 @@ class Component extends DCLogic {
+     const classNameById = Object.assign({}, live.names || {});
+     (live.classes || []).forEach((c) => { if (c && c.id && c.name) classNameById[c.id] = c.name; });
+     const classIdOf = (r) => String((r && (r.vehicleClassId || r.vehicle_class_id)) || '').trim();
++    const retiredIds = {};
++    (Array.isArray(this.state.classRows) ? this.state.classRows : []).forEach((c) => {
++      if ((c.status || ((c.active === false || c.hiddenAt || c.hidden_at) ? 'retired' : 'live')) === 'retired') {
++        retiredIds[c.id] = 1;
++        if (c.name && !classNameById[c.id]) classNameById[c.id] = c.name;
++      }
++    });
++    const isRetiredClass = (r) => !!retiredIds[classIdOf(r)];
+     const classLabel = (r) => {
+       const id = classIdOf(r);
+       if (id && classNameById[id]) return classNameById[id];
+@@ -388,7 +412,7 @@ class Component extends DCLogic {
+       const id = classIdOf(c);
+       if (!id || chauffeurClassOptions.some((o) => o.value === id)) return;
+       const name = classLabel(c);
+-      if (name) chauffeurClassOptions.push({ value: id, label: name });
++      if (name) chauffeurClassOptions.push({ value: id, label: retiredIds[id] ? name + ' · ' + t.retiredTag : name });
+     });
+     const withClass = chauffeurs.filter((c) => !!classIdOf(c)).length;
+     // The server sends language names ("German, English"); the Languages select holds codes, so an
+@@ -398,23 +422,38 @@ class Component extends DCLogic {
+       .map((x) => nameToCode[String(x || '').trim().toLowerCase()] || '')
+       .filter((code, i, all) => code && all.indexOf(code) === i);
+ 
++    // At 680 px and below the class (and its retired flag) moves under the chauffeur name, so nothing is cut off.
++    const narrow = this.state.narrow;
++    const classLines = (r) => {
++      const name = classLabel(r);
++      if (!name) return [];
++      return [
++        React.createElement('span', { key:'c' }, name),
++        isRetiredClass(r) ? React.createElement('span', { key:'f', 'data-class-retired':'1', style: { display:'inline-flex', alignItems:'center', gap:4, fontSize:'var(--vt-body-xs)', lineHeight:1.35, color:'var(--vt-danger)', fontWeight:500, whiteSpace: narrow ? 'normal' : 'nowrap' } },
++          React.createElement(window.VamosTaxiDesignSystem_245af1.Icon, { name:'circle-alert', size:14, color:'currentColor' }),
++          t.retiredClassFlag) : null,
++      ];
++    };
+     const chauffeurColumns = [
+       { key:'name', header:t.colChauffeur, lookup:(r) => React.createElement('span', {
+           style: { display:'flex', flexDirection:'column', gap:2, lineHeight:1.3, minWidth:0 },
+         },
+         React.createElement('a', {
+-          href: '/fleet/chauffeurs/' + encodeURIComponent(r.id),
++          href: '/chauffeurs/' + encodeURIComponent(r.id),
+           style: { color: 'inherit', textDecoration: 'none', fontWeight: 500 },
+         }, r.name || r.fullName || r.full_name || r.id),
+         (r.phone || r.phoneNumber) ? React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, r.phone || r.phoneNumber) : null,
++        narrow ? React.createElement('span', { 'data-ch-class':'1', style: { display:'flex', flexDirection:'column', gap:2, fontSize:'var(--vt-body-xs)' } }, classLines(r)) : null,
+       ) },
+-      { key:'className', header:t.fClass, width:'170px', kind:'need', emptyLabel:t.noClass,
+-        lookup:(r) => classLabel(r) },
++    ].concat(narrow ? [] : [
++      { key:'className', header:t.fClass, width:'270px', kind:'need', emptyLabel:t.noClass,
++        lookup:(r) => classLabel(r) ? React.createElement('span', { style: { display:'inline-flex', flexDirection:'column', gap:2, minWidth:0 } }, classLines(r)) : '' },
++    ]).concat([
+       { key:'plate', header:t.colPlate, width:'140px', kind:'mono',
+         lookup:(r) => plateOf(r) },
+       { key:'licence', header:t.colLicence, width:'140px', kind:'mono',
+         lookup:(r) => String((r && (r.licence || r.licenceNumber || r.licence_number)) || '').trim() },
+-    ];
++    ]);
+ 
+     const vehicleFields = [
+       { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'vehicle', upload:'/api/photos/upload', chooseLabel:t.choosePhoto, hint:t.hPhoto },
+@@ -457,7 +496,7 @@ class Component extends DCLogic {
+     const photoSrc = (!photoRaw || photoRaw.indexOf('data:') === 0) ? '' : (photoRaw.charAt(0) === '/' ? photoRaw : '/photos/' + photoRaw);
+     const profileFacts = !detail ? [] : [
+       { icon:'mail', label:t.fEmail, value: detail.email || '—', dir: detail.email ? 'ltr' : 'auto' },
+-      { icon:'car-front', label:t.fClass, value: className || t.noClass, dir: className ? 'ltr' : 'auto' },
++      { icon:'car-front', label:t.fClass, value: className ? (isRetiredClass(detail) ? className + ' · ' + t.retiredClassFlag : className) : t.noClass, dir: className ? 'ltr' : 'auto' },
+       { icon:'car', label:t.colPlate, value: detailPlate || '—', dir: detailPlate ? 'ltr' : 'auto' },
+       { icon:'shield-check', label:t.fLicence, value: detail.licence || '—', dir: detail.licence ? 'ltr' : 'auto' },
+       { icon:'globe', label:t.fLanguages, value: detail.languages || '—', dir:'auto' },
+@@ -491,7 +530,7 @@ class Component extends DCLogic {
+       notice: this.state.notice || '',
+       tBack: t.backChauffeurs,
+       goBack: () => {
+-        history.pushState({}, '', '/fleet/chauffeurs');
++        history.pushState({}, '', '/chauffeurs');
+         window.dispatchEvent(new PopStateEvent('popstate'));
+       },
+       tEditC: t.editC,
+diff --git a/app/ops/OpsPricing.dc.html b/app/ops/OpsPricing.dc.html
+index 97a3864e..67f01b8e 100644
+--- a/app/ops/OpsPricing.dc.html
++++ b/app/ops/OpsPricing.dc.html
+@@ -21,6 +21,24 @@
+ [data-hide-conflict]{display:flex;flex-direction:column;gap:var(--vt-space-3);min-width:0}
+ [data-hide-conflict] p{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);overflow-wrap:anywhere}
+ [data-hide-conflict] [data-hide-class]{font-weight:600;color:var(--vt-text-primary)}
++[data-retired]{display:flex;flex-direction:column;min-width:0;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);overflow:hidden}
++[data-retired-head]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:var(--vt-space-2);min-height:44px;padding:10px 16px;cursor:pointer;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);color:var(--vt-text-primary)}
++[data-retired-head]:hover{background:var(--vt-grey-50)}
++[data-retired-head]:focus-visible{box-shadow:var(--vt-ring)}
++[data-retired-count]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);color:var(--vt-text-muted)}
++[data-retired-row]{box-sizing:border-box;display:flex;flex-wrap:wrap;align-items:center;gap:var(--vt-space-3);padding:8px 16px;border-block-start:1px solid var(--vt-border-subtle)}
++[data-retired-main]{flex:1 1 200px;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:var(--vt-space-3);row-gap:2px}
++[data-retired-name]{font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);color:var(--vt-text-primary);overflow-wrap:anywhere}
++[data-retired-reason]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-muted);overflow-wrap:anywhere}
++[data-class-cell]{display:flex;align-items:center;column-gap:8px;min-width:0}
++[data-class-name]{min-width:0;white-space:nowrap}
++@media (max-width:680px){[data-class-cell]{flex-direction:column;align-items:flex-start;max-width:78px}[data-class-name]{white-space:normal;overflow-wrap:anywhere}}
++[data-golive]{display:flex;flex-direction:column;gap:var(--vt-space-3);min-width:0}
++[data-golive] p{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);overflow-wrap:anywhere}
++[data-golive] [data-hide-class]{font-weight:600;color:var(--vt-text-primary)}
++[data-golive-list]{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--vt-space-2)}
++[data-golive-item]{display:flex;align-items:center;gap:var(--vt-space-2);font-family:var(--vt-font-body);font-size:var(--vt-body-md);min-width:0}
++[data-golive] [data-golive-why]{font-size:var(--vt-body-sm);color:var(--vt-text-muted)}
+ [data-hide-actions]{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--vt-space-2);margin-top:var(--vt-space-2)}
+ [data-hide-actions] > *{min-width:0}
+ [data-vt-date-btn]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 14px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);cursor:pointer;overflow:hidden}
+@@ -136,7 +154,27 @@
+ 
+ <sc-if value="{{ isDistance }}" hint-placeholder-val="{{ false }}">
+ <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
+-<dc-import name="OpsTable" fill="1" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-title="{{ tDeleteClassTitle }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" delete-body="{{ tDeleteClassBody }}" edit-id="{{ distanceEditId }}" edit-tick="{{ distanceEditTick }}" onReorder="{{ reorderDistance }}" hint-size="100%,420px"></dc-import>
++<dc-import name="OpsTable" fill="1" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-title="{{ tDeleteClassTitle }}" delete-label="{{ tRetire }}" delete-icon="eye-off" onAskDelete="{{ askRetire }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" delete-body="{{ tDeleteClassBody }}" edit-id="{{ distanceEditId }}" edit-tick="{{ distanceEditTick }}" onReorder="{{ reorderDistance }}" hint-size="100%,420px"></dc-import>
++<sc-if value="{{ hasRetired }}" hint-placeholder-val="{{ false }}">
++<section data-retired="1">
++<button type="button" data-retired-head="1" aria-expanded="{{ retiredOpen }}" onClick="{{ toggleRetired }}">
++<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ retiredChevron }}" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
++<span>{{ tRetiredTitle }}</span>
++<span data-retired-count="1" data-vt-no-i18n="1">{{ retiredCount }}</span>
++</button>
++<sc-if value="{{ retiredOpen }}" hint-placeholder-val="{{ false }}">
++<sc-for list="{{ retiredItems }}" as="c" hint-placeholder-count="1">
++<div data-retired-row="1">
++<span data-retired-main="1">
++<span data-retired-name="1" data-vt-no-i18n="1">{{ c.name }}</span>
++<span data-retired-reason="1" data-vt-no-i18n="1">{{ c.reason }}</span>
++</span>
++<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" onClick="{{ c.bring }}" hint-size="130px,36px">{{ tBringBack }}</x-import>
++</div>
++</sc-for>
++</sc-if>
++</section>
++</sc-if>
+ </div>
+ </sc-if>
+ 
+@@ -205,15 +243,38 @@
+ </x-import>
+ </sc-if>
+ 
++<sc-if value="{{ goLiveOpen }}" hint-placeholder-val="{{ false }}">
++<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ tGoLiveTitle }}" onClose="{{ closeGoLive }}" hint-size="440px,360px">
++<div data-golive="1">
++<p data-hide-class="1" data-vt-no-i18n="1">{{ goLiveName }}</p>
++<ul data-golive-list="1">
++<sc-for list="{{ goLiveItems }}" as="i" hint-placeholder-count="4">
++<li data-golive-item="1" style="color:{{ i.textColor }}">
++<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ i.icon }}" size="{{ n16 }}" color="{{ i.color }}" hint-size="16px,16px"></x-import>
++<span>{{ i.label }}</span>
++</li>
++</sc-for>
++</ul>
++<sc-if value="{{ goLiveBlocked }}" hint-placeholder-val="{{ true }}">
++<p data-golive-why="1">{{ goLiveWhy }}</p>
++</sc-if>
++<div data-hide-actions="1">
++<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ editFromGoLive }}" hint-size="150px,44px">{{ tEditClassBtn }}</x-import>
++<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" onClick="{{ confirmGoLive }}" disabled="{{ goLiveBlocked }}" hint-size="150px,44px">{{ tGoLive }}</x-import>
++</div>
++</div>
++</x-import>
++</sc-if>
++
+ <sc-if value="{{ hideOpen }}" hint-placeholder-val="{{ false }}">
+-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ tHideConflictTitle }}" onClose="{{ keepVisible }}" hint-size="440px,380px">
++<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ hideTitle }}" onClose="{{ keepVisible }}" hint-size="440px,380px">
+ <div data-hide-conflict="1">
+ <p data-hide-class="1" data-vt-no-i18n="1">{{ hideClassName }}</p>
+-<p data-hide-body="1">{{ tHideConflictBody }}</p>
+-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tHideReason }}" aria-label="{{ tHideReason }}" rows="{{ n3 }}" max-length="{{ hideReasonMax }}" value="{{ hideReason }}" onChange="{{ setHideReason }}" placeholder="{{ tHideReasonPlaceholder }}" error="{{ hideErrorText }}" hint="{{ hideReasonCount }}" hint-size="100%,130px"></x-import>
++<p data-hide-body="1">{{ hideBody }}</p>
++<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ hideLabel }}" aria-label="{{ hideLabel }}" rows="{{ n3 }}" max-length="{{ hideReasonMax }}" value="{{ hideReason }}" onChange="{{ setHideReason }}" placeholder="{{ hidePlaceholder }}" error="{{ hideErrorText }}" hint="{{ hideReasonCount }}" hint-size="100%,130px"></x-import>
+ <div data-hide-actions="1">
+-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ keepVisible }}" hint-size="150px,44px">{{ tHideConflictKeepVisible }}</x-import>
+-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" onClick="{{ submitHide }}" disabled="{{ hideSubmitDisabled }}" hint-size="180px,44px">{{ tHideWithReason }}</x-import>
++<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ keepVisible }}" hint-size="150px,44px">{{ hideCancelLabel }}</x-import>
++<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" onClick="{{ submitHide }}" disabled="{{ hideSubmitDisabled }}" hint-size="180px,44px">{{ hideSubmitLabel }}</x-import>
+ </div>
+ </div>
+ </x-import>
+@@ -324,6 +385,12 @@ const T = {
+     searchRoutes:'From, to or ID', nounRoute:'route', nounRoutes:'routes',
+     hRoutePrice:'Leave empty if this class is not offered on this route.',
+     addClass:'Add class', editClass:'Edit class', saveClass:'Save class', deleteClassTitle:'Delete this class from the draft?', deleteClassBody:'Delete this class from the draft? Public does not change until Publish.',
++    statusLive:'Live', statusDraft:'Draft', statusRetired:'Retired', colStatus:'Status',
++    retire:'Retire', retireTitle:'Retire this class?', retireBody:'The class leaves the site, the new-trip form and new price books. Past price books keep it. You can bring it back.',
++    retireReason:'Reason (optional)', retireReasonPlaceholder:'Why it is retired, for example: no longer offered', retireCancel:'Cancel',
++    retiredTitle:'Retired classes', bringBack:'Bring back',
++    needPhoto:'Photo', needSeats:'Seats', needBags:'Bags', needPrice:'Price in the live price book', goLive:'Go live', goLiveTitle:'Before this class goes live',
++    goLiveNeedsPhoto:'Add a photo first', goLiveNeedsSeats:'Add the seats first', goLiveNeedsBags:'Add the bags first', goLiveNeedsPrice:'Add a price in the live price book first',
+     hideReason:'Reason', hideReasonPlaceholder:'Why it is hidden, for example: no longer offered', hideConflictTitle:'Can’t delete — still in use', hideConflictBody:'This class has bookings against it. Hide it instead, and say why.', hideConflictKeepVisible:'Keep it visible', hideWithReason:'Hide with a reason', hideError:'The class could not be hidden. Try again.',
+     emptyClassesTitle:'No vehicle classes yet', emptyClassesBody:'Add a class with photo, name, start fare, per-kilometre rate, max passengers and max bags.',
+     searchDistance:'Class', nounClass:'class', nounClasses:'classes',
+@@ -411,6 +478,12 @@ const T = {
+     searchRoutes:'Von, nach oder ID', nounRoute:'Route', nounRoutes:'Routen',
+     hRoutePrice:'Leer lassen, wenn diese Klasse auf dieser Route nicht angeboten wird.',
+     addClass:'Klasse hinzufügen', editClass:'Klasse bearbeiten', saveClass:'Klasse speichern', deleteClassTitle:'Diese Klasse aus dem Entwurf löschen?', deleteClassBody:'Diese Klasse aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
++    statusLive:'Live', statusDraft:'Entwurf', statusRetired:'Stillgelegt', colStatus:'Status',
++    retire:'Stilllegen', retireTitle:'Diese Klasse stilllegen?', retireBody:'Die Klasse verschwindet von der Website, aus dem Formular für neue Fahrten und aus neuen Preisbüchern. Frühere Preisbücher behalten sie. Sie können sie zurückholen.',
++    retireReason:'Grund (optional)', retireReasonPlaceholder:'Warum sie stillgelegt wird, zum Beispiel: nicht mehr angeboten', retireCancel:'Abbrechen',
++    retiredTitle:'Stillgelegte Klassen', bringBack:'Zurückholen',
++    needPhoto:'Foto', needSeats:'Plätze', needBags:'Gepäck', needPrice:'Preis im aktuellen Preisbuch', goLive:'Live schalten', goLiveTitle:'Bevor diese Klasse live geht',
++    goLiveNeedsPhoto:'Zuerst ein Foto hinzufügen', goLiveNeedsSeats:'Zuerst die Plätze eintragen', goLiveNeedsBags:'Zuerst das Gepäck eintragen', goLiveNeedsPrice:'Zuerst einen Preis im aktuellen Preisbuch eintragen',
+     hideReason:'Grund', hideReasonPlaceholder:'Warum sie verborgen ist, zum Beispiel: nicht mehr angeboten', hideConflictTitle:'Löschen nicht möglich — noch in Gebrauch', hideConflictBody:'Diese Klasse hat Buchungen. Verbergen Sie sie stattdessen und nennen Sie den Grund.', hideConflictKeepVisible:'Sichtbar lassen', hideWithReason:'Mit Grund verbergen', hideError:'Die Klasse konnte nicht verborgen werden. Versuchen Sie es erneut.',
+     emptyClassesTitle:'Noch keine Fahrzeugklassen', emptyClassesBody:'Klasse mit Foto, Name, Startpreis, Kilometersatz, max. Passagieren und max. Gepäckstücken hinzufügen.',
+     searchDistance:'Klasse', nounClass:'Klasse', nounClasses:'Klassen',
+@@ -500,6 +573,12 @@ const T = {
+     searchRoutes:'De, vers ou ID', nounRoute:'trajet', nounRoutes:'trajets',
+     hRoutePrice:'Laissez vide si cette classe n’est pas proposée sur ce trajet.',
+     addClass:'Ajouter une classe', editClass:'Modifier la classe', saveClass:'Enregistrer la classe', deleteClassTitle:'Supprimer cette classe du brouillon ?', deleteClassBody:'Supprimer cette classe du brouillon ? Le public ne change qu’après Publier.',
++    statusLive:'En ligne', statusDraft:'Brouillon', statusRetired:'Retirée', colStatus:'Statut',
++    retire:'Retirer', retireTitle:'Retirer cette classe ?', retireBody:'La classe quitte le site, le formulaire de nouvelle course et les nouveaux livres de prix. Les anciens livres de prix la gardent. Vous pouvez la remettre.',
++    retireReason:'Motif (facultatif)', retireReasonPlaceholder:'Pourquoi elle est retirée, par exemple : plus proposée', retireCancel:'Annuler',
++    retiredTitle:'Classes retirées', bringBack:'Remettre',
++    needPhoto:'Photo', needSeats:'Places', needBags:'Bagages', needPrice:'Prix dans le livre de prix en vigueur', goLive:'Mettre en ligne', goLiveTitle:'Avant la mise en ligne de cette classe',
++    goLiveNeedsPhoto:'Ajoutez d’abord une photo', goLiveNeedsSeats:'Ajoutez d’abord les places', goLiveNeedsBags:'Ajoutez d’abord les bagages', goLiveNeedsPrice:'Ajoutez d’abord un prix dans le livre de prix en vigueur',
+     hideReason:'Motif', hideReasonPlaceholder:'Pourquoi elle est masquée, par exemple : plus proposée', hideConflictTitle:'Suppression impossible — encore utilisée', hideConflictBody:'Cette classe a des réservations. Masquez-la plutôt, et indiquez pourquoi.', hideConflictKeepVisible:'La laisser visible', hideWithReason:'Masquer avec un motif', hideError:'La classe n’a pas pu être masquée. Réessayez.',
+     emptyClassesTitle:'Pas encore de classes', emptyClassesBody:'Ajoutez une classe avec photo, nom, tarif de départ, tarif au kilomètre, passagers max. et bagages max.',
+     searchDistance:'Classe', nounClass:'classe', nounClasses:'classes',
+@@ -589,6 +668,12 @@ const T = {
+     searchRoutes:'من أو إلى أو المعرّف', nounRoute:'مسار', nounRoutes:'مسارات',
+     hRoutePrice:'اتركه فارغًا إن لم تُعرض هذه الفئة على هذا المسار.',
+     addClass:'إضافة فئة', editClass:'تعديل الفئة', saveClass:'حفظ الفئة', deleteClassTitle:'حذف هذه الفئة من المسودة؟', deleteClassBody:'حذف هذه الفئة من المسودة؟ لا يتغير العام حتى النشر.',
++    statusLive:'مباشرة', statusDraft:'مسودة', statusRetired:'موقوفة', colStatus:'الحالة',
++    retire:'إيقاف', retireTitle:'إيقاف هذه الفئة؟', retireBody:'تغادر الفئة الموقع ونموذج الرحلة الجديدة وكتب الأسعار الجديدة. تحتفظ بها كتب الأسعار السابقة. يمكنك إعادتها.',
++    retireReason:'السبب (اختياري)', retireReasonPlaceholder:'سبب الإيقاف، مثلاً: لم تعد متاحة', retireCancel:'إلغاء',
++    retiredTitle:'الفئات الموقوفة', bringBack:'إعادة',
++    needPhoto:'صورة', needSeats:'المقاعد', needBags:'الحقائب', needPrice:'سعر في كتاب الأسعار المباشر', goLive:'تشغيل مباشر', goLiveTitle:'قبل تشغيل هذه الفئة مباشرة',
++    goLiveNeedsPhoto:'أضف صورة أولاً', goLiveNeedsSeats:'أضف المقاعد أولاً', goLiveNeedsBags:'أضف الحقائب أولاً', goLiveNeedsPrice:'أضف سعراً في كتاب الأسعار المباشر أولاً',
+     hideReason:'السبب', hideReasonPlaceholder:'سبب الإخفاء، مثلاً: لم تعد متاحة', hideConflictTitle:'لا يمكن الحذف — ما زالت مستخدمة', hideConflictBody:'لهذه الفئة حجوزات. أخفِها بدلاً من ذلك، واذكر السبب.', hideConflictKeepVisible:'إبقاؤها ظاهرة', hideWithReason:'إخفاء مع ذكر السبب', hideError:'تعذّر إخفاء الفئة. حاول مرة أخرى.',
+     emptyClassesTitle:'لا توجد فئات مركبات بعد', emptyClassesBody:'أضف فئة بالصورة والاسم وأجرة البداية وسعر الكيلومتر وأقصى عدد مسافرين وأقصى حقائب.',
+     searchDistance:'الفئة', nounClass:'فئة', nounClasses:'فئات',
+@@ -684,6 +769,9 @@ class Component extends DCLogic {
+     couponUses: [],
+     publishOpen: false,
+     discardOpen: false,
++    classes: null,
++    retiredOpen: false,
++    goLiveTarget: null,
+     hideTarget: null,
+     hideReason: '',
+     hideBusy: false,
+@@ -716,6 +804,7 @@ class Component extends DCLogic {
+     this.loadDraft();
+     this.loadVat();
+     this.loadCouponUses();
++    this.loadClasses();
+     this.forceUpdate();
+   };
+   _datePopRef = (el) => { this._datePop = el; };
+@@ -888,6 +977,45 @@ class Component extends DCLogic {
+       return json;
+     });
+   };
++  /* Phase 30 class lifecycle: the screen asks "Retire?" in the hide dialog (reason optional), lists
++     retired classes under the table, and moves a class between Draft and Live. */
++  loadClasses() {
++    const ops = window.VamosOps;
++    if (!ops || typeof ops.classes !== 'function') return Promise.resolve();
++    return ops.classes().then((rows) => this.setState({ classes: rows }));
++  }
++  askRetire = (row) => {
++    const id = row && row.vehicleClassId;
++    if (!id) return;
++    this.setState({
++      hideTarget: { id: id, klass: String(row.klass || row.name || ''), retire: true },
++      hideReason: '', hideBusy: false, hideError: false,
++    });
++  };
++  openGoLive = (id, rowId) => this.setState({ goLiveTarget: { id: id, rowId: rowId } });
++  closeGoLive = () => this.setState({ goLiveTarget: null });
++  editFromGoLive = () => {
++    const g = this.state.goLiveTarget;
++    if (!g) return;
++    this.setState({ goLiveTarget: null, distanceEditId: g.rowId || '', distanceEditTick: (this.state.distanceEditTick || 0) + 1 });
++  };
++  confirmGoLive = () => {
++    const g = this.state.goLiveTarget;
++    if (!g) return;
++    const run = this.goLive(g.id);
++    if (run && run.then) run.then((json) => { if (json && json.ok) this.setState({ goLiveTarget: null }); });
++  };
++  toggleRetired = () => this.setState({ retiredOpen: !this.state.retiredOpen });
++  moveClass(id, call) {
++    const ops = window.VamosOps;
++    if (!ops || typeof ops[call] !== 'function') return null;
++    return ops[call](id).then((json) => {
++      if (json && json.ok) { ops.rates.reset(); this.loadClasses(); }
++      return json;
++    });
++  }
++  bringBack = (id) => this.moveClass(id, 'bringBackClass');
++  goLive = (id) => this.moveClass(id, 'goLiveClass');
+   setHideReason = (e) => {
+     const v = e && e.target ? e.target.value : e;
+     this.setState({ hideReason: String(v == null ? '' : v).slice(0, 140), hideError: false });
+@@ -897,11 +1025,14 @@ class Component extends DCLogic {
+     const ops = window.VamosOps;
+     const target = this.state.hideTarget;
+     const reason = String(this.state.hideReason || '').trim();
+-    if (!ops || !ops.deleteClass || !target || !reason || this.state.hideBusy) return;
++    const retire = !!(target && target.retire);
++    if (!ops || !target || this.state.hideBusy) return;
++    if (retire ? !ops.retireClass : (!ops.deleteClass || !reason)) return;
+     this.setState({ hideBusy: true, hideError: false });
+-    ops.deleteClass(target.id, reason).then((json) => {
++    (retire ? ops.retireClass(target.id, reason || null) : ops.deleteClass(target.id, reason)).then((json) => {
+       if (json && json.ok) {
+         ops.rates.reset();
++        this.loadClasses();
+         this.setState({ hideTarget: null, hideReason: '', hideBusy: false, hideError: false });
+         return;
+       }
+@@ -1170,6 +1301,49 @@ class Component extends DCLogic {
+     const hasDraft = this.state.draftId != null;
+     const hasGaps = rawGaps.length > 0;
+     const completenessBody = !hasDraft ? t.completenessEmpty : hasGaps ? t.completenessGaps(rawGaps.length) : t.completenessReady;
++    // Phase 30: status comes from /api/staff/vehicle-classes (status, or active / hiddenAt as the fallback).
++    const DSx = window.VamosTaxiDesignSystem_245af1 || {};
++    const h = React.createElement;
++    const classList = Array.isArray(this.state.classes) ? this.state.classes : [];
++    const statusOf = (c) => c.status || ((c.active === false || c.hiddenAt || c.hidden_at) ? 'retired' : 'live');
++    const classById = {};
++    classList.forEach((c) => { classById[c.id] = c; });
++    const retiredClasses = classList.filter((c) => statusOf(c) === 'retired');
++    const retiredIds = {};
++    retiredClasses.forEach((c) => { retiredIds[c.id] = 1; });
++    const checklistOf = (c) => [
++      { key: 'Photo', label: t.needPhoto, done: !!String(c.photoPath || c.photo || '').trim() },
++      { key: 'Seats', label: t.needSeats, done: Number(c.passengerCapacity) > 0 },
++      { key: 'Bags', label: t.needBags, done: c.luggageCapacity != null && c.luggageCapacity !== '' },
++      { key: 'Price', label: t.needPrice, done: c.inLiveBook === true },
++    ];
++    // One small badge in the class cell: LIVE (inverse) or DRAFT (outline, opens the go-live checklist).
++    const classCell = (row) => {
++      const c = classById[row.vehicleClassId];
++      const draft = !!c && statusOf(c) === 'draft';
++      const badge = draft
++        ? h('button', { type: 'button', 'data-class-badge': 'draft', title: t.goLiveTitle,
++            onClick: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.openGoLive(c.id, row.id); },
++            style: { all: 'unset', boxSizing: 'border-box', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', minHeight: 32 } },
++            h(DSx.Badge, { tone: 'outline' }, t.statusDraft))
++        : h(DSx.Badge, { tone: 'inverse' }, t.statusLive);
++      return h('span', { 'data-class-cell': '1' },
++        h('span', { 'data-class-name': '1', 'data-vt-no-i18n': '1' }, row.klass),
++        draft ? badge : h('span', { style: { display: 'inline-flex' } }, badge));
++    };
++    const goLiveTarget = this.state.goLiveTarget;
++    const goLiveClass = goLiveTarget ? classById[goLiveTarget.id] : null;
++    const goLiveList = goLiveClass ? checklistOf(goLiveClass) : [];
++    const goLiveMissing = goLiveList.filter((i) => !i.done);
++    const ratedIds = {};
++    uniqueByClass(ops ? ops.rates.all() : []).forEach((r) => { if (r.vehicleClassId) ratedIds[r.vehicleClassId] = 1; });
++    const draftOnlyRows = classList.filter((c) => statusOf(c) === 'draft' && !ratedIds[c.id]).map((c) => ({
++      id: 'class:' + c.id, klass: c.name || c.klass, name: c.name || c.klass, vehicleClassId: c.id, slug: c.slug || '',
++      photo: c.photoPath || c.photo || '', photoPath: c.photoPath || c.photo || '', sortOrder: Number(c.sortOrder) || 0,
++      baseFare: '', perKm: '', airportStart: '', maxPax: c.passengerCapacity || 0, maxBags: c.luggageCapacity || 0,
++      available: true, hideFromPublic: false, hiddenReason: '',
++    }));
++    const retiring = this.state.hideTarget && this.state.hideTarget.retire;
+     const locationOptions = ((ops && ops.LOCATIONS) || []).map((l) => ({ value: l, label: l }));
+     const rates = uniqueByClass(ops ? ops.rates.all() : []);
+     const ratedClasses = rates.map((r) => ({
+@@ -1322,7 +1496,10 @@ class Component extends DCLogic {
+       openDiscard: this.openDiscard, closeDiscard: this.closeDiscard,
+       hideOpen: !!this.state.hideTarget, hideReason: this.state.hideReason, hideReasonMax: 140,
+       setHideReason: this.setHideReason, keepVisible: this.keepVisible, submitHide: this.submitHide,
+-      hideSubmitDisabled: !String(this.state.hideReason || '').trim() || this.state.hideBusy,
++      hideSubmitDisabled: this.state.hideBusy || (!retiring && !String(this.state.hideReason || '').trim()),
++      hideTitle: retiring ? t.retireTitle : t.hideConflictTitle, hideBody: retiring ? t.retireBody : t.hideConflictBody,
++      hideLabel: retiring ? t.retireReason : t.hideReason, hidePlaceholder: retiring ? t.retireReasonPlaceholder : t.hideReasonPlaceholder,
++      hideCancelLabel: retiring ? t.retireCancel : t.hideConflictKeepVisible, hideSubmitLabel: retiring ? t.retire : t.hideWithReason,
+       n3: 3, hideErrorText: this.state.hideError ? t.hideError : '',
+       hideReasonCount: String(String(this.state.hideReason || '').length) + ' / 140',
+       tHideReason: t.hideReason, tHideReasonPlaceholder: t.hideReasonPlaceholder,
+@@ -1409,7 +1586,7 @@ class Component extends DCLogic {
+       tSearchRoutes: t.searchRoutes, routeSearchKeys: ['id', 'from', 'to'],
+       tEmptyRoutesTitle: t.emptyRoutesTitle, tEmptyRoutesBody: t.emptyRoutesBody,
+ 
+-      distanceRows: byClassOrder(uniqueByClass(rates).map((r) => ({
++      distanceRows: byClassOrder(uniqueByClass(rates).filter((r) => !retiredIds[r.vehicleClassId]).map((r) => ({
+         id: r.id,
+         klass: r.name || r.klass,
+         name: r.name || r.klass,
+@@ -1426,11 +1603,11 @@ class Component extends DCLogic {
+         available: r.available !== false,
+         hideFromPublic: !!r.hideFromPublic,
+         hiddenReason: String(r.hiddenReason || ''),
+-      }))),
++      })).concat(draftOnlyRows)),
+       distanceColumns: [
+         { key:'__order', header:'', width:'44px', kind:'order', upLabel: t.moveClassUp, downLabel: t.moveClassDown },
+         { key:'photo', header: t.colPhoto, width:'64px', kind:'photo' },
+-        { key:'klass', header: t.colClass, width:'120px' },
++        { key:'klass', header: t.colClass, width:'190px', lookup: classCell },
+         { key:'baseFare', header: t.startFare, lookup:(r) => moneyOrDash(r.baseFare) },
+         { key:'perKm', header: t.perKm, lookup:(r) => moneyOrDash(r.perKm) },
+         { key:'airportStart', header: t.airportStart, lookup:(r) => moneyOrDash(r.airportStart) },
+@@ -1493,7 +1670,17 @@ class Component extends DCLogic {
+       },
+       tNounClass: t.nounClass, tNounClasses: t.nounClasses,
+       tAddClass: t.addClass, tEditClass: t.editClass, tSaveClass: t.saveClass,
+-      tDeleteClassTitle: t.deleteClassTitle, tDeleteClassBody: t.deleteClassBody,
++      tDeleteClassTitle: t.retireTitle, tDeleteClassBody: t.retireBody, tRetire: t.retire,
++      goLiveOpen: !!goLiveClass, goLiveName: goLiveClass ? (goLiveClass.name || goLiveClass.klass) : '',
++      goLiveItems: goLiveList.map((i) => ({ label: i.label, icon: i.done ? 'circle-check' : 'circle-alert', color: i.done ? 'var(--vt-success)' : 'var(--vt-danger)', textColor: i.done ? 'var(--vt-text-secondary)' : 'var(--vt-danger)' })),
++      goLiveBlocked: goLiveMissing.length > 0, goLiveWhy: goLiveMissing.length ? t['goLiveNeeds' + (goLiveMissing.filter((i) => i.key === 'Price')[0] || goLiveMissing[0]).key] : '',
++      closeGoLive: this.closeGoLive, confirmGoLive: this.confirmGoLive, editFromGoLive: this.editFromGoLive,
++      tGoLiveTitle: t.goLiveTitle, tGoLive: t.goLive, tEditClassBtn: t.editClass, n16: 16,
++      askRetire: this.askRetire, toggleRetired: this.toggleRetired,
++      hasRetired: retiredClasses.length > 0, retiredOpen: this.state.retiredOpen,
++      retiredChevron: this.state.retiredOpen ? 'chevron-up' : 'chevron-down',
++      retiredCount: String(retiredClasses.length), tRetiredTitle: t.retiredTitle, tBringBack: t.bringBack,
++      retiredItems: retiredClasses.map((c) => ({ name: c.name || c.klass, reason: String(c.retiredReason || ''), bring: () => this.bringBack(c.id) })),
+       tSearchDistance: t.searchDistance, distanceSearchKeys: ['klass'],
+       tEmptyClassesTitle: t.emptyClassesTitle, tEmptyClassesBody: t.emptyClassesBody,
+ 
+diff --git a/app/ops/OpsSidebar.dc.html b/app/ops/OpsSidebar.dc.html
+index 59178da8..2a80255a 100644
+--- a/app/ops/OpsSidebar.dc.html
++++ b/app/ops/OpsSidebar.dc.html
+@@ -121,7 +121,7 @@ const NAV_TOP = [
+   { key:'dashboard', href:'/dashboard', icon:'layout-dashboard', en:'Dashboard', de:'Übersicht', fr:'Tableau de bord', ar:'لوحة المعلومات' },
+   { key:'bookings', href:'/bookings', icon:'receipt', en:'Bookings', de:'Buchungen', fr:'Réservations', ar:'الحجوزات' },
+   { key:'calendar', href:'/calendar', icon:'calendar-days', en:'Calendar', de:'Kalender', fr:'Calendrier', ar:'التقويم' },
+-  { key:'chauffeurs', href:'/fleet/chauffeurs', icon:'users', en:'Chauffeurs', de:'Chauffeure', fr:'Chauffeurs', ar:'السائقون' },
++  { key:'chauffeurs', href:'/chauffeurs', icon:'users', en:'Chauffeurs', de:'Chauffeure', fr:'Chauffeurs', ar:'السائقون' },
+ ];
+ const NAV_BOTTOM = [
+   { key:'customers', href:'/customers', icon:'user', en:'Customers', de:'Kunden', fr:'Clients', ar:'العملاء' },
+diff --git a/app/ops/OpsSoon.dc.html b/app/ops/OpsSoon.dc.html
+index ffe0c382..71c803b3 100644
+--- a/app/ops/OpsSoon.dc.html
++++ b/app/ops/OpsSoon.dc.html
+@@ -29,10 +29,10 @@ const SECTIONS = {
+   settings: { icon:'settings', en:'Settings', de:'Einstellungen', fr:'Réglages', ar:'الإعدادات' },
+ };
+ const T = {
+-  en: (label) => ({ title: label + ' is not in this design freeze yet.', blurb:'V1 covers the dashboard, the bookings board, the fleet and pricing & routes — ' + label.toLowerCase() + ' is on the sidebar for navigational truth, not built out yet.', back:'Back to bookings' }),
+-  de: (label) => ({ title: label + ' ist in diesem Design-Freeze noch nicht enthalten.', blurb:'V1 deckt die Übersicht, das Buchungsboard, die Flotte sowie Preise & Routen ab — ' + label + ' steht der Vollständigkeit halber in der Seitenleiste, ist aber noch nicht umgesetzt.', back:'Zurück zu Buchungen' }),
+-  fr: (label) => ({ title: label + ' n’est pas encore dans ce gel de design.', blurb:'La V1 couvre le tableau de bord, les réservations, la flotte et les tarifs & trajets — ' + label.toLowerCase() + ' figure dans la barre latérale par souci d’exactitude, mais n’est pas encore construit.', back:'Retour aux réservations' }),
+-  ar: (label) => ({ title: label + ' غير مشمول بعد في هذا الإصدار.', blurb:'يغطي الإصدار الأول لوحة المعلومات ولوحة الحجوزات والأسطول والأسعار والمسارات — أما ' + label + ' فيظهر في الشريط الجانبي للدقة، ولم يُبنَ بعد.', back:'العودة إلى الحجوزات' }),
++  en: (label) => ({ title: label + ' is not in this design freeze yet.', blurb:'V1 covers the dashboard, the bookings board, the chauffeurs and pricing & routes — ' + label.toLowerCase() + ' is on the sidebar for navigational truth, not built out yet.', back:'Back to bookings' }),
++  de: (label) => ({ title: label + ' ist in diesem Design-Freeze noch nicht enthalten.', blurb:'V1 deckt die Übersicht, das Buchungsboard, die Chauffeure sowie Preise & Routen ab — ' + label + ' steht der Vollständigkeit halber in der Seitenleiste, ist aber noch nicht umgesetzt.', back:'Zurück zu Buchungen' }),
++  fr: (label) => ({ title: label + ' n’est pas encore dans ce gel de design.', blurb:'La V1 couvre le tableau de bord, les réservations, les chauffeurs et les tarifs & trajets — ' + label.toLowerCase() + ' figure dans la barre latérale par souci d’exactitude, mais n’est pas encore construit.', back:'Retour aux réservations' }),
++  ar: (label) => ({ title: label + ' غير مشمول بعد في هذا الإصدار.', blurb:'يغطي الإصدار الأول لوحة المعلومات ولوحة الحجوزات والسائقين والأسعار والمسارات — أما ' + label + ' فيظهر في الشريط الجانبي للدقة، ولم يُبنَ بعد.', back:'العودة إلى الحجوزات' }),
+ };
+ /** Active language from the shared store; raw storage only before vamos-locale.js has loaded (26.2 audit U08-9). */
+ function vtLang() {
+diff --git a/app/ops/OpsTable.dc.html b/app/ops/OpsTable.dc.html
+index 61582853..28765029 100644
+--- a/app/ops/OpsTable.dc.html
++++ b/app/ops/OpsTable.dc.html
+@@ -436,7 +436,7 @@
+ </sc-if>
+ <div data-vt-editor-foot>
+ <span data-vt-foot-del="1" style="display:{{ deleteShow }}">
+-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ askDeleteCurrent }}" hint-size="90px,44px">Delete</x-import>
++<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ askDeleteCurrent }}" hint-size="90px,44px">{{ deleteBtnLabel }}</x-import>
+ </span>
+ <span data-vt-foot-main="1">
+ <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ requestClose }}" hint-size="110px,44px">Cancel</x-import>
+@@ -1195,8 +1195,16 @@ class Component extends DCLogic {
+     }
+     this.finishWrite(run);
+   };
+-  askDelete = (row) => { this.lockScroll(); this.setState({ confirm: row, deleteError: '' }); };
+-  askDeleteCurrent = () => { this.lockScroll(); this.setState({ confirm: this.state.draft, draft: null, deleteError: '' }); };
++  /* Phase 30: a screen may own the delete question (Pricing classes ask "Retire?" in its own dialog):
++     with onAskDelete the row goes to the screen and the built-in confirm stays closed. */
++  askDelete = (row) => {
++    if (typeof this.props.onAskDelete === 'function') { this.props.onAskDelete(row); return; }
++    this.lockScroll(); this.setState({ confirm: row, deleteError: '' });
++  };
++  askDeleteCurrent = () => {
++    if (typeof this.props.onAskDelete === 'function') { const row = this.state.draft; this.setState({ draft: null }); this.props.onAskDelete(row); return; }
++    this.lockScroll(); this.setState({ confirm: this.state.draft, draft: null, deleteError: '' });
++  };
+   cancelDelete = () => { this.unlockScroll(); this.setState({ confirm: null, deleteError: '' }); };
+   confirmDelete = () => {
+     const row = this.state.confirm;
+@@ -1494,7 +1502,7 @@ class Component extends DCLogic {
+     if (!DS.IconButton) return null;
+     return React.createElement('span', { style:{ display:'flex', gap:6, justifyContent:'flex-end' } },
+       ib('pencil', t.editLabel || 'Edit', () => this.startEdit(row)),
+-      this.rowCanDelete(row) ? ib('trash-2', t.deleteLabel || 'Delete', () => this.askDelete(row), 'ghost') : null);
++      this.rowCanDelete(row) ? ib(t.deleteIcon || 'trash-2', t.deleteLabel || 'Delete', () => this.askDelete(row), 'ghost') : null);
+   }
+ 
+   renderVals() {
+@@ -1762,6 +1770,7 @@ class Component extends DCLogic {
+       listSaveFailed: !!(this.state.saveError) && !this.state.draft,
+       deleteError: this.state.deleteError || '',
+       deleteFailed: !!(this.state.deleteError),
++      deleteBtnLabel: this.props.deleteLabel || 'Delete',
+       deleteShow: (this.state.isNew || !this.rowCanDelete(d)) ? 'none' : 'inline-flex',
+       formFields: editorFields, closeEditor: this.closeEditor, save: this.save,
+       requestClose: this.requestClose, keepEditing: this.keepEditing, discardClose: this.discardClose,
+diff --git a/app/ops/ops.dc.html b/app/ops/ops.dc.html
+index dd7073a2..e83f17ea 100644
+--- a/app/ops/ops.dc.html
++++ b/app/ops/ops.dc.html
+@@ -261,7 +261,7 @@ const FLEET = ['chauffeurs'];
+ const CONTENT = ['pages', 'legal'];
+ const HASH_TO_PATH = {
+   dashboard: '/dashboard', bookings: '/bookings', calendar: '/calendar',
+-  customers: '/customers', vehicles: '/fleet/chauffeurs', chauffeurs: '/fleet/chauffeurs',
++  customers: '/customers', vehicles: '/chauffeurs', chauffeurs: '/chauffeurs',
+   support: '/support', pricing: '/pricing', profile: '/profile', settings: '/settings',
+   reviews: '/reviews', pages: '/pages', legal: '/legal',
+   staff: '/dashboard',
+@@ -302,9 +302,11 @@ function readPath(pathname) {
+       return { route: 'customers', detailId: null, customerEmail: decodeURIComponent(email) };
+     }
+   }
+-  if (path === '/fleet' || path === '/fleet/chauffeurs') return { route: 'chauffeurs', detailId: null };
+-  if (path.indexOf('/fleet/chauffeurs/') === 0) {
+-    const id = path.slice('/fleet/chauffeurs/'.length);
++  // Phase 30: the address is /chauffeurs; the old /fleet and /fleet/chauffeurs still open it.
++  if (path === '/chauffeurs' || path === '/fleet' || path === '/fleet/chauffeurs') return { route: 'chauffeurs', detailId: null };
++  const chauffeurBase = path.indexOf('/chauffeurs/') === 0 ? '/chauffeurs/' : (path.indexOf('/fleet/chauffeurs/') === 0 ? '/fleet/chauffeurs/' : '');
++  if (chauffeurBase) {
++    const id = path.slice(chauffeurBase.length);
+     if (id && id.indexOf('/') === -1) return { route: 'chauffeurs', detailId: decodeURIComponent(id) };
+   }
+   if (path === '/support') return { route: 'support', detailId: null };
+diff --git a/app/vamos-i18n-dict.js b/app/vamos-i18n-dict.js
+index 914664f9..a7810861 100644
+--- a/app/vamos-i18n-dict.js
++++ b/app/vamos-i18n-dict.js
+@@ -962,6 +962,27 @@
+       'Off duty': { de: 'Ausser Dienst', fr: 'Hors service', ar: 'خارج الدوام' },
+       'seats': { de: 'Plätze', fr: 'places', ar: 'مقاعد' },
+ 
++      /* ── Ops · class lifecycle (phase 30) ──────────────────────────── */
++      'Seats': { de: 'Plätze', fr: 'Places', ar: 'المقاعد' },
++      'Photo': { de: 'Foto', fr: 'Photo', ar: 'صورة' },
++      'Price in the live price book': { de: 'Preis im aktuellen Preisbuch', fr: 'Prix dans le livre de prix en vigueur', ar: 'سعر في كتاب الأسعار المباشر' },
++      'Go live': { de: 'Live schalten', fr: 'Mettre en ligne', ar: 'تشغيل مباشر' },
++      'Before this class goes live': { de: 'Bevor diese Klasse live geht', fr: 'Avant la mise en ligne de cette classe', ar: 'قبل تشغيل هذه الفئة مباشرة' },
++      'Add a photo first': { de: 'Zuerst ein Foto hinzufügen', fr: 'Ajoutez d’abord une photo', ar: 'أضف صورة أولاً' },
++      'Add the seats first': { de: 'Zuerst die Plätze eintragen', fr: 'Ajoutez d’abord les places', ar: 'أضف المقاعد أولاً' },
++      'Add the bags first': { de: 'Zuerst das Gepäck eintragen', fr: 'Ajoutez d’abord les bagages', ar: 'أضف الحقائب أولاً' },
++      'Add a price in the live price book first': { de: 'Zuerst einen Preis im aktuellen Preisbuch eintragen', fr: 'Ajoutez d’abord un prix dans le livre de prix en vigueur', ar: 'أضف سعراً في كتاب الأسعار المباشر أولاً' },
++      'Retired classes': { de: 'Stillgelegte Klassen', fr: 'Classes retirées', ar: 'الفئات الموقوفة' },
++      'Retire': { de: 'Stilllegen', fr: 'Retirer', ar: 'إيقاف' },
++      'Retire this class?': { de: 'Diese Klasse stilllegen?', fr: 'Retirer cette classe ?', ar: 'إيقاف هذه الفئة؟' },
++      'The class leaves the site, the new-trip form and new price books. Past price books keep it. You can bring it back.': { de: 'Die Klasse verschwindet von der Website, aus dem Formular für neue Fahrten und aus neuen Preisbüchern. Frühere Preisbücher behalten sie. Sie können sie zurückholen.', fr: 'La classe quitte le site, le formulaire de nouvelle course et les nouveaux livres de prix. Les anciens livres de prix la gardent. Vous pouvez la remettre.', ar: 'تغادر الفئة الموقع ونموذج الرحلة الجديدة وكتب الأسعار الجديدة. تحتفظ بها كتب الأسعار السابقة. يمكنك إعادتها.' },
++      'Reason (optional)': { de: 'Grund (optional)', fr: 'Motif (facultatif)', ar: 'السبب (اختياري)' },
++      'Why it is retired, for example: no longer offered': { de: 'Warum sie stillgelegt wird, zum Beispiel: nicht mehr angeboten', fr: 'Pourquoi elle est retirée, par exemple : plus proposée', ar: 'سبب الإيقاف، مثلاً: لم تعد متاحة' },
++      'Bring back': { de: 'Zurückholen', fr: 'Remettre', ar: 'إعادة' },
++      'Retired class: pick a new one': { de: 'Stillgelegte Klasse: neue wählen', fr: 'Classe retirée : en choisir une autre', ar: 'فئة موقوفة: اختر فئة جديدة' },
++      'Retired': { de: 'Stillgelegt', fr: 'Retirée', ar: 'موقوفة' },
++      'Assign lists only the chauffeurs of the trip’s class. A chauffeur without a class, or on a retired class, cannot be given a transfer.': { de: 'Beim Zuweisen erscheinen nur die Chauffeure der Klasse der Fahrt. Ein Chauffeur ohne Klasse oder in einer stillgelegten Klasse kann keinen Transfer bekommen.', fr: 'L’attribution ne montre que les chauffeurs de la classe de la course. Un chauffeur sans classe, ou dans une classe retirée, ne peut pas recevoir de transfert.', ar: 'عند الإسناد يظهر فقط سائقو فئة الرحلة. السائق بلا فئة، أو في فئة موقوفة، لا يمكن إسناد رحلة إليه.' },
++
+       /* ── Ops · booking detail ──────────────────────────────────────── */
+       'Back to bookings': { de: 'Zurück zu Buchungen', fr: 'Retour aux réservations', ar: 'العودة إلى الحجوزات' },
+       'booked by': { de: 'gebucht von', fr: 'réservé par', ar: 'حجزها' },
+diff --git a/app/vamos-ops-data.js b/app/vamos-ops-data.js
+index ae2446f5..412bb5e3 100644
+--- a/app/vamos-ops-data.js
++++ b/app/vamos-ops-data.js
+@@ -1135,6 +1135,34 @@
+         return json;
+       });
+     },
++    /* Phase 30 class lifecycle. Retire never deletes: the class leaves the site, the new-trip form and
++       new price books, past books keep it. Bring back returns it as a draft; go live is refused by
++       the server until photo, seats, bags and a price in the live book are all there. */
++    classes: function () {
++      return api("GET", "/api/staff/vehicle-classes").then(function (json) {
++        return json && json.ok && Array.isArray(json.data) ? json.data : [];
++      }, function () { return []; });
++    },
++    retireClass: function (id, reason) {
++      if (id == null || id === "") return Promise.resolve({ ok: false, code: "missing-id" });
++      var body = { id: String(id) };
++      if (reason) body.reason = String(reason);
++      return api("DELETE", "/api/staff/vehicle-classes?id=" + encodeURIComponent(String(id)), body).then(function (json) {
++        json = json || { ok: false, code: "save-failed" };
++        if (json.ok) { bookFetch.loaded = false; bookFetch.json = null; }
++        return json;
++      });
++    },
++    setClassStatus: function (id, status) {
++      if (id == null || id === "") return Promise.resolve({ ok: false, code: "missing-id" });
++      return api("PATCH", "/api/staff/vehicle-classes", { id: String(id), status: status }).then(function (json) {
++        json = json || { ok: false, code: "save-failed" };
++        if (json.ok) { bookFetch.loaded = false; bookFetch.json = null; }
++        return json;
++      });
++    },
++    bringBackClass: function (id) { return window.VamosOps.setClassStatus(id, "draft"); },
++    goLiveClass: function (id) { return window.VamosOps.setClassStatus(id, "live"); },
+     saveDraftVat: function (bps) {
+       return api("PUT", "/api/staff/rate-book", {
+         kind: "rule",
+diff --git a/apps/web/lib/ops/fleet-persist.test.ts b/apps/web/lib/ops/fleet-persist.test.ts
+index 6f86ecb0..e5495a6c 100644
+--- a/apps/web/lib/ops/fleet-persist.test.ts
++++ b/apps/web/lib/ops/fleet-persist.test.ts
+@@ -61,7 +61,7 @@ describe("fleet persist — 08-03", () => {
+     expect(ops).toMatch(/path\.indexOf\('\/fleet\/chauffeurs\/'\) === 0/);
+     expect(ops).toMatch(/chauffeur-id="\{\{ chauffeurId \}\}"/);
+     const fleet = read("app/ops/OpsFleet.dc.html");
+-    expect(fleet).toMatch(/\/fleet\/chauffeurs\/' \+ encodeURIComponent/);
++    expect(fleet).toMatch(/\/chauffeurs\/' \+ encodeURIComponent/);
+     expect(fleet).toMatch(/cannotAssignNoEmail/);
+     expect(fleet).not.toMatch(/\bonAssign\b/);
+     expect(fleet).not.toMatch(/>Assign</);
+diff --git a/apps/web/lib/ops/ops-dc-chauffeur-class.test.ts b/apps/web/lib/ops/ops-dc-chauffeur-class.test.ts
+index 778bda2a..5a02e714 100644
+--- a/apps/web/lib/ops/ops-dc-chauffeur-class.test.ts
++++ b/apps/web/lib/ops/ops-dc-chauffeur-class.test.ts
+@@ -285,7 +285,8 @@ describe("2 · the Chauffeurs list shows name, class and plate", () => {
+     const cls = cols.find((c) => c.key === "className")!;
+     expect(cls.kind).toBe("need");
+     expect(cls.emptyLabel).toBe("No class");
+-    expect(DRIVERS.map((d) => cls.lookup(d))).toEqual(["Business", "Economy", ""]);
++    // Phase 30: a class cell is an element (name + retired flag); no class stays "" so emptyLabel shows.
++    expect(DRIVERS.map((d) => cls.lookup(d) !== "")).toEqual([true, true, false]);
+     expect(cols.find((c) => c.key === "plate")!.kind).toBe("mono");
+     expect((v.rows as { className: string; plate: string }[]).map((r) => [r.className, r.plate])).toEqual([
+       ["Business", "ZH 123 456"],
+diff --git a/apps/web/lib/ops/ops-dc-editor-foot.test.ts b/apps/web/lib/ops/ops-dc-editor-foot.test.ts
+index 494bc4f3..2c14c19b 100644
+--- a/apps/web/lib/ops/ops-dc-editor-foot.test.ts
++++ b/apps/web/lib/ops/ops-dc-editor-foot.test.ts
+@@ -78,7 +78,8 @@ describe("editor dialog footer (OpsTable): one row at the bottom", () => {
+     expect(all).toHaveLength(3);
+     const [d, c, s] = all as [string, string, string];
+     expect(d).toContain('onClick="{{ askDeleteCurrent }}"');
+-    expect(d).toContain(">Delete<");
++    // Phase 30: the label is a prop (Pricing classes say "Retire"); the default stays Delete.
++    expect(d).toContain(">{{ deleteBtnLabel }}<");
+     // A text button: no icon (it also keeps the French row on one line in the 512 px footer).
+     expect(d).not.toContain("icon=");
+     expect(c).toContain('onClick="{{ requestClose }}"');
+diff --git a/apps/web/lib/ops/ops-dc-p4.test.ts b/apps/web/lib/ops/ops-dc-p4.test.ts
+index a2ea2b74..f0905f9b 100644
+--- a/apps/web/lib/ops/ops-dc-p4.test.ts
++++ b/apps/web/lib/ops/ops-dc-p4.test.ts
+@@ -200,9 +200,9 @@ function pricing(rows: Json[]): { comp: PricingComp; T: Copy } {
+     removeEventListener: noop,
+   };
+   const out = new Function(
+-    "DCLogic", "window", "document",
++    "DCLogic", "window", "document", "React",
+     `${scriptOf("OpsPricing.dc.html")}\nreturn { Component, T };`,
+-  )(StubLogic, win, { addEventListener: noop, removeEventListener: noop }) as {
++  )(StubLogic, win, { addEventListener: noop, removeEventListener: noop }, { createElement: (...args: unknown[]) => ({ args }) }) as {
+     Component: new () => PricingComp;
+     T: Copy;
+   };

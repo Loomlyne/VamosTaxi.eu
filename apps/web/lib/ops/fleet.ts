@@ -15,15 +15,27 @@ export { mapSqlState };
 
 export type VehicleStatus = "service" | "idle" | "workshop";
 export type VehicleClassSlug = string;
+export type VehicleClassStatus = "live" | "draft" | "retired";
 
 export type VehicleClassRow = {
   id: string;
   slug: VehicleClassSlug;
-  passengerCapacity: number;
-  luggageCapacity: number;
+  /** Decision 6: null while a Draft class has no seat count yet. */
+  passengerCapacity: number | null;
+  luggageCapacity: number | null;
   sortOrder: number;
   active: boolean;
   vehicleCount: number;
+  /** Phase 30 CLS-01: server-derived state (retired > live > draft). */
+  status: VehicleClassStatus;
+  /** Why it was retired; "" when none was given. */
+  retiredReason: string;
+  /** True when the live price book has an available row for this class. */
+  inLiveBook: boolean;
+  /** Go-live checklist gaps, comma list of photo,seats,bags,price; "" when complete. */
+  missing: string;
+  /** Upcoming trips with no chauffeur that Assign would accept (one shared DB rule). */
+  unassignedPaidTrips: number;
   /** D-29: typed display name. Optional until owner SQL apply. */
   name?: string | null;
   /** D-30: R2 key under classes/. Optional until owner SQL apply. */
@@ -77,15 +89,16 @@ export type AssertedVehicleInput = {
 };
 
 export type VehicleClassInput = {
-  passengerCapacity: number;
-  luggageCapacity: number;
+  /** Decision 6: null means "not set yet" (allowed only on a Draft class). */
+  passengerCapacity: number | null;
+  luggageCapacity: number | null;
   sortOrder?: number;
   active?: boolean;
 };
 
 export type AssertedVehicleClassInput = {
-  passengerCapacity: number;
-  luggageCapacity: number;
+  passengerCapacity: number | null;
+  luggageCapacity: number | null;
   sortOrder: number;
   active: boolean;
 };
@@ -223,20 +236,19 @@ export function assertVehicleInput(input: VehicleInput): AssertedVehicleInput {
 export function assertVehicleClassInput(
   input: VehicleClassInput,
 ): AssertedVehicleClassInput {
-  const passengerCapacity = input.passengerCapacity;
+  // Decision 6: an empty count is null on both creation paths; a number keeps today's checks.
+  const passengerCapacity = input.passengerCapacity ?? null;
   if (
-    !Number.isInteger(passengerCapacity) ||
-    passengerCapacity < 1 ||
-    passengerCapacity > 16
+    passengerCapacity !== null &&
+    (!Number.isInteger(passengerCapacity) || passengerCapacity < 1 || passengerCapacity > 16)
   ) {
     throw new VehicleClassInputError("fleet-failure-passengers");
   }
 
-  const luggageCapacity = input.luggageCapacity;
+  const luggageCapacity = input.luggageCapacity ?? null;
   if (
-    !Number.isInteger(luggageCapacity) ||
-    luggageCapacity < 0 ||
-    luggageCapacity > 16
+    luggageCapacity !== null &&
+    (!Number.isInteger(luggageCapacity) || luggageCapacity < 0 || luggageCapacity > 16)
   ) {
     throw new VehicleClassInputError("fleet-failure-luggage");
   }
@@ -252,11 +264,16 @@ export function assertVehicleClassInput(
 type ClassSqlRow = {
   id: string;
   slug: string;
-  passenger_capacity: number;
-  luggage_capacity: number;
+  passenger_capacity: number | null;
+  luggage_capacity: number | null;
   sort_order: number;
   active: boolean;
   vehicle_count: number;
+  state: string;
+  hidden_reason: string | null;
+  in_live_book: boolean;
+  missing: string | null;
+  unassigned_paid_trips: number | string | null;
   name?: string | null;
   photo_path?: string | null;
 };
@@ -282,11 +299,19 @@ function mapClassRow(row: ClassSqlRow): VehicleClassRow {
   return {
     id: row.id,
     slug,
-    passengerCapacity: row.passenger_capacity,
-    luggageCapacity: row.luggage_capacity,
+    passengerCapacity: row.passenger_capacity ?? null,
+    luggageCapacity: row.luggage_capacity ?? null,
     sortOrder: row.sort_order,
     active: row.active,
     vehicleCount: row.vehicle_count,
+    status:
+      row.state === "live" || row.state === "retired" || row.state === "draft"
+        ? row.state
+        : "draft",
+    retiredReason: typeof row.hidden_reason === "string" ? row.hidden_reason : "",
+    inLiveBook: row.in_live_book === true,
+    missing: typeof row.missing === "string" ? row.missing : "",
+    unassignedPaidTrips: Number(row.unassigned_paid_trips) || 0,
     name: typeof row.name === "string" ? row.name : null,
     photoPath: typeof row.photo_path === "string" ? row.photo_path : null,
   };
@@ -333,7 +358,21 @@ export async function loadVehicleClasses(
           select count(*)::int
           from public.vehicles v
           where v.vehicle_class_id = vc.id
-        ) as vehicle_count
+        ) as vehicle_count,
+        case
+          when vc.hidden_at is not null then 'retired'
+          when vc.active then 'live'
+          else 'draft'
+        end as state,
+        vc.hidden_reason,
+        exists (
+          select 1
+          from public.distance_rates d
+          join public.rate_versions rv on rv.id = d.rate_version_id
+          where rv.status = 'live' and d.vehicle_class_id = vc.id and d.available
+        ) as in_live_book,
+        coalesce(public.ops_vehicle_class_missing(vc.id), '') as missing,
+        coalesce(public.ops_vehicle_class_unassigned_paid_trips(vc.id), 0) as unassigned_paid_trips
       from public.vehicle_classes vc
       order by vc.sort_order
     `;

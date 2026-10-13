@@ -1,0 +1,25 @@
+import { dbg, start, open, goPricing, signIn, dlgText, S, db, DASH, BASE, row } from "./lib.mjs";
+await start({ evidenceDir: process.argv[2] });
+const s = await open({ viewport: 1440, name: "s1440" });
+await signIn(s);
+await S("S1", "Add Lab Draft Class", async () => {
+  await goPricing(s);
+  await s.page.getByRole("button", { name: "ADD CLASS" }).first().click();
+  await s.page.waitForTimeout(1000);
+  const before = await dlgText(s.page);
+  const steppers = /Max passengers \| — \| Max bags \| —/.test(before);
+  await s.page.locator('[role="dialog"] input:not([type=file])').first().fill("Lab Draft Class");
+  await s.shot("S1-editor");
+  await s.page.locator('[role="dialog"] button', { hasText: /^add class$/i }).click();
+  await s.page.waitForTimeout(2500);
+  const rowTxt = await s.page.evaluate(() => [...document.querySelectorAll("tr")].find(r => r.innerText.includes("Lab Draft Class"))?.innerText.replace(/\s+/g, " ") ?? "NO ROW");
+  const dbr = db("select passenger_capacity, luggage_capacity, active, hidden_at from public.vehicle_classes where name = 'Lab Draft Class'");
+  const quote = await (await fetch(BASE + "/api/quote")).json();
+  const qn = quote.classes.map(c => c.name ?? c.slug ?? JSON.stringify(c).slice(0,40));
+  await s.page.goto(BASE + "/about", { waitUntil: "networkidle" }); await s.page.waitForTimeout(1500);
+  const about = await s.page.evaluate(() => document.body.innerText);
+  await s.shot("S1-about");
+  const ok = steppers && /DRAFT/i.test(rowTxt) && dbr === "||f|" && !about.includes("Lab Draft Class") && !JSON.stringify(quote).includes("Lab Draft Class");
+  return { s, ok, evidence: `steppers show em dash before save: ${steppers}; row "${rowTxt}"; db "${dbr}"; quote classes ${JSON.stringify(qn)}; About names Lab Draft Class: ${about.includes("Lab Draft Class")}` };
+}, { s });
+process.exit(0);

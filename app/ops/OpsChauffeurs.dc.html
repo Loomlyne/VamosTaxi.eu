@@ -7,6 +7,18 @@
 </head>
 <body>
 <x-dc>
+<helmet>
+<style>
+:root{--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Class column (UI-SPEC rev 4, Chauffeurs): 272px from 1024, at least 200px on a tablet; the phone
+   stacks the class under the name instead (see the narrow branch in the script). */
+[data-ch-classcell]{display:flex;flex-direction:column;gap:2px;min-width:0;line-height:1.35}
+@media (min-width:1024px){td:has([data-ch-classcell]){width:272px}}
+@media (min-width:681px) and (max-width:1023px){td:has([data-ch-classcell]){min-width:200px}}
+[data-class-retired]{display:inline-flex;align-items:center;gap:4px;min-width:0;font-size:13px;line-height:1.35;color:var(--vt-danger);white-space:normal}
+</style>
+</helmet>
 <main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
 
 <header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
@@ -113,7 +125,7 @@
 </div>
 </sc-if>
 
-<dc-import name="OpsTable" rows="{{ rows }}" columns="{{ columns }}" fields="{{ fields }}" blank="{{ blank }}" onSave="{{ onSave }}" save-label="{{ saveLabel }}" add-save-label="{{ addSaveLabel }}" onDelete="{{ onDelete }}" noun="{{ noun }}" noun-plural="{{ nounPlural }}" add-title="{{ addTitle }}" edit-title="{{ editTitle }}" delete-title="{{ deleteTitle }}" label-key="{{ labelKey }}" add-label="{{ addLabel }}" search-placeholder="{{ searchPlaceholder }}" search-keys="{{ searchKeys }}" empty-title="{{ emptyTitle }}" empty-body="{{ emptyBody }}" delete-body="{{ deleteBody }}" nested-title="{{ nestedTitle }}" nested-fields="{{ nestedFields }}" nested-blank="{{ nestedBlank }}" nested-save-label="{{ nestedSaveLabel }}" nested-target-key="{{ nestedTargetKey }}" on-nested-save="{{ onNestedSave }}" embedded="{{ isDetail }}" edit-id="{{ deskEditId }}" edit-tick="{{ deskEditTick }}" hint-size="100%,460px"></dc-import>
+<dc-import name="OpsTable" rows="{{ rows }}" columns="{{ columns }}" fields="{{ fields }}" blank="{{ blank }}" onSave="{{ onSave }}" save-label="{{ saveLabel }}" add-save-label="{{ addSaveLabel }}" onDelete="{{ onDelete }}" noun="{{ noun }}" noun-plural="{{ nounPlural }}" add-title="{{ addTitle }}" edit-title="{{ editTitle }}" delete-title="{{ deleteTitle }}" label-key="{{ labelKey }}" add-label="{{ addLabel }}" search-placeholder="{{ searchPlaceholder }}" search-keys="{{ searchKeys }}" empty-title="{{ emptyTitle }}" empty-body="{{ emptyBody }}" delete-body="{{ deleteBody }}" embedded="{{ isDetail }}" edit-id="{{ deskEditId }}" edit-tick="{{ deskEditTick }}" hint-size="100%,460px"></dc-import>
 
 <sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}">
 <p style="margin:0;max-width:78ch;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted);text-wrap:pretty">{{ note }}</p>
@@ -123,14 +135,8 @@
 </main>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
-/* Chauffeurs. Pairing still picks one vehicle from the edit overlay.
-   The vehicle list is not an admin screen. A vehicle is priced by its class
-   on the Pricing screen, never per plate. */
-const VSTATUS = {
-  service: { tone:'success', label:'In service' },
-  idle: { tone:'neutral', label:'Free' },
-  workshop: { tone:'outline', label:'In the workshop' },
-};
+/* Chauffeurs. A chauffeur has a class and a plate; the class is priced once, on the Pricing screen.
+   Class state (live, draft, retired) comes from the server field status, never from active. */
 const CSTATUS = {
   shift: { tone:'success', label:'On shift' },
   off: { tone:'neutral', label:'Off duty' },
@@ -142,40 +148,31 @@ const LANGUAGE_CODES = ['de', 'fr', 'it', 'en', 'ar'];
 function languageOptions(t) { return LANGUAGE_CODES.map((code) => ({ value: code, label: t['lang_' + code] || code })); }
 const T = {
   en: {
-    vehicles:'Vehicles', chauffeurs:'Chauffeurs',
-    vSub:'What the fleet is, what it seats, and whether it is on the road',
+    chauffeurs:'Chauffeurs',
     cSub:'Who drives, in which class, and on which plate',
-    colVehicle:'Vehicle', colPlate:'Plate', colCapacity:'Capacity', colBase:'Base fare',
+    colPlate:'Plate',
     colChauffeur:'Chauffeur', colStatus:'Status', colPhone:'Phone', colLicence:'Licence',
-    unassigned:'No chauffeur', noVehicle:'No vehicle', noClass:'No class',
-    cntVehicles:'Vehicles', cntInService:'In service', cntSeats:'Largest party',
-    cntChauffeurs:'Chauffeurs', cntOnShift:'On shift', cntWithVehicle:'With a vehicle',
-    footVehicles:'Rest are free or in the workshop', footFleet:'Across the whole fleet', footSeats:'Seats in the largest vehicle',
-    seats:'seats', footShift:'Available to assign now', footPaired:'Paired to a vehicle', footChauffeurs:'On the books',
-    addVehicle:'Add a vehicle', addChauffeur:'Add a chauffeur',
-    nounV:'vehicle', nounVs:'vehicles', nounC:'chauffeur', nounCs:'chauffeurs',
-    editV:'Edit vehicle', editC:'Edit chauffeur', delV:'Delete this vehicle?', delC:'Delete this chauffeur?',
-    searchVehicles:'Class, model or plate', searchChauffeurs:'Name, phone, plate or licence',
+    noClass:'No class',
+    cntChauffeurs:'Chauffeurs', cntOnShift:'On shift',
+    footShift:'Available to assign now', footChauffeurs:'On the books',
+    addChauffeur:'Add a chauffeur',
+    nounC:'chauffeur', nounCs:'chauffeurs',
+    editC:'Edit chauffeur', delC:'Delete this chauffeur?',
+    searchChauffeurs:'Name, phone, plate or licence',
     emptyCTitle:'No chauffeurs yet', emptyCBody:'Add a chauffeur and choose his class.',
-    delVBody:'The vehicle leaves the fleet, and any chauffeur paired with it is left without one.',
     delCBody:'He leaves the Chauffeurs list and Assign. His finished trips keep his name; his trips that are not finished go back to unassigned.',
-    fClass:'Class', fModel:'Model', fPlate:'Plate', fSeats:'Seats', fBags:'Bags', fYear:'Year', fStatus:'Status', fNote:'Note',
-    fName:'Name', fPhone:'Phone', fEmail:'Email', fLicence:'Licence number', fLanguages:'Languages', fVehicle:'Vehicle',
+    fClass:'Class', fNote:'Note',
+    fName:'Name', fPhone:'Phone', fEmail:'Email', fLicence:'Licence number', fLanguages:'Languages',
     lang_de:'German', lang_fr:'French', lang_it:'Italian', lang_en:'English', lang_ar:'Arabic',
     fPhoto:'Photo', choosePhoto:'Choose photo',
-    fChauffeurs:'Associated with chauffeur',
-    hClass:'Sets the price — a class is priced once, on the Pricing screen.',
-    hPlate:'As it reads on the plate.', hVehicle:'The vehicle this chauffeur drives.', hChauffeurClass:'The class this chauffeur has.',
-    hChauffeurs:'One or more chauffeurs for this vehicle. Add a chauffeur if the list is empty.',
+    hChauffeurClass:'The class this chauffeur has.',
     hPhoto:'Leave empty when there is no photograph yet. The file is stored as a key, never in the page.',
     hLanguages:'Shown to the traveller. Pick every language this chauffeur speaks.',
-    none:'No vehicle',
-    vNote:'A vehicle is priced by its class, so changing a class price on the Pricing screen changes every vehicle in it. Add vehicles first; chauffeurs are attached to them afterwards.',
-    cNote:'Assign lists only the chauffeurs of the trip’s class. A chauffeur without a class cannot be given a transfer.',
+    cNote:'Assign lists only the chauffeurs of the trip’s class. A chauffeur without a class, or on a retired class, cannot be given a transfer.',
+    retiredClassFlag:'Retired class: pick a new one',
     cannotAssignNoEmail:'Cannot assign until an email is saved.',
-    liveTrips:'Live trips', noLiveTrips:'No live trips', noLiveTripsBody:'Assigned trips that are not finished show here. Open a trip to see it on the board.', pastBookings:'Past bookings', noPastBookings:'No past bookings', noPastBookingsBody:'Finished assigned trips show here. Open a booking to see it on the board.', saveChauffeur:'Save chauffeur', keepEditing:'Keep editing', morning:'Morning', night:'Night', fShiftDays:'Shift days', fShiftStart:'Starts', fShiftEnd:'Ends', dupEmail:'This email is already on file.', dupOpen:'Open existing chauffeur', profile:'Profile',
+    liveTrips:'Live trips', noLiveTrips:'No live trips', noLiveTripsBody:'Assigned trips that are not finished show here. Open a trip to see it on the board.', pastBookings:'Past bookings', noPastBookings:'No past bookings', noPastBookingsBody:'Finished assigned trips show here. Open a booking to see it on the board.', saveChauffeur:'Save chauffeur', keepEditing:'Keep editing', fShiftDays:'Shift days', fShiftStart:'Starts', fShiftEnd:'Ends', dupEmail:'This email is already on file.', dupOpen:'Open existing chauffeur', profile:'Profile',
     saveFailed:'Save failed. Try again.',
-    offRoadStay:'This vehicle is off the road. Upcoming assigned trips stay on the board — they are not cancelled. Fix them on Needs attention.',
     backChauffeurs:'All chauffeurs',
     cntWithClass:'With a class', footClass:'Can be assigned trips of that class', fPlateNumber:'Plate number', hChauffeurPlate:'As it reads on the plate. The customer sees it with the driver’s name.',
     nowUnassigned:'Now unassigned: {refs}.', refSep:', ',
@@ -184,40 +181,31 @@ const T = {
     statusOff:'Off duty', statusLeave:'On leave',
   },
   de: {
-    vehicles:'Fahrzeuge', chauffeurs:'Chauffeure',
-    vSub:'Was die Flotte ist, wie viele Plätze sie hat und ob sie unterwegs ist',
+    chauffeurs:'Chauffeure',
     cSub:'Wer fährt, in welcher Klasse und mit welchem Kennzeichen',
-    colVehicle:'Fahrzeug', colPlate:'Kennzeichen', colCapacity:'Kapazität', colBase:'Grundpreis',
+    colPlate:'Kennzeichen',
     colChauffeur:'Chauffeur', colStatus:'Status', colPhone:'Telefon', colLicence:'Führerausweis',
-    unassigned:'Kein Chauffeur', noVehicle:'Kein Fahrzeug', noClass:'Keine Klasse',
-    cntVehicles:'Fahrzeuge', cntInService:'Im Einsatz', cntSeats:'Grösste Gruppe',
-    cntChauffeurs:'Chauffeure', cntOnShift:'Im Dienst', cntWithVehicle:'Mit Fahrzeug',
-    footVehicles:'Der Rest ist frei oder in der Werkstatt', footFleet:'In der ganzen Flotte', footSeats:'Plätze im grössten Fahrzeug',
-    seats:'Plätze', footShift:'Jetzt zuweisbar', footPaired:'Einem Fahrzeug zugeordnet', footChauffeurs:'Im Bestand',
-    addVehicle:'Fahrzeug hinzufügen', addChauffeur:'Chauffeur hinzufügen',
-    nounV:'Fahrzeug', nounVs:'Fahrzeuge', nounC:'Chauffeur', nounCs:'Chauffeure',
-    editV:'Fahrzeug bearbeiten', editC:'Chauffeur bearbeiten', delV:'Dieses Fahrzeug löschen?', delC:'Diesen Chauffeur löschen?',
-    searchVehicles:'Klasse, Modell oder Kennzeichen', searchChauffeurs:'Name, Telefon, Kennzeichen oder Ausweis',
+    noClass:'Keine Klasse',
+    cntChauffeurs:'Chauffeure', cntOnShift:'Im Dienst',
+    footShift:'Jetzt zuweisbar', footChauffeurs:'Im Bestand',
+    addChauffeur:'Chauffeur hinzufügen',
+    nounC:'Chauffeur', nounCs:'Chauffeure',
+    editC:'Chauffeur bearbeiten', delC:'Diesen Chauffeur löschen?',
+    searchChauffeurs:'Name, Telefon, Kennzeichen oder Ausweis',
     emptyCTitle:'Noch keine Chauffeure', emptyCBody:'Chauffeur hinzufügen und seine Klasse wählen.',
-    delVBody:'Das Fahrzeug verlässt die Flotte, und ein damit verbundener Chauffeur steht ohne da.',
     delCBody:'Er verschwindet aus der Chauffeur-Liste und beim Zuweisen. Beendete Fahrten behalten seinen Namen; nicht beendete Fahrten sind wieder ohne Fahrer.',
-    fClass:'Klasse', fModel:'Modell', fPlate:'Kennzeichen', fSeats:'Plätze', fBags:'Gepäck', fYear:'Jahr', fStatus:'Status', fNote:'Notiz',
-    fName:'Name', fPhone:'Telefon', fEmail:'E-Mail', fLicence:'Ausweisnummer', fLanguages:'Sprachen', fVehicle:'Fahrzeug',
+    fClass:'Klasse', fNote:'Notiz',
+    fName:'Name', fPhone:'Telefon', fEmail:'E-Mail', fLicence:'Ausweisnummer', fLanguages:'Sprachen',
     lang_de:'Deutsch', lang_fr:'Französisch', lang_it:'Italienisch', lang_en:'Englisch', lang_ar:'Arabisch',
     fPhoto:'Foto', choosePhoto:'Foto wählen',
-    fChauffeurs:'Zugeordnete Chauffeure',
-    hClass:'Bestimmt den Preis — eine Klasse wird einmal auf dem Preis-Bildschirm bepreist.',
-    hPlate:'So, wie es auf dem Kennzeichen steht.', hVehicle:'Das Fahrzeug, das dieser Chauffeur fährt.', hChauffeurClass:'Die Klasse, die dieser Chauffeur hat.',
-    hChauffeurs:'Ein oder mehrere Chauffeure für dieses Fahrzeug. Chauffeur hinzufügen, wenn die Liste leer ist.',
+    hChauffeurClass:'Die Klasse, die dieser Chauffeur hat.',
     hPhoto:'Leer lassen, wenn noch kein Foto da ist. Die Datei wird als Schlüssel gespeichert, nicht in der Seite.',
     hLanguages:'Für den Reisenden sichtbar. Alle Sprachen wählen, die dieser Chauffeur spricht.',
-    none:'Kein Fahrzeug',
-    vNote:'Ein Fahrzeug wird über seine Klasse bepreist — eine Preisänderung auf dem Preis-Bildschirm gilt für alle Fahrzeuge dieser Klasse. Zuerst Fahrzeuge anlegen, die Chauffeure kommen danach dazu.',
-    cNote:'Beim Zuweisen erscheinen nur die Chauffeure der Klasse der Fahrt. Ein Chauffeur ohne Klasse kann keinen Transfer bekommen.',
+    cNote:'Beim Zuweisen erscheinen nur die Chauffeure der Klasse der Fahrt. Ein Chauffeur ohne Klasse oder in einer stillgelegten Klasse kann keinen Transfer bekommen.',
+    retiredClassFlag:'Stillgelegte Klasse: neue wählen',
     cannotAssignNoEmail:'Kann nicht zugewiesen werden, bis eine E-Mail gespeichert ist.',
-    liveTrips:'Laufende Fahrten', noLiveTrips:'Keine laufenden Fahrten', noLiveTripsBody:'Zugewiesene Fahrten, die noch nicht beendet sind, erscheinen hier. Eine Fahrt öffnen, um sie auf dem Board zu sehen.', pastBookings:'Frühere Buchungen', noPastBookings:'Keine früheren Buchungen', noPastBookingsBody:'Beendete zugewiesene Fahrten erscheinen hier. Eine Buchung öffnen, um sie auf dem Board zu sehen.', saveChauffeur:'Chauffeur speichern', keepEditing:'Weiter bearbeiten', morning:'Morgen', night:'Nacht', fShiftDays:'Schichttage', fShiftStart:'Beginn', fShiftEnd:'Ende', dupEmail:'Diese E-Mail ist bereits erfasst.', dupOpen:'Bestehenden Chauffeur öffnen', profile:'Profil',
+    liveTrips:'Laufende Fahrten', noLiveTrips:'Keine laufenden Fahrten', noLiveTripsBody:'Zugewiesene Fahrten, die noch nicht beendet sind, erscheinen hier. Eine Fahrt öffnen, um sie auf dem Board zu sehen.', pastBookings:'Frühere Buchungen', noPastBookings:'Keine früheren Buchungen', noPastBookingsBody:'Beendete zugewiesene Fahrten erscheinen hier. Eine Buchung öffnen, um sie auf dem Board zu sehen.', saveChauffeur:'Chauffeur speichern', keepEditing:'Weiter bearbeiten', fShiftDays:'Schichttage', fShiftStart:'Beginn', fShiftEnd:'Ende', dupEmail:'Diese E-Mail ist bereits erfasst.', dupOpen:'Bestehenden Chauffeur öffnen', profile:'Profil',
     saveFailed:'Speichern fehlgeschlagen. Bitte erneut versuchen.',
-    offRoadStay:'Dieses Fahrzeug ist nicht auf der Strasse. Zugewiesene kommende Fahrten bleiben auf dem Board — sie werden nicht storniert. Beheben unter Needs attention.',
     backChauffeurs:'Alle Chauffeure',
     cntWithClass:'Mit Klasse', footClass:'Für Fahrten dieser Klasse zuweisbar', fPlateNumber:'Kennzeichen', hChauffeurPlate:'So, wie es auf dem Schild steht. Der Kunde sieht es beim Namen des Fahrers.',
     nowUnassigned:'Jetzt ohne Fahrer: {refs}.', refSep:', ',
@@ -226,40 +214,31 @@ const T = {
     statusOff:'Ausser Dienst', statusLeave:'Abwesend',
   },
   fr: {
-    vehicles:'Véhicules', chauffeurs:'Chauffeurs',
-    vSub:'Ce qu’est la flotte, ce qu’elle transporte et si elle roule',
+    chauffeurs:'Chauffeurs',
     cSub:'Qui conduit, dans quelle classe et avec quelle plaque',
-    colVehicle:'Véhicule', colPlate:'Plaque', colCapacity:'Capacité', colBase:'Tarif de base',
+    colPlate:'Plaque',
     colChauffeur:'Chauffeur', colStatus:'Statut', colPhone:'Téléphone', colLicence:'Permis',
-    unassigned:'Aucun chauffeur', noVehicle:'Aucun véhicule', noClass:'Aucune classe',
-    cntVehicles:'Véhicules', cntInService:'En service', cntSeats:'Groupe le plus grand',
-    cntChauffeurs:'Chauffeurs', cntOnShift:'En service', cntWithVehicle:'Avec véhicule',
-    footVehicles:'Le reste est libre ou à l’atelier', footFleet:'Sur toute la flotte', footSeats:'Places dans le plus grand véhicule',
-    seats:'places', footShift:'Attribuables maintenant', footPaired:'Associés à un véhicule', footChauffeurs:'Au registre',
-    addVehicle:'Ajouter un véhicule', addChauffeur:'Ajouter un chauffeur',
-    nounV:'véhicule', nounVs:'véhicules', nounC:'chauffeur', nounCs:'chauffeurs',
-    editV:'Modifier le véhicule', editC:'Modifier le chauffeur', delV:'Supprimer ce véhicule ?', delC:'Supprimer ce chauffeur ?',
-    searchVehicles:'Classe, modèle ou plaque', searchChauffeurs:'Nom, téléphone, plaque ou permis',
+    noClass:'Aucune classe',
+    cntChauffeurs:'Chauffeurs', cntOnShift:'En service',
+    footShift:'Attribuables maintenant', footChauffeurs:'Au registre',
+    addChauffeur:'Ajouter un chauffeur',
+    nounC:'chauffeur', nounCs:'chauffeurs',
+    editC:'Modifier le chauffeur', delC:'Supprimer ce chauffeur ?',
+    searchChauffeurs:'Nom, téléphone, plaque ou permis',
     emptyCTitle:'Aucun chauffeur', emptyCBody:'Ajoutez un chauffeur et choisissez sa classe.',
-    delVBody:'Le véhicule quitte la flotte, et le chauffeur qui y était associé se retrouve sans.',
     delCBody:'Il disparaît de la liste des chauffeurs et de l’attribution. Ses courses terminées gardent son nom ; ses courses non terminées repassent sans chauffeur.',
-    fClass:'Classe', fModel:'Modèle', fPlate:'Plaque', fSeats:'Places', fBags:'Bagages', fYear:'Année', fStatus:'Statut', fNote:'Note',
-    fName:'Nom', fPhone:'Téléphone', fEmail:'E-mail', fLicence:'Numéro de permis', fLanguages:'Langues', fVehicle:'Véhicule',
+    fClass:'Classe', fNote:'Note',
+    fName:'Nom', fPhone:'Téléphone', fEmail:'E-mail', fLicence:'Numéro de permis', fLanguages:'Langues',
     lang_de:'Allemand', lang_fr:'Français', lang_it:'Italien', lang_en:'Anglais', lang_ar:'Arabe',
     fPhoto:'Photo', choosePhoto:'Choisir une photo',
-    fChauffeurs:'Associé au chauffeur',
-    hClass:'Détermine le tarif — une classe est tarifée une fois, sur l’écran Tarifs.',
-    hPlate:'Tel qu’il figure sur la plaque.', hVehicle:'Le véhicule que ce chauffeur conduit.', hChauffeurClass:'La classe de ce chauffeur.',
-    hChauffeurs:'Un ou plusieurs chauffeurs pour ce véhicule. Ajoutez un chauffeur si la liste est vide.',
+    hChauffeurClass:'La classe de ce chauffeur.',
     hPhoto:'Laissez vide s’il n’y a pas encore de photographie. Le fichier est stocké comme clé, jamais dans la page.',
     hLanguages:'Visibles par le voyageur. Choisissez toutes les langues parlées par ce chauffeur.',
-    none:'Aucun véhicule',
-    vNote:'Un véhicule est tarifé par sa classe : changer le prix d’une classe sur l’écran Tarifs change tous ses véhicules. Ajoutez d’abord les véhicules ; les chauffeurs y sont rattachés ensuite.',
-    cNote:'L’attribution ne montre que les chauffeurs de la classe de la course. Un chauffeur sans classe ne peut pas recevoir de transfert.',
+    cNote:'L’attribution ne montre que les chauffeurs de la classe de la course. Un chauffeur sans classe, ou dans une classe retirée, ne peut pas recevoir de transfert.',
+    retiredClassFlag:'Classe retirée : en choisir une autre',
     cannotAssignNoEmail:'Impossible d’attribuer tant qu’un e-mail n’est pas enregistré.',
-    liveTrips:'Courses en cours', noLiveTrips:'Aucune course en cours', noLiveTripsBody:'Les courses assignées non terminées s’affichent ici. Ouvrez une course pour la voir au tableau.', pastBookings:'Réservations passées', noPastBookings:'Aucune réservation passée', noPastBookingsBody:'Les courses assignées terminées s’affichent ici. Ouvrez une réservation pour la voir au tableau.', saveChauffeur:'Enregistrer le chauffeur', keepEditing:'Continuer l’édition', morning:'Matin', night:'Nuit', fShiftDays:'Jours de service', fShiftStart:'Début', fShiftEnd:'Fin', dupEmail:'Cet e-mail est déjà enregistré.', dupOpen:'Ouvrir le chauffeur existant', profile:'Profil',
+    liveTrips:'Courses en cours', noLiveTrips:'Aucune course en cours', noLiveTripsBody:'Les courses assignées non terminées s’affichent ici. Ouvrez une course pour la voir au tableau.', pastBookings:'Réservations passées', noPastBookings:'Aucune réservation passée', noPastBookingsBody:'Les courses assignées terminées s’affichent ici. Ouvrez une réservation pour la voir au tableau.', saveChauffeur:'Enregistrer le chauffeur', keepEditing:'Continuer l’édition', fShiftDays:'Jours de service', fShiftStart:'Début', fShiftEnd:'Fin', dupEmail:'Cet e-mail est déjà enregistré.', dupOpen:'Ouvrir le chauffeur existant', profile:'Profil',
     saveFailed:'Enregistrement impossible. Réessayez.',
-    offRoadStay:'Ce véhicule n’est plus en service. Les courses assignées à venir restent au tableau — elles ne sont pas annulées. Corrigez-les sous Needs attention.',
     backChauffeurs:'Tous les chauffeurs',
     cntWithClass:'Avec classe', footClass:'Attribuables aux courses de cette classe', fPlateNumber:'Plaque', hChauffeurPlate:'Telle qu’elle figure sur la plaque. Le client la voit avec le nom du chauffeur.',
     nowUnassigned:'Désormais sans chauffeur : {refs}.', refSep:', ',
@@ -268,40 +247,31 @@ const T = {
     statusOff:'Hors service', statusLeave:'Absent',
   },
   ar: {
-    vehicles:'المركبات', chauffeurs:'السائقون',
-    vSub:'ما هي المركبات، وكم تتسع، وهل هي على الطريق',
+    chauffeurs:'السائقون',
     cSub:'من يقود، وفي أي فئة، وبأي لوحة',
-    colVehicle:'المركبة', colPlate:'اللوحة', colCapacity:'السعة', colBase:'الأجرة الأساسية',
+    colPlate:'اللوحة',
     colChauffeur:'السائق', colStatus:'الحالة', colPhone:'الهاتف', colLicence:'الرخصة',
-    unassigned:'بلا سائق', noVehicle:'بلا مركبة', noClass:'بلا فئة',
-    cntVehicles:'المركبات', cntInService:'في الخدمة', cntSeats:'أكبر مجموعة',
-    cntChauffeurs:'السائقون', cntOnShift:'في الدورية', cntWithVehicle:'لديهم مركبة',
-    footVehicles:'البقية متاحة أو في الورشة', footFleet:'في كامل الأسطول', footSeats:'مقاعد أكبر مركبة',
-    seats:'مقاعد', footShift:'متاحون للإسناد الآن', footPaired:'مرتبطون بمركبة', footChauffeurs:'في السجل',
-    addVehicle:'إضافة مركبة', addChauffeur:'إضافة سائق',
-    nounV:'مركبة', nounVs:'مركبات', nounC:'سائق', nounCs:'سائقون',
-    editV:'تعديل المركبة', editC:'تعديل السائق', delV:'حذف هذه المركبة؟', delC:'حذف هذا السائق؟',
-    searchVehicles:'الفئة أو الطراز أو اللوحة', searchChauffeurs:'الاسم أو الهاتف أو اللوحة أو الرخصة',
+    noClass:'بلا فئة',
+    cntChauffeurs:'السائقون', cntOnShift:'في الدورية',
+    footShift:'متاحون للإسناد الآن', footChauffeurs:'في السجل',
+    addChauffeur:'إضافة سائق',
+    nounC:'سائق', nounCs:'سائقون',
+    editC:'تعديل السائق', delC:'حذف هذا السائق؟',
+    searchChauffeurs:'الاسم أو الهاتف أو اللوحة أو الرخصة',
     emptyCTitle:'لا يوجد سائقون بعد', emptyCBody:'أضف سائقًا واختر فئته.',
-    delVBody:'تخرج المركبة من الأسطول، ويبقى السائق المرتبط بها بلا مركبة.',
     delCBody:'يختفي من قائمة السائقين ومن الإسناد. تحتفظ رحلاته المنتهية باسمه، وتعود رحلاته غير المنتهية بلا سائق.',
-    fClass:'الفئة', fModel:'الطراز', fPlate:'اللوحة', fSeats:'المقاعد', fBags:'الحقائب', fYear:'السنة', fStatus:'الحالة', fNote:'ملاحظة',
-    fName:'الاسم', fPhone:'الهاتف', fEmail:'البريد الإلكتروني', fLicence:'رقم الرخصة', fLanguages:'اللغات', fVehicle:'المركبة',
+    fClass:'الفئة', fNote:'ملاحظة',
+    fName:'الاسم', fPhone:'الهاتف', fEmail:'البريد الإلكتروني', fLicence:'رقم الرخصة', fLanguages:'اللغات',
     lang_de:'الألمانية', lang_fr:'الفرنسية', lang_it:'الإيطالية', lang_en:'الإنجليزية', lang_ar:'العربية',
     fPhoto:'الصورة', choosePhoto:'اختيار صورة',
-    fChauffeurs:'مرتبط بالسائق',
-    hClass:'تحدّد السعر — تُسعَّر الفئة مرة واحدة في شاشة الأسعار.',
-    hPlate:'كما هو مكتوب على اللوحة.', hVehicle:'المركبة التي يقودها هذا السائق.', hChauffeurClass:'الفئة التي يملكها هذا السائق.',
-    hChauffeurs:'سائق واحد أو أكثر لهذه المركبة. أضف سائقًا إن كانت القائمة فارغة.',
+    hChauffeurClass:'الفئة التي يملكها هذا السائق.',
     hPhoto:'اتركها فارغة إن لم توجد صورة بعد. يُحفظ الملف كمفتاح، وليس داخل الصفحة.',
     hLanguages:'تظهر للمسافر. اختر كل اللغات التي يتحدثها هذا السائق.',
-    none:'بلا مركبة',
-    vNote:'تُسعَّر المركبة حسب فئتها، وتغيير سعر الفئة في شاشة الأسعار يغيّر كل مركباتها. أضف المركبات أولًا، ثم يُربط بها السائقون.',
-    cNote:'عند الإسناد يظهر فقط سائقو فئة الرحلة. السائق بلا فئة لا يمكن إسناد رحلة إليه.',
+    cNote:'عند الإسناد يظهر فقط سائقو فئة الرحلة. السائق بلا فئة، أو في فئة موقوفة، لا يمكن إسناد رحلة إليه.',
+    retiredClassFlag:'فئة موقوفة: اختر فئة جديدة',
     cannotAssignNoEmail:'لا يمكن الإسناد حتى يُحفظ بريد إلكتروني.',
-    liveTrips:'الرحلات الجارية', noLiveTrips:'لا رحلات جارية', noLiveTripsBody:'الرحلات المسندة غير المنتهية تظهر هنا. افتح رحلة لرؤيتها على اللوحة.', pastBookings:'حجوزات سابقة', noPastBookings:'لا حجوزات سابقة', noPastBookingsBody:'الرحلات المسندة المنتهية تظهر هنا. افتح حجزًا لرؤيته على اللوحة.', saveChauffeur:'حفظ السائق', keepEditing:'متابعة التحرير', morning:'صباح', night:'ليل', fShiftDays:'أيام الوردية', fShiftStart:'البداية', fShiftEnd:'النهاية', dupEmail:'هذا البريد مسجّل مسبقًا.', dupOpen:'فتح السائق الحالي', profile:'الملف',
+    liveTrips:'الرحلات الجارية', noLiveTrips:'لا رحلات جارية', noLiveTripsBody:'الرحلات المسندة غير المنتهية تظهر هنا. افتح رحلة لرؤيتها على اللوحة.', pastBookings:'حجوزات سابقة', noPastBookings:'لا حجوزات سابقة', noPastBookingsBody:'الرحلات المسندة المنتهية تظهر هنا. افتح حجزًا لرؤيته على اللوحة.', saveChauffeur:'حفظ السائق', keepEditing:'متابعة التحرير', fShiftDays:'أيام الوردية', fShiftStart:'البداية', fShiftEnd:'النهاية', dupEmail:'هذا البريد مسجّل مسبقًا.', dupOpen:'فتح السائق الحالي', profile:'الملف',
     saveFailed:'فشل الحفظ. حاول مرة أخرى.',
-    offRoadStay:'هذه المركبة خارج الخدمة. الرحلات المسندة القادمة تبقى على اللوحة — لا تُلغى. عالجها في Needs attention.',
     backChauffeurs:'كل السائقين',
     cntWithClass:'لديهم فئة', footClass:'يمكن إسنادهم إلى رحلات فئتهم', fPlateNumber:'رقم اللوحة', hChauffeurPlate:'كما هو مكتوب على اللوحة. يراه العميل مع اسم السائق.',
     nowUnassigned:'أصبحت بلا سائق: {refs}.', refSep:'، ',
@@ -312,7 +282,7 @@ const T = {
 };
 
 class Component extends DCLogic {
-  state = { lang: 'en', saveMsg: '', notice: '', deskEditTick: 0, deskEditId: '', history: null, historyFor: '', historyFailed: false };
+  state = { lang: 'en', saveMsg: '', notice: '', deskEditTick: 0, deskEditId: '', history: null, historyFor: '', historyFailed: false, narrow: false };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     this._off = window.VamosOps.onAny(() => this.forceUpdate());
@@ -333,11 +303,21 @@ class Component extends DCLogic {
     };
     api.request('GET', '/api/staff/chauffeurs/' + encodeURIComponent(key) + '/bookings').then(done, () => done(null));
   };
+  // Phase 30: class state comes from /api/staff/vehicle-classes (the server field status: live, draft or retired).
+  loadClassRows = () => {
+    const ops = window.VamosOps;
+    if (!ops || typeof ops.classes !== 'function') { this._classRetry = setTimeout(this.loadClassRows, 120); return; }
+    ops.classes().then((rows) => this.setState({ classRows: rows }));
+  };
   chauffeurId() { return String(this.props.chauffeurId || this.props['chauffeur-id'] || ''); }
   componentDidMount() {
     this.bind();
+    this._onResize = () => { const n = window.innerWidth <= 680; if (n !== this.state.narrow) this.setState({ narrow: n }); };
+    window.addEventListener('resize', this._onResize);
+    this._onResize();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
+    this.loadClassRows();
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
     if (this.chauffeurId()) this.loadHistory(this.chauffeurId());
   }
@@ -347,8 +327,10 @@ class Component extends DCLogic {
   }
   componentWillUnmount() {
     if (this._off) this._off();
+    if (this._onResize) window.removeEventListener('resize', this._onResize);
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     clearTimeout(this._retry);
+    clearTimeout(this._classRetry);
     clearTimeout(this._historyRetry);
   }
 
@@ -359,16 +341,9 @@ class Component extends DCLogic {
     const chauffeurId = this.chauffeurId();
     const isDetail = isChauffeurs && !!chauffeurId;
     const isList = !isDetail;
-    const vehicles = ops ? ops.vehicles.all() : [];
     const chauffeurs = ops ? ops.chauffeurs.all() : [];
 
     const onShift = chauffeurs.filter((c) => c.status === 'shift').length;
-
-    const vehicleLabel = (v) => v.klass + ' · ' + (v.plate || v.id);
-    const classOptions = ((ops && ops.VEHICLE_CLASSES) || []).map((c) => ({ value: c, label: c }));
-    const vStatusOptions = (ops ? ops.VEHICLE_STATUS : []).map((s) => ({ value: s, label: VSTATUS[s].label }));
-    const vehicleOptions = [{ value:'', label: t.none }].concat(vehicles.map((v) => ({ value: v.id, label: vehicleLabel(v) })));
-    const chauffeurOptions = chauffeurs.map((c) => ({ value: c.id, label: c.name || c.id }));
 
     // 261001-chauffeur-car (owner, 2026-10-01): each chauffeur is chosen by a class of TODAY's price
     // book (VamosOps.liveClasses: the live version's available classes, from the server), never the
@@ -377,20 +352,28 @@ class Component extends DCLogic {
     const classNameById = Object.assign({}, live.names || {});
     (live.classes || []).forEach((c) => { if (c && c.id && c.name) classNameById[c.id] = c.name; });
     const classIdOf = (r) => String((r && (r.vehicleClassId || r.vehicle_class_id)) || '').trim();
+    // Class state is the server field status (GET /api/staff/vehicle-classes), never derived from active:
+    // a Draft class is also inactive. Until the rows have loaded nothing is flagged and nothing counts.
+    const retiredIds = {};
+    const liveIds = {};
+    (Array.isArray(this.state.classRows) ? this.state.classRows : []).forEach((c) => {
+      if (c.status === 'retired') {
+        retiredIds[c.id] = 1;
+        if (c.name && !classNameById[c.id]) classNameById[c.id] = c.name;
+      }
+      if (c.status === 'live') liveIds[c.id] = 1;
+    });
+    const isRetiredClass = (r) => !!retiredIds[classIdOf(r)];
     const classLabel = (r) => {
       const id = classIdOf(r);
       if (id && classNameById[id]) return classNameById[id];
       return String((r && (r.vehicleClassName || r.className || r.vehicle_class_name)) || '').trim();
     };
     const plateOf = (r) => String((r && r.plate) || '').trim();
+    // The Class select offers Live classes only (signed 2026-10-12). A chauffeur on another class keeps it
+    // until the owner changes the select: the save body omits vehicleClassId when it is untouched.
     const chauffeurClassOptions = [{ value: '', label: t.noClass }].concat((live.classes || []).map((c) => ({ value: c.id, label: c.name })));
-    chauffeurs.forEach((c) => {
-      const id = classIdOf(c);
-      if (!id || chauffeurClassOptions.some((o) => o.value === id)) return;
-      const name = classLabel(c);
-      if (name) chauffeurClassOptions.push({ value: id, label: name });
-    });
-    const withClass = chauffeurs.filter((c) => !!classIdOf(c)).length;
+    const withClass = chauffeurs.filter((c) => !!liveIds[classIdOf(c)]).length;
     // The server sends language names ("German, English"); the Languages select holds codes, so an
     // existing chauffeur's languages read "—" in the edit box (found 2026-10-01). Hand it the codes.
     const nameToCode = { german:'de', french:'fr', italian:'it', english:'en', arabic:'ar', de:'de', fr:'fr', it:'it', en:'en', ar:'ar' };
@@ -398,37 +381,39 @@ class Component extends DCLogic {
       .map((x) => nameToCode[String(x || '').trim().toLowerCase()] || '')
       .filter((code, i, all) => code && all.indexOf(code) === i);
 
+    // At 680 px and below the class (and its retired flag) moves under the chauffeur name, so nothing is cut off.
+    const narrow = this.state.narrow;
+    const classLines = (r) => {
+      const name = classLabel(r);
+      if (!name) return [];
+      return [
+        React.createElement('span', { key:'c', className:'vt-dir-keep', 'data-vt-no-i18n':'', style: { minWidth:0, overflowWrap:'anywhere' } }, name),
+        isRetiredClass(r) ? React.createElement('span', { key:'f', 'data-class-retired':'1' },
+          React.createElement(window.VamosTaxiDesignSystem_245af1.Icon, { name:'circle-alert', size:14, color:'currentColor' }),
+          t.retiredClassFlag) : null,
+      ];
+    };
     const chauffeurColumns = [
       { key:'name', header:t.colChauffeur, lookup:(r) => React.createElement('span', {
           style: { display:'flex', flexDirection:'column', gap:2, lineHeight:1.3, minWidth:0 },
         },
         React.createElement('a', {
-          href: '/fleet/chauffeurs/' + encodeURIComponent(r.id),
-          style: { color: 'inherit', textDecoration: 'none', fontWeight: 500 },
+          href: '/chauffeurs/' + encodeURIComponent(r.id),
+          style: { color: 'inherit', textDecoration: 'none', fontWeight: 600 },
         }, r.name || r.fullName || r.full_name || r.id),
         (r.phone || r.phoneNumber) ? React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, r.phone || r.phoneNumber) : null,
+        narrow ? React.createElement('span', { 'data-ch-class':'1', style: { display:'flex', flexDirection:'column', gap:2, fontSize:'var(--vt-body-xs)' } }, classLines(r)) : null,
       ) },
-      { key:'className', header:t.fClass, width:'170px', kind:'need', emptyLabel:t.noClass,
-        lookup:(r) => classLabel(r) },
+    ].concat(narrow ? [] : [
+      { key:'className', header:t.fClass, kind:'need', emptyLabel:t.noClass,
+        lookup:(r) => classLabel(r) ? React.createElement('span', { 'data-ch-classcell':'1' }, classLines(r)) : '' },
+    ]).concat([
       { key:'plate', header:t.colPlate, width:'140px', kind:'mono',
         lookup:(r) => plateOf(r) },
       { key:'licence', header:t.colLicence, width:'140px', kind:'mono',
         lookup:(r) => String((r && (r.licence || r.licenceNumber || r.licence_number)) || '').trim() },
-    ];
+    ]);
 
-    const vehicleFields = [
-      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'vehicle', upload:'/api/photos/upload', chooseLabel:t.choosePhoto, hint:t.hPhoto },
-      { key:'klass', label:t.fClass, editor:'select', options:classOptions, icon:'car', half:true, hint:t.hClass, required:true },
-      { key:'model', label:t.fModel, half:true, placeholder:'Sedan or similar' },
-      { key:'plate', label:t.fPlate, half:true, placeholder:'ZH 000 000', required:true },
-      { key:'year', label:t.fYear, editor:'year', half:true, placeholder:'0000' },
-      { key:'seats', label:t.fSeats, editor:'number', min:1, half:true },
-      { key:'bags', label:t.fBags, editor:'number', min:0, half:true },
-      { key:'morning', label:t.morning, editor:'select', options:chauffeurOptions, icon:'sun', emptyLabel:t.unassigned, half:true, ariaLabel:t.morning },
-      { key:'night', label:t.night, editor:'select', options:chauffeurOptions, icon:'moon', emptyLabel:t.unassigned, half:true, ariaLabel:t.night },
-      { key:'status', label:t.fStatus, editor:'select', options:vStatusOptions, icon:'settings', half:true },
-      { key:'note', label:t.fNote, editor:'area', placeholder:'' },
-    ];
     // The form as it was before the 2026-10-01 dashboard-design ship (316606ee), plus Plate number
     // next to Class (the two things the owner chooses). No Car field. Name and Plate number are
     // required (decision 7): the box shows the shared "Needed" under an empty one.
@@ -457,7 +442,7 @@ class Component extends DCLogic {
     const photoSrc = (!photoRaw || photoRaw.indexOf('data:') === 0) ? '' : (photoRaw.charAt(0) === '/' ? photoRaw : '/photos/' + photoRaw);
     const profileFacts = !detail ? [] : [
       { icon:'mail', label:t.fEmail, value: detail.email || '—', dir: detail.email ? 'ltr' : 'auto' },
-      { icon:'car-front', label:t.fClass, value: className || t.noClass, dir: className ? 'ltr' : 'auto' },
+      { icon:'car-front', label:t.fClass, value: className ? (isRetiredClass(detail) ? className + ' · ' + t.retiredClassFlag : className) : t.noClass, dir: className ? 'ltr' : 'auto' },
       { icon:'car', label:t.colPlate, value: detailPlate || '—', dir: detailPlate ? 'ltr' : 'auto' },
       { icon:'shield-check', label:t.fLicence, value: detail.licence || '—', dir: detail.licence ? 'ltr' : 'auto' },
       { icon:'globe', label:t.fLanguages, value: detail.languages || '—', dir:'auto' },
@@ -491,7 +476,7 @@ class Component extends DCLogic {
       notice: this.state.notice || '',
       tBack: t.backChauffeurs,
       goBack: () => {
-        history.pushState({}, '', '/fleet/chauffeurs');
+        history.pushState({}, '', '/chauffeurs');
         window.dispatchEvent(new PopStateEvent('popstate'));
       },
       tEditC: t.editC,
@@ -561,6 +546,7 @@ class Component extends DCLogic {
         };
         // No cars (owner, 2026-10-01): the class and the plate are the chauffeur's own; no car is
         // sent, and an old car link is cleared (no vehicle row is touched).
+        const stored = rec && rec.id ? chauffeurs.filter((c) => c.id === rec.id)[0] : null;
         const payload = Object.assign({}, rec, {
           vehicleClassId: uuidOrNull(rec.vehicleClassId),
           plate: String(rec.plate || '').trim(),
@@ -571,6 +557,10 @@ class Component extends DCLogic {
           shiftStart: rec.shiftStart || rec.start || null,
           shiftEnd: rec.shiftEnd || rec.end || null,
         });
+        // An untouched class is not sent: a chauffeur on a retired class keeps it, and the server keeps the
+        // stored class when the key is missing (signed 2026-10-11, decision 5; 30-03 answers class-retired
+        // only when a retired id that differs from the stored one is sent).
+        if (stored && classIdOf(stored) === String(rec.vehicleClassId || '').trim()) delete payload.vehicleClassId;
         delete payload.vehicleClassName;
         delete payload.className;
         return store.upsert(payload).then((json) => {
@@ -606,15 +596,6 @@ class Component extends DCLogic {
       emptyTitle: t.emptyCTitle,
       emptyBody: t.emptyCBody,
       deleteBody: t.delCBody,
-      nestedTitle: t.addVehicle,
-      nestedSaveLabel: t.addVehicle,
-      nestedTargetKey: 'vehicle',
-      nestedFields: vehicleFields.filter((f) => f.key !== 'chauffeurIds' && f.key !== 'photo'),
-      nestedBlank: () => (ops ? ops.vehicles.blank() : {}),
-      onNestedSave: (rec) => {
-        if (!ops) return Promise.resolve({ ok: false });
-        return ops.vehicles.upsert(rec);
-      },
     };
   }
 }
