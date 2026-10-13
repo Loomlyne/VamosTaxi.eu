@@ -1,0 +1,6 @@
+# 2026-10-13 ~23:35 (+04): owner answers in the question form
+
+1. **Phase 30 (PR #80): Ship.** Order: owner runs `docs/runbook/p30-remove-test-classes.sql` himself; controller runs b1–b3 read-only, applies 200000 → 210000 → 220000 verbatim with read-back, squash-merges, deploys both Workers (two-Worker order), owner makes one 4242 payment.
+   - Before it: archive tag `archive/p30-test-classes-20261012` (60a50773) holds every row the script deletes; live read-only: the 5 test classes have rows only in retired price books (37 rates, 24 fixed routes, 95 bands, 0 rules), 0 legs/snapshots/vehicles/chauffeurs; 0 published reviews besides rv-1…rv-5. Different-model check of the script: Grok 4.7 (PR #80 comment) plus these live facts.
+2. **City/canton extras and distance bands blocked on live: fix now as its own job.** Live `distance_bands` and `rate_version_rules` carry only RESTRICTIVE policies for `vamos_staff` (D-30-03-1), so Pricing cannot save a city-pair extra or a band. Migration number `20261012250000`. Lands after Phase 30.
+3. **Phase 31 internal lines signed as written** in `31-HANDOVER.md` §5 "New internal lines" (31-06 nightly refund check mail, 31-04 refund-mail alert, 31-08 W4/W5 en/de/fr/ar). Used verbatim.
