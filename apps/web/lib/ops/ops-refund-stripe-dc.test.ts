@@ -143,6 +143,17 @@ describe("copy: the signed dashboard strings in en, de, fr and ar (S-01)", () =>
     }
   });
 
+  // D12: VamosLocale.coverage(<open Actions menu>) only clears when the dictionary knows the
+  // translated label, so its entry must equal the T table word for word.
+  it("the Actions menu labels Assign driver and Mark arrival equal their dictionary entries", () => {
+    const dict = loadDict();
+    for (const key of ["assign", "markArrival"]) {
+      const entry = dict.strings[tValue(blocks.en, key)!];
+      expect(entry, `dict.strings["${tValue(blocks.en, key)}"]`).toBeDefined();
+      for (const lang of ["de", "fr", "ar"] as const) expect(entry![lang], `${lang}.${key}`).toBe(tValue(blocks[lang], key));
+    }
+  });
+
   it("the class/trip done toasts equal the dictionary patterns ({a} is $1)", () => {
     const dict = loadDict();
     for (const key of PATTERN_KEYS) {
