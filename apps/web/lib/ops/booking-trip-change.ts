@@ -140,6 +140,16 @@ function withNoNewPrice(rows: ClassPrice[], bookedTotalRappen: number, books: Ch
   });
 }
 
+/**
+ * Phase 30 decision 8: a trip in a retired class is not moved; bring the class back first. The class
+ * as booked answers `class-not-sold` (the signed line "This class is not offered for this trip.").
+ */
+function retiredCurrent(rows: ClassPrice[]): ClassPrice[] {
+  return rows.map((row): ClassPrice =>
+    row.current ? { ok: false, slug: row.slug, name: row.name, current: true, code: "class-not-sold" } : row,
+  );
+}
+
 /** Every class of today's book when the route as booked cannot be priced again (P1: trip-data). */
 function unpriced(books: ChangeBooks, currentSlug: string, code: Extract<ClassPrice, { ok: false }>["code"]): ClassPrice[] {
   return sortedClasses(books.today).map((cls) => ({
@@ -228,6 +238,8 @@ export async function previewTripChange(
       : unpriced(books, was.classSlug, !priced || priced.code === "trip-data" ? "trip-data" : "class-not-sold");
     classes = withNoNewPrice(rows, was.totalRappen, books, target);
   }
+
+  if (ctx.legClassRetired) classes = retiredCurrent(classes);
 
   const minutes = facts ? facts.leg.estimated_duration_minutes : ctx.leg.estimatedMinutes;
   const driverClash = await clashFor(env, claims, ctx, target, minutes, deps);
@@ -327,6 +339,8 @@ export async function confirmTripChange(
   if (target.bags !== ctx.leg.bags) write.bags = target.bags;
 
   const targetSlug = klass ?? was.classSlug;
+  // Phase 30 decision 8: no date, time, party or address change on a trip in a retired class.
+  if (!klass && ctx.legClassRetired) return { ok: false, code: "class-not-sold" };
   let price: { rateVersionId: number; total: number; lines: unknown[]; name: string } | null = null;
   if (classes) {
     const row = classes.find((c) => c.slug === targetSlug);
