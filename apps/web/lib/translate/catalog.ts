@@ -126,10 +126,14 @@ function gapsForTrees(source: "messages" | "emails", trees: LangTrees): Gap[] {
  * a non-empty string, even if equal to English. Denied gaps are left out entirely.
  */
 export function findGaps(catalogs: Catalogs, deny: Deny): Gap[] {
+  // The English wording of a `$meta`-protected key is protected wherever it is repeated (a dictionary
+  // entry, an e-mail line), so its text joins the denied texts.
+  const metaKeys = metaDeniedKeys(catalogs.messages.en);
+  const enFlat = flattenLeaves(catalogs.messages.en);
   const effective: Deny = {
-    keys: [...deny.keys, ...metaDeniedKeys(catalogs.messages.en)],
+    keys: [...deny.keys, ...metaKeys],
     prefixes: deny.prefixes,
-    texts: deny.texts,
+    texts: [...deny.texts, ...metaKeys.map((k) => enFlat[k]).filter((t): t is string => typeof t === "string")],
   };
   const all: Gap[] = [];
   for (const en of Object.keys(catalogs.dict)) {

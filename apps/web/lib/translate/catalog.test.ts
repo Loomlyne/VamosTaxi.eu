@@ -70,6 +70,7 @@ describe("findGaps", () => {
     c.messages.ar = {};
     c.dict["Dict pattern 42"] = {};
     c.dict["Exact approved text"] = {};
+    c.dict["Approved line"] = {};
     c.dictPatterns = [/^Dict pattern \d+$/];
     const deny: Deny = { keys: ["extra.listed"], prefixes: NO_DENY.prefixes, texts: ["Exact  approved\ntext"] };
     const keys = findGaps(c, deny).map((g) => g.key);
@@ -85,6 +86,7 @@ describe("findGaps", () => {
       "extra.listed",
       "extra.texty",
       "Exact approved text",
+      "Approved line",
       "Dict pattern 42",
     ]) {
       expect(keys).not.toContain(k);
