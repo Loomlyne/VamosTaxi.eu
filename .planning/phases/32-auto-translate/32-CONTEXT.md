@@ -123,6 +123,10 @@ Live counts read-only via the Supabase connector, 2026-10-12: 2 bookings in tota
 <specifics>
 ## Owner questions
 - All answered 2026-10-13 (D-05 to D-10). Migration numbers: the controller asks the owner; file names are listed in the hand-over, none written.
+
+**D-11 (signed 2026-10-14 ~00:20 +04, `.planning/decisions/2026-10-13-p30-ship-p31-lines-rls-fix.md` items 6–8).** The five further Arabic-letter spellings of "Vamos Taxi" also become Latin: three in the e-mail catalogs, one in `OpsReviews`, one in `OpsSidebar`. Approved legal lines are untouched. The plans (32-04) already include them.
+**D-12 (signed the same time).** Booking notes are translated and stored, and no screen shows them until he signs a design for one.
+**Not signed yet:** the 12 plans and the four migration numbers. He asked to see the plans first. Execution waits for his word and for Phase 30 on main.
 </specifics>
 
 <deferred>
