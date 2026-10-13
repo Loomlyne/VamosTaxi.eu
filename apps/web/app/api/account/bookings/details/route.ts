@@ -73,13 +73,16 @@ export async function GET(request: Request) {
       `;
       const owed = Number(refund[0]?.refund_owed_rappen ?? 0);
       const refunded = Number(refund[0]?.refunded_rappen ?? 0);
+      const status = refund[0]?.status ? String(refund[0].status).toLowerCase() : "";
+      // Phase 31 D-04: no owed amount for a cancel; the difference line of a live booking keeps it.
+      const cancelledLike = status === "cancelled" || status === "refunded" || status === "partially_cancelled";
       return {
         extras,
         bookingId: refund[0]?.id ? String(refund[0].id) : "",
-        status: refund[0]?.status ? String(refund[0].status).toLowerCase() : "",
+        status,
         reviewSubmitted: refund[0]?.has_review === true,
         refundStatus: refund[0]?.refund_status ? String(refund[0].refund_status) : "none",
-        refundOwedRappen: Number.isFinite(owed) ? owed : 0,
+        refundOwedRappen: !cancelledLike && Number.isFinite(owed) ? owed : 0,
         refundedRappen: Number.isFinite(refunded) ? refunded : 0,
       };
     });
