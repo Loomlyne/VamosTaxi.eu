@@ -2,7 +2,7 @@
 
 ## 0. Status
 
-Branch `phase-31-refunds-in-stripe`. The head commit is the one that adds this file; the controller reads it with `git log -1`. Before that file the head was 6ec58e9b. Merged with origin/main at 89e68ca8.
+Branch `phase-31-refunds-in-stripe`. The head commit is the one that updates this file (`git log -1`). Second merge of origin/main (95253429: #77 remarketing off, #78 notification kinds, migration 20261012230000) at **edd7d6d8**, clean, no conflicts. First merge was 89e68ca8.
 Not pushed to main. No deploy. No live write. No live MCP call during execution; the only live calls were read-only SELECTs on 2026-10-12/13 for the 23514 facts, before execution.
 
 ## 1. What was built
@@ -98,14 +98,23 @@ Full rows: `.planning/decisions/2026-10-12-refund-wording-signed.md` W4, W5.
 
 ### Verified (clock times +04, 2026-10-13)
 
-- **Full gate**, 23:17:44–23:19:35 on b67211d3: `pnpm gate:local && pnpm check:db-fences` gave `exit=0`. Log: `.planning/phases/31-refunds-in-stripe/evidence/gate-local.log`.
+- **After the second merge (edd7d6d8, origin/main 95253429):**
+  - #78 widens `booking_notifications_kind_check` (adds time_change, flight_no) and keeps 'refund'. The Phase 31 claim (`notification_claim_refund`, kind 'refund') and the sweep (kinds confirmation + refund) need no change. No Phase 31 code used the removed `notifyRefundFailed`. `database.types.ts` did not conflict (#78 adds no function).
+  - Touched tests: notify-lifecycle, edit-request-notify-outcome, google, refund-mail, notify, money-events, settle: 7 files, 344 passed. `tsc --noEmit` (apps/web) exit 0.
+  - Full gate, 23:29:03–23:31:40 on edd7d6d8: `pnpm gate:local && pnpm check:db-fences`, `exit=0`. Log: `evidence/gate-local.log`. apps/web 6088 passed, 55 skipped (the `.local` files); emails 360; db 14; test:db-lab db 76, web 11 + 42 passed; check-db-access-fences all 8 checks passed (1290 files).
+  - pgTAP after reset on the own stack (applies 20261012230000 then 20261012240000): `PASS | pgtap | Files=118, Tests=3501`, `exit=0`; notification_kinds, refund_check_reader, seed_idempotent ok. Logs: `evidence/pgtap.log`, `evidence/pgtap-detail.log`.
+  - The browser brief was not re-run after this merge: #77/#78 touch no page the brief covers (app/vamos-google.js is the remarketing switch).
+
+Earlier results (before the second merge):
+
+- **Full gate**, 23:17:44–23:19:35 on b67211d3: `pnpm gate:local && pnpm check:db-fences` gave `exit=0`. Log: `.planning/phases/31-refunds-in-stripe/evidence/gate-local-b67211d3.log`.
   - apps/web: 6085 passed, 55 skipped (the `.local` files, which run in test:db-lab).
   - packages/emails: 360 passed. packages/db: 14 passed.
   - test:db-lab on a fresh stack: db 76, web 11 + 42 passed.
   - check-db-access-fences: all 8 checks passed.
   - Since b67211d3, only d813815a (pgTAP pin) and 6ec58e9b (migration renamed, comments) changed. Both are covered by the two runs below.
 - **pgTAP**, 23:22, on the own stack after reset, including the renamed migration: `PASS | pgtap | Files=117, Tests=3488`, `exit=0`. `refund_check_reader.test.sql` ok; `seed_idempotent.test.sql` ok after the pin fix d813815a (31-10 removed one dead key, so the count is 2706).
-  - Logs: `evidence/pgtap.log`, `evidence/pgtap-detail.log`.
+  - Logs: overwritten by the post-merge pgTAP run above (same files).
   - The first try at 23:20 failed only on that seed count pin.
 - **Local DB tests** (refund-check, refund-mail) on lab p31-refunds, one file at a time: Test Files 2 passed, Tests 4 passed, none skipped, `exit=0`. Log: `evidence/local-tests.log`.
   - A first run with both files in parallel failed the "writes nothing" row count, because the other file wrote a notification row at the same time. Log: `evidence/local-tests-parallel-run.log`. The gate's test:db-lab also runs them one at a time.
