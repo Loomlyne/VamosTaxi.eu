@@ -151,19 +151,15 @@ export function mask(text: string): Masked {
  */
 export function unmask(text: string, tokens: readonly string[]): string | null {
   const seen = new Set<number>();
-  let bad = false;
-  const out = text.replace(/⟦(\d+)⟧/g, (_all, digits: string) => {
+  for (const m of text.matchAll(/⟦(\d+)⟧/g)) {
+    const digits = m[1] ?? "";
     const n = Number(digits);
-    if (!Number.isInteger(n) || n >= tokens.length || seen.has(n) || String(n) !== digits) {
-      bad = true;
-      return "";
-    }
+    if (String(n) !== digits || n >= tokens.length || seen.has(n)) return null;
     seen.add(n);
-    return `\u0000${n}\u0000`;
-  });
-  if (bad || seen.size !== tokens.length) return null;
-  if (/[⟦⟧\u0000]/.test(out.replace(/\u0000\d+\u0000/g, ""))) return null;
-  return out.replace(/\u0000(\d+)\u0000/g, (_all, digits: string) => tokens[Number(digits)] ?? "");
+  }
+  if (seen.size !== tokens.length) return null;
+  if (/[⟦⟧]/.test(text.replace(/⟦\d+⟧/g, ""))) return null;
+  return text.replace(/⟦(\d+)⟧/g, (_all, digits: string) => tokens[Number(digits)] ?? "");
 }
 
 function signatureParts(nodes: IcuNode[], out: string[]): void {

@@ -33,10 +33,11 @@ function stripWrappingQuotes(text: string, source: string | undefined): string {
   return text;
 }
 
-function westernDigits(text: string): string {
+/** Arabic-Indic (U+0660-0669) and Persian (U+06F0-06F9) digits to 0-9. */
+export function westernDigits(text: string): string {
   return text
-    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
-    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0));
+    .replace(/[\u0660-\u0669]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[\u06f0-\u06f9]/g, (d) => String(d.charCodeAt(0) - 0x06f0));
 }
 
 /**
@@ -44,7 +45,7 @@ function westernDigits(text: string): string {
  * whether wrapping quotes are kept; without it, wrapping quotes are removed.
  */
 export function postProcess(lang: string, text: string, source?: string): string {
-  let out = text.replace(/[ \t ]{2,}/g, " ").trim();
+  let out = text.replace(/[ \t\u00a0]{2,}/g, " ").trim();
   out = stripWrappingQuotes(out, source);
   if (lang === "de") out = out.replace(/ß/g, "ss").replace(/ẞ/g, "SS");
   if (lang === "ar") out = westernDigits(out);

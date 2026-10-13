@@ -101,7 +101,7 @@ describe("translateText: failures never throw and fall back to the source", () =
     const slow = stubAi(
       (_m, _i, options) =>
         new Promise((_resolve, reject) => {
-          options?.signal?.addEventListener("abort", () => reject(options.signal?.reason));
+          options?.signal?.addEventListener("abort", () => reject(options?.signal?.reason));
         }),
     );
     expect(await translateText(slow, { text: SOURCE, from: "en", to: ["de"], timeoutMs: 10 })).toEqual({
