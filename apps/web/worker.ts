@@ -39,9 +39,8 @@ import { purgeExpiredUnpaid } from "./lib/checkout/purge-unpaid";
 import { runReminder24h } from "./lib/lifecycle/reminder";
 import { probeHealth } from "./lib/health/probe";
 import { bindTranslateStore } from "./lib/translate/jobs";
-import { consumeTranslateBatch } from "./lib/translate/queue-consumer";
+import { consumeTranslateBatch, type TranslateConsumerDeps } from "./lib/translate/queue-consumer";
 import { runTranslateSweep } from "./lib/translate/sweep";
-import type { AiLike } from "./lib/translate/translate";
 import { stripInternalHeaders } from "./lib/security/strip-internal-headers";
 
 /**
@@ -241,7 +240,7 @@ export default {
     // DLQ quietly (marks the message "not available") and never mails. Bodies carry ids only.
     if (batch.queue.startsWith("vamos-translate")) {
       await consumeTranslateBatch(batch, {
-        ai: (env as { AI?: AiLike }).AI ?? null,
+        ai: (env as { AI?: TranslateConsumerDeps["ai"] }).AI ?? null,
         store: bindTranslateStore(env),
         emitFor: (messageId) =>
           withRequestContext({ requestId: messageId, route: `queue:${batch.queue}`, locale: null }),
