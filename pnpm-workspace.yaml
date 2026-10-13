@@ -3,7 +3,7 @@ packages:
   - "packages/*"
 overrides:
   postcss: 8.5.26
-  sharp: 0.35.4
+  sharp: ^0.35.5            # GHSA-wq5f-xc86-pv6w (high); was an exact 0.35.4 pin
   # Dependabot on main, 2026-10-02: 41 open alerts (15 high) across five transitive
   # packages. Caret, not >=, on purpose: >= let fast-uri jump 3 -> 4 and js-yaml 4 -> 5,
   # which is a dependency upgrade wearing a security fix's clothes. Every bump below
