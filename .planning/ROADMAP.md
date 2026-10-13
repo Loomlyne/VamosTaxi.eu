@@ -1227,7 +1227,7 @@ Plans:
 **Decisions:** `.planning/decisions/2026-10-12-refunds-in-stripe.md` (signed 2026-10-12); context `.planning/phases/31-refunds-in-stripe/31-CONTEXT.md`
 **Requirements**: R31-01, R31-02, R31-03, R31-04, R31-05, R31-06, R31-07, R31-08, R31-09, R31-10
 **Depends on:** Phase 29 (no code dependency on Phase 30; shares only `app/vamos-i18n-dict.js`)
-**Plans:** 12/13 plans executed (4 waves; owner answered every gate 2026-10-13)
+**Plans:** 13/13 plans complete
 
 Plans:
 - [x] 31-01-PLAN.md — Stripe Dashboard URL builder, admin GET /stripe-payments on both mounts, STRIPE_ACCOUNT_ID declared (wave 1)
@@ -1242,7 +1242,7 @@ Plans:
 - [x] 31-10-PLAN.md — customer pages, account Refund row, React twins, dictionary and legal pins (wave 2)
 - [x] 31-11-PLAN.md — STRIPE_ACCOUNT_ID for the live Worker after the controller confirms it (wave 2)
 - [x] 31-12-PLAN.md — owner question O-1 (cancel fork sub-line), applied if A (wave 3)
-- [ ] 31-13-PLAN.md — merge main, browser test brief via vamos-tester, gate:local, pgTAP, runbook, hand-over (wave 4)
+- [x] 31-13-PLAN.md — merge main, browser test brief via vamos-tester, gate:local, pgTAP, runbook, hand-over (wave 4)
 
 ## Progress
 
