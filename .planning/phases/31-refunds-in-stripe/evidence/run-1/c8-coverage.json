@@ -1,0 +1,41 @@
+[
+ {
+  "lang": "de",
+  "target": "cancel sheet (a)",
+  "count": 1,
+  "strings": [
+   "Zurich Airport → Zug"
+  ]
+ },
+ {
+  "lang": "fr",
+  "target": "cancel sheet (a)",
+  "count": 1,
+  "strings": [
+   "Zurich Airport → Zug"
+  ]
+ },
+ {
+  "lang": "ar",
+  "target": "cancel sheet (a)",
+  "count": 1,
+  "strings": [
+   "Zurich Airport → Zug"
+  ]
+ },
+ {
+  "lang": "de",
+  "target": "refund row (d)",
+  "missing": true
+ },
+ {
+  "lang": "fr",
+  "target": "refund row (d)",
+  "missing": true
+ },
+ {
+  "lang": "ar",
+  "target": "refund row (d)",
+  "missing": true
+ }
+]

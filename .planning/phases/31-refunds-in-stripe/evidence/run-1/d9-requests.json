@@ -1,0 +1,618 @@
+[
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "POST",
+  "p": "/api/auth"
+ },
+ {
+  "m": "POST",
+  "p": "/api/auth"
+ },
+ {
+  "m": "POST",
+  "p": "/api/auth"
+ },
+ {
+  "m": "POST",
+  "p": "/api/staff/claim-invite"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/dashboard"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/5f449e13-1182-4509-9826-0f7070a0c85b/stripe-payments"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/58db060f-b81b-4f00-9894-deeb400efad7/stripe-payments"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/1f5b9c0e-d6f5-4bab-aceb-fa6c09a2b1f6/stripe-payments"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/a7617b6e-c544-44d0-84e9-c7de38e5e664/stripe-payments"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/9d063431-b19a-486a-a908-8dad9d174193/stripe-payments"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/3b8b0a5c-bdeb-4276-ad1a-4061e2992337/stripe-payments"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/58db060f-b81b-4f00-9894-deeb400efad7/stripe-payments"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/a7617b6e-c544-44d0-84e9-c7de38e5e664/stripe-payments"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/58db060f-b81b-4f00-9894-deeb400efad7/stripe-payments"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/5f449e13-1182-4509-9826-0f7070a0c85b/stripe-payments"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/a7617b6e-c544-44d0-84e9-c7de38e5e664/stripe-payments"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/58db060f-b81b-4f00-9894-deeb400efad7/stripe-payments"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/a7617b6e-c544-44d0-84e9-c7de38e5e664/stripe-payments"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/58db060f-b81b-4f00-9894-deeb400efad7/stripe-payments"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/a7617b6e-c544-44d0-84e9-c7de38e5e664/stripe-payments"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/58db060f-b81b-4f00-9894-deeb400efad7/stripe-payments"
+ },
+ {
+  "m": "GET",
+  "p": "/api/fx"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/me"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/chauffeurs"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/rate-book"
+ },
+ {
+  "m": "GET",
+  "p": "/api/staff/bookings/a7617b6e-c544-44d0-84e9-c7de38e5e664/stripe-payments"
+ }
+]
