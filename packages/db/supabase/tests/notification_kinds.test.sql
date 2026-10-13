@@ -33,7 +33,7 @@ set local role vamos_system;
 -- (1-8) each kind the code sends can be claimed (leg kinds carry the leg, as the code does).
 select ok(public.notification_claim((select booking_id from nk), k.kind,
             case when k.with_leg then (select leg_id from nk) end,
-            'email', 'en', k.kind || '@2026-10-12-1') is not null,
+            'email', 'en', 'nk_test@2026-10-12-1') is not null,
           'notification_claim accepts kind ' || k.kind)
   from (values ('confirmation', false), ('cancellation', false), ('reminder_24h', true),
                ('assignment', false), ('time_change', true), ('flight_no', false),
