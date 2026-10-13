@@ -7,7 +7,6 @@ import { asStaff, type VamosClaims } from "../db/identity";
 import type { AssertedVehicleClassInput, AssertedVehicleInput } from "./fleet";
 import { persistVehicleSeats } from "./chauffeur-desk";
 import { tripsFromRows, type OpsMustFixTrip } from "./must-fix-mail";
-import type { ClassDeleteResult } from "./vehicle-class-write";
 
 export async function insertVehicle(
   env: CloudflareEnv,
@@ -244,23 +243,23 @@ export async function patchDraftClass(
 }
 
 /**
- * 26.1-19 D-15: hard delete when nothing but draft rate rows references the class;
- * otherwise `in-use` (no reason) or `hidden` (reason given). The database checks every
- * FK and admin rights (public.ops_vehicle_class_delete_or_hide) and removes the class's
- * draft rate rows itself on a delete.
+ * Phase 30: the only door to a class state change. The database checks admin rights, the
+ * transition and the Go-live checklist (public.ops_vehicle_class_set_status) and raises on
+ * refusal; callers catch OUTSIDE this function (postgres.js begin() rethrows caught errors).
  */
-export async function deleteVehicleClassIfUnreferenced(
+export async function setVehicleClassStatus(
   env: CloudflareEnv,
   claims: VamosClaims,
   id: string,
+  to: "draft" | "live" | "retired",
   reason: string | null,
-): Promise<ClassDeleteResult> {
+): Promise<"draft" | "live" | "retired"> {
   return asStaff(env, claims, async (sql) => {
-    const rows = await sql<{ result: string }[]>`
-      select public.ops_vehicle_class_delete_or_hide(${id}::uuid, ${reason}) as result
+    const rows = await sql<{ state: string }[]>`
+      select public.ops_vehicle_class_set_status(${id}::uuid, ${to}, ${reason}) as state
     `;
-    const result = rows[0]?.result;
-    if (result === "deleted" || result === "in-use" || result === "hidden") return result;
-    throw new Error("ops_vehicle_class_delete_or_hide");
+    const state = rows[0]?.state;
+    if (state === "draft" || state === "live" || state === "retired") return state;
+    throw new Error("ops_vehicle_class_set_status");
   });
 }
