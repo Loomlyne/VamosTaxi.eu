@@ -3,6 +3,7 @@
      .planning/decisions/2026-10-09-ad-tracking-wording.md  (banner, googleRow, privacyLine, googlePrivacyLine, googleProcessor)
      .planning/decisions/2026-09-30-meta-wording.md section 2 (cookiesRow, the Meta cookies row, unchanged)
      .planning/decisions/2026-10-11-ga4-wording.md  (analyticsRow, gaRow, gaPrivacyLine, gaProcessor)
+     .planning/decisions/2026-10-13-gtm-wording.md  (gtmBanner, gtmRow, gtmPrivacyLine, gtmProcessor)
    Generated from those files; owner-texts.test.ts byte-compares this file against them.
    Segments: plain strings, { b: 'bold' }, { code: 'code' }. */
 (function () {
@@ -67,6 +68,30 @@
     fr: ['Analyse du site, uniquement avec votre consentement · Google Analytics'],
     ar: ['تحليلات الموقع، بموافقتك فقط · Google Analytics'],
   },
+  gtmBanner: {
+    en: ['If you accept both Analytics and Marketing, Google Tag Manager also loads; it sets no cookie of its own.'],
+    de: ['Wenn Sie sowohl Analyse als auch Marketing zustimmen, wird zusätzlich Google Tag Manager geladen; er setzt keine eigenen Cookies.'],
+    fr: ['Si vous acceptez à la fois l\'analyse et le marketing, Google Tag Manager est aussi chargé ; il ne dépose aucun cookie propre.'],
+    ar: ['إذا وافقت على التحليلات والتسويق معًا، يُحمَّل أيضًا Google Tag Manager، ولا يضع ملف تعريف ارتباط خاصًا به.'],
+  },
+  gtmRow: {
+    en: [{ b: 'Google Tag Manager' }, ' (Google Ireland Ltd). No cookie of its own. Loaded only after you accept both Analytics and Marketing. It starts the Google tags described above, under the choices you made.'],
+    de: [{ b: 'Google Tag Manager' }, ' (Google Ireland Ltd). Kein eigenes Cookie. Wird erst geladen, wenn Sie sowohl Analyse als auch Marketing zustimmen. Er startet die oben beschriebenen Google-Tags gemäss Ihrer Auswahl.'],
+    fr: [{ b: 'Google Tag Manager' }, ' (Google Ireland Ltd). Aucun cookie propre. Chargé uniquement après votre accord pour l\'analyse et pour le marketing. Il lance les balises Google décrites ci-dessus, selon vos choix.'],
+    ar: [{ b: 'Google Tag Manager' }, ' (Google Ireland Ltd). لا يضع ملف تعريف ارتباط خاصًا به. لا يُحمَّل إلا بعد موافقتك على التحليلات والتسويق معًا. يُشغّل علامات Google الموضّحة أعلاه وفق اختياراتك.'],
+  },
+  gtmPrivacyLine: {
+    en: [{ b: 'Google Ireland Ltd. Tag management, only with your consent.' }, ' After you accept both Analytics and Marketing, Google Tag Manager loads on this site and starts the Google tags described above, under the choices you made. It adds no data of its own about you, your booking or your messages. Google receives your IP address and browser details when its script loads. Google may process this data outside Switzerland. You can withdraw your consent at any time in Cookie preferences; Google Tag Manager then stops on the page you are on and does not load again until you accept both again.'],
+    de: [{ b: 'Google Ireland Ltd. Tag-Verwaltung, nur mit Ihrer Einwilligung.' }, ' Nach Ihrer Zustimmung zu Analyse und Marketing wird Google Tag Manager auf dieser Website geladen und startet die oben beschriebenen Google-Tags gemäss Ihrer Auswahl. Er fügt keine eigenen Daten über Sie, Ihre Buchung oder Ihre Nachrichten hinzu. Google erhält beim Laden seines Skripts Ihre IP-Adresse und Browserangaben. Google kann diese Daten ausserhalb der Schweiz verarbeiten. Sie können Ihre Einwilligung jederzeit in den Cookie-Einstellungen widerrufen; Google Tag Manager stoppt dann auf der geöffneten Seite und wird erst wieder geladen, wenn Sie beidem erneut zustimmen.'],
+    fr: [{ b: 'Google Ireland Ltd. Gestion des balises, uniquement avec votre consentement.' }, ' Après votre accord pour l\'analyse et pour le marketing, Google Tag Manager se charge sur ce site et lance les balises Google décrites ci-dessus, selon vos choix. Il n\'ajoute aucune donnée propre sur vous, votre réservation ou vos messages. Google reçoit votre adresse IP et les données de votre navigateur lorsque son script se charge. Google peut traiter ces données hors de Suisse. Vous pouvez retirer votre consentement à tout moment dans les préférences de cookies ; Google Tag Manager s\'arrête alors sur la page ouverte et ne se recharge que si vous acceptez à nouveau les deux.'],
+    ar: [{ b: 'Google Ireland Ltd. إدارة العلامات، بموافقتك فقط.' }, ' بعد موافقتك على التحليلات والتسويق معًا، يُحمَّل Google Tag Manager على هذا الموقع ويُشغّل علامات Google الموضّحة أعلاه وفق اختياراتك. لا يضيف أي بيانات خاصة به عنك أو عن حجزك أو رسائلك. تتلقى Google عنوان IP الخاص بك وبيانات متصفحك عند تحميل برنامجها النصي. قد تعالج Google هذه البيانات خارج سويسرا. يمكنك سحب موافقتك في أي وقت من إعدادات ملفات تعريف الارتباط؛ عندها يتوقف Google Tag Manager على الصفحة المفتوحة ولا يُحمَّل مجددًا إلا بعد موافقتك على الأمرين من جديد.'],
+  },
+  gtmProcessor: {
+    en: ['Tag management, only with your consent · Google Tag Manager'],
+    de: ['Tag-Verwaltung, nur mit Ihrer Einwilligung · Google Tag Manager'],
+    fr: ['Gestion des balises, uniquement avec votre consentement · Google Tag Manager'],
+    ar: ['إدارة العلامات، بموافقتك فقط · Google Tag Manager'],
+  },
   };
 
   /** Returns the segment array of one owner text for a language, falling back to English. */
@@ -87,6 +112,10 @@
     gaRow: TEXTS.gaRow,
     gaPrivacyLine: TEXTS.gaPrivacyLine,
     gaProcessor: TEXTS.gaProcessor,
+    gtmBanner: TEXTS.gtmBanner,
+    gtmRow: TEXTS.gtmRow,
+    gtmPrivacyLine: TEXTS.gtmPrivacyLine,
+    gtmProcessor: TEXTS.gtmProcessor,
     segments: segments,
   };
 })();

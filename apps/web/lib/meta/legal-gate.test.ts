@@ -102,14 +102,17 @@ function slotBody(src: string, className: string, hook: string): string {
 }
 
 describe("meta legal gate", () => {
-  it("banner title is you-choose-what-we-measure and body is meta-banner", () => {
+  it("banner title is you-choose-what-we-measure and body is meta-banner, then the Tag Manager sentence", () => {
     const banner = source("components/consent/CookieBanner.tsx");
     expect(banner).toContain('{t("you-choose-what-we-measure")}');
     expect(banner).toContain('t.rich("meta-banner"');
+    // Owner, 2026-10-13: the GTM sentence follows the banner text in the same paragraph.
+    expect(banner.replace(/\s+/g, " ")).toContain('{t.rich("meta-banner", {})} {t.rich("gtm-banner", {})}');
     for (const locale of ["en", "de", "fr", "ar"]) {
       const messages = source(`i18n/messages/${locale}.json`);
       expect(messages, locale).toContain('"you-choose-what-we-measure"');
       expect(messages, locale).toContain('"meta-banner"');
+      expect(messages, locale).toContain('"gtm-banner"');
     }
   });
 
@@ -146,7 +149,7 @@ describe("meta legal gate", () => {
       // Google (owner decision 2026-10-09): the tag id and Google's script host, only where the tag lives.
       "googletagmanager.com": ["app/vamos-google.js", "apps/web/public/app/vamos-google.js", "apps/web/lib/security/headers.ts"],
       "AW-368142830": ["app/vamos-google.js", "apps/web/public/app/vamos-google.js", "apps/web/lib/google/flag.ts"],
-      // GA4 (adopted wording 2026-10-11) and Tag Manager (behind GTM_ON): the ids in the loader and the flag file,
+      // GA4 (adopted wording 2026-10-11) and Tag Manager (wording adopted 2026-10-13, GTM_ON): the ids in the loader and the flag file,
       // GA4's collection hosts in the policy builder only.
       "G-K5MZME44P6": ["app/vamos-google.js", "apps/web/public/app/vamos-google.js", "apps/web/lib/google/flag.ts"],
       "GTM-KPKGT4VH": ["app/vamos-google.js", "apps/web/public/app/vamos-google.js", "apps/web/lib/google/flag.ts"],
@@ -282,8 +285,8 @@ describe("meta legal gate", () => {
       }
     }
     for (const [rel, cls, hook, keys] of [
-      ["app/[locale]/cookies/page.tsx", "vt-legal-blank--row", "cookies", ["meta-row", "google-row"]],
-      ["app/[locale]/privacy/page.tsx", "vt-legal-blank", "privacy", ["meta-privacy-line", "google-privacy-line", "ga-privacy-line"]],
+      ["app/[locale]/cookies/page.tsx", "vt-legal-blank--row", "cookies", ["meta-row", "google-row", "gtm-row"]],
+      ["app/[locale]/privacy/page.tsx", "vt-legal-blank", "privacy", ["meta-privacy-line", "google-privacy-line", "ga-privacy-line", "gtm-privacy-line"]],
     ] as const) {
       const body = slotBody(source(rel), cls, hook);
       // Only t.rich calls, one paragraph per owner text: no literal prose in the slot.

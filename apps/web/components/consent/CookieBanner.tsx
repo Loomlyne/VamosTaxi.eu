@@ -406,7 +406,10 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
           <div className="vt-ck-sheet" data-ck-sheet="1" ref={cardRef} aria-busy={busyStr}>
             <p className="vt-ck-kicker">{tCommon("cookies")}</p>
             <h2 className="vt-ck-title">{t("you-choose-what-we-measure")}</h2>
-            <p className="vt-ck-body vt-ck-body--first">{t.rich("meta-banner", {})}</p>
+            {/* Owner texts: the banner (2026-10-09 §1), then the Tag Manager sentence (2026-10-13-gtm-wording.md §1). */}
+            <p className="vt-ck-body vt-ck-body--first">
+              {t.rich("meta-banner", {})} {t.rich("gtm-banner", {})}
+            </p>
             <p className="vt-ck-body vt-ck-body--link">
               <Link href="/cookies" className="vt-ck-link">
                 {tCommon("cookie-policy")}

@@ -1,5 +1,6 @@
-// The owner's Meta, Google Ads and Google Analytics texts must stay byte-equal to their decision files
-// (.planning/decisions/2026-09-30-meta-wording.md, 2026-10-09-ad-tracking-wording.md, 2026-10-11-ga4-wording.md)
+// The owner's Meta, Google Ads, Google Analytics and Google Tag Manager texts must stay byte-equal to their decision
+// files (.planning/decisions/2026-09-30-meta-wording.md, 2026-10-09-ad-tracking-wording.md, 2026-10-11-ga4-wording.md,
+// 2026-10-13-gtm-wording.md)
 // in the mock (app/vamos-meta-texts.js) and in the Next messages (apps/web/i18n/messages/*.json).
 // Canonical form: **x** -> [b]x[/b], `x` -> [code]x[/code]. Strict equality, no trimming.
 import { readFileSync } from "node:fs";
@@ -26,12 +27,18 @@ const SECTIONS = [
   { file: "2026-10-11-ga4-wording.md", head: "## 2. Cookies page: new Google Analytics row", mock: "gaRow", next: ["cookies", "ga-row"] },
   { file: "2026-10-11-ga4-wording.md", head: "## 3. Privacy page: new Google Analytics line", mock: "gaPrivacyLine", next: ["legal", "ga-privacy-line"] },
   { file: "2026-10-11-ga4-wording.md", head: "## 4. Privacy page: processor table row", mock: "gaProcessor", next: ["legal", "ga-processor"] },
+  // Google Tag Manager, adopted as written 2026-10-13 (same consent version 2026-10-13, one re-ask with GA4).
+  { file: "2026-10-13-gtm-wording.md", head: "## 1. Cookie banner", mock: "gtmBanner", next: ["cookies", "gtm-banner"] },
+  { file: "2026-10-13-gtm-wording.md", head: "## 2. Cookies page: new Google Tag Manager row", mock: "gtmRow", next: ["cookies", "gtm-row"] },
+  { file: "2026-10-13-gtm-wording.md", head: "## 3. Privacy page: new Google Tag Manager line", mock: "gtmPrivacyLine", next: ["legal", "gtm-privacy-line"] },
+  { file: "2026-10-13-gtm-wording.md", head: "## 4. Privacy page: processor table row", mock: "gtmProcessor", next: ["legal", "gtm-processor"] },
 ] as const;
 
 const decisions: Record<string, string> = {
   "2026-10-09-ad-tracking-wording.md": read(".planning/decisions/2026-10-09-ad-tracking-wording.md"),
   "2026-09-30-meta-wording.md": read(".planning/decisions/2026-09-30-meta-wording.md"),
   "2026-10-11-ga4-wording.md": read(".planning/decisions/2026-10-11-ga4-wording.md"),
+  "2026-10-13-gtm-wording.md": read(".planning/decisions/2026-10-13-gtm-wording.md"),
 };
 
 function sectionText(n: number, lang: string): string {

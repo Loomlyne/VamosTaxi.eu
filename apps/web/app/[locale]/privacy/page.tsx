@@ -212,6 +212,8 @@ export default async function PrivacyPage({
                 {t("google-processor")}
                 <br />
                 {t("ga-processor")}
+                <br />
+                {t("gtm-processor")}
               </>
             }
           />
@@ -363,6 +365,11 @@ export default async function PrivacyPage({
           </p>
           <p>
             {t.rich("ga-privacy-line", {
+              b: (chunks) => <strong>{chunks}</strong>,
+            })}
+          </p>
+          <p>
+            {t.rich("gtm-privacy-line", {
               b: (chunks) => <strong>{chunks}</strong>,
             })}
           </p>

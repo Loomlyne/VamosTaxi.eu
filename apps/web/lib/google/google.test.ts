@@ -1,4 +1,7 @@
-// Owner decisions 2026-10-09 (D2): the Google tag; GA4 wording adopted 2026-10-11; Tag Manager behind GTM_ON (draft wording).
+// Owner decisions 2026-10-09 (D2): the Google tag; GA4 wording adopted 2026-10-11; Tag Manager on (GTM_ON), wording
+// adopted as written 2026-10-13 (.planning/decisions/2026-10-13-gtm-wording.md).
+// The GA4 / Ads blocks run the loader with the container forced off so each config is seen alone; the Tag Manager
+// block runs the file exactly as committed (gtm: "committed").
 // The loader runs in a vm with fakes: no network, nothing reaches Google.
 // Google strings are built from parts where the needle scan in legal-gate.test.ts would otherwise read them.
 import { readFileSync } from "node:fs";
@@ -32,12 +35,13 @@ const GA_SCRIPT = HOST + "/gtag/js?id=" + GA;
 const GTM_SCRIPT = HOST + "/gtm" + ".js?id=" + GTM;
 const REF = "VT-26-07331";
 
-function withFlags(open: boolean, gtm = false, analytics = true): string {
+/** gtm null keeps the committed GTM_ON. */
+function withFlags(open: boolean, gtm: boolean | null = false, analytics = true): string {
   let out = rawSrc.replace(/var GOOGLE_ON = (true|false);/, `var GOOGLE_ON = ${open};`);
-  out = out.replace(/var GTM_ON = (true|false);/, `var GTM_ON = ${gtm};`);
+  if (gtm !== null) out = out.replace(/var GTM_ON = (true|false);/, `var GTM_ON = ${gtm};`);
   out = out.replace(/var ANALYTICS_ON = (true|false);/, `var ANALYTICS_ON = ${analytics};`);
   expect(out).toContain(`var GOOGLE_ON = ${open};`);
-  expect(out).toContain(`var GTM_ON = ${gtm};`);
+  expect(out).toContain(`var GTM_ON = ${gtm === null ? GTM_OPEN : gtm};`);
   expect(out).toContain(`var ANALYTICS_ON = ${analytics};`);
   return out;
 }
@@ -51,7 +55,8 @@ const NOT_CHOSEN: State = { ok: true, chosen: false, choice: null };
 
 interface Opts {
   open?: boolean;
-  gtm?: boolean;
+  /** false or absent: container forced off; true: forced on; "committed": GTM_ON as the file has it. */
+  gtm?: boolean | "committed";
   analytics?: boolean;
   href?: string;
   referrer?: string;
@@ -129,7 +134,7 @@ function load(o: Opts = {}) {
     },
   };
   vm.createContext(ctx);
-  vm.runInContext(withFlags(o.open === true, o.gtm === true, o.analytics !== false), ctx);
+  vm.runInContext(withFlags(o.open === true, o.gtm === "committed" ? null : o.gtm === true, o.analytics !== false), ctx);
   const api = {
     win,
     appended,
@@ -191,11 +196,11 @@ const views = (h: H) => h.events().filter((c) => c[1] === "page_view");
 const PAGE = (path: string) => ({ page_location: `https://vamostaxi.site${path}`, page_referrer: "", page_title: path });
 
 describe("flags", () => {
-  it("Google and GA4 are open in the committed state, Tag Manager closed; each TypeScript flag equals the loader's", () => {
+  it("Google, GA4 and Tag Manager are open in the committed state; each TypeScript flag equals the loader's", () => {
     expect(GOOGLE_TAG_OPEN).toBe(true);
     expect(googleTagAllowed()).toBe(true);
     expect(GA4_OPEN).toBe(true);
-    expect(GTM_OPEN).toBe(false);
+    expect(GTM_OPEN).toBe(true);
     expect(/var GOOGLE_ON = (true|false);/.exec(rawSrc)?.[1]).toBe(String(GOOGLE_TAG_OPEN));
     expect(/var ANALYTICS_ON = (true|false);/.exec(rawSrc)?.[1]).toBe(String(GA4_OPEN));
     expect(/var GTM_ON = (true|false);/.exec(rawSrc)?.[1]).toBe(String(GTM_OPEN));
@@ -245,7 +250,7 @@ describe("scrub: what Google is told about the page", () => {
 
 describe("flag closed: the loader does nothing at all", () => {
   it("no gtag, no dataLayer, no request, no script, no cookie write, no event", async () => {
-    const h = load({ open: false, gtm: true });
+    const h = load({ open: false, gtm: "committed" });
     await h.settle();
     expect(h.win.gtag).toBeUndefined();
     expect(h.win.dataLayer).toBeUndefined();
@@ -384,7 +389,7 @@ describe("boot: each config only under its own choice", () => {
     "https://dashboard.vamostaxi.site/about",
     "https://vamostaxi.site/review",
   ])("%s: nothing at all, not even the default, no GA4 event", async (href) => {
-    const h = load({ open: true, gtm: true, href });
+    const h = load({ open: true, gtm: "committed", href });
     await h.settle();
     expect(h.win.dataLayer).toBeUndefined();
     expect(h.fetchCalls).toHaveLength(0);
@@ -777,16 +782,29 @@ describe("purchase (GA4) and conversion (Ads)", () => {
   });
 });
 
-describe("Google Tag Manager (flag forced on in this harness)", () => {
-  it("committed flag closed: both choices on never load the container", async () => {
-    const h = load({ open: true });
+describe("Google Tag Manager (on, wording adopted 2026-10-13; the file as committed)", () => {
+  it("the committed loader asks for the container (its id from the flag file), and only with both choices", () => {
+    expect(rawSrc).toMatch(/var GTM_ON = true;/);
+    expect(rawSrc).toContain("if (!(adsOn && !adsRevoked && gaOn && !gaRevoked)) return;");
+    expect(GTM_SCRIPT).toBe("https://www.google" + "tagmanager.com/gtm" + ".js?id=GTM-KPKG" + "T4VH");
+  });
+
+  it("kill switch: GTM_ON false, both choices on never load the container", async () => {
+    const h = load({ open: true, gtm: false });
     await h.settle();
     expect(h.appended.map((a) => a.src)).toEqual([SCRIPT]);
     expect(h.g().tagManagerLoaded()).toBe(false);
   });
 
+  it("Google closed: nothing, the container neither", async () => {
+    const h = load({ open: false, gtm: "committed" });
+    await h.settle();
+    expect(h.appended).toHaveLength(0);
+    expect(h.win.dataLayer).toBeUndefined();
+  });
+
   it("both on: after the consent default and the granted update, one gtm.start push and the container script", async () => {
-    const h = load({ open: true, gtm: true });
+    const h = load({ open: true, gtm: "committed" });
     await h.settle();
     expect(h.appended.map((a) => a.src)).toEqual([SCRIPT, GTM_SCRIPT]);
     const calls = h.calls();
@@ -806,7 +824,7 @@ describe("Google Tag Manager (flag forced on in this harness)", () => {
     ["Marketing only", MARKETING_ONLY],
     ["not chosen", NOT_CHOSEN],
   ])("%s: no container", async (_n, state) => {
-    const h = load({ open: true, gtm: true, state });
+    const h = load({ open: true, gtm: "committed", state });
     await h.settle();
     expect(h.appended.some((a) => a.src === GTM_SCRIPT)).toBe(false);
     expect(h.g().tagManagerLoaded()).toBe(false);
@@ -814,7 +832,7 @@ describe("Google Tag Manager (flag forced on in this harness)", () => {
 
   it("the second choice arriving later loads it then, once", async () => {
     let answer: State = ANALYTICS_ONLY;
-    const h = load({ open: true, gtm: true, state: () => Promise.resolve(answer) });
+    const h = load({ open: true, gtm: "committed", state: () => Promise.resolve(answer) });
     await h.settle();
     expect(h.g().tagManagerLoaded()).toBe(false);
     answer = ACCEPTED;
@@ -829,7 +847,7 @@ describe("Google Tag Manager (flag forced on in this harness)", () => {
     ["Marketing off", { marketing: false, analytics: true }],
   ])("%s after it ran: everything denied, every Google cookie deleted, never again on this page", async (_n, detail) => {
     let answer: State = ACCEPTED;
-    const h = load({ open: true, gtm: true, state: () => Promise.resolve(answer) });
+    const h = load({ open: true, gtm: "committed", state: () => Promise.resolve(answer) });
     await h.settle();
     answer = { ok: true, chosen: true, choice: detail };
     h.fire("vamos:consent", { detail });
@@ -848,14 +866,14 @@ describe("Google Tag Manager (flag forced on in this harness)", () => {
   });
 
   it("an address off the list: no container even with both on", async () => {
-    const h = load({ open: true, gtm: true, href: "https://vamostaxi.site/checkout/pay/abc" });
+    const h = load({ open: true, gtm: "committed", href: "https://vamostaxi.site/checkout/pay/abc" });
     await h.settle();
     expect(h.appended).toHaveLength(0);
   });
 
   it("no request to Google's host before consent, and never a noscript frame", async () => {
     let release: (s: State) => void = () => {};
-    const h = load({ open: true, gtm: true, state: () => new Promise<State>((r) => (release = r)) });
+    const h = load({ open: true, gtm: "committed", state: () => new Promise<State>((r) => (release = r)) });
     await h.settle();
     expect(h.appended).toHaveLength(0);
     release(ACCEPTED);

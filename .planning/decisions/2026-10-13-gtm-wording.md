@@ -1,6 +1,6 @@
-# Wording for Google Tag Manager (DRAFT, not adopted)
+# Wording for Google Tag Manager (adopted)
 
-**Status: DRAFT.** Not adopted by the owner. Drafted by the agent on 2026-10-13 after the owner chose "Add GTM behind consent" (container `GTM-KPKGT4VH`). No lawyer has read it. It is **not on the site**: the code is built and stays off behind `GTM_ON = false` in `app/vamos-google.js` (mirror `GTM_OPEN` in `apps/web/lib/google/flag.ts`, a test pins the two). On adoption the build copies the texts below byte for byte into `app/vamos-meta-texts.js` and `apps/web/i18n/messages/*.json`, adds them to `owner-texts.test.ts`, flips both flags, and `CONSENT_POLICY_VERSION` moves to the ship day (every visitor is asked again). Never reword without his adoption.
+**Status: ADOPTED as written by the owner 2026-10-13 in the question form** (sections 1-4, en/de/fr/ar, no changes). Drafted by the agent on 2026-10-13 after the owner chose "Add GTM behind consent" (container `GTM-KPKGT4VH`). No lawyer has read it. The build copies the texts below byte for byte into `app/vamos-meta-texts.js` (`gtmBanner`, `gtmRow`, `gtmPrivacyLine`, `gtmProcessor`) and `apps/web/i18n/messages/*.json` (`cookies.gtm-banner`, `cookies.gtm-row`, `legal.gtm-privacy-line`, `legal.gtm-processor`), pinned by `owner-texts.test.ts`; `GTM_ON = true` in `app/vamos-google.js` and `GTM_OPEN = true` in `apps/web/lib/google/flag.ts` (a test pins the two). `CONSENT_POLICY_VERSION` stays `2026-10-13`: Tag Manager ships in the same release as GA4, so visitors are asked again once (owner, 2026-10-13). The container rule stands: only Google tags, no second GA4 or Google Ads tag, no Meta pixel inside the container. Never reword without his adoption.
 
 ## Where Google Tag Manager sits
 
