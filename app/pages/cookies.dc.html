@@ -267,7 +267,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <tbody>
 <tr data-cookies-row="1"><td colspan="4" data-vt-no-i18n="1" style="font-family:var(--vt-font-body)"><sc-for list="{{ rowSegs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code class="vt-dir-keep" style="font-family:var(--vt-font-mono);font-size:.92em;background:none">{{ g.t }}</code></sc-if></sc-for></td></tr>
 <tr data-cookies-row="1" data-cookies-google="1"><td colspan="4" data-vt-no-i18n="1" style="font-family:var(--vt-font-body)"><sc-for list="{{ googleSegs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code class="vt-dir-keep" style="font-family:var(--vt-font-mono);font-size:.92em;background:none">{{ g.t }}</code></sc-if></sc-for></td></tr>
-<tr data-cookies-row="1" data-cookies-gtm="1"><td colspan="4" data-vt-no-i18n="1" style="font-family:var(--vt-font-body)"><sc-for list="{{ gtmSegs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code class="vt-dir-keep" style="font-family:var(--vt-font-mono);font-size:.92em;background:none">{{ g.t }}</code></sc-if></sc-for></td></tr>
+<sc-if value="{{ gtmShown }}" hint-placeholder-val="{{ false }}"><tr data-cookies-row="1" data-cookies-gtm="1"><td colspan="4" data-vt-no-i18n="1" style="font-family:var(--vt-font-body)"><sc-for list="{{ gtmSegs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code class="vt-dir-keep" style="font-family:var(--vt-font-mono);font-size:.92em;background:none">{{ g.t }}</code></sc-if></sc-for></td></tr></sc-if>
 </tbody>
 </table></div>
 </section>
@@ -388,6 +388,7 @@ class Component extends DCLogic {
       updatedLabel: window.VamosLegalUpdated ? window.VamosLegalUpdated.label('cookies', this.state.lang) : '',
       rowSegs: this.segs('cookiesRow'),
       googleSegs: this.segs('googleRow'),
+      gtmShown: !!(window.VamosMetaTexts && window.VamosMetaTexts.gtmShown),
       gtmSegs: this.segs('gtmRow'),
       gaSegs: this.segs('gaRow'),
       tocOpen: this.state.tocOpen ? '1' : null,

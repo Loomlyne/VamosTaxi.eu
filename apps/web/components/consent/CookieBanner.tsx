@@ -17,6 +17,7 @@ import { Switch } from "@/components/forms";
 import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
 import { loadWebAnalytics } from "@/lib/consent/web-analytics";
 import { clearMetaBrowserState, clearMetaUnlessMarketingOn } from "@/lib/meta/clear-browser-state";
+import { GTM_OPEN } from "@/lib/google/flag";
 
 const { Link } = createNavigation(routing);
 
@@ -408,7 +409,8 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
             <h2 className="vt-ck-title">{t("you-choose-what-we-measure")}</h2>
             {/* Owner texts: the banner (2026-10-09 §1), then the Tag Manager sentence (2026-10-13-gtm-wording.md §1). */}
             <p className="vt-ck-body vt-ck-body--first">
-              {t.rich("meta-banner", {})} {t.rich("gtm-banner", {})}
+              {t.rich("meta-banner", {})}
+              {GTM_OPEN ? <> {t.rich("gtm-banner", {})}</> : null}
             </p>
             <p className="vt-ck-body vt-ck-body--link">
               <Link href="/cookies" className="vt-ck-link">

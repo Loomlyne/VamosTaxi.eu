@@ -54,7 +54,7 @@ describe("privacy mock (27-09)", () => {
     expect(privacy).toContain("this.segs('privacyLine'");
     expect(privacy).toContain("VamosMetaTexts.segments(key, lang)");
     const sec = privacy.match(/<section id="processors">[\s\S]*?<\/section>/)?.[0] ?? "";
-    expect(sec).toMatch(/<p data-vt-no-i18n="1" data-privacy-line="1">[\s\S]*<strong[\s\S]*<\/p>\s*<\/section>$/);
+    expect(sec).toMatch(/<p data-vt-no-i18n="1" data-privacy-line="1">[\s\S]*<strong[\s\S]*<\/p>\s*(<\/sc-if>\s*)?<\/section>$/);
     expect(sec.match(/<p data-vt-no-i18n="1" data-privacy-line="1">[\s\S]*<\/p>/)?.[0]).not.toContain("data-tok");
   });
 

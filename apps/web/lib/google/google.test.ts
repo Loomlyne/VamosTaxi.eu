@@ -196,11 +196,11 @@ const views = (h: H) => h.events().filter((c) => c[1] === "page_view");
 const PAGE = (path: string) => ({ page_location: `https://vamostaxi.site${path}`, page_referrer: "", page_title: path });
 
 describe("flags", () => {
-  it("Google, GA4 and Tag Manager are open in the committed state; each TypeScript flag equals the loader's", () => {
+  it("Google and GA4 are open and Tag Manager is off (2026-10-15) in the committed state; each TypeScript flag equals the loader's", () => {
     expect(GOOGLE_TAG_OPEN).toBe(true);
     expect(googleTagAllowed()).toBe(true);
     expect(GA4_OPEN).toBe(true);
-    expect(GTM_OPEN).toBe(true);
+    expect(GTM_OPEN).toBe(false);
     expect(/var GOOGLE_ON = (true|false);/.exec(rawSrc)?.[1]).toBe(String(GOOGLE_TAG_OPEN));
     expect(/var ANALYTICS_ON = (true|false);/.exec(rawSrc)?.[1]).toBe(String(GA4_OPEN));
     expect(/var GTM_ON = (true|false);/.exec(rawSrc)?.[1]).toBe(String(GTM_OPEN));
@@ -782,9 +782,18 @@ describe("purchase (GA4) and conversion (Ads)", () => {
   });
 });
 
-describe("Google Tag Manager (on, wording adopted 2026-10-13; the file as committed)", () => {
-  it("the committed loader asks for the container (its id from the flag file), and only with both choices", () => {
-    expect(rawSrc).toMatch(/var GTM_ON = true;/);
+describe("Google Tag Manager (code path forced on; committed state is off since 2026-10-15)", () => {
+  it("committed state: GTM_ON false, both choices on load no container script and no noscript frame", async () => {
+    expect(rawSrc).toMatch(/var GTM_ON = false;/);
+    const h = load({ open: true, gtm: "committed", state: () => Promise.resolve(ACCEPTED) });
+    await h.settle();
+    expect(h.appended.some((a) => a.src === GTM_SCRIPT)).toBe(false);
+    expect(h.appended.some((a) => (a.src ?? "").includes("/gtm" + ".js"))).toBe(false);
+    expect(h.g().tagManagerLoaded()).toBe(false);
+    expect(rawSrc).not.toMatch(/createElement\(['"]noscript/);
+  });
+
+  it("the loader asks for the container (its id from the flag file), and only with both choices", () => {
     expect(rawSrc).toContain("if (!(adsOn && !adsRevoked && gaOn && !gaRevoked)) return;");
     expect(GTM_SCRIPT).toBe("https://www.google" + "tagmanager.com/gtm" + ".js?id=GTM-KPKG" + "T4VH");
   });
@@ -797,14 +806,14 @@ describe("Google Tag Manager (on, wording adopted 2026-10-13; the file as commit
   });
 
   it("Google closed: nothing, the container neither", async () => {
-    const h = load({ open: false, gtm: "committed" });
+    const h = load({ open: false, gtm: true });
     await h.settle();
     expect(h.appended).toHaveLength(0);
     expect(h.win.dataLayer).toBeUndefined();
   });
 
   it("both on: after the consent default and the granted update, one gtm.start push and the container script", async () => {
-    const h = load({ open: true, gtm: "committed" });
+    const h = load({ open: true, gtm: true });
     await h.settle();
     expect(h.appended.map((a) => a.src)).toEqual([SCRIPT, GTM_SCRIPT]);
     const calls = h.calls();
@@ -824,7 +833,7 @@ describe("Google Tag Manager (on, wording adopted 2026-10-13; the file as commit
     ["Marketing only", MARKETING_ONLY],
     ["not chosen", NOT_CHOSEN],
   ])("%s: no container", async (_n, state) => {
-    const h = load({ open: true, gtm: "committed", state });
+    const h = load({ open: true, gtm: true, state });
     await h.settle();
     expect(h.appended.some((a) => a.src === GTM_SCRIPT)).toBe(false);
     expect(h.g().tagManagerLoaded()).toBe(false);
@@ -832,7 +841,7 @@ describe("Google Tag Manager (on, wording adopted 2026-10-13; the file as commit
 
   it("the second choice arriving later loads it then, once", async () => {
     let answer: State = ANALYTICS_ONLY;
-    const h = load({ open: true, gtm: "committed", state: () => Promise.resolve(answer) });
+    const h = load({ open: true, gtm: true, state: () => Promise.resolve(answer) });
     await h.settle();
     expect(h.g().tagManagerLoaded()).toBe(false);
     answer = ACCEPTED;
@@ -847,7 +856,7 @@ describe("Google Tag Manager (on, wording adopted 2026-10-13; the file as commit
     ["Marketing off", { marketing: false, analytics: true }],
   ])("%s after it ran: everything denied, every Google cookie deleted, never again on this page", async (_n, detail) => {
     let answer: State = ACCEPTED;
-    const h = load({ open: true, gtm: "committed", state: () => Promise.resolve(answer) });
+    const h = load({ open: true, gtm: true, state: () => Promise.resolve(answer) });
     await h.settle();
     answer = { ok: true, chosen: true, choice: detail };
     h.fire("vamos:consent", { detail });
@@ -866,14 +875,14 @@ describe("Google Tag Manager (on, wording adopted 2026-10-13; the file as commit
   });
 
   it("an address off the list: no container even with both on", async () => {
-    const h = load({ open: true, gtm: "committed", href: "https://vamostaxi.site/checkout/pay/abc" });
+    const h = load({ open: true, gtm: true, href: "https://vamostaxi.site/checkout/pay/abc" });
     await h.settle();
     expect(h.appended).toHaveLength(0);
   });
 
   it("no request to Google's host before consent, and never a noscript frame", async () => {
     let release: (s: State) => void = () => {};
-    const h = load({ open: true, gtm: "committed", state: () => new Promise<State>((r) => (release = r)) });
+    const h = load({ open: true, gtm: true, state: () => new Promise<State>((r) => (release = r)) });
     await h.settle();
     expect(h.appended).toHaveLength(0);
     release(ACCEPTED);

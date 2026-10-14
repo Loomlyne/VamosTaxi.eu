@@ -1,7 +1,7 @@
 /* Vamos Taxi — the Google tag loader: Google Ads (AW-368142830, owner decisions 2026-10-09 D2, D4) and Google
    Analytics 4 (G-K5MZME44P6, adopted wording .planning/decisions/2026-10-11-ga4-wording.md). One gtag.js library,
    one script, two configs, each under its own consent choice. Google Tag Manager (GTM-KPKGT4VH) runs behind
-   GTM_ON, open since its wording (.planning/decisions/2026-10-13-gtm-wording.md) was adopted 2026-10-13.
+   GTM_ON, off since 2026-10-15 (agency container duplicates the Ads and GA4 tags; see .planning/decisions/2026-10-15-gtm-off.md).
 
    Runs on the mock pages AND the Next pages (it asks the server itself, it does not need the mock consent
    runtime). Loaded from the cookie banner (mock) and from the locale layout (Next).
@@ -55,8 +55,10 @@
   /* GA4, same value as GA4_OPEN in apps/web/lib/google/flag.ts. Wording adopted 2026-10-11. */
   var ANALYTICS_ON = true;
   /* Google Tag Manager, same value as GTM_OPEN in apps/web/lib/google/flag.ts. Wording adopted 2026-10-13
-     (.planning/decisions/2026-10-13-gtm-wording.md). Only with Analytics AND Marketing on. */
-  var GTM_ON = true;
+     (.planning/decisions/2026-10-13-gtm-wording.md). Only with Analytics AND Marketing on.
+     OFF since 2026-10-15: the agency container holds its own Google Ads and GA4 tags (duplicates) that the owner
+     cannot edit. Turn back on only when the container is clean (.planning/decisions/2026-10-15-gtm-off.md). */
+  var GTM_ON = false;
 
   var TAG_ID = 'AW-368142830';
   var SEND_TO = 'AW-368142830/liI8CIe79pUdEO7Txa8B';

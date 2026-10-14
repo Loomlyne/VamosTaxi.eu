@@ -8,15 +8,18 @@
 // ANALYTICS_ON in the loader. It needs GOOGLE_TAG_OPEN too. Closing it alone stops the GA4 config, its events and
 // its purchase; the Ads tag is unchanged.
 //
-// Google Tag Manager (owner choice 2026-10-13 "Add GTM behind consent"): GTM_OPEN is GTM_ON in the loader. Open
-// since the owner adopted .planning/decisions/2026-10-13-gtm-wording.md as written (2026-10-13); same consent version
-// 2026-10-13 as GA4. It loads only with Analytics AND Marketing on. A test pins each pair.
+// Google Tag Manager (owner choice 2026-10-13 "Add GTM behind consent"): GTM_OPEN is GTM_ON in the loader. Wording
+// adopted as written 2026-10-13 (.planning/decisions/2026-10-13-gtm-wording.md); same consent version 2026-10-13.
+// OFF since 2026-10-15: the agency container holds duplicate Google Ads and GA4 tags the owner cannot edit; turn
+// back on only when the container is clean (.planning/decisions/2026-10-15-gtm-off.md). While off, its adopted
+// texts are not rendered (they would claim Tag Manager loads). When on, it loads only with Analytics AND Marketing
+// on. A test pins each pair.
 //
 // Do not read env here. Do not import React.
 
 export const GOOGLE_TAG_OPEN = true as const;
 export const GA4_OPEN = true as const;
-export const GTM_OPEN = true as const;
+export const GTM_OPEN = false as const;
 
 /** Public ids from the agency and the owner: not secrets. */
 export const GOOGLE_TAG_ID = "AW-368142830";
