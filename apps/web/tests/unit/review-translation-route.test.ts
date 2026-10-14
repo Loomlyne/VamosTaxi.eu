@@ -9,6 +9,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const state = {
   allow: true,
+  limiter: "ok" as "ok" | "missing" | "throws",
   limiterKeys: [] as string[],
   ai: { run: vi.fn() } as { run: ReturnType<typeof vi.fn> } | undefined,
 };
@@ -16,12 +17,16 @@ const state = {
 vi.mock("@opennextjs/cloudflare", () => ({
   getCloudflareContext: () => ({
     env: {
-      READ_RATE_LIMITER: {
-        limit: async ({ key }: { key: string }) => {
-          state.limiterKeys.push(key);
-          return { success: state.allow };
-        },
-      },
+      READ_RATE_LIMITER:
+        state.limiter === "missing"
+          ? undefined
+          : {
+              limit: async ({ key }: { key: string }) => {
+                state.limiterKeys.push(key);
+                if (state.limiter === "throws") throw new Error("limiter down");
+                return { success: state.allow };
+              },
+            },
       HYPERDRIVE: { connectionString: "postgres://unused" },
       AI: state.ai,
     },
@@ -100,6 +105,7 @@ function noStore(res: Response): void {
 
 beforeEach(() => {
   state.allow = true;
+  state.limiter = "ok";
   state.limiterKeys = [];
   state.ai = { run: vi.fn() };
   logs.length = 0;
@@ -285,6 +291,33 @@ describe("GET /api/reviews/:ref/translation", () => {
     const { res, raw } = await call(REF, "en");
     expect(res.status).toBe(429);
     noStore(res);
+    expect(state.limiterKeys).toEqual(["read:review-translate:203.0.113.7"]);
+    expect(store.reviewTranslationSource).not.toHaveBeenCalled();
+    expect(store.readCachedTranslation).not.toHaveBeenCalled();
+    expect(engine.translateText).not.toHaveBeenCalled();
+    assertClean(res, raw);
+  });
+
+  // PR #83 review: a cache miss here spends a model call, so this route alone fails closed.
+  it("limiter binding missing: 429 private, no database read, no engine call (fail closed)", async () => {
+    state.limiter = "missing";
+    const { res, json, raw } = await call(REF, "en");
+    expect(res.status).toBe(429);
+    noStore(res);
+    expect(json).toEqual({ ok: false, code: "rate_limited" });
+    expect(store.reviewTranslationSource).not.toHaveBeenCalled();
+    expect(store.readCachedTranslation).not.toHaveBeenCalled();
+    expect(engine.translateText).not.toHaveBeenCalled();
+    expect(engine.translateUnknown).not.toHaveBeenCalled();
+    assertClean(res, raw);
+  });
+
+  it("limiter that throws: 429 private, no database read, no engine call (fail closed)", async () => {
+    state.limiter = "throws";
+    const { res, json, raw } = await call(REF, "en");
+    expect(res.status).toBe(429);
+    noStore(res);
+    expect(json).toEqual({ ok: false, code: "rate_limited" });
     expect(state.limiterKeys).toEqual(["read:review-translate:203.0.113.7"]);
     expect(store.reviewTranslationSource).not.toHaveBeenCalled();
     expect(store.readCachedTranslation).not.toHaveBeenCalled();

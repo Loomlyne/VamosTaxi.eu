@@ -69,6 +69,35 @@ describe("read limiter keys and fail-open", () => {
     expect(await readAllowed({ limit: async () => ({ success: true }) } as never, "status", req)).toBe(true);
   });
 
+  it("failClosed (PR #83 review): a missing binding or a limiter that throws refuses; a caller without it still fails open", async () => {
+    const req = new Request("https://vamostaxi.site/x", { headers: IP });
+    const down = { limit: async () => { throw new Error("down"); } } as never;
+    expect(await readAllowed(undefined, "review-translate", req, { failClosed: true })).toBe(false);
+    expect(await readAllowed(down, "review-translate", req, { failClosed: true })).toBe(false);
+    expect(await readAllowed({ limit: async () => ({ success: true }) } as never, "review-translate", req, { failClosed: true })).toBe(true);
+    expect(await readAllowed({ limit: async () => ({ success: false }) } as never, "review-translate", req, { failClosed: true })).toBe(false);
+    // Default and explicit false keep the S12 fail-open for every other read.
+    expect(await readAllowed(undefined, "reviews", req)).toBe(true);
+    expect(await readAllowed(down, "reviews", req)).toBe(true);
+    expect(await readAllowed(undefined, "status", req, { failClosed: false })).toBe(true);
+    expect(await readAllowed(down, "status", req, {})).toBe(true);
+  });
+
+  it("only the review translate route passes failClosed", () => {
+    const routes = [
+      "app/api/checkout/status/[ref]/route.ts",
+      "app/api/checkout/resume/route.ts",
+      "app/api/manage/booking/route.ts",
+      "app/api/checkout/pay-link/open/route.ts",
+      "app/api/checkout/lock-expire/route.ts",
+      "app/api/reviews/route.ts",
+    ];
+    for (const r of routes) expect(readFileSync(join(webRoot, r), "utf8")).not.toMatch(/failClosed/);
+    expect(readFileSync(join(webRoot, "app/api/reviews/[ref]/translation/route.ts"), "utf8")).toMatch(
+      /readAllowed\(env\.READ_RATE_LIMITER, "review-translate", request, \{ failClosed: true \}\)/,
+    );
+  });
+
   it("the refusal is 429, private, never cached", async () => {
     const res = readRateLimited();
     expect(res.status).toBe(429);

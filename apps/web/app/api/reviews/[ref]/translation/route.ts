@@ -8,7 +8,9 @@
 //   400 { ok:false, code:"bad-request" }      ref not 16 hex, or lang not en/de/fr/ar
 //   404 { ok:false, code:"not-found" }        no published review with that ref
 //   409 { ok:false, code:"same-language" }    review language unknown or equal to lang
-//   429 readRateLimited()                     own key read:review-translate:<ip> (T-32-32)
+//   429 readRateLimited()                     own key read:review-translate:<ip> (T-32-32); also when the
+//                                             limiter binding is missing or throws (fail closed: a miss
+//                                             here can spend a model call, PR #83 review)
 //   503 { ok:false, code:"unavailable" }      translator down, answer rejected, or attempt cap reached
 //   every non-200 is private, no-store; POST/PUT/PATCH/DELETE answer 405.
 //
@@ -82,7 +84,9 @@ function capped(row: CachedTranslationRow | null): boolean {
 
 export async function GET(request: Request, context: { params: Promise<{ ref: string }> }): Promise<Response> {
   const { env } = getCloudflareContext();
-  if (!(await readAllowed(env.READ_RATE_LIMITER, "review-translate", request))) return readRateLimited();
+  if (!(await readAllowed(env.READ_RATE_LIMITER, "review-translate", request, { failClosed: true }))) {
+    return readRateLimited();
+  }
 
   const { ref } = await context.params;
   const lang = new URL(request.url).searchParams.get("lang");

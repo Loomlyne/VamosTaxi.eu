@@ -11,6 +11,8 @@
 // address from hammering the database, not a spread-out campaign (the zone rule stays the outer
 // gate). A missing binding or a limiter that throws lets the read through and logs: these are
 // reads, and a misconfiguration must not take the confirmation or the manage page down.
+// A caller whose read can spend money (the review translate tap runs a model call on a cache miss)
+// passes `{ failClosed: true }`: a missing or failing limiter then refuses (PR #83 review).
 
 import { log } from "../logger";
 import { limiterIp } from "./rate-limit";
@@ -27,27 +29,41 @@ export function readRateKey(route: ReadRoute, request: Request): string {
 }
 
 let missingWarned = false;
+let missingClosedWarned = false;
 
-/** True when the read may go ahead. */
+export type ReadAllowedOptions = {
+  /** Refuse when the binding is missing or throws (default false: let the read through). */
+  failClosed?: boolean;
+};
+
+/** True when the read may go ahead. A missing or failing limiter lets it through unless `failClosed`. */
 export async function readAllowed(
   limiter: RateLimit | undefined,
   route: ReadRoute,
   request: Request,
+  options: ReadAllowedOptions = {},
 ): Promise<boolean> {
+  const failClosed = options.failClosed === true;
   if (!limiter) {
-    // Once per isolate: `next dev` and unit runs have no binding at all.
-    if (!missingWarned) {
-      missingWarned = true;
-      log("warn", "read_rate_limit_missing", { requestId: "abuse", route: `read:${route}`, locale: null }, {});
+    // Once per isolate and mode: `next dev` and unit runs have no binding at all.
+    if (failClosed ? !missingClosedWarned : !missingWarned) {
+      if (failClosed) missingClosedWarned = true;
+      else missingWarned = true;
+      log("warn", "read_rate_limit_missing", { requestId: "abuse", route: `read:${route}`, locale: null }, {
+        fail_closed: failClosed ? 1 : 0,
+      });
     }
-    return true;
+    return !failClosed;
   }
   try {
     const out = await limiter.limit({ key: readRateKey(route, request) });
     return out.success;
   } catch {
-    log("warn", "read_rate_limit_degraded", { requestId: "abuse", route: `read:${route}`, locale: null }, { limiter_ok: 0 });
-    return true;
+    log("warn", "read_rate_limit_degraded", { requestId: "abuse", route: `read:${route}`, locale: null }, {
+      limiter_ok: 0,
+      fail_closed: failClosed ? 1 : 0,
+    });
+    return !failClosed;
   }
 }
 
