@@ -6,8 +6,9 @@ live database for it.
 Km bands (`public.distance_bands`), region % (`public.region_premiums`) and the Rules list
 (`public.rate_version_rules`, plus the link column `public.surcharges.rule_id`) go completely. They are
 blocked on live, have priced no customer since 2026-09-14, and you replaced them with city and canton
-extras. The rows that are left (read 2026-10-13: 20 km bands and 5 region % rows, all in retired price
-books 1 to 5; no rule; no surcharge linked to a rule) are copied into a backup schema
+extras. The rows that are left (live, read-only 2026-10-14 05:28: no km band, because the Phase 30 removal
+took all 95 and they sit in `backup_p30_20261012`; 25 region % rows, 5 in each retired price book 1 to 5;
+no rule; no surcharge linked to a rule) are copied into a backup schema
 `backup_pricing_20261014` and deleted in one transaction. Then Part B drops the three tables and the
 column. No price is written anywhere.
 
@@ -56,14 +57,28 @@ Files:
           ~ 'distance_bands|rate_version_rules|rule_id';                                       -- false
    select (select count(*) from backup_pricing_20261014.distance_bands),
           (select count(*) from backup_pricing_20261014.region_premiums),
-          (select count(*) from backup_pricing_20261014.rate_version_rules);                   -- 20, 5, 0
+          (select count(*) from backup_pricing_20261014.rate_version_rules);                   -- 0, 25, 0
+   ```
+7. **Message rows** (after the deploy; no live receipt carries the line, read 2026-10-14: 0
+   `price_snapshots`). The two `price.surcharge.region_premium.*` keys left the message files and the
+   seed in this PR, but the live `content_strings` table keeps rows until they are deleted. Preview,
+   then delete with a backup in the same schema, one transaction:
+
+   ```sql
+   select key from public.content_strings where key like 'price.surcharge.region\_premium.%';   -- preview: .label, .rule
+   begin;
+   create table backup_pricing_20261014.content_strings as
+     select * from public.content_strings where key like 'price.surcharge.region\_premium.%';
+   delete from public.content_strings where key like 'price.surcharge.region\_premium.%';
+   select count(*) from backup_pricing_20261014.content_strings;        -- same count as the preview
+   commit;
    ```
 
 ## Step 4 in detail (the script)
 
 1. Open the SQL editor (role postgres) for the live project and start a new query.
 2. STEP 0: copy the block under "STEP 0 - PREVIEW", remove the `/*` and `*/` lines, and run it. Check:
-   - 20 `distance_bands`, 5 `region_premiums`, 0 `rate_version_rules`, 0 `surcharges_with_rule_id`;
+   - 0 `distance_bands`, 25 `region_premiums`, 0 `rate_version_rules`, 0 `surcharges_with_rule_id`;
    - the per-book list shows only retired books;
    - the last query returns no row (nothing in a draft or live book).
    If a number differs, stop: the four numbers on the `create temporary table pricing_params` line must
@@ -71,8 +86,8 @@ Files:
 3. STEP 1: paste the whole script from `begin;` to `commit;` into a new query and run it once. Change
    nothing in it.
 4. Expected messages (NOTICE lines):
-   - `PRICING: 20 bands, 5 premiums, 0 rules, 0 rule links found (match expected)`
-   - `PRICING done: 20 bands, 5 premiums, 0 rules removed, 0 rule links; backup in backup_pricing_20261014; 0 rows left; triggers enabled`
+   - `PRICING: 0 bands, 25 premiums, 0 rules, 0 rule links found (match expected), all in retired books`
+   - `PRICING done: 0 bands, 25 premiums, 0 rules removed, 0 rule links; backup in backup_pricing_20261014; 0 rows left; triggers enabled`
 
 ## What each abort means (nothing was changed in every case)
 
@@ -80,9 +95,11 @@ Files:
   ran, or the schema is not the one this script was written for.
 - `PRICING abort: schema backup_pricing_20261014 already exists (the script ran before)` - do not run
   it a second time.
-- `PRICING abort: N distance_bands rows found, expected 20` (or region_premiums, rate_version_rules,
-  rule links) - live differs from the preview read on 2026-10-13. Report the number; do not edit the
+- `PRICING abort: N distance_bands rows found, expected 0` (or region_premiums, rate_version_rules,
+  rule links) - live differs from the preview read on 2026-10-14. Report the number; do not edit the
   expected numbers without the owner.
+- `PRICING abort: N band, premium or rule rows sit in a book that is not retired` - a draft or live
+  book holds a row; this script removes rows from retired books only. Report it.
 - `PRICING abort: backup holds ...`, `... rows or links still present`, `... trigger(s) not enabled` -
   the self-check after the delete failed; the whole transaction rolled back, the backup schema included.
 

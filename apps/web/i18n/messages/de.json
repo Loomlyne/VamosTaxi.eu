@@ -2716,10 +2716,6 @@
       "oversized_luggage": {
         "label": "Übergrosses Gepäck",
         "rule": "Pro angegebenes Stück"
-      },
-      "region_premium": {
-        "label": "Region",
-        "rule": "Abholung oder Ziel in einer benannten Region"
       }
     }
   },

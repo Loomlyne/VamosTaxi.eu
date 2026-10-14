@@ -9,9 +9,9 @@
 # Usage: bash scripts/pricing-remove-bands-local-proof.sh [lab-name]      (default pricing-pol; native lab must be up)
 #
 # Order proved (runbook docs/runbook/pricing-remove-bands-premiums.md):
-#   lab at the Part A schema (Part B held out of the tree for one `lab.sh reseed`)  ->  fixture: 20 km bands and 5
-#   region % rows in two retired books, 0 rules  ->  (a) Part B refuses, nothing applied  ->  (a2) a wrong count makes
-#   the script abort, nothing changed  ->  (b) the script runs: 20/5/0 deleted, backups 20/5/0, triggers on  ->
+#   lab at the Part A schema (Part B held out of the tree for one `lab.sh reseed`)  ->  fixture shaped like live
+#   (read 2026-10-14 05:28): 0 km bands, 25 region % rows (5 in each of five retired books), 0 rules, 0 rule links  ->  (a) Part B refuses, nothing applied  ->  (a2) a wrong count makes
+#   the script abort, nothing changed  ->  (a3) a row in a non-retired book makes it abort, nothing changed  ->  (b) the script runs: 0/25/0 deleted, backups 0/25/0, triggers on  ->
 #   (c) a second run aborts, nothing changed  ->  (d) Part B applies; tables and surcharges.rule_id gone.
 # On exit, whatever happened: Part B is back in the tree and the lab is reseeded to the full schema.
 # Synthetic values only (per_km_rappen 1, percent 1); no amount is a price.
@@ -83,34 +83,29 @@ if tables_exist && has_rule_id && ! has_guard \
   pass "lab $LAB is at the Part A schema (three tables and surcharges.rule_id present, lock check in place, no Part B guard)"
 else fail "lab is not at the Part A schema"; exit 1; fi
 
-# ---- Fixture: two retired synthetic books, 20 bands, 5 region % rows, 0 rules ---------------------------------------
+# ---- Fixture shaped like live: five retired synthetic books, 0 bands, 25 region % rows (5 per book), 0 rules ---------
 # Rows are inserted while the books are drafts (no frozen trigger involved); then the books are set to retired with
 # only rate_versions_transition switched off, by name, inside this lab transaction.
 psql_ -q >/dev/null <<'SQL'
 begin;
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity) values ('prb-proof', 3, 3);
-insert into public.service_zones (slug, iata) values ('prb-z1', null), ('prb-z2', null), ('prb-z3', null);
-insert into public.rate_versions (slug, label) values ('prb-ret-1', 'pricing proof retired 1'), ('prb-ret-2', 'pricing proof retired 2');
-insert into public.distance_bands (rate_version_id, vehicle_class_id, from_km, to_km, per_km_rappen)
-select rv.id, vc.id, g, g + 1, 1
-  from public.rate_versions rv, public.vehicle_classes vc, generate_series(0, 9) g
- where rv.slug in ('prb-ret-1', 'prb-ret-2') and vc.slug = 'prb-proof';
+insert into public.service_zones (slug, iata) select 'prb-z' || g, null from generate_series(1, 5) g;
+insert into public.rate_versions (slug, label) select 'prb-ret-' || g, 'pricing proof retired ' || g from generate_series(1, 5) g;
 insert into public.region_premiums (rate_version_id, zone_id, percent)
 select rv.id, z.id, 1
   from public.rate_versions rv, public.service_zones z
- where (rv.slug = 'prb-ret-1' and z.slug in ('prb-z1', 'prb-z2', 'prb-z3'))
-    or (rv.slug = 'prb-ret-2' and z.slug in ('prb-z1', 'prb-z2'));
+ where rv.slug like 'prb-ret-%' and z.slug like 'prb-z%';
 alter table public.rate_versions disable trigger rate_versions_transition;
-update public.rate_versions set status = 'retired', published_at = now() where slug in ('prb-ret-1', 'prb-ret-2');
+update public.rate_versions set status = 'retired', published_at = now() where slug like 'prb-ret-%';
 alter table public.rate_versions enable trigger rate_versions_transition;
 commit;
 SQL
 
 COUNTS="$(n "select concat_ws('/', (select count(*) from public.distance_bands), (select count(*) from public.region_premiums), (select count(*) from public.rate_version_rules), (select count(*) from public.surcharges where rule_id is not null))")"
 INRET="$(n "select count(*) from (select rate_version_id from public.distance_bands union all select rate_version_id from public.region_premiums) t join public.rate_versions rv on rv.id = t.rate_version_id where rv.status = 'retired'")"
-if [ "$COUNTS" = "20/5/0/0" ] && [ "$INRET" = 25 ] \
+if [ "$COUNTS" = "0/25/0/0" ] && [ "$INRET" = 25 ] \
    && [ "$(n "select tgenabled from pg_trigger where tgname = 'rate_versions_transition'")" = O ]; then
-  pass "fixture: 20 bands, 5 region % rows (all 25 in retired books), 0 rules, 0 rule links"
+  pass "fixture like live: 0 bands, 25 region % rows (all 25 in five retired books), 0 rules, 0 rule links"
 else fail "fixture is not the expected shape (counts $COUNTS, in retired books $INRET)"; exit 1; fi
 
 sig() {
@@ -127,19 +122,33 @@ SIG0="$(sig)"
 
 # ---- (a) Part B refuses while rows exist ---------------------------------------------------------------------------
 OUT="$(psql_ -1 -f "$MIG/$MB" 2>&1 || true)"
-if printf '%s' "$OUT" | grep -q 'pricing-bands-premiums-rules-present: public.distance_bands' \
+if printf '%s' "$OUT" | grep -q 'pricing-bands-premiums-rules-present: public.region_premiums' \
    && tables_exist && has_rule_id && ! has_guard && [ "$(sig)" = "$SIG0" ]; then
   pass "(a) Part B refuses with rows present (pricing-bands-premiums-rules-present); tables, rule_id and rows unchanged"
 else fail "(a) Part B did not refuse: $(printf '%s' "$OUT" | tail -2)"; fi
 
 # ---- (a2) a wrong expected count makes the script abort -------------------------------------------------------------
-sed 's/^select 20::int as expected_bands,/select 21::int as expected_bands,/' "$SQL" >"$TMP/wrong-count.sql"
+sed 's/^       25::int as expected_premiums,/       26::int as expected_premiums,/' "$SQL" >"$TMP/wrong-count.sql"
 cmp -s "$SQL" "$TMP/wrong-count.sql" && { fail "sed did not change the expected count"; exit 1; }
 awk '/^begin;$/{f=1} f{print} /^commit;$/{f=0}' "$TMP/wrong-count.sql" >"$TMP/wrong-step1.sql"
 OUT="$(psql_ -f "$TMP/wrong-step1.sql" 2>&1 || true)"
-if printf '%s' "$OUT" | grep -q 'PRICING abort: 20 distance_bands rows found, expected 21. Nothing was changed.' && [ "$(sig)" = "$SIG0" ]; then
+if printf '%s' "$OUT" | grep -q 'PRICING abort: 25 region_premiums rows found, expected 26. Nothing was changed.' && [ "$(sig)" = "$SIG0" ]; then
   pass "(a2) wrong-count abort: PRICING abort, nothing changed"
 else fail "(a2) wrong-count abort: $(printf '%s' "$OUT" | tail -2)"; fi
+
+# ---- (a3) a row in a book that is not retired makes the script abort ------------------------------------------------
+# One extra region % row in the lab's draft book; the expected count is raised to 26 so only the book check can stop it.
+DRAFT_ID="$(n "select id from public.rate_versions where status = 'draft' order by id desc limit 1")"
+[ -n "$DRAFT_ID" ] || { fail "(a3) the lab has no draft book"; exit 1; }
+n "insert into public.region_premiums (rate_version_id, zone_id, percent) select $DRAFT_ID, id, 1 from public.service_zones where slug = 'prb-z1'" >/dev/null
+SIG_A3="$(sig)"
+OUT="$(psql_ -f "$TMP/wrong-step1.sql" 2>&1 || true)"
+if printf '%s' "$OUT" | grep -q 'PRICING abort: 1 band, premium or rule rows sit in a book that is not retired. Nothing was changed.' \
+   && [ "$(sig)" = "$SIG_A3" ]; then
+  pass "(a3) a region % row in the draft book: PRICING abort (not retired), nothing changed"
+else fail "(a3) not-retired abort: $(printf '%s' "$OUT" | tail -2)"; fi
+n "delete from public.region_premiums where rate_version_id = $DRAFT_ID and zone_id = (select id from public.service_zones where slug = 'prb-z1')" >/dev/null
+[ "$(sig)" = "$SIG0" ] || { fail "(a3) clean-up did not restore the fixture"; exit 1; }
 
 # ---- (b) STEP 1 of the real file -------------------------------------------------------------------------------------
 awk '/^begin;$/{f=1} f{print} /^commit;$/{f=0}' "$SQL" >"$TMP/step1.sql"
@@ -150,13 +159,13 @@ BK="$(n "select concat_ws('/', (select count(*) from backup_pricing_20261014.dis
 LEFT="$(n "select concat_ws('/', (select count(*) from public.distance_bands), (select count(*) from public.region_premiums), (select count(*) from public.rate_version_rules), (select count(*) from public.surcharges where rule_id is not null))")"
 NOT_ON="$(n "select count(*) from pg_trigger where (tgname like 'distance_bands_frozen%' or tgname like 'region_premiums_frozen%' or tgname like 'rate_version_rules_frozen%') and tgenabled <> 'O'")"
 ON="$(n "select count(*) from pg_trigger where (tgname like 'distance_bands_frozen%' or tgname like 'region_premiums_frozen%' or tgname like 'rate_version_rules_frozen%') and tgenabled = 'O'")"
-if printf '%s' "$OUT" | grep -q 'PRICING: 20 bands, 5 premiums, 0 rules, 0 rule links found (match expected)' \
-   && printf '%s' "$OUT" | grep -q 'PRICING done: 20 bands, 5 premiums, 0 rules removed, 0 rule links' \
-   && [ "$BK" = "20/5/0/0" ] && [ "$LEFT" = "0/0/0/0" ] && [ "$NOT_ON" = 0 ] && [ "$ON" = 6 ]; then
-  pass "(b) script ran: NOTICE 20/5/0; backup 20/5/0/0; tables empty; 6 frozen triggers enabled"
+if printf '%s' "$OUT" | grep -q 'PRICING: 0 bands, 25 premiums, 0 rules, 0 rule links found (match expected), all in retired books' \
+   && printf '%s' "$OUT" | grep -q 'PRICING done: 0 bands, 25 premiums, 0 rules removed, 0 rule links' \
+   && [ "$BK" = "0/25/0/0" ] && [ "$LEFT" = "0/0/0/0" ] && [ "$NOT_ON" = 0 ] && [ "$ON" = 6 ]; then
+  pass "(b) script ran: NOTICE 0/25/0; backup 0/25/0/0; tables empty; 6 frozen triggers enabled"
 else fail "(b) script: BK=$BK LEFT=$LEFT NOT_ON=$NOT_ON ON=$ON; $(printf '%s' "$OUT" | tail -2)"; fi
-[ "$(n "select count(*) from backup_pricing_20261014.distance_bands where per_km_rappen = 1")" = 20 ] \
-  && [ "$(n "select count(*) from backup_pricing_20261014.region_premiums where percent = 1")" = 5 ] \
+[ "$(n "select count(*) from backup_pricing_20261014.distance_bands ")" = 0 ] \
+  && [ "$(n "select count(*) from backup_pricing_20261014.region_premiums where percent = 1")" = 25 ] \
   && pass "(b) backup rows are the fixture rows (all columns kept)" || fail "(b) backup rows do not match the fixture"
 
 # ---- (c) a second run aborts and changes nothing -------------------------------------------------------------------
@@ -177,8 +186,8 @@ if OUT="$(n 'select app.pricing_assert_bands_premiums_rules_gone();' 2>&1)"; the
 else fail "(d) guard raised after Part B: $OUT"; fi
 [ "$(n "select (pg_get_functiondef('public.ops_vehicle_class_set_status(uuid, text, text)'::regprocedure) ~ 'distance_bands|rate_version_rules|rule_id')::text || '/' || (pg_get_functiondef('public.ops_vehicle_class_delete_or_hide(uuid, text)'::regprocedure) ~ 'distance_bands|rate_version_rules|rule_id')::text")" = "false/false" ] \
   && pass "(d) the two class functions no longer name the dropped objects" || fail "(d) a class function still names a dropped object"
-[ "$(n "select concat_ws('/', (select count(*) from backup_pricing_20261014.distance_bands), (select count(*) from backup_pricing_20261014.region_premiums))")" = "20/5" ] \
-  && pass "(d) the backup schema survives Part B (20/5)" || fail "(d) backup schema changed by Part B"
+[ "$(n "select concat_ws('/', (select count(*) from backup_pricing_20261014.distance_bands), (select count(*) from backup_pricing_20261014.region_premiums))")" = "0/25" ] \
+  && pass "(d) the backup schema survives Part B (0/25)" || fail "(d) backup schema changed by Part B"
 
 echo "----"
 if [ "$FAILS" = 0 ]; then echo "PASS | pricing proof | all checks passed"; else echo "FAIL | pricing proof | $FAILS check(s) failed"; exit 1; fi

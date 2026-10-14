@@ -13,8 +13,9 @@
 -- no longer read the three tables), and BEFORE Part B. Role postgres. No amounts are written.
 --
 -- ============================================================================================
--- STEP 0 - PREVIEW. Run ONLY this block first (it changes nothing). Expected (read 2026-10-13):
--- 20 distance_bands and 5 region_premiums, all in retired books 1-5; 0 rate_version_rules;
+-- STEP 0 - PREVIEW. Run ONLY this block first (it changes nothing). Expected (live, read-only by the
+-- controller 2026-10-14 05:28): 0 distance_bands (the Phase 30 removal took all 95, see
+-- backup_p30_20261012), 25 region_premiums (5 in each retired book 1-5), 0 rate_version_rules,
 -- 0 surcharges with rule_id; the last query (rows in a draft or live book) returns no row.
 -- ============================================================================================
 /*
@@ -49,8 +50,8 @@ select t.tbl, rv.id as book, rv.status, count(*) as n
 begin;
 
 create temporary table pricing_params on commit drop as
-select 20::int as expected_bands,
-       5::int  as expected_premiums,
+select 0::int  as expected_bands,
+       25::int as expected_premiums,
        0::int  as expected_rules,
        0::int  as expected_rule_links;
 
@@ -62,6 +63,7 @@ declare
   v_premiums int;
   v_rules int;
   v_links int;
+  v_open int;
 begin
   select * into p from pricing_params;
 
@@ -96,7 +98,20 @@ begin
     raise exception 'PRICING abort: % surcharges carry a rule_id, expected %. Nothing was changed.', v_links, p.expected_rule_links;
   end if;
 
-  raise notice 'PRICING: % bands, % premiums, % rules, % rule links found (match expected)', v_bands, v_premiums, v_rules, v_links;
+  -- Only retired books may lose a row here: a band, premium or rule in a draft or live book stops it.
+  execute $q$
+    select count(*)
+      from (select rate_version_id from public.distance_bands
+            union all select rate_version_id from public.region_premiums
+            union all select rate_version_id from public.rate_version_rules) t
+      join public.rate_versions rv on rv.id = t.rate_version_id
+     where rv.status <> 'retired'
+  $q$ into v_open;
+  if v_open <> 0 then
+    raise exception 'PRICING abort: % band, premium or rule rows sit in a book that is not retired. Nothing was changed.', v_open;
+  end if;
+
+  raise notice 'PRICING: % bands, % premiums, % rules, % rule links found (match expected), all in retired books', v_bands, v_premiums, v_rules, v_links;
 end $$;
 
 -- Backup copy (before any delete) ------------------------------------------------------------------
