@@ -55,7 +55,7 @@ describe("read limiter keys and fail-open", () => {
   it("one key per route and address; IPv6 is cut to its /64", () => {
     const v4 = new Request("https://vamostaxi.site/x", { headers: IP });
     const v6 = new Request("https://vamostaxi.site/x", { headers: { "cf-connecting-ip": "2001:db8:1:2:aaaa:bbbb:cccc:dddd" } });
-    const routes: ReadRoute[] = ["status", "resume", "manage", "paylink", "lockexpire", "reviews"];
+    const routes: ReadRoute[] = ["status", "resume", "manage", "paylink", "lockexpire", "reviews", "review-translate"];
     expect(new Set(routes.map((r) => readRateKey(r, v4))).size).toBe(routes.length);
     expect(readRateKey("status", v4)).toBe("read:status:203.0.113.7");
     expect(readRateKey("status", v6)).toBe("read:status:2001:db8:1:2::/64");
