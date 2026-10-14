@@ -86,7 +86,7 @@ describe("GET /api/reviews", () => {
     // Phase 32: the ref is computed in SQL from the body, never from the row id.
     expect(fragments.join(" ")).toMatch(/public\.review_ref\(r\.body\)\s+as\s+ref/);
     expect(fragments.join(" ")).toMatch(/\br\.language\b/);
-    for (const item of json.data as { ref: string; language: string | null }[]) {
+    for (const item of (json as { data: { ref: string; language: string | null }[] }).data) {
       expect(item.ref).toMatch(/^[0-9a-f]{16}$/);
       expect(item.ref).not.toBe("r1");
       expect(item).toHaveProperty("language");
