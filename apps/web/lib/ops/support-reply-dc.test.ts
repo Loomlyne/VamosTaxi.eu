@@ -437,6 +437,23 @@ describe("customer messages and the pending poll", () => {
     expect(t[3]).toMatchObject({ isPlain: true, hasNote: false });
   });
 
+  // Plan 32-12 browser run: the server marks a message "pending" only while its language is NOT detected yet
+  // (tickets-map.ts messageTranslation), so a real pending message always arrives with lang "". A job that failed
+  // before detecting the language arrives as "failed" with lang "" too. Both must still show their note.
+  it("pending and failed with no detected language (the server's real shape) still show their notes", async () => {
+    const rows = [ticket({ messages: [
+      { whoKey: "customer", when: "x", body: "Bonjour", files: [], lang: "", translation: { status: "pending", text: "" } },
+      { whoKey: "customer", when: "x", body: "Hallo", files: [], lang: "", translation: { status: "failed", text: "" } },
+      { whoKey: "customer", when: "x", body: "Hola", files: [], lang: "", translation: { status: "ready", text: "Hello" } },
+    ] })];
+    const env = await boot(rows);
+    const t = env.inst.renderVals().thread;
+    expect(t[0]).toMatchObject({ isPlain: true, hasNote: true, noteText: "Translating…", noteSpin: "1" });
+    expect(t[0].bodyLang).toBeUndefined();
+    expect(t[1]).toMatchObject({ isPlain: true, hasNote: true, noteText: "Translation not available" });
+    expect(t[2]).toMatchObject({ isTr: true, trText: "Hello", fromLine: "Translated", dir: "ltr" });
+  });
+
   it("pending re-reads at most 5 times, 2 s apart, then reads as failed until the ticket is opened again", async () => {
     const pending = [ticket({ messages: [{ whoKey: "customer", when: "x", body: "Hallo", files: [], lang: "de", translation: { status: "pending", text: "" } }] })];
     const env = load(pending);
