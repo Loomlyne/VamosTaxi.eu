@@ -30,3 +30,8 @@ Live facts read 2026-10-14 01:5x: `rate_version_rules` has 0 rows in every book;
 13. **Rules box becomes one box: "Price stays valid for 24 hours"** (edits `quote_lock_minutes`). Waiting unit, Free-wait hours and Service area leave the Pricing screen, and so does the hidden `city_pair` write. `rate_version_rules` is dropped in PR #81 part B, after its archive tag. No price changes, nothing public changes. Part of PR #81; pictures for his signature before code.
 14. **Extra waiting after the included time: not charged, not now.** Waiting stays free; late cases handled by hand.
 15. **Service area: keep as is, no map screen.** Changing the shape is a reviewed database change on request.
+
+## 2026-10-14 ~05:35 (+04): PR #81 copy and hold hours
+
+16. The three field lines on the "Price stays valid for" box are signed as written, in en/de/fr/ar: "Enter whole hours, 1 or more." / "Could not save. Try again." / "Saved in the draft."
+17. Checkout's "This price is held for {hours} hours" (Settings checkout window) should follow the Pricing box. This is a follow-up job after #81, not part of #81. Both are 24 today.
