@@ -11,6 +11,7 @@
 // → reload shows 48 → Publish fare book succeeds → the live book and the newest settings_versions row hold 2880.
 // Prints PASS/FAIL lines (lab-browser.mjs step format) and exits 1 on any FAIL. The lab keeps 48 hours afterwards
 // (lab data is disposable; a `lab.sh reseed` brings back the seed).
+import { readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
@@ -65,8 +66,35 @@ async function openDistanceRules() {
 const btnState = async () => saveBtn().evaluate((b) => ({ primary: b.classList.contains("vt-btn--primary"), ghost: b.classList.contains("vt-btn--ghost"), disabled: b.disabled }));
 
 let draftId = null;
-const ok1 = await step("L1", "dashboard sign-in as the lab admin", async () => {
-  await dashboardSignIn(s);
+// The dashboard login opens on "Email me a link" (password is no longer offered there), so the shared
+// dashboardSignIn helper (password form) cannot sign in. Sign in the way the owner does, with the emailed
+// 6-digit code: the page requests it, then this script mints a fresh code for the same address through the
+// lab's LOCAL Supabase admin API (generate_link, service key from the lab's own sb.env; 127.0.0.1 only) and
+// types it. The lab's auth mail reaches neither Mailpit nor the fakes mailbox, so the code is minted, not read.
+async function magicSignIn() {
+  const f = Object.fromEntries(readFileSync(process.env.LAB_ADMIN_FILE, "utf8").split("\n").filter(Boolean).map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1)]));
+  const sb = Object.fromEntries(readFileSync(join(process.env.LAB_STATE, "sb.env"), "utf8").split("\n").filter((l) => /^[A-Z_]+=/.test(l)).map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1).replace(/^"|"$/g, "")]));
+  if (!/^http:\/\/(127\.0\.0\.1|localhost):\d+/.test(sb.API_URL || "")) throw new Error("refusing: lab API_URL is not local");
+  await page.goto(DASH + "/login", { waitUntil: "networkidle" });
+  await page.waitForTimeout(1500);
+  await page.locator("input[type=email]").fill(f.email);
+  await page.getByRole("button", { name: /email me a link/i }).click();
+  const box = page.locator("input[autocomplete='one-time-code'], input[inputmode='numeric']").first();
+  await box.waitFor({ timeout: 15000 });
+  const r = await fetch(`${sb.API_URL}/auth/v1/admin/generate_link`, {
+    method: "POST",
+    headers: { apikey: sb.SERVICE_ROLE_KEY, authorization: `Bearer ${sb.SERVICE_ROLE_KEY}`, "content-type": "application/json" },
+    body: JSON.stringify({ type: "magiclink", email: f.email }),
+  });
+  const j = await r.json();
+  const code = j.email_otp ?? j.properties?.email_otp;
+  if (!code) throw new Error(`generate_link gave no code (${r.status})`);
+  await box.fill(code);
+  await page.getByRole("button", { name: /^sign in$/i }).click();
+  await page.waitForURL((u) => !/\/login/.test(u.pathname), { timeout: 20000 });
+}
+const ok1 = await step("L1", "dashboard sign-in as the lab admin (emailed code)", async () => {
+  await magicSignIn();
   return { ok: !/\/login/.test(new URL(page.url()).pathname), evidence: new URL(page.url()).pathname };
 });
 if (ok1) {
