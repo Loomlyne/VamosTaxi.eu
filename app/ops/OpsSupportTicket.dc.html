@@ -10,6 +10,8 @@
 <body>
 <x-dc>
 <style>
+:root{--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
 [data-kb]{display:grid;grid-template-columns:repeat(5,minmax(17.5rem,1fr));gap:14px;min-width:0;overflow-x:auto;overflow-y:hidden;align-items:start;padding-block-end:4px}
 [data-kb-col]{box-sizing:border-box;width:auto;min-width:0;min-inline-size:17.5rem;padding:12px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);display:flex;flex-direction:column;gap:10px;min-block-size:280px}
 [data-kb-col][data-open="0"]{min-block-size:0;gap:0}
@@ -73,6 +75,14 @@
 [data-msg][data-from="note"]{align-self:center;max-width:100%;background:transparent;border-style:dashed;border-width:1px;color:var(--vt-text-muted);font-size:var(--vt-body-xs);text-align:center}
 [data-msg][data-from="staff"] [data-chip]{background:transparent;border-color:rgb(255 255 255 / .28);color:var(--vt-text-inverse)}
 [data-msg] p{white-space:pre-wrap}
+[data-msg-body],[data-msg-tr]{margin:0;font-size:var(--vt-body-sm);line-height:1.55;text-wrap:pretty}
+[data-msg-from],[data-msg-status]{display:flex;align-items:center;gap:4px;margin-block-start:8px;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted)}
+[data-msg-orig]{margin:8px 0 0;padding-block-start:8px;border-block-start:1px solid var(--vt-border-subtle);font-size:var(--vt-body-xs);line-height:1.55;color:var(--vt-text-muted);text-align:start;unicode-bidi:plaintext;overflow-wrap:anywhere}
+[data-tr-spin]{display:inline-flex}
+@media (prefers-reduced-motion:no-preference){
+  [data-tr-spin="1"]{animation:tr-spin 1s linear infinite}
+}
+@keyframes tr-spin{to{transform:rotate(360deg)}}
 [data-files]{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin-block-start:8px;min-width:0}
 [data-msg][data-from="staff"] [data-files]{align-items:flex-end}
 [data-files] .vt-btn{max-inline-size:100%}
@@ -104,7 +114,7 @@
   [data-ov]{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:10px}
   [data-ov-meta]{order:-1;overflow:visible;gap:8px;padding-inline:0;max-block-size:none}
   [data-ov-chat]{min-block-size:0;height:100%;max-block-size:none;align-self:stretch}
-  [data-thread]{min-block-size:240px;flex:1 1 0%}
+  [data-thread]{min-block-size:160px;flex:1 1 0%}
   [data-person]{grid-template-columns:36px minmax(0,1fr) auto;padding:10px 12px;gap:6px 10px}
   [data-person] [data-av]{width:36px;height:36px;font-size:13px}
   [data-person-name]{flex-wrap:wrap}
@@ -223,7 +233,23 @@
 <span data-chip="1">{{ m.who }}</span>
 <span style="font-size:var(--vt-body-xs);opacity:.72">{{ m.when }}</span>
 </div>
-<p data-vt-no-i18n="1" style="margin:0;font-size:var(--vt-body-sm);line-height:1.55;text-wrap:pretty">{{ m.body }}</p>
+<sc-if value="{{ m.isTr }}" hint-placeholder-val="{{ false }}">
+<p data-msg-tr="1" data-vt-no-i18n="1" lang="{{ m.dashLang }}" dir="{{ m.dashDir }}">{{ m.trText }}</p>
+<div data-msg-from="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="globe" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+<span>{{ m.fromLine }}</span>
+</div>
+<p data-msg-orig="1" data-vt-no-i18n="1" lang="{{ m.lang }}" dir="{{ m.dir }}">{{ m.body }}</p>
+</sc-if>
+<sc-if value="{{ m.isPlain }}" hint-placeholder-val="{{ true }}">
+<p data-msg-body="1" data-vt-no-i18n="1" lang="{{ m.bodyLang }}" dir="{{ m.bodyDir }}">{{ m.body }}</p>
+<sc-if value="{{ m.hasNote }}" hint-placeholder-val="{{ false }}">
+<div data-msg-status="{{ m.noteKind }}">
+<span data-tr-spin="{{ m.noteSpin }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ m.noteIcon }}" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import></span>
+<span>{{ m.noteText }}</span>
+</div>
+</sc-if>
+</sc-if>
 <div data-files="1">
 <sc-for list="{{ m.files }}" as="f" hint-placeholder-count="0">
 <span data-chip="1" data-file-name="1" data-vt-no-i18n="1">{{ f.filename }}</span>
@@ -335,7 +361,7 @@ const T = {
     emptyTitle:'No tickets', emptyBody:'Contact-page messages land here.', colEmpty:'No tickets',
     status:'Status', close:'Close', closeTicket:'Close Ticket', reopen:'Reopen', customer:'Customer', staff:'Dispatcher', noteWho:'Note',
     kanban:'Kanban', table:'Table', colName:'Customer', colEmail:'Email', colPhone:'Phone', colRef:'Ref', colWhen:'When', colLocale:'Locale',
-    answer:'Answer by e-mail', mailHint:'Read only. The button opens a reply to this customer in your mail app.', mailApp:'Mail app', mailAuto:'This device’s mail app', mailGmail:'Gmail in the browser', closedBody:'This ticket is closed. Reopen it to keep working.',
+    answer:'Answer by e-mail', translatedFrom:"Translated from %s", translatedNoLang:"Translated", translating:"Translating…", trNotAvailable:"Translation not available", mailHint:'Read only. The button opens a reply to this customer in your mail app.', mailApp:'Mail app', mailAuto:'This device’s mail app', mailGmail:'Gmail in the browser', closedBody:'This ticket is closed. Reopen it to keep working.',
     loadError:'Could not load tickets. Try again.',
     sendError:'Couldn’t save. Try again.',
     footNew:'Waiting on dispatch', footOpen:'In progress', footMsgs:'Across every ticket', footAll:'On the board',
@@ -351,7 +377,7 @@ const T = {
     emptyTitle:'Keine Tickets', emptyBody:'Nichts in diesem Filter.', colEmpty:'Keine Tickets',
     status:'Status', close:'Schliessen', closeTicket:'Ticket schliessen', reopen:'Wieder öffnen', customer:'Kunde', staff:'Disponent', noteWho:'Notiz',
     kanban:'Kanban', table:'Tabelle', colName:'Kunde', colEmail:'E-Mail', colPhone:'Telefon', colRef:'Ref.', colWhen:'Wann', colLocale:'Sprache',
-    answer:'Per E-Mail antworten', mailHint:'Nur lesen. Die Schaltfläche öffnet eine Antwort an diesen Kunden in Ihrem E-Mail-Programm.', mailApp:'E-Mail-Programm', mailAuto:'E-Mail-Programm dieses Geräts', mailGmail:'Gmail im Browser', closedBody:'Dieses Ticket ist geschlossen. Öffnen Sie es erneut, um weiterzuarbeiten.',
+    answer:'Per E-Mail antworten', translatedFrom:"Übersetzt (Original: %s)", translatedNoLang:"Übersetzt", translating:"Wird übersetzt …", trNotAvailable:"Übersetzung nicht verfügbar", mailHint:'Nur lesen. Die Schaltfläche öffnet eine Antwort an diesen Kunden in Ihrem E-Mail-Programm.', mailApp:'E-Mail-Programm', mailAuto:'E-Mail-Programm dieses Geräts', mailGmail:'Gmail im Browser', closedBody:'Dieses Ticket ist geschlossen. Öffnen Sie es erneut, um weiterzuarbeiten.',
     loadError:'Tickets konnten nicht geladen werden. Bitte erneut versuchen.',
     sendError:'Speichern fehlgeschlagen. Bitte erneut versuchen.',
     footNew:'Wartet auf Dispatch', footOpen:'In Bearbeitung', footMsgs:'Über alle Tickets', footAll:'Auf dem Board',
@@ -367,7 +393,7 @@ const T = {
     emptyTitle:'Aucun ticket', emptyBody:'Rien dans ce filtre.', colEmpty:'Aucun ticket',
     status:'Statut', close:'Fermer', closeTicket:'Fermer le ticket', reopen:'Réouvrir', customer:'Client', staff:'Régulateur', noteWho:'Note',
     kanban:'Kanban', table:'Tableau', colName:'Client', colEmail:'E-mail', colPhone:'Téléphone', colRef:'Réf.', colWhen:'Quand', colLocale:'Langue',
-    answer:'Répondre par e-mail', mailHint:'Lecture seule. Le bouton ouvre une réponse à ce client dans votre messagerie.', mailApp:'Messagerie', mailAuto:'Messagerie de cet appareil', mailGmail:'Gmail dans le navigateur', closedBody:'Ce ticket est fermé. Réouvrez-le pour continuer.',
+    answer:'Répondre par e-mail', translatedFrom:"Traduit (original : %s)", translatedNoLang:"Traduit", translating:"Traduction en cours…", trNotAvailable:"Traduction indisponible", mailHint:'Lecture seule. Le bouton ouvre une réponse à ce client dans votre messagerie.', mailApp:'Messagerie', mailAuto:'Messagerie de cet appareil', mailGmail:'Gmail dans le navigateur', closedBody:'Ce ticket est fermé. Réouvrez-le pour continuer.',
     loadError:'Impossible de charger les tickets. Réessayez.',
     sendError:'Impossible d’enregistrer. Réessayez.',
     footNew:'En attente dispatch', footOpen:'En cours', footMsgs:'Tous tickets confondus', footAll:'Sur le tableau',
@@ -383,7 +409,7 @@ const T = {
     emptyTitle:'لا تذاكر', emptyBody:'لا شيء في هذا التصفية.', colEmpty:'لا تذاكر',
     status:'الحالة', close:'إغلاق', closeTicket:'إغلاق التذكرة', reopen:'إعادة الفتح', customer:'العميل', staff:'الموزّع', noteWho:'ملاحظة',
     kanban:'كانبان', table:'جدول', colName:'العميل', colEmail:'البريد', colPhone:'الهاتف', colRef:'المرجع', colWhen:'متى', colLocale:'اللغة',
-    answer:'الرد عبر البريد الإلكتروني', mailHint:'للقراءة فقط. الزر يفتح ردًا على هذا العميل في تطبيق بريدك.', mailApp:'تطبيق البريد', mailAuto:'تطبيق البريد على هذا الجهاز', mailGmail:'Gmail في المتصفح', closedBody:'هذه التذكرة مغلقة. أعد فتحها للمتابعة.',
+    answer:'الرد عبر البريد الإلكتروني', translatedFrom:"تُرجم من %s", translatedNoLang:"مترجم", translating:"جارٍ الترجمة…", trNotAvailable:"الترجمة غير متاحة", mailHint:'للقراءة فقط. الزر يفتح ردًا على هذا العميل في تطبيق بريدك.', mailApp:'تطبيق البريد', mailAuto:'تطبيق البريد على هذا الجهاز', mailGmail:'Gmail في المتصفح', closedBody:'هذه التذكرة مغلقة. أعد فتحها للمتابعة.',
     loadError:'تعذر تحميل التذاكر. حاول مرة أخرى.',
     sendError:'تعذر الحفظ. حاول مرة أخرى.',
     footNew:'بانتظار التوزيع', footOpen:'قيد المعالجة', footMsgs:'عبر كل التذاكر', footAll:'على اللوحة',
@@ -400,7 +426,8 @@ function replyOf(r) {
   const x = r && typeof r === 'object' ? r : {};
   const mailto = typeof x.mailto === 'string' && x.mailto.indexOf('mailto:') === 0 ? x.mailto : '';
   const gmail = typeof x.gmail === 'string' && x.gmail.indexOf('https://mail.google.com/') === 0 ? x.gmail : '';
-  return { mailto: mailto, gmail: gmail };
+  const lang = typeof x.lang === 'string' ? x.lang.trim().toLowerCase().slice(0, 8) : '';
+  return { mailto: mailto, gmail: gmail, lang: lang };
 }
 const MAIL_APP_KEY = 'vamosOpsMailApp';
 function readMailApp() {
@@ -414,6 +441,8 @@ function cloneTickets(rows) {
     reply: replyOf(t.reply),
     messages: (t.messages || []).map((m) => ({
       whoKey: m.whoKey, when: m.when, body: m.body, files: Array.isArray(m.files) ? m.files.slice() : [],
+      lang: typeof m.lang === 'string' ? m.lang : '',
+      translation: m.translation && typeof m.translation === 'object' ? { text: String(m.translation.text || ''), status: String(m.translation.status || '') } : null,
     })),
   }));
 }
@@ -486,6 +515,19 @@ function opsPhone() {
 function opsHand() {
   try { return window.matchMedia('(max-width: 767px)').matches; } catch (e) { return false; }
 }
+/* Phase 32: customer messages in another language, and his reply in the customer's language. */
+const RTL = { ar: 1, he: 1, fa: 1, ur: 1 };
+const PENDING_TRIES = 5;
+const PENDING_GAP_MS = 2000;
+function dirOf(code) { return RTL[String(code || '').slice(0, 2)] ? 'rtl' : 'ltr'; }
+/** Language name in the dashboard language (Intl), first letter capitalised; '' when Intl does not know the code. */
+function langName(code, inLang) {
+  try {
+    const n = new Intl.DisplayNames([inLang || 'en'], { type: 'language' }).of(code);
+    if (!n || n === code) return '';
+    return n.charAt(0).toLocaleUpperCase(inLang || 'en') + n.slice(1);
+  } catch (e) { return ''; }
+}
 class Component extends DCLogic {
   state = {
     lang: 'en', filter: 'all', view: opsPhone() ? 'table' : 'kanban', query: '', tickets: [],
@@ -499,7 +541,11 @@ class Component extends DCLogic {
       this._retry = setTimeout(this.hydrate, 120);
       return;
     }
-    api.request('GET', '/api/staff/tickets').then((json) => {
+    // The translations come back in his dashboard language, so the language rides along on every read.
+    const lang = this._lang || this.state.lang || 'en';
+    const seq = (this._hseq = (this._hseq || 0) + 1);
+    api.request('GET', '/api/staff/tickets?lang=' + encodeURIComponent(lang)).then((json) => {
+      if (seq !== this._hseq) return;
       if (!json || json.ok === false || !Array.isArray(json.data)) {
         this.setState({ loadError: true });
         return;
@@ -508,17 +554,37 @@ class Component extends DCLogic {
       this.setState({ tickets: tickets, loadError: false }, () => {
         publishBadge(tickets);
         if (this.state.openId) requestAnimationFrame(() => this.scrollThread());
+        this.watchPending();
       });
-    }, () => this.setState({ loadError: true }));
+    }, () => { if (seq === this._hseq) this.setState({ loadError: true }); });
+  };
+  /* A customer message whose translation is still pending: re-read the thread at most 5 times, 2 s apart;
+     after that it reads "Translation not available" until the ticket is opened again. */
+  watchPending = () => {
+    const id = this.state.openId;
+    const open = id ? this.state.tickets.find((t) => t.id === id) : null;
+    if (!open) return;
+    const pending = open.messages.some((m) => m.whoKey === 'customer' && m.translation && m.translation.status === 'pending');
+    if (!pending) return;
+    if (this._pendFor !== id) { this._pendFor = id; this._pendTries = 0; this._pendGaveUp = null; }
+    if (this._pendTries >= PENDING_TRIES) { if (this._pendGaveUp !== id) { this._pendGaveUp = id; this.forceUpdate(); } return; }
+    this._pendTries += 1;
+    clearTimeout(this._pendT);
+    this._pendT = setTimeout(this.hydrate, PENDING_GAP_MS);
   };
   componentDidMount() {
-    this._onLocale = (e) => this.setState({ lang: e.detail.lang });
+    this._onLocale = (e) => {
+      const lang = e && e.detail && e.detail.lang ? e.detail.lang : 'en';
+      this._lang = lang;
+      this._pendFor = null; this._pendGaveUp = null;
+      this.setState({ lang: lang }, this.hydrate);
+    };
     this._onFocus = () => this.hydrate();
     this._onVis = () => { if (document.visibilityState === 'visible') this.hydrate(); };
     window.addEventListener('vamos:locale', this._onLocale);
     window.addEventListener('focus', this._onFocus);
     document.addEventListener('visibilitychange', this._onVis);
-    if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
+    if (window.VamosLocale) { this._lang = window.VamosLocale.lang(); this.setState({ lang: this._lang }); }
     if (opsPhone() && this.state.view === 'kanban') this.setState({ view: 'table' });
     // The badge is set when the list has loaded (hydrate). Publishing the empty start list here
     // showed "no tickets" until then, and for good when the load failed.
@@ -537,6 +603,7 @@ class Component extends DCLogic {
     if (this._onFocus) window.removeEventListener('focus', this._onFocus);
     if (this._onVis) document.removeEventListener('visibilitychange', this._onVis);
     clearTimeout(this._retry);
+    clearTimeout(this._pendT);
   }
   setFilter = (key) => this.setState({ filter: key || 'all', filterOpen: false });
   toggleMeta = () => { if (!opsHand()) return; this.setState({ metaOpen: !this.state.metaOpen }); };
@@ -616,11 +683,13 @@ class Component extends DCLogic {
   openTicket = (id) => {
     const current = this.state.tickets.find((t) => t.id === id);
     if (!current) return;
+    this._pendFor = null; this._pendGaveUp = null; clearTimeout(this._pendT);
     if (current.status === 'new') {
       const tickets = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: 'open' }) : t);
       this.setState({ openId: id, tickets: tickets, overlayError: false, metaOpen: !opsHand() }, () => {
         publishBadge(tickets);
         requestAnimationFrame(() => this.scrollThread());
+        this.watchPending();
       });
       this.persistTicket(id, { status: 'open' }, () => {
         const reverted = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: 'new' }) : t);
@@ -631,11 +700,13 @@ class Component extends DCLogic {
     }
     this.setState({ openId: id, overlayError: false, metaOpen: !opsHand() }, () => {
       requestAnimationFrame(() => this.scrollThread());
+      this.watchPending();
     });
   };
   openRow = (row) => { if (row && row.id) this.openTicket(row.id); };
   closeOverlay = () => {
     this._draft = null;
+    this._pendFor = null; this._pendGaveUp = null; clearTimeout(this._pendT);
     this.setState({ openId: null, overlayError: false });
   };
   scrollThread = () => {
@@ -714,6 +785,7 @@ class Component extends DCLogic {
       };
     });
     const phoneDigits = open ? digitsOf(open.phone) : '';
+    const dash = this.state.lang || 'en';
     return {
       yes: true, n16: 16, n18: 18, n3: 3, n6: 6,
       tTitle: t.title, tSubtitle: t.subtitle, tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody,
@@ -785,10 +857,27 @@ class Component extends DCLogic {
       isClosed: !!(open && open.status === 'closed'),
       closeTicket: this.closeTicket,
       reopenTicket: this.reopenTicket,
-      thread: open ? open.messages.map((m) => ({
-        from: m.whoKey, who: whoLabel[m.whoKey] || m.whoKey, when: m.when, body: m.body,
-        files: fileItems(m.files),
-      })) : [],
+      thread: open ? open.messages.map((m) => {
+        const base = { from: m.whoKey, who: whoLabel[m.whoKey] || m.whoKey, when: m.when, body: m.body, files: fileItems(m.files) };
+        const tr = m.translation;
+        const other = m.whoKey === 'customer' && m.lang && m.lang !== dash && tr && tr.status && tr.status !== 'same';
+        let st = other ? tr.status : 'same';
+        if (st === 'pending' && this._pendGaveUp === open.id) st = 'failed';
+        if (st === 'ready' && tr.text) {
+          const nm = langName(m.lang, dash);
+          return Object.assign(base, {
+            isTr: true, isPlain: false, trText: tr.text, dashLang: dash, dashDir: dirOf(dash),
+            fromLine: nm ? t.translatedFrom.replace('%s', nm) : t.translatedNoLang, lang: m.lang, dir: dirOf(m.lang),
+          });
+        }
+        if (st === 'ready') st = 'failed';
+        const note = st === 'pending' ? t.translating : (st === 'failed' ? t.trNotAvailable : '');
+        return Object.assign(base, {
+          isTr: false, isPlain: true,
+          bodyLang: note && m.lang ? m.lang : undefined, bodyDir: note && m.lang ? dirOf(m.lang) : undefined,
+          hasNote: !!note, noteKind: st, noteSpin: st === 'pending' ? '1' : '0', noteIcon: st === 'pending' ? 'loader-circle' : 'info', noteText: note,
+        });
+      }) : [],
     };
   }
 }

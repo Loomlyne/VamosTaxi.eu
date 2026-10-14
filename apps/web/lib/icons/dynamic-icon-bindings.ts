@@ -55,6 +55,7 @@ export const DYNAMIC_ICON_BINDINGS: Array<{ files: string[]; expr: string; value
   { files: ["app/ops/OpsSupportTicket.dc.html"], expr: "c.icon", values: ["mail", "clock", "message-circle", "users"], from: "counts" },
   { files: ["app/ops/OpsSupportTicket.dc.html"], expr: "col.chevron", values: CHEVRONS, from: "board column open or closed" },
   { files: ["app/ops/OpsSupportTicket.dc.html"], expr: "col.sortIcon", values: ["arrow-up", "arrow-down"], from: "newest first or oldest first" },
+  { files: ["app/ops/OpsSupportTicket.dc.html"], expr: "m.noteIcon", values: ["loader-circle", "info"], from: "translation pending or failed" },
   { files: ["app/ops/OpsTable.dc.html"], expr: "f.inputIcon", values: OPS_FIELD, from: "f.icon || FIELD_ICONS[f.key]" },
   { files: ["app/ops/OpsTable.dc.html"], expr: "f.icon", values: OPS_FIELD, from: "field lists of the screens that use the table" },
   { files: ["app/ops/OpsTable.dc.html"], expr: "s.icon", values: OPS_FIELD, from: "paired select slots, same field lists" },
