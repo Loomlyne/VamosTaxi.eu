@@ -163,6 +163,7 @@ describe("reply mode", () => {
     env.inst.state.lang = "en";
     const tr = await boot([ticket({}, "tr", "tr")]);
     expect(tr.inst.replyMode(tr.inst.openNow(), "Hi")).toBe("raw");
+    typed(tr, "Hi");
     const t = tr.inst.renderVals();
     expect(t.replyHint).toContain("Your text stays as written");
   });
@@ -228,11 +229,11 @@ describe("mail body", () => {
     env.inst.answerByMail();
     expect(bodyOf(env.win.location.href)).toBe("a".repeat(1000));
     expect(env.inst.renderVals().replyNote).toBe("Your original text was left out: it is too long for your mail app link.");
-    // exactly at the limit keeps the original
+    // exactly 1,800 characters keeps the original
     const ok = await boot();
-    await ready(ok, "a".repeat(890), "b".repeat(890));
+    await ready(ok, "a".repeat(888), "b".repeat(888));
     ok.inst.answerByMail();
-    expect(bodyOf(ok.win.location.href)).toBe("a".repeat(890) + "\n\n" + HY + "\n\n" + "b".repeat(890));
+    expect(bodyOf(ok.win.location.href)).toBe("a".repeat(888) + "\n\n" + HY + "\n\n" + "b".repeat(888));
     expect(ok.inst.renderVals().replyNote).toBe("");
   });
 });

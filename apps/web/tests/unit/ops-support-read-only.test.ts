@@ -48,7 +48,8 @@ describe("dashboard support is read-only @security F2", () => {
   });
 
   it("makes no network call but GET tickets, PATCH status / note, and POST reply-translate", () => {
-    const calls = [...ticket.matchAll(/api\.request\(\s*'([A-Z]+)',\s*([^,]+),/g)].map((m) => `${m[1]} ${m[2]?.trim()}`);
+    const urlRe = /api\.request\(\s*'([A-Z]+)',\s*('[^']*'(?:\s*\+\s*(?:encodeURIComponent\([^)]*\)|'[^']*'))*)/g;
+    const calls = [...ticket.matchAll(urlRe)].map((m) => `${m[1]} ${m[2]?.trim()}`);
     expect(calls.sort()).toEqual([
       "GET '/api/staff/tickets?lang=' + encodeURIComponent(lang)",
       "PATCH '/api/staff/tickets/' + encodeURIComponent(id)",
