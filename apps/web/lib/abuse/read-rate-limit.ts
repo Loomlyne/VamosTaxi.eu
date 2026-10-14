@@ -15,7 +15,10 @@
 import { log } from "../logger";
 import { limiterIp } from "./rate-limit";
 
-export type ReadRoute = "status" | "resume" | "manage" | "paylink" | "lockexpire" | "reviews";
+// Phase 32 (T-32-32): the review-translate key is the home review translate tap (GET
+// /api/reviews/:ref/translation). Own key on the same binding, no new namespace, so a tap burst never
+// eats the review list's budget.
+export type ReadRoute = "status" | "resume" | "manage" | "paylink" | "lockexpire" | "reviews" | "review-translate";
 
 /** The limiter key for one route and one caller address. */
 export function readRateKey(route: ReadRoute, request: Request): string {
