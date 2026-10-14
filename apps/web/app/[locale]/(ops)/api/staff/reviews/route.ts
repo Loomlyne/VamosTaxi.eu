@@ -12,6 +12,7 @@ import {
 } from "@/app/[locale]/(ops)/ops/reviews/actions";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
 import { loadReviews, type ReviewInput, type ReviewSource } from "@/lib/ops/reviews";
+import { sendTranslateJob } from "@/lib/translate/jobs-contract";
 
 export const dynamic = "force-dynamic";
 
@@ -73,5 +74,14 @@ export const POST = withStaff(async (claims, request) => {
   const result = await createReview(reviewInputFromBody(raw as Record<string, unknown>));
   if (!result.ok) return jsonErr(result.key, actionStatus(result));
   const { env } = getCloudflareContext();
+  // Phase 32 (D-09): detect the new review's language in the background, so the home translate
+  // button can appear. Ids only; a failed send never changes this answer (the nightly sweep retries).
+  if (result.id) {
+    try {
+      await sendTranslateJob(env, { v: 1, kind: "review", reviewId: result.id });
+    } catch {
+      /* sendTranslateJob logs its own reason code */
+    }
+  }
   return jsonOk(await loadReviews(env, claims), 201);
 });

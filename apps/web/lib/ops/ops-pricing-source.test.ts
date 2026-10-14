@@ -3,8 +3,8 @@
 // Wave 0 (18-01) + 18-06: dual OpsPricing / OpsSidebar / ops.dc.html /
 // vamos-ops-data.js source-read (D-27 D-28 D-31 D-05 D-09 D-10).
 // Five tabs, Publish fare book, Discard draft, no /coupons, no charcoal
-// placeholder, no minFare, no EUR keys in the DC, clone + overlap/region
-// warnings, draft APIs, dual-copy equality.
+// placeholder, no minFare, no EUR keys in the DC, clone, no km-band / region
+// warnings (decision 2026-10-13 items 10, 13), draft APIs, dual-copy equality.
 
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -91,7 +91,7 @@ describe("OpsPricing source of truth dual copy (D-27 D-28 D-31)", () => {
     expect(html).toMatch(/isNotFound/);
   });
 
-  it("four-language T blocks, Save VAT, overlap warn, CHF only", () => {
+  it("four-language T blocks, Save VAT, no km-band overlap warn, CHF only", () => {
     const html = readFileSync(PRICING_CANONICAL, "utf8");
     for (const lang of LANGS) {
       expect(html, `T.${lang}`).toMatch(new RegExp(`\\n  ${lang}: \\{`));
@@ -100,7 +100,9 @@ describe("OpsPricing source of truth dual copy (D-27 D-28 D-31)", () => {
     expect(html).toContain("Fix this");
     expect(html).toContain("gapMissing");
     expect(html).not.toMatch(/publishError\.replace/);
-    expect(html).toMatch(/overlap/i);
+    // Decision 2026-10-13 items 10, 13: km bands and region % are gone, and so is their overlap warning.
+    expect(html).not.toMatch(/overlap/i);
+    expect(html).not.toContain("data-price-warn");
     expect(html).not.toMatch(/\bEUR\b/);
     expect(html).not.toMatch(/\bUSD\b/);
     expect(html).not.toMatch(/PATCH['"],\s*['"]\/api\/staff\/settings/);

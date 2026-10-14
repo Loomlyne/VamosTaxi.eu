@@ -134,12 +134,11 @@ function quoteInputOf(body: PreviewBody, computedAt: string): QuoteInput {
   };
 }
 
+/** Km bands and region % were removed (decision 2026-10-13 items 10, 13); the recap is start, km, extras, VAT, total. */
 export function recapForClass(entry: ClassBoardEntry, vatBps: number): RecapLine[] {
   const empty: RecapLine[] = [
     { code: "start", amount_rappen: null },
     { code: "km", amount_rappen: null },
-    { code: "bands", amount_rappen: null },
-    { code: "region", amount_rappen: null },
     { code: "extras", amount_rappen: null },
     { code: "vat", amount_rappen: null },
     { code: "total", amount_rappen: null },
@@ -161,13 +160,8 @@ export function recapForClass(entry: ClassBoardEntry, vatBps: number): RecapLine
       ? basis.distance_m
       : 0;
   const km = start != null && perKmR != null ? perKm(perKmR, distanceM) : null;
-  const fareAmt = fare?.amount_rappen ?? null;
-  const bands =
-    fareAmt != null && start != null && km != null ? fareAmt - start - km : null;
-  let region = 0;
   let extras = 0;
   for (const line of entry.lines) {
-    if (line.code === "region_premium" && line.amount_rappen != null) region += line.amount_rappen;
     if ((line.kind === "extra" || line.kind === "surcharge") && line.amount_rappen != null) extras += line.amount_rappen;
   }
   const net = entry.total_rappen;
@@ -175,8 +169,6 @@ export function recapForClass(entry: ClassBoardEntry, vatBps: number): RecapLine
   return [
     { code: "start", amount_rappen: start },
     { code: "km", amount_rappen: km },
-    { code: "bands", amount_rappen: bands },
-    { code: "region", amount_rappen: region },
     { code: "extras", amount_rappen: extras },
     { code: "vat", amount_rappen: vat },
     { code: "total", amount_rappen: payableWithVatRappen(net, vatBps) },

@@ -113,7 +113,7 @@
     "call-us-with-whatever-you-have-the-email-address": "Call us with whatever you have — the email address you booked with is usually enough. A dispatcher can change or cancel your trip on the phone.",
     "cancel-booking": "Cancel booking",
     "cancel-instead": "Cancel instead",
-    "cancelled-by-you-the-refund-is-with-our-team-for": "Cancelled by you. The refund is with our team for review.",
+    "cancelled-by-you-the-refund-is-with-our-team-for": "Cancelled by you. Any refund follows the cancellation policy.",
     "cancelledOn": "Cancelled {date}",
     "cancelling-is-still-open-to-you-but-this-close-i": "Cancelling is still open to you, but this close in it no longer earns a full refund.",
     "cannot-get-in": "Cannot get in?",
@@ -226,7 +226,6 @@
     "rebook-this-trip": "Rebook this trip",
     "receipt": "Receipt",
     "reference-place-or-class": "Reference, place or class",
-    "refund-waiting-on-review": "Refund · waiting on review",
     "remove-photo": "Remove photo",
     "request-a-change": "Request a change",
     "request-these-changes": "Request these changes",
@@ -570,9 +569,9 @@
     "timeChangeFailed": "Could not request this time change.",
     "flightSaved": "Flight number saved.",
     "flightSaveFailed": "Could not save this flight number.",
-    "cancelSheetFull": "This trip will be cancelled. You get a full refund; our team sends it.",
-    "cancelSheetOps": "This trip will be cancelled. Our team decides the refund and tells you by email.",
-    "refundPendingOps": "Refund under review",
+    "cancelSheetFull": "This trip will be cancelled. Any refund follows the cancellation policy.",
+    "cancelSheetOps": "This trip will be cancelled. Any refund follows the cancellation policy.",
+    "refundPendingOps": "Refund follows the cancellation policy",
     "refundDeclinedLabel": "No refund",
     "refundProcessing": "Processing",
     "refundFailedLabel": "Failed",
@@ -2724,10 +2723,6 @@
       "oversized_luggage": {
         "label": "Oversized luggage",
         "rule": "Per declared item"
-      },
-      "region_premium": {
-        "label": "Region",
-        "rule": "Pickup or dropoff in a named region"
       }
     }
   },

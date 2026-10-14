@@ -1,7 +1,7 @@
 // apps/web/lib/ops/rate-book-draft.test.ts
 //
 // 18-05 Task 1: overlay Save is draft-only (D-01 D-04 D-18 D-20).
-// Source-read: withAdmin, CHF only, kind band accepted, quote-lock hours×60.
+// Source-read: withAdmin, CHF only, kind band refused, quote-lock whole hours×60 on the draft only.
 // Do not write public_chf. Do not call Stripe.
 
 import { readFileSync } from "node:fs";
@@ -36,28 +36,29 @@ describe("rate-book overlay Save is draft (D-01 D-04 D-18 D-20)", () => {
     expect(src).not.toMatch(/\bAED\b/);
   });
 
-  it("accepts kind band, rule, coupon on the writable draft; rejects region (D-17)", () => {
+  it("accepts kind rule (book setting) and coupon on the writable draft; rejects band and region", () => {
     const src = webSource(ROUTE);
-    expect(src).toMatch(
-      /\["route", "distance", "band", "surcharge", "rule", "coupon"\]/,
-    );
+    expect(src).toMatch(/\["route", "distance", "surcharge", "rule", "coupon"\]/);
     expect(src).not.toMatch(/kind === "region"/);
-    expect(src).toMatch(/if \(kind === "band"\)/);
-    expect(src).toMatch(/insert into public\.distance_bands/);
-    expect(src).not.toMatch(/insert into public\.region_premiums/);
-    expect(src).toMatch(/insert into public\.rate_version_rules/);
+    expect(src).not.toMatch(/kind === "band"/);
+    // Decision 2026-10-13 items 10, 13: no km band, region % or Rules-list table is touched.
+    expect(src).not.toMatch(/distance_bands|region_premiums|rate_version_rules|rule_id/);
     expect(src).toMatch(/if \(kind === "coupon"\)/);
     expect(src).toMatch(/couponInputFromDc\(recBody\)/);
     expect(src).toMatch(/insertCoupon\(env, claims, parsed, versionId\)/);
     expect(src).toMatch(/if \(err instanceof CouponInputError\) return jsonErr\(err\.key, 400\)/);
   });
 
-  it("converts quote-lock hours to minutes at the staff boundary (D-20)", () => {
+  it("quote lock: whole hours to minutes, one writer, draft only (decision 2026-10-13 item 13)", () => {
     const src = webSource(ROUTE);
-    expect(src).toMatch(/function quoteLockMinutesFromHours/);
-    expect(src).toMatch(/return n \* 60;/);
-    expect(src).toMatch(/set quote_lock_minutes = \$\{lockMinutes\}/);
-    expect(src).toMatch(/set quote_lock_minutes = \$\{minutes\}/);
+    expect(src).toMatch(/function quoteLockMinutesFromWholeHours/);
+    expect(src).toMatch(/const minutes = n \* 60;/);
+    expect(src).toMatch(/minutes <= INT4_MAX/);
+    expect(src.match(/set quote_lock_minutes = /g)?.length).toBe(1);
+    expect(src).toMatch(
+      /set quote_lock_minutes = \$\{setting\.minutes\}\s+where id = \$\{versionId\} and status = 'draft'/,
+    );
+    expect(src).not.toMatch(/function quoteLockMinutesFromHours|function minutesFromHours/);
   });
 
   it("blocks Save route without Mapbox From and To (D-17)", () => {
@@ -67,20 +68,13 @@ describe("rate-book overlay Save is draft (D-01 D-04 D-18 D-20)", () => {
     expect(src).toMatch(/insert into public\.service_zones/);
   });
 
-  it("hydrates bands, rules, region premiums and zones on GET payload", () => {
+  it("GET payload: zones and a never-empty quoteLockHours; no bands, region premiums, rules, ruleId, cityPairId", () => {
     const src = webSource(ROUTE);
-    expect(src).toMatch(/bands: mockBands\(book\)/);
-    expect(src).toMatch(/regionPremiums: mockRegionPremiums\(book, zones\)/);
-    expect(src).toMatch(/rules: mockRules\(book\)/);
     expect(src).toMatch(/zones: mockZones\(zones\)/);
-    expect(src).toMatch(/ruleId: row.ruleId == null \? "" : String\(row.ruleId\)/);
-  });
-
-  it("stores the selected city pair id on the existing draft rule JSON", () => {
-    const src = webSource(ROUTE);
-    expect(src).toMatch(/kind = 'city_pair'/);
-    expect(src).toMatch(/cityPairId: cityPairRuleFor\(book, row.vehicleClassId\)\?\.pairId \?\? ""/);
-    expect(src).not.toMatch(/create table public\.city_pair/);
+    expect(src).toMatch(
+      /quoteLockHours: String\(\(book\.quoteLockMinutes \?\? QUOTE_LOCK_MINUTES\) \/ 60\)/,
+    );
+    expect(src).not.toMatch(/mockBands|mockRegionPremiums|mockRules|regionPremiums|ruleId|cityPair/);
   });
 
   it("deletes every class row on a From/To pair, not only the grouped id", () => {
@@ -89,11 +83,10 @@ describe("rate-book overlay Save is draft (D-01 D-04 D-18 D-20)", () => {
     expect(src).toMatch(/select origin_zone_id, dest_zone_id/);
   });
 
-  it("writes surcharge without requiring a rules-table row (D-34)", () => {
+  it("writes surcharge without any rules-table link (D-34; rule_id dropped 2026-10-13 item 13)", () => {
     const src = webSource(ROUTE);
-    expect(src).toMatch(/ruleId: optionalId\(body\.ruleId \?\? body\.rule_id\)/);
-    expect(src).not.toMatch(/if \(parsed\.ruleId == null\) return jsonErr\("invalid", 400\)/);
-    expect(src).toMatch(/rule_id = \$\{parsed\.ruleId\}/);
+    expect(src).not.toMatch(/ruleId|rule_id/);
+    expect(src).toMatch(/predicate, quantity_source\n/);
   });
 
   it("dual-mount re-exports GET PUT DELETE", () => {
@@ -140,7 +133,7 @@ describe("rate-book overlay Save is draft (D-01 D-04 D-18 D-20)", () => {
   it("writes VAT onto the draft rate_versions row, not as a rules insert (D-12)", () => {
     const src = webSource(ROUTE);
     expect(src).toMatch(/if \(ruleKind === "vat"\)/);
-    expect(src).toMatch(/set vat_rate_bps = \$\{bps\}/);
+    expect(src).toMatch(/set vat_rate_bps = \$\{setting\.bps\}/);
     expect(src).toMatch(/where id = \$\{versionId\} and status = 'draft'/);
   });
 

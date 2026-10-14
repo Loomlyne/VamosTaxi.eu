@@ -1,7 +1,11 @@
 // apps/web/app/[locale]/(ops)/api/staff/rate-book/route.ts
 //
 // GET  /api/staff/rate-book?versionId= — hydrate overlay collections.
-// PUT  /api/staff/rate-book — upsert draft { kind: route|distance|band|surcharge|rule|coupon }. Kind region is invalid.
+// PUT  /api/staff/rate-book — upsert draft { kind: route|distance|surcharge|rule|coupon }. Kinds band and
+//      region are invalid. Kind `rule` is a book setting on the draft rate_versions row, not a table:
+//      ruleKind `vat` (vat_rate_bps) or `quote_lock` (quote_lock_minutes) only; anything else is 400.
+//      Km bands, region % and the Rules list were removed (decision 2026-10-13 items 10, 13).
+// DELETE /api/staff/rate-book — kinds route|distance|surcharge|coupon.
 // Missing version → JSON 404. Unauthenticated → JSON 401. CHF only. No postgres.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
@@ -9,6 +13,7 @@ import { asStaff, type VamosClaims } from "@/lib/db/identity";
 import { loadRateVersions } from "@/lib/ops/pricing";
 import {
   assertDistanceRateInput,
+  draftRowAvailable,
   assertFixedRouteInput,
   assertSurchargeInput,
   classifyPricingFailure,
@@ -40,6 +45,7 @@ import {
   rappenFromUnknown,
 } from "@/lib/ops/rappen";
 import { MANUAL_PREDICATE } from "@/lib/pricing/types";
+import { QUOTE_LOCK_MINUTES } from "@/lib/quote/lock";
 import { jsonErr, jsonOk, withAdmin, withStaff } from "@/lib/ops/staff-json";
 import { asVehicleClassUuid, planVehicleClassWrite } from "@/lib/ops/vehicle-class-write";
 import {
@@ -62,7 +68,7 @@ import { countMapboxUnit } from "@/lib/abuse/breaker";
 export const dynamic = "force-dynamic";
 
 const CLASS_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const DRAFT_KINDS = ["route", "distance", "band", "surcharge", "rule", "coupon"] as const;
+const DRAFT_KINDS = ["route", "distance", "surcharge", "rule", "coupon"] as const;
 type DraftKind = (typeof DRAFT_KINDS)[number];
 
 function rec(body: unknown): Record<string, unknown> | null {
@@ -90,21 +96,56 @@ function moneyFromRappen(rappen: number | null): { CHF: string } {
   return { CHF: chf };
 }
 
-/** D-20: DC sends hours; store minutes on the draft rate_versions row. */
-function quoteLockMinutesFromHours(hours: unknown): number | null {
-  return minutesFromHours(hours);
+/** rate_versions.quote_lock_minutes is an int4; no business maximum is set here (none was decided). */
+const INT4_MAX = 2147483647;
+
+/**
+ * Decision 2026-10-13 item 13 (signed 2026-10-14): the "Price stays valid for" field sends whole
+ * hours. Returns the minutes to store, or null when the value is not a whole number of hours ≥ 1
+ * or the minutes would not fit the integer column. Accepts a number or a digit string.
+ */
+function quoteLockMinutesFromWholeHours(hours: unknown): number | null {
+  let n: number;
+  if (typeof hours === "number") {
+    n = hours;
+  } else if (typeof hours === "string" && /^\d+$/.test(hours.trim())) {
+    n = Number(hours.trim());
+  } else {
+    return null;
+  }
+  if (!Number.isSafeInteger(n) || n < 1) return null;
+  const minutes = n * 60;
+  return minutes <= INT4_MAX ? minutes : null;
 }
 
-/** D-23: free-wait hours → minutes on the draft. */
-function minutesFromHours(hours: unknown): number | null {
-  const n =
-    typeof hours === "number"
-      ? hours
-      : typeof hours === "string" && hours.trim() !== ""
-        ? Number(hours)
-        : NaN;
-  if (!Number.isFinite(n) || n <= 0) return null;
-  return n * 60;
+/**
+ * Kind `rule` is a book setting on the draft rate_versions row (decision 2026-10-13 item 13):
+ * `vat` (vat_rate_bps) or `quote_lock` (quote_lock_minutes, whole hours ≥ 1). Any other ruleKind
+ * (waiting, free_wait, service area, city pair, lock, …) and any refused value is null → 400.
+ */
+function parseRuleSetting(
+  recBody: Record<string, unknown>,
+): { kind: "vat"; bps: number } | { kind: "quote_lock"; minutes: number } | null {
+  const ruleKindRaw =
+    typeof recBody.ruleKind === "string"
+      ? recBody.ruleKind
+      : typeof recBody.rule === "string"
+        ? recBody.rule
+        : "";
+  const ruleKind = ruleKindRaw.trim().toLowerCase().replace(/\s+/g, "_");
+  const payloadObj = rec(recBody.payload) ?? recBody;
+  if (ruleKind === "vat") {
+    const bps = asInt(payloadObj.vat_rate_bps ?? recBody.vat_rate_bps);
+    if (bps == null || bps < 0) return null;
+    return { kind: "vat", bps };
+  }
+  if (ruleKind === "quote_lock") {
+    const minutes = quoteLockMinutesFromWholeHours(
+      recBody.quoteLockHours ?? recBody.quote_lock_hours ?? payloadObj.hours,
+    );
+    return minutes == null ? null : { kind: "quote_lock", minutes };
+  }
+  return null;
 }
 
 function mapboxIdOf(value: unknown): string {
@@ -294,30 +335,6 @@ function mockRoutes(book: RateBook, zones: ServiceZoneRow[]): Record<string, unk
   return out;
 }
 
-function rulePayload(value: unknown): Record<string, unknown> | null {
-  if (value && typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
-  if (typeof value !== "string" || value.trim() === "") return null;
-  try {
-    const parsed = JSON.parse(value) as unknown;
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-  return null;
-}
-
-/** Comment 5. Pair id lives in the existing draft rule JSON. */
-function cityPairRuleFor(book: RateBook, vehicleClassId: string): { id: number; pairId: string } | null {
-  let hit: { id: number; pairId: string } | null = null;
-  for (const rule of book.rules) {
-    if (rule.kind !== "city_pair") continue;
-    const payload = rulePayload(rule.payload);
-    if (!payload || String(payload.vehicleClassId || "") !== vehicleClassId) continue;
-    hit = { id: rule.id, pairId: typeof payload.pairId === "string" ? payload.pairId : "" };
-  }
-  return hit;
-}
-
 function mockRates(book: RateBook): Record<string, unknown>[] {
   const classById = new Map(book.vehicleClasses.map((c) => [c.id, c]));
   return book.distanceRates.map((row) => {
@@ -334,7 +351,6 @@ function mockRates(book: RateBook): Record<string, unknown>[] {
       perKm: moneyFromRappen(row.perKmRappen),
       minFare: moneyFromRappen(row.minFareRappen),
       airportStart: moneyFromRappen(row.airportStartRappen),
-      cityPairId: cityPairRuleFor(book, row.vehicleClassId)?.pairId ?? "",
       maxPax: row.maxPax,
       maxBags: cls?.luggageCapacity ?? "",
       photo,
@@ -355,7 +371,6 @@ function mockSurcharges(book: RateBook): Record<string, unknown>[] {
       code: row.code,
       label: row.code,
       rule: row.appliesTo,
-      ruleId: row.ruleId == null ? "" : String(row.ruleId),
       kind: row.kind,
       amounts:
         row.kind === "included" && (row.amountRappen == null || row.amountRappen === 0)
@@ -366,43 +381,6 @@ function mockSurcharges(book: RateBook): Record<string, unknown>[] {
       active: row.active,
     };
   });
-}
-
-function mockBands(book: RateBook): Record<string, unknown>[] {
-  return book.distanceBands.map((row) => ({
-    id: String(row.id),
-    fromKm: row.fromKm,
-    toKm: row.toKm == null ? "" : row.toKm,
-    perKm: moneyFromRappen(row.perKmRappen),
-    vehicleClassId: row.vehicleClassId,
-    klass: klassLabel(row.vehicleClassSlug),
-  }));
-}
-
-function mockRegionPremiums(book: RateBook, zones: ServiceZoneRow[]): Record<string, unknown>[] {
-  const zoneById = new Map(zones.map((z) => [z.id, z]));
-  return book.regionPremiums.map((row) => {
-    const zone = zoneById.get(row.zoneId);
-    return {
-      id: String(row.id),
-      zoneId: row.zoneId,
-      zone: zone ? zoneDisplay(zone) : row.zoneId,
-      percent: String(row.percent),
-    };
-  });
-}
-
-function mockRules(book: RateBook): Record<string, unknown>[] {
-  return book.rules.map((row) => ({
-    id: String(row.id),
-    kind: row.kind,
-    payload:
-      typeof row.payload === "string"
-        ? row.payload
-        : row.payload == null
-          ? ""
-          : JSON.stringify(row.payload),
-  }));
 }
 
 function mockZones(zones: ServiceZoneRow[]): Record<string, unknown>[] {
@@ -424,9 +402,6 @@ function bookPayload(book: RateBook, zones: ServiceZoneRow[]) {
     routes: mockRoutes(book, zones),
     rates: mockRates(book),
     surcharges: mockSurcharges(book),
-    bands: mockBands(book),
-    regionPremiums: mockRegionPremiums(book, zones),
-    rules: mockRules(book),
     zones: mockZones(zones),
     classes: book.vehicleClasses
       .filter((c) => book.distanceRates.some((row) => row.vehicleClassId === c.id))
@@ -440,8 +415,8 @@ function bookPayload(book: RateBook, zones: ServiceZoneRow[]) {
       sortOrder: c.sortOrder ?? 0,
     })),
     vatRateBps: book.vatRateBps,
-    quoteLockHours:
-      book.quoteLockMinutes == null ? "" : String(book.quoteLockMinutes / 60),
+    // Decision 2026-10-13 item 13: never empty; a book without its own value shows the default.
+    quoteLockHours: String((book.quoteLockMinutes ?? QUOTE_LOCK_MINUTES) / 60),
     freeWaitHours:
       book.freeWaitMinutes == null ? "" : String(book.freeWaitMinutes / 60),
   };
@@ -534,7 +509,8 @@ function parseDistanceInput(body: Record<string, unknown>, classes: { id: string
       body.airportStartRappen !== undefined
         ? rappenFromUnknown(body.airportStartRappen)
         : rappenFromMoneySet(body.airportStart),
-    maxPax: maxPax ?? 1,
+    // Decision 6: empty seats stay null; the class is a Draft until it has both counts.
+    maxPax: maxPax ?? null,
     available: boolish(body.available, true),
     hideFromPublic: boolish(body.hideFromPublic ?? body.hide_from_public, false),
   };
@@ -593,7 +569,6 @@ function parseSurchargeInput(body: Record<string, unknown>): SurchargeInput {
           : percentFromUnknown(body.pct),
     appliesTo: appliesRaw === "booking" ? "booking" : "leg",
     active: boolish(body.active, true),
-    ruleId: optionalId(body.ruleId ?? body.rule_id),
   };
 }
 
@@ -658,7 +633,12 @@ function withExtraLabels<T extends { surcharges: Record<string, unknown>[] }>(
   };
 }
 
-/** Save the four-language name of an extra. Never throws: the surcharge save has already succeeded. */
+/**
+ * Save the four-language name of an extra. Never throws: the surcharge save has already succeeded (F-07).
+ * Missing languages are filled by the shared translator (Phase 32, `lib/translate`) with one call at save
+ * time; whatever it could not fill stays empty and the nightly fill (`system_extra_label_fill`) completes it.
+ * A name he typed is never replaced (D-02). No machine mark is shown on Pricing (D-10).
+ */
 async function saveExtraLabels(
   env: Parameters<typeof loadRateBook>[0],
   claims: Parameters<typeof loadRateBook>[1],
@@ -765,25 +745,17 @@ export const PUT = withAdmin(async (claims, request) => {
       return failWrite(err);
     }
   }
+  // Kind `rule` is checked before resolveWritableVersionId so a refused value never forks a draft.
+  let ruleSetting: { kind: "vat"; bps: number } | { kind: "quote_lock"; minutes: number } | null = null;
+  if (kind === "rule") {
+    ruleSetting = parseRuleSetting(recBody);
+    if (!ruleSetting) return jsonErr("invalid", 400);
+  }
   const versionId = await resolveWritableVersionId(env, claims, recBody.versionId);
   if (versionId == null) return jsonErr("not-found", 404);
   const id = optionalId(recBody.id);
 
   try {
-    const lockMinutes = quoteLockMinutesFromHours(
-      recBody.quoteLockHours ?? recBody.quote_lock_hours,
-    );
-    if (lockMinutes != null) {
-      await asStaff(env, claims, async (tx) => {
-        await tx`
-          update public.rate_versions
-             set quote_lock_minutes = ${lockMinutes}
-           where id = ${versionId} and status = 'draft'
-        `;
-        return null;
-      });
-    }
-
     if (kind === "distance") {
       const book = await loadRateBook(env, claims, versionId);
       if (!book) return jsonErr("not-found", 404);
@@ -801,121 +773,113 @@ export const PUT = withAdmin(async (claims, request) => {
           : typeof photoRaw === "string" && photoRaw && !photoRaw.startsWith("data:")
             ? photoRaw
             : undefined;
-      const maxBags = asInt(recBody.maxBags ?? recBody.luggageCapacity) ?? incoming.maxPax;
+      // Decision 6: a bag count is never copied from seats; empty stays null.
+      const maxBags = asInt(recBody.maxBags ?? recBody.luggageCapacity) ?? null;
       const classPlan = planVehicleClassWrite(
         incoming.vehicleClassId,
         slug,
         book.vehicleClasses,
       );
+      const existingClass =
+        classPlan.mode === "update"
+          ? book.vehicleClasses.find((row) => row.id === classPlan.id)
+          : undefined;
+      // Phase 30 pitfall 4: a retired class stays hidden; typing its name must not write to it.
+      if (existingClass && existingClass.hiddenReason != null) return jsonErr("class-retired", 409);
+      // A class created by this request is a Draft.
+      const classIsLive = !!existingClass && existingClass.active === true;
+      // Decision 6: seats and bags can be emptied only while the class is a Draft.
+      if (classIsLive && (incoming.maxPax === null || maxBags === null)) return jsonErr("invalid", 400);
       let vehicleClassId = classPlan.mode === "update" ? classPlan.id : classPlan.id ?? "";
-      await asStaff(env, claims, async (tx) => {
-        if (classPlan.mode === "insert") {
-          if (!slug) throw new RateBookInputError("rateBook.error-class-required");
-          const maxRows = await tx<{ n: number | string | null }[]>`
-            select coalesce(max(sort_order), 0) as n from public.vehicle_classes
-          `;
-          const nextSort = Math.min(32767, Number(maxRows[0]?.n ?? 0) + 10);
-          if (classPlan.id) {
-            const created = await tx<{ id: string }[]>`
-              insert into public.vehicle_classes (
-                id, slug, passenger_capacity, luggage_capacity, sort_order, active, name, photo_path
-              ) values (
-                ${classPlan.id}, ${slug}, ${incoming.maxPax}, ${maxBags}, ${nextSort}, true,
-                ${className || slug}, ${photoPath ?? null}
-              )
-              returning id
+      try {
+        await asStaff(env, claims, async (tx) => {
+          if (classPlan.mode === "insert") {
+            if (!slug) throw new RateBookInputError("rateBook.error-class-required");
+            const maxRows = await tx<{ n: number | string | null }[]>`
+              select coalesce(max(sort_order), 0) as n from public.vehicle_classes
             `;
-            vehicleClassId = created[0]?.id ?? classPlan.id;
-          } else {
-            const created = await tx<{ id: string }[]>`
-              insert into public.vehicle_classes (
-                slug, passenger_capacity, luggage_capacity, sort_order, active, name, photo_path
-              ) values (
-                ${slug}, ${incoming.maxPax}, ${maxBags}, ${nextSort}, true, ${className || slug},
-                ${photoPath ?? null}
-              )
-              returning id
-            `;
-            vehicleClassId = created[0]?.id ?? "";
-          }
-        } else {
-          vehicleClassId = classPlan.id;
-          const slugTaken = !!(
-            slug &&
-            book.vehicleClasses.some((row) => row.slug === slug && row.id !== vehicleClassId)
-          );
-          const nextSlug = slugTaken ? "" : slug;
-          await tx`
-            update public.vehicle_classes set
-              slug = coalesce(nullif(${nextSlug}, ''), slug),
-              name = coalesce(nullif(${className}, ''), name),
-              photo_path = coalesce(${photoPath ?? null}, photo_path),
-              passenger_capacity = ${incoming.maxPax},
-              luggage_capacity = ${maxBags}
-            where id = ${vehicleClassId}
-          `;
-        }
-        const parsed = assertDistanceRateInput({ ...incoming, vehicleClassId });
-        const existing = findExistingDistanceRate(book, id, parsed.vehicleClassId);
-        if (existing) {
-          await tx`
-            update public.distance_rates set
-              vehicle_class_id = ${parsed.vehicleClassId},
-              base_fare_rappen = ${parsed.baseFareRappen},
-              per_km_rappen = ${parsed.perKmRappen},
-              min_fare_rappen = ${parsed.minFareRappen},
-              airport_start_rappen = ${parsed.airportStartRappen},
-              max_pax = ${parsed.maxPax},
-              available = ${parsed.available},
-              hide_from_public = ${parsed.hideFromPublic}
-            where id = ${existing.id} and rate_version_id = ${versionId}
-          `;
-        } else {
-          await tx`
-            insert into public.distance_rates (
-              rate_version_id, vehicle_class_id, base_fare_rappen, per_km_rappen,
-              min_fare_rappen, airport_start_rappen,
-              max_pax, available, hide_from_public
-            ) values (
-              ${versionId}, ${parsed.vehicleClassId}, ${parsed.baseFareRappen},
-              ${parsed.perKmRappen}, ${parsed.minFareRappen},
-              ${parsed.airportStartRappen},
-              ${parsed.maxPax}, ${parsed.available}, ${parsed.hideFromPublic}
-            )
-          `;
-        }
-        if (Object.prototype.hasOwnProperty.call(recBody, "cityPairId")) {
-          const pairId = typeof recBody.cityPairId === "string" ? recBody.cityPairId.trim() : "";
-          const existingRule = cityPairRuleFor(book, parsed.vehicleClassId);
-          if (!pairId) {
-            if (existingRule) {
-              await tx`
-                delete from public.rate_version_rules
-                where id = ${existingRule.id} and rate_version_id = ${versionId} and kind = 'city_pair'
+            const nextSort = Math.min(32767, Number(maxRows[0]?.n ?? 0) + 10);
+            if (classPlan.id) {
+              const created = await tx<{ id: string }[]>`
+                insert into public.vehicle_classes (
+                  id, slug, passenger_capacity, luggage_capacity, sort_order, active, name, photo_path
+                ) values (
+                  ${classPlan.id}, ${slug}, ${incoming.maxPax}, ${maxBags}, ${nextSort}, false,
+                  ${className || slug}, ${photoPath ?? null}
+                )
+                returning id
               `;
-            }
-          } else {
-            // 26.2 audit: through the driver's JSON helper, like the surcharge rule below.
-            // `${JSON.stringify(x)}::jsonb` is serialised a second time by the Worker's client
-            // (`fetch_types: false`, prepared statements) and stores a JSON string, so every
-            // reader has to unwrap it; `rulePayload` above does, but the stored shape was wrong.
-            const pairPayload = tx.json({ vehicleClassId: parsed.vehicleClassId, pairId });
-            if (existingRule) {
-              await tx`
-                update public.rate_version_rules
-                   set payload = ${pairPayload}
-                 where id = ${existingRule.id} and rate_version_id = ${versionId} and kind = 'city_pair'
-              `;
+              vehicleClassId = created[0]?.id ?? classPlan.id;
             } else {
-              await tx`
-                insert into public.rate_version_rules (rate_version_id, kind, payload)
-                values (${versionId}, 'city_pair', ${pairPayload})
+              const created = await tx<{ id: string }[]>`
+                insert into public.vehicle_classes (
+                  slug, passenger_capacity, luggage_capacity, sort_order, active, name, photo_path
+                ) values (
+                  ${slug}, ${incoming.maxPax}, ${maxBags}, ${nextSort}, false, ${className || slug},
+                  ${photoPath ?? null}
+                )
+                returning id
               `;
+              vehicleClassId = created[0]?.id ?? "";
             }
+          } else {
+            vehicleClassId = classPlan.id;
+            const slugTaken = !!(
+              slug &&
+              book.vehicleClasses.some((row) => row.slug === slug && row.id !== vehicleClassId)
+            );
+            const nextSlug = slugTaken ? "" : slug;
+            await tx`
+              update public.vehicle_classes set
+                slug = coalesce(nullif(${nextSlug}, ''), slug),
+                name = coalesce(nullif(${className}, ''), name),
+                photo_path = coalesce(${photoPath ?? null}, photo_path),
+                passenger_capacity = ${incoming.maxPax},
+                luggage_capacity = ${maxBags}
+              where id = ${vehicleClassId}
+            `;
           }
+          const parsed = assertDistanceRateInput({ ...incoming, vehicleClassId });
+          // Phase 30 decision 5: a Draft class's empty row is parked; a priced one counts.
+          const existing = findExistingDistanceRate(book, id, parsed.vehicleClassId);
+          if (existing) {
+            await tx`
+              update public.distance_rates set
+                vehicle_class_id = ${parsed.vehicleClassId},
+                base_fare_rappen = ${parsed.baseFareRappen},
+                per_km_rappen = ${parsed.perKmRappen},
+                min_fare_rappen = ${parsed.minFareRappen},
+                airport_start_rappen = ${parsed.airportStartRappen},
+                max_pax = ${parsed.maxPax},
+                available = ${draftRowAvailable(classIsLive, parsed, incoming.maxPax, maxBags)},
+                hide_from_public = ${parsed.hideFromPublic}
+              where id = ${existing.id} and rate_version_id = ${versionId}
+            `;
+          } else {
+            await tx`
+              insert into public.distance_rates (
+                rate_version_id, vehicle_class_id, base_fare_rappen, per_km_rappen,
+                min_fare_rappen, airport_start_rappen,
+                max_pax, available, hide_from_public
+              ) values (
+                ${versionId}, ${parsed.vehicleClassId}, ${parsed.baseFareRappen},
+                ${parsed.perKmRappen}, ${parsed.minFareRappen},
+                ${parsed.airportStartRappen},
+                ${parsed.maxPax}, ${draftRowAvailable(classIsLive, parsed, incoming.maxPax, maxBags)},
+                ${parsed.hideFromPublic}
+              )
+            `;
+          }
+          return null;
+        });
+      } catch (err) {
+        // 23514 on vehicle_classes_live_has_seats_bags: the second wall behind the check above.
+        const e = err as { code?: unknown; constraint?: unknown } | null;
+        if (e?.code === "23514" && (e.constraint === undefined || e.constraint === "vehicle_classes_live_has_seats_bags")) {
+          return jsonErr("invalid", 400);
         }
-        return null;
-      });
+        throw err;
+      }
       const next = await loadRateBook(env, claims, versionId);
       if (!next) return jsonErr("not-found", 404);
       const zones = await loadServiceZones(env, claims);
@@ -938,11 +902,8 @@ export const PUT = withAdmin(async (claims, request) => {
         // is serialised a second time by the driver and lands as a JSON string.
         const rule = tx.json(MANUAL_PREDICATE);
         if (id != null) {
-          // 26.2-bp B9: the page may name the live book's row (and its rule); write the draft's.
+          // 26.2-bp B9: the page may name the live book's row; write the draft's.
           const rowId = await draftRowId(tx, "surcharge", id, versionId);
-          if (parsed.ruleId != null) {
-            parsed.ruleId = await draftRowId(tx, "rule", parsed.ruleId, versionId);
-          }
           await tx`
             update public.surcharges set
               code = ${parsed.code},
@@ -952,20 +913,18 @@ export const PUT = withAdmin(async (claims, request) => {
               applies_to = ${parsed.appliesTo},
               active = ${parsed.active},
               predicate = ${rule},
-              quantity_source = null,
-              rule_id = ${parsed.ruleId}
+              quantity_source = null
             where id = ${rowId} and rate_version_id = ${versionId}
           `;
         } else {
           await tx`
             insert into public.surcharges (
               rate_version_id, code, kind, amount_rappen, percent, applies_to, active,
-              predicate, quantity_source, rule_id
+              predicate, quantity_source
             ) values (
               ${versionId}, ${parsed.code}, ${parsed.kind}, ${parsed.amountRappen},
               ${parsed.percent}, ${parsed.appliesTo}, ${parsed.active},
-              ${rule}, null,
-              ${parsed.ruleId}
+              ${rule}, null
             )
           `;
         }
@@ -984,115 +943,23 @@ export const PUT = withAdmin(async (claims, request) => {
       return jsonOk(saved ?? payload);
     }
 
-    if (kind === "band") {
-      const book = await loadRateBook(env, claims, versionId);
-      if (!book) return jsonErr("not-found", 404);
-      const classes = uniqueClasses(book.distanceRates, book.vehicleClasses);
-      const klassSlugVal = klassSlug(recBody.klass) || klassSlug(recBody.vehicleClassSlug);
-      const vehicleClassId =
-        typeof recBody.vehicleClassId === "string" && recBody.vehicleClassId
-          ? recBody.vehicleClassId
-          : (classes.find((c) => c.slug === klassSlugVal)?.id ??
-            classes.find((c) => klassLabel(c.slug) === String(recBody.klass || ""))?.id ??
-            "");
-      const fromKm = asInt(recBody.fromKm ?? recBody.from_km);
-      const toRaw = recBody.toKm ?? recBody.to_km;
-      const toKm = toRaw === null || toRaw === "" ? null : asInt(toRaw);
-      const perKmRappen =
-        recBody.perKmRappen !== undefined
-          ? rappenFromUnknown(recBody.perKmRappen)
-          : rappenFromMoneySet(recBody.perKm);
-      if (!vehicleClassId || fromKm == null || fromKm < 0 || perKmRappen == null) {
-        return jsonErr("invalid", 400);
-      }
+    if (kind === "rule" && ruleSetting) {
+      const setting = ruleSetting;
       await asStaff(env, claims, async (tx) => {
-        if (id != null) {
-          const rowId = await draftRowId(tx, "band", id, versionId);
-          await tx`
-            update public.distance_bands set
-              vehicle_class_id = ${vehicleClassId},
-              from_km = ${fromKm},
-              to_km = ${toKm},
-              per_km_rappen = ${perKmRappen}
-            where id = ${rowId} and rate_version_id = ${versionId}
-          `;
-        } else {
-          await tx`
-            insert into public.distance_bands (
-              rate_version_id, vehicle_class_id, from_km, to_km, per_km_rappen
-            ) values (
-              ${versionId}, ${vehicleClassId}, ${fromKm}, ${toKm}, ${perKmRappen}
-            )
-          `;
-        }
-        return null;
-      });
-      const next = await loadRateBook(env, claims, versionId);
-      if (!next) return jsonErr("not-found", 404);
-      const zones = await loadServiceZones(env, claims);
-      return jsonOk(bookPayload(next, zones));
-    }
-
-    if (kind === "rule") {
-      const ruleKindRaw =
-        typeof recBody.ruleKind === "string"
-          ? recBody.ruleKind
-          : typeof recBody.rule === "string"
-            ? recBody.rule
-            : "";
-      const ruleKind = ruleKindRaw.trim().toLowerCase().replace(/\s+/g, "_");
-      if (!ruleKind) return jsonErr("invalid", 400);
-      const payloadObj = rec(recBody.payload) ?? recBody;
-      if (ruleKind === "vat") {
-        const bps = asInt(payloadObj.vat_rate_bps ?? recBody.vat_rate_bps);
-        if (bps == null || bps < 0) return jsonErr("invalid", 400);
-        await asStaff(env, claims, async (tx) => {
+        if (setting.kind === "vat") {
           await tx`
             update public.rate_versions
-               set vat_rate_bps = ${bps}
+               set vat_rate_bps = ${setting.bps}
              where id = ${versionId} and status = 'draft'
           `;
-          return null;
-        });
-        const next = await loadRateBook(env, claims, versionId);
-        if (!next) return jsonErr("not-found", 404);
-        const zones = await loadServiceZones(env, claims);
-        return jsonOk(bookPayload(next, zones));
-      }
-      // 26.2 audit: bound through the driver's JSON helper below (`tx.json`), never as
-      // `${JSON.stringify(x)}::jsonb`, which the Worker's client stores as a JSON string.
-      const payload = {
-        hours: payloadObj.hours ?? recBody.quoteLockHours ?? recBody.quote_lock_hours ?? null,
-        ...payloadObj,
-      };
-      if (ruleKind === "quote_lock" || ruleKind === "lock") {
-        const minutes = quoteLockMinutesFromHours(
-          payloadObj.hours ?? recBody.quoteLockHours ?? recBody.quote_lock_hours,
-        );
-        if (minutes != null) {
-          await asStaff(env, claims, async (tx) => {
-            await tx`
-              update public.rate_versions
-                 set quote_lock_minutes = ${minutes}
-               where id = ${versionId} and status = 'draft'
-            `;
-            return null;
-          });
-        }
-      }
-      await asStaff(env, claims, async (tx) => {
-        if (id != null) {
-          const rowId = await draftRowId(tx, "rule", id, versionId);
-          await tx`
-            update public.rate_version_rules set
-              kind = ${ruleKind},
-              payload = ${tx.json(payload as Parameters<typeof tx.json>[0])}
-            where id = ${rowId} and rate_version_id = ${versionId}
-          `;
         } else {
+          // Decision 2026-10-13 item 13 (signed 2026-10-14): Pricing › Distance rules "Price stays
+          // valid for" edits the draft's quote_lock_minutes; Publish keeps it. The one writer of
+          // quote_lock_minutes; no other PUT kind touches it.
           await tx`
-            insert into public.rate_version_rules (rate_version_id, kind, payload)
-            values (${versionId}, ${ruleKind}, ${tx.json(payload as Parameters<typeof tx.json>[0])})
+            update public.rate_versions
+               set quote_lock_minutes = ${setting.minutes}
+             where id = ${versionId} and status = 'draft'
           `;
         }
         return null;
@@ -1239,6 +1106,19 @@ export const DELETE = withAdmin(async (claims, request) => {
   const id = optionalId(recBody?.id ?? url.searchParams.get("id"));
   if (!isDraftKind(kind) || id == null) return jsonErr("invalid", 400);
 
+  // Kind `rule` is a book setting, not a row: nothing to delete.
+  const table =
+    kind === "surcharge"
+      ? "surcharges"
+      : kind === "coupon"
+        ? "coupons"
+        : kind === "route"
+          ? "fixed_routes"
+          : kind === "distance"
+            ? "distance_rates"
+            : null;
+  if (!table) return jsonErr("invalid", 400);
+
   const { env } = getCloudflareContext();
   const versionId = await resolveWritableVersionId(
     env,
@@ -1246,22 +1126,6 @@ export const DELETE = withAdmin(async (claims, request) => {
     recBody?.versionId ?? url.searchParams.get("versionId"),
   );
   if (versionId == null) return jsonErr("not-found", 404);
-
-  const table =
-    kind === "surcharge"
-      ? "surcharges"
-      : kind === "band"
-        ? "distance_bands"
-        : kind === "rule"
-            ? "rate_version_rules"
-            : kind === "coupon"
-              ? "coupons"
-              : kind === "route"
-                ? "fixed_routes"
-                : kind === "distance"
-                  ? "distance_rates"
-                  : null;
-  if (!table) return jsonErr("invalid", 400);
 
   try {
     await asStaff(env, claims, async (tx) => {
@@ -1274,18 +1138,6 @@ export const DELETE = withAdmin(async (claims, request) => {
         const rowId = await draftRowId(tx, "surcharge", id, versionId);
         await tx`
           delete from public.surcharges
-          where id = ${rowId} and rate_version_id = ${versionId}
-        `;
-      } else if (table === "distance_bands") {
-        const rowId = await draftRowId(tx, "band", id, versionId);
-        await tx`
-          delete from public.distance_bands
-          where id = ${rowId} and rate_version_id = ${versionId}
-        `;
-      } else if (table === "rate_version_rules") {
-        const rowId = await draftRowId(tx, "rule", id, versionId);
-        await tx`
-          delete from public.rate_version_rules
           where id = ${rowId} and rate_version_id = ${versionId}
         `;
       } else if (table === "fixed_routes") {
@@ -1330,7 +1182,7 @@ export const DELETE = withAdmin(async (claims, request) => {
  */
 async function draftRowId(
   tx: Parameters<Parameters<typeof asStaff>[2]>[0],
-  kind: "surcharge" | "band" | "rule" | "route" | "distance",
+  kind: "surcharge" | "route" | "distance",
   id: number,
   versionId: number,
 ): Promise<number> {
@@ -1340,26 +1192,6 @@ async function draftRowId(
       select n.id
         from public.surcharges n
         join public.surcharges o on o.code = n.code
-       where o.id = ${id} and n.rate_version_id = ${versionId}
-       order by (n.id = o.id) desc, n.id
-       limit 1
-    `;
-  } else if (kind === "band") {
-    rows = await tx<{ id: number | string }[]>`
-      select n.id
-        from public.distance_bands n
-        join public.distance_bands o
-          on o.vehicle_class_id = n.vehicle_class_id and o.from_km = n.from_km
-       where o.id = ${id} and n.rate_version_id = ${versionId}
-       order by (n.id = o.id) desc, n.id
-       limit 1
-    `;
-  } else if (kind === "rule") {
-    rows = await tx<{ id: number | string }[]>`
-      select n.id
-        from public.rate_version_rules n
-        join public.rate_version_rules o
-          on o.kind is not distinct from n.kind and o.payload is not distinct from n.payload
        where o.id = ${id} and n.rate_version_id = ${versionId}
        order by (n.id = o.id) desc, n.id
        limit 1

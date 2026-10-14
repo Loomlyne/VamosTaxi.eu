@@ -11,7 +11,7 @@ export type AssignFail = {
   code: string;
   otherRef?: string;
   otherLocal?: string;
-  /** no-class / class-mismatch: the driver's name, his class and the trip's class, as the owner names them. */
+  /** no-class / class-mismatch / class-retired: the driver's name, his class and the trip's class, as the owner names them. */
   driverName?: string;
   driverClass?: string;
   tripClass?: string;
@@ -24,6 +24,8 @@ export type AssignClassFacts = {
   driverClassName: string;
   tripClassId: string | null;
   tripClassName: string;
+  /** Phase 30 CLS-09: the driver's class is retired (hidden_at set). */
+  driverClassRetired?: boolean;
 };
 
 export type AssignOk = {
@@ -39,6 +41,7 @@ const NAMED: readonly string[] = Object.freeze([
   "no-email",
   "no-class",
   "class-mismatch",
+  "class-retired",
   "not-paid",
   "frozen",
   "capacity",
@@ -87,6 +90,8 @@ export function mapAssignSqlError(err: unknown, overlap?: AssignOverlap | null):
  * chauffeur is chosen by his class. A driver of another class than the trip is refused ("Marco
  * drives Economy; the trip is Business."), a driver without a class too. ops_assign_leg
  * (20261007160000) checks the same; an unknown trip class is never guessed.
+ * Phase 30 CLS-09: a driver whose own class is retired is refused too (`class-retired`, checked after
+ * the mismatch like the database does; 20261012210000 raises the same code).
  */
 export function assignClassRefusal(facts: AssignClassFacts | null | undefined): AssignFail | null {
   if (!facts) return null;
@@ -96,7 +101,18 @@ export function assignClassRefusal(facts: AssignClassFacts | null | undefined): 
   if (!driver) {
     return { ok: false, code: "no-class", driverName: facts.driverName, tripClass: facts.tripClassName };
   }
-  if (driver === trip) return null;
+  if (driver === trip) {
+    if (facts.driverClassRetired === true) {
+      return {
+        ok: false,
+        code: "class-retired",
+        driverName: facts.driverName,
+        driverClass: facts.driverClassName,
+        tripClass: facts.tripClassName,
+      };
+    }
+    return null;
+  }
   return {
     ok: false,
     code: "class-mismatch",

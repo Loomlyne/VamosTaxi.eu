@@ -220,7 +220,7 @@ export function gatePublicRequest(request: Request): Response | "not-found" | nu
         dashboard &&
         (path === "/api/staff/chauffeurs" || path.startsWith("/api/staff/chauffeurs/"))
       ) {
-        return redirectTo(url, "/fleet/chauffeurs", null);
+        return redirectTo(url, "/chauffeurs", null);
       }
       return "not-found";
     }

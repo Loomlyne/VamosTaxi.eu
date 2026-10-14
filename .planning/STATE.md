@@ -3,15 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Meta measurement
 status: executing
-stopped_at: "branch `docs/gsd-bookkeeping-1005` pushed for the control session to review and land."
-last_updated: "2026-10-05T14:09:00.000Z"
-last_activity: "2026-10-05 18:09 (+04) - GSD bookkeeping: phases 28 and 29 ticked as shipped, STATE brought to the 2026-10-05 investigation jobs (all live 14:25 to 17:44), quick 260819-279 and 260819-vjz closed as superseded"
+last_updated: "2026-10-13T13:54:39.735Z"
 progress:
-  total_phases: 42
-  completed_phases: 41
-  total_plans: 352
-  completed_plans: 352
-  percent: 100
+  total_phases: 37
+  completed_phases: 31
+  total_plans: 367
+  completed_plans: 365
+  percent: 84
 ---
 
 # Project State
@@ -22,10 +20,12 @@ See: .planning/PROJECT.md (updated 2026-09-23)
 
 **Core value:** quote → pay → confirmation. A customer books a fixed-price transfer in under a minute and the driver is there.
 **Live:** https://vamostaxi.site and https://dashboard.vamostaxi.site, Worker `vamos`. The control board is the live source: `.planning/CONTROL-BOARD.md`.
-**Current focus:** the control board's landing queue. GSD has no current phase: every phase is ticked except 26.2 (open for its found rows only). 28 and 29 are shipped and live; the owner holds the Meta test event code and the Events Manager Test events check.
+**Current focus:** Phase 31 — Refunds in Stripe
 
 ## Current Position
 
+Phase: 31 (Refunds in Stripe) — EXECUTING
+Plan: 13 of 13
 Last updated: 2026-10-05 18:09 (+04), by the bookkeeping job `docs/gsd-bookkeeping-1005` (planning files only).
 Source: `.planning/CONTROL-BOARD.md` (last update 2026-10-05 17:45), `.planning/audits/2026-10-05-repo-investigation.md` and origin/main `16f1cfa7`.
 main = origin/main `16f1cfa7` (planning note) over `001f4d40` (checks and tests, 17:44). Last deploy on the board: Worker `vamos` `13ed22ae` (2026-10-05 17:44; the same site code as `8c8ef984` of 17:40), gateway `vamos-dashboard` `71a307da`.
@@ -88,7 +88,7 @@ History up to 2026-09-29. Later quick jobs are listed on the control board ("Shi
 
 ## Session Continuity
 
-Last session: 2026-10-05T14:09:00.000Z (bookkeeping job, planning files only)
+Last session: 2026-10-13T13:54:30.262Z
 Stopped at: branch `docs/gsd-bookkeeping-1005` pushed for the control session to review and land.
 Resume: a job session takes its job from the control board's landing queue, in its own app worktree, and hands over to
 the controller (the Claude desktop session "Vamos Taxi controller", named on the board). Do not `phases.clear`. Do not new-project.
@@ -109,6 +109,8 @@ the controller (the Claude desktop session "Vamos Taxi controller", named on the
 - Phase 26.0 main green inserted (discuss signed 2026-09-29); shipped 2026-10-01 (`6ec73c52`).
 - Phases 26.4.2 (owner booking feedback) and 26.5 (checkout guest / sign in / create account) shipped 2026-09-30.
 - Phase 30 added (2026-10-11): Vehicle class lifecycle. Discuss signed in `.planning/decisions/2026-10-11-fleet-lifecycle.md`. Next: UI-SPEC pictures, his signature, then plan.
+- Phase 31 added (2026-10-12): Refunds in Stripe. Discuss signed in `.planning/decisions/2026-10-12-refunds-in-stripe.md`; nightly refund check added by the owner the same evening. Next: UI-SPEC pictures, his signature, then plan.
+- Phase 32 added (2026-10-12): Automatic translator. Owner decisions 2026-10-12/13 in `32-CONTEXT.md`; design signed 2026-10-13 ~18:35; 12 plans in 5 waves verified by gsd-plan-checker (run 3, 2026-10-14). Plans and migration numbers 20261012260000-290000 signed 2026-10-14; all 12 plans executed 2026-10-14 03:00-12:23 on branch phase-32-auto-translate (merged with main after Phase 31); full gate, pgTAP 126/3833 and 48-frame browser proof green; hand-over `phases/32-auto-translate/32-HANDOVER.md`. Next: controller review, PR, his Ship.
 - Phase 19 closed by the owner (2026-09-30, confirmed 2026-10-01 23:59): no surge test, not a launch item.
 - Phase 27 shipped 2026-10-01 (`ce55cd75`); Phase 27.1 finish your account inserted and shipped 2026-10-01 (`96a17ab7`).
 - GSD bookkeeping B10 (2026-10-01): summaries for every finished, superseded or owner-held plan; ROADMAP rows for 5.1, 5.2, 6.1, 26.0, 26.2, 26.4.2, 26.5, 27.1; closed and replaced phases marked. Open plans keep no SUMMARY.
@@ -145,6 +147,14 @@ Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/
 - [Phase 26.1]: 26.1-15: checkout_pay_link_state answers refunded_duplicate before paid; unknown/revoked/expired/cancelled answer expired with no reference (D-21/D-22)
 - [Phase 26.1]: 26.1-29: requote with an open pay-link hold answers 409 hold_open (no expire, no cancel); failed hold read fails closed; intent lock payable until max(exp, hold_until), hold read from DB only
 - [Phase 26.1]: 26.1-32: payment re-evaluates the verified lock's payload.coupon (trim + upper-case) with the payer identity; a body coupon that differs refuses coupon_no_longer_valid before evaluate, Stripe or booking write (D-11). Client recovers once per lock via couponRefusalAction (reprice with coupon null, or drop stale applied state)
+- [Phase 31]: 31-01: Stripe Dashboard links are built on the server only (fixed origin, mode from the Worker key, malformed STRIPE_ACCOUNT_ID dropped); the stripe-payments list keeps fully refunded payments and the page decides
+- [Phase 31]: 31-02: refund.test.ts pins the exact export set of refund-map.ts (absence pin without naming removed symbols)
+- [Phase 31]: 31-03: migration 20261012240000_refund_check_reader.sql (owner S-10), md5 c0c516f2b5dd56357267468313c1a296 (PR #82 review fix 2026-10-14; was 07371cd7…): refund_check_read, notification_claim_refund, notification_refund_read, vamos_system only; not applied live
+- [Phase 31]: 31-05: customer refund mail starts only after stripe_charge_refunded_record 'recorded' for a non-app CHF refund (guard on the mail line); the notification sweep routes kind 'refund' to deliverRefundMailByClaim, default kinds confirmation+refund
+- [Phase 31]: 31-09: dashboard Refund in Stripe opens the payment in Stripe (one link opens synchronously; several show Which payment?; none shows a danger note); disabled until /stripe-payments answers ok; decision box and every refund sender deleted with their T keys in four languages
+- [Phase 31]: 31-10: customer cancel sheet W1, Refund row W2, dead card one refundPolicyCard block with W3; pages stop reading refundRappen; twins and seed in four languages; unused twin account.refund-waiting-on-review deleted
+- [Phase 31]: 31-11: STRIPE_ACCOUNT_ID = acct_1UIZmAQbJiSLxJfu only in wrangler env.staging (live Worker vamos); production and top-level vars without it; pinned to the live publishable key's account segment
+- [Phase 31]: O-1 = A: one cancel sub-line 'Read the cancellation policy before anything is confirmed.' on both booking pages, W6 in the decision file (31-12)
 
 ## Performance Metrics
 
@@ -160,3 +170,17 @@ Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/
 | Phase 26.1 P15 | 80min | 2 tasks | 11 files |
 | Phase 26.1 P29 | 10min | 2 tasks | 5 files |
 | Phase 26.1 P32 | 30min | 2 tasks | 8 files |
+| Phase 30 P01 | 2h | 3 tasks | 5 files |
+| Phase 30 P04 | 55min | 4 tasks | 15 files |
+| Phase 31 P01 | 11 min | 2 tasks | 8 files |
+| Phase 31 P02 | 4 min | 2 tasks | 13 files |
+| Phase 31 P03 | 8 min | 3 tasks | 3 files |
+| Phase 31 P04 | 8 min | 3 tasks | 9 files |
+| Phase 31 P07 | 3 min | 2 tasks | 8 files |
+| Phase 31 P08 | 4 min | 2 tasks | 9 files |
+| Phase 31 P05 | 9 min | 2 tasks | 9 files |
+| Phase 31 P06 | 10 min | 3 tasks | 11 files |
+| Phase 31 P09 | 12 min | 3 tasks | 12 files |
+| Phase 31 P10 | 6 min | 2 tasks | 14 files |
+| Phase 31 P11 | 3 min | 2 tasks | 2 files |
+| Phase 31 P12 | 5 min | 2 tasks | 6 files |

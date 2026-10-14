@@ -340,3 +340,38 @@ describe("mapSettingsSnapshot", () => {
     expect(snap?.slug).toBe("baseline");
   });
 });
+
+describe("Phase 30 decision 6: empty seats, bags and seat caps never reach pricing", () => {
+  it("drops a Draft class with null seats and bags and a parked row with null max_pax; keeps the Live ones", () => {
+    const book = mapRateBook({
+      rate_version: { id: 1, slug: "live", status: "live" },
+      classes: [
+        { id: "vc-live", slug: "p30-live", passenger_capacity: 3, luggage_capacity: 3, sort_order: 1, active: true },
+        { id: "vc-draft", slug: "p30-draft", passenger_capacity: null, luggage_capacity: null, sort_order: 2, active: false },
+      ],
+      distance_rates: [
+        { id: 1, rate_version_id: 1, vehicle_class_id: "vc-live", max_pax: 3, available: true },
+        { id: 2, rate_version_id: 1, vehicle_class_id: "vc-draft", max_pax: null, available: true },
+      ],
+      fixed_routes: [],
+      surcharges: [],
+      zones: [],
+    });
+    expect(book.classes.map((c) => c.slug)).toEqual(["p30-live"]);
+    expect(book.distance_rates.map((r) => r.vehicle_class_id)).toEqual(["vc-live"]);
+  });
+
+  it("drops a rated class whose seat count alone is empty", () => {
+    const book = mapRateBook({
+      rate_version: { id: 1, slug: "live", status: "live" },
+      classes: [
+        { id: "vc-half", slug: "p30-half", passenger_capacity: 4, luggage_capacity: null, sort_order: 1, active: false },
+      ],
+      distance_rates: [{ id: 1, rate_version_id: 1, vehicle_class_id: "vc-half", max_pax: 4, available: true }],
+      fixed_routes: [],
+      surcharges: [],
+      zones: [],
+    });
+    expect(book.classes).toEqual([]);
+  });
+});

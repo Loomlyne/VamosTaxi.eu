@@ -84,8 +84,6 @@ function buildBook(p: BookParams): RateBook {
     rate_version: { id: 1, slug: "prop" },
     classes: [economy],
     distance_rates: [rate],
-    distance_bands: [],
-    region_premiums: [],
     fixed_routes: [],
     surcharges: [
       surcharge({

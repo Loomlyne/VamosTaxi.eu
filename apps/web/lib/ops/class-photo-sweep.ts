@@ -1,8 +1,8 @@
 // apps/web/lib/ops/class-photo-sweep.ts
 //
 // Quick 260930-cpr (owner, 2026-09-30): a replaced class photo and its small copies are deleted
-// from storage when the price book is published, and a class's photo goes when the class is
-// deleted for good. `vehicle_classes.photo_path` is the only place that holds a class photo key
+// from storage when the price book is published. (Phase 30: classes are retired, never deleted,
+// so a class photo is never removed with its class.) `vehicle_classes.photo_path` is the only place that holds a class photo key
 // (bookings, quotes, price snapshots and mails hold none), so a stored class photo that no class
 // row points to any more is no longer used by anything and is removed.
 //
@@ -83,25 +83,19 @@ export async function classPhotoKeysInUse(env: CloudflareEnv, claims: VamosClaim
 }
 
 /**
- * After a publish (every unused class photo, 24-hour grace) or after a class hard delete (only that
- * class's own folder `classes/<id>/`, no grace: the class is gone). Never throws; logs what it did.
+ * After a publish: every unused class photo, 24-hour grace. Phase 30: a class is never deleted
+ * (it is retired and keeps `photo_path`), so a retired class's photo is always "in use" here.
+ * Never throws; logs what it did.
  */
 export async function removeUnusedClassPhotos(
   env: CloudflareEnv,
   claims: VamosClaims,
-  why: "publish" | "class-deleted",
-  classId?: string,
+  why: "publish",
 ): Promise<void> {
   try {
     if (!env.PHOTOS) return;
-    if (why === "class-deleted" && !/^[0-9a-f-]{36}$/i.test(classId ?? "")) return;
     const inUse = await classPhotoKeysInUse(env, claims);
-    const deleted = await sweepClassPhotos(
-      env.PHOTOS,
-      inUse,
-      Date.now(),
-      why === "class-deleted" ? { prefix: `${CLASS_PHOTO_PREFIX}${classId}/`, graceMs: 0 } : {},
-    );
+    const deleted = await sweepClassPhotos(env.PHOTOS, inUse, Date.now());
     if (deleted.length) console.log("class_photos_deleted", { why, keys: deleted });
   } catch (error) {
     console.error("class_photo_delete_failed", { why, error: error instanceof Error ? error.message : String(error) });

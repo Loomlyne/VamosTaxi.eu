@@ -209,8 +209,8 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 <!-- Save POSTs /api/checkout/intent from OpsNewTrip after POST /api/quote -->
 <dc-import name="OpsNewTrip" hint-size="100%,900px"></dc-import>
 </sc-if>
-<sc-if value="{{ isFleet }}" hint-placeholder-val="{{ false }}">
-<dc-import name="OpsFleet" chauffeur-id="{{ chauffeurId }}" hint-size="100%,900px"></dc-import>
+<sc-if value="{{ isChauffeurs }}" hint-placeholder-val="{{ false }}">
+<dc-import name="OpsChauffeurs" chauffeur-id="{{ chauffeurId }}" hint-size="100%,900px"></dc-import>
 </sc-if>
 <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
 <dc-import name="OpsDetail" id="{{ detailId }}" hint-size="100%,900px"></dc-import>
@@ -220,9 +220,6 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 </sc-if>
 <sc-if value="{{ isReviews }}" hint-placeholder-val="{{ false }}">
 <dc-import name="OpsReviews" hint-size="100%,900px"></dc-import>
-</sc-if>
-<sc-if value="{{ isContent }}" hint-placeholder-val="{{ false }}">
-<dc-import name="OpsContent" section="{{ contentSection }}" hint-size="100%,900px"></dc-import>
 </sc-if>
 <sc-if value="{{ isCalendar }}" hint-placeholder-val="{{ false }}">
 <dc-import name="OpsCalendarBoard" hint-size="100%,900px"></dc-import>
@@ -257,13 +254,12 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;start&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Console&quot;},&quot;requireSignIn&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Console&quot;}}">
-const FLEET = ['chauffeurs'];
-const CONTENT = ['pages', 'legal'];
+const CHAUFFEURS = ['chauffeurs'];
 const HASH_TO_PATH = {
   dashboard: '/dashboard', bookings: '/bookings', calendar: '/calendar',
-  customers: '/customers', vehicles: '/fleet/chauffeurs', chauffeurs: '/fleet/chauffeurs',
+  customers: '/customers', vehicles: '/chauffeurs', chauffeurs: '/chauffeurs',
   support: '/support', pricing: '/pricing', profile: '/profile', settings: '/settings',
-  reviews: '/reviews', pages: '/pages', legal: '/legal',
+  reviews: '/reviews',
   staff: '/dashboard',
 };
 const MENU = { en:'Open navigation', de:'Navigation öffnen', fr:'Ouvrir la navigation', ar:'فتح التنقل' };
@@ -302,9 +298,11 @@ function readPath(pathname) {
       return { route: 'customers', detailId: null, customerEmail: decodeURIComponent(email) };
     }
   }
-  if (path === '/fleet' || path === '/fleet/chauffeurs') return { route: 'chauffeurs', detailId: null };
-  if (path.indexOf('/fleet/chauffeurs/') === 0) {
-    const id = path.slice('/fleet/chauffeurs/'.length);
+  // Phase 30: the address is /chauffeurs; the old /fleet and /fleet/chauffeurs still open it.
+  if (path === '/chauffeurs' || path === '/fleet' || path === '/fleet/chauffeurs') return { route: 'chauffeurs', detailId: null };
+  const chauffeurBase = path.indexOf('/chauffeurs/') === 0 ? '/chauffeurs/' : (path.indexOf('/fleet/chauffeurs/') === 0 ? '/fleet/chauffeurs/' : '');
+  if (chauffeurBase) {
+    const id = path.slice(chauffeurBase.length);
     if (id && id.indexOf('/') === -1) return { route: 'chauffeurs', detailId: decodeURIComponent(id) };
   }
   if (path === '/support') return { route: 'support', detailId: null };
@@ -312,8 +310,6 @@ function readPath(pathname) {
   if (path === '/profile') return { route: 'profile', detailId: null };
   if (path === '/settings') return { route: 'settings', detailId: null };
   if (path === '/reviews') return { route: 'reviews', detailId: null };
-  if (path === '/pages') return { route: 'pages', detailId: null };
-  if (path === '/legal') return { route: 'legal', detailId: null };
   return { route: 'dashboard', detailId: null };
 }
 function migrateHashOnce() {
@@ -436,9 +432,7 @@ class Component extends DCLogic {
       route: r === 'detail' || r === 'newTrip' ? 'bookings' : (pricingDenied ? 'dashboard' : r),
       detailId: this.state.detailId || '',
       chauffeurId: r === 'chauffeurs' ? (this.state.detailId || '') : '',
-      contentSection: r === 'legal' ? 'legal' : 'pages',
-      isContent: CONTENT.indexOf(r) !== -1,
-      isDash: r === 'dashboard', isFleet: FLEET.indexOf(r) !== -1,
+      isDash: r === 'dashboard', isChauffeurs: CHAUFFEURS.indexOf(r) !== -1,
       isBookings: r === 'bookings', isNewTrip: r === 'newTrip', isDetail: r === 'detail',
       isPricing: r === 'pricing' && isAdmin,
       isNotFound: pricingDenied || r === 'notFound',

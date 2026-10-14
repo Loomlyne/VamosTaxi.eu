@@ -11,6 +11,7 @@ import {
   type SqlMessage,
   type SqlSubmission,
 } from "@/lib/ops/tickets-map";
+import { isLang } from "@/lib/translate/model";
 
 export type { OpsTicketRow } from "@/lib/ops/tickets-map";
 export { mapTicket } from "@/lib/ops/tickets-map";
@@ -28,7 +29,18 @@ function isMissingRelation(error: unknown): boolean {
   );
 }
 
-export async function loadTickets(env: CloudflareEnv, claims: VamosClaims): Promise<OpsTicketRow[]> {
+/**
+ * Every ticket with its thread. Phase 32: each customer message carries its detected language and its
+ * translation into `lang` (the dashboard language; anything but en/de/fr/ar reads as en), from the
+ * staff-only translations table, read under the staff RLS (T-32-31).
+ */
+export async function loadTickets(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  lang: string = "en",
+): Promise<OpsTicketRow[]> {
+  const target = isLang(lang) ? lang : "en";
+  const now = Date.now();
   return asStaff(env, claims, async (sql) => {
     const submissions = await sql<SqlSubmission[]>`
       select
@@ -54,8 +66,12 @@ export async function loadTickets(env: CloudflareEnv, claims: VamosClaims): Prom
         m.direction,
         m.body_text,
         m.created_at,
-        m.rfc_message_id
+        m.rfc_message_id,
+        m.detected_lang,
+        t.body as tr_body,
+        t.status as tr_status
       from public.support_messages m
+      left join public.support_message_translations t on t.message_id = m.id and t.target_lang = ${target}
       where m.submission_id in ${sql(ids)}
       order by m.created_at asc
     `;
@@ -97,6 +113,8 @@ export async function loadTickets(env: CloudflareEnv, claims: VamosClaims): Prom
         if (!isMissingRelation(error)) throw error;
       }
     }
-    return submissions.map((row) => mapTicket(row, bySubmission.get(row.id) ?? [], filesByMessageId));
+    return submissions.map((row) =>
+      mapTicket(row, bySubmission.get(row.id) ?? [], filesByMessageId, { lang: target, now }),
+    );
   });
 }

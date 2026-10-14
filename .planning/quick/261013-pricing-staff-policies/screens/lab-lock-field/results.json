@@ -1,0 +1,48 @@
+{
+ "at": "2026-10-14T00:45:15.021Z",
+ "base": "http://localhost:4710",
+ "results": [
+  {
+   "id": "L1",
+   "title": "dashboard sign-in as the lab admin (emailed code)",
+   "status": "PASS",
+   "evidence": "/dashboard"
+  },
+  {
+   "id": "L2",
+   "title": "Pricing › Distance rules shows Price stays valid for 24 hours; Save ghost and off",
+   "status": "PASS",
+   "evidence": "value \"24\"; label \"Price stays valid for\"; save {\"primary\":false,\"ghost\":true,\"disabled\":true}; live book {\"id\":\"2\",\"quote_lock_minutes\":null}"
+  },
+  {
+   "id": "L3",
+   "title": "type 48: Save turns primary; click Save → PUT 200 and the draft holds 2880 minutes",
+   "status": "PASS",
+   "evidence": "before click {\"primary\":true,\"ghost\":false,\"disabled\":false}; PUT 200 body {\"kind\":\"rule\",\"ruleKind\":\"quote_lock\",\"quoteLockHours\":48}; draft {\"id\":\"1\",\"quote_lock_minutes\":2880}; after {\"primary\":false,\"ghost\":true,\"disabled\":true}; saved line true"
+  },
+  {
+   "id": "L4",
+   "title": "reload: the field shows 48",
+   "status": "PASS",
+   "evidence": "value \"48\""
+  },
+  {
+   "id": "L5",
+   "title": "Publish fare book succeeds",
+   "status": "PASS",
+   "evidence": "POST publish 200 {\"ok\":true,\"data\":{\"id\":1,\"status\":\"live\"}}; success line true; dialog band text false; data-price-warn 0"
+  },
+  {
+   "id": "L6",
+   "title": "the published book and the newest settings_versions row hold 2880 minutes",
+   "status": "PASS",
+   "evidence": "live {\"id\":\"1\",\"quote_lock_minutes\":2880} (saved draft id 1); newest settings_versions {\"id\":\"3\",\"quote_lock_minutes\":2880}; open draft now null"
+  },
+  {
+   "id": "L7",
+   "title": "no page error during the run",
+   "status": "PASS",
+   "evidence": "none"
+  }
+ ]
+}

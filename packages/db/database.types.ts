@@ -526,6 +526,50 @@ export type Database = {
           },
         ]
       }
+      booking_note_translations: {
+        Row: {
+          attempts: number
+          body: string | null
+          booking_id: string
+          note_hash: string
+          prompt_version: number | null
+          source_lang: string | null
+          status: string
+          target_lang: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          body?: string | null
+          booking_id: string
+          note_hash: string
+          prompt_version?: number | null
+          source_lang?: string | null
+          status: string
+          target_lang: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          body?: string | null
+          booking_id?: string
+          note_hash?: string
+          prompt_version?: number | null
+          source_lang?: string | null
+          status?: string
+          target_lang?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_note_translations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_notifications: {
         Row: {
           booking_id: string
@@ -1552,48 +1596,6 @@ export type Database = {
         }
         Relationships: []
       }
-      distance_bands: {
-        Row: {
-          from_km: number
-          id: number
-          per_km_rappen: number
-          rate_version_id: number
-          to_km: number | null
-          vehicle_class_id: string | null
-        }
-        Insert: {
-          from_km: number
-          id?: never
-          per_km_rappen: number
-          rate_version_id: number
-          to_km?: number | null
-          vehicle_class_id?: string | null
-        }
-        Update: {
-          from_km?: number
-          id?: never
-          per_km_rappen?: number
-          rate_version_id?: number
-          to_km?: number | null
-          vehicle_class_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "distance_bands_rate_version_id_fkey"
-            columns: ["rate_version_id"]
-            isOneToOne: false
-            referencedRelation: "rate_versions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "distance_bands_vehicle_class_id_fkey"
-            columns: ["vehicle_class_id"]
-            isOneToOne: false
-            referencedRelation: "vehicle_classes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       distance_rates: {
         Row: {
           airport_start_rappen: number | null
@@ -1602,7 +1604,7 @@ export type Database = {
           city_price_rappen: number | null
           hide_from_public: boolean
           id: number
-          max_pax: number
+          max_pax: number | null
           min_fare_rappen: number | null
           per_km_rappen: number | null
           rate_version_id: number
@@ -1615,7 +1617,7 @@ export type Database = {
           city_price_rappen?: number | null
           hide_from_public?: boolean
           id?: never
-          max_pax: number
+          max_pax?: number | null
           min_fare_rappen?: number | null
           per_km_rappen?: number | null
           rate_version_id: number
@@ -1628,7 +1630,7 @@ export type Database = {
           city_price_rappen?: number | null
           hide_from_public?: boolean
           id?: never
-          max_pax?: number
+          max_pax?: number | null
           min_fare_rappen?: number | null
           per_km_rappen?: number | null
           rate_version_id?: number
@@ -1987,35 +1989,6 @@ export type Database = {
           },
         ]
       }
-      rate_version_rules: {
-        Row: {
-          id: number
-          kind: string
-          payload: Json
-          rate_version_id: number
-        }
-        Insert: {
-          id?: never
-          kind: string
-          payload?: Json
-          rate_version_id: number
-        }
-        Update: {
-          id?: never
-          kind?: string
-          payload?: Json
-          rate_version_id?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rate_version_rules_rate_version_id_fkey"
-            columns: ["rate_version_id"]
-            isOneToOne: false
-            referencedRelation: "rate_versions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       rate_versions: {
         Row: {
           created_at: string
@@ -2067,42 +2040,6 @@ export type Database = {
         }
         Relationships: []
       }
-      region_premiums: {
-        Row: {
-          id: number
-          percent: number
-          rate_version_id: number
-          zone_id: string
-        }
-        Insert: {
-          id?: never
-          percent: number
-          rate_version_id: number
-          zone_id: string
-        }
-        Update: {
-          id?: never
-          percent?: number
-          rate_version_id?: number
-          zone_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "region_premiums_rate_version_id_fkey"
-            columns: ["rate_version_id"]
-            isOneToOne: false
-            referencedRelation: "rate_versions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "region_premiums_zone_id_fkey"
-            columns: ["zone_id"]
-            isOneToOne: false
-            referencedRelation: "service_zones"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       reviews: {
         Row: {
           author_name: string
@@ -2113,6 +2050,7 @@ export type Database = {
           created_at: string
           external_ref: string | null
           id: string
+          language: string | null
           locked: boolean
           photo_path: string | null
           published: boolean
@@ -2137,6 +2075,7 @@ export type Database = {
           created_at?: string
           external_ref?: string | null
           id?: string
+          language?: string | null
           locked?: boolean
           photo_path?: string | null
           published?: boolean
@@ -2161,6 +2100,7 @@ export type Database = {
           created_at?: string
           external_ref?: string | null
           id?: string
+          language?: string | null
           locked?: boolean
           photo_path?: string | null
           published?: boolean
@@ -2590,12 +2530,51 @@ export type Database = {
           },
         ]
       }
+      support_message_translations: {
+        Row: {
+          attempts: number
+          body: string | null
+          message_id: string
+          prompt_version: number | null
+          status: string
+          target_lang: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          body?: string | null
+          message_id: string
+          prompt_version?: number | null
+          status: string
+          target_lang: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          body?: string | null
+          message_id?: string
+          prompt_version?: number | null
+          status?: string
+          target_lang?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_message_translations_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "support_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_messages: {
         Row: {
           actor_user_id: string | null
           body_html: string | null
           body_text: string
           created_at: string
+          detected_lang: string | null
           direction: string
           from_address: string | null
           id: string
@@ -2608,6 +2587,7 @@ export type Database = {
           body_html?: string | null
           body_text: string
           created_at?: string
+          detected_lang?: string | null
           direction: string
           from_address?: string | null
           id?: string
@@ -2620,6 +2600,7 @@ export type Database = {
           body_html?: string | null
           body_text?: string
           created_at?: string
+          detected_lang?: string | null
           direction?: string
           from_address?: string | null
           id?: string
@@ -2649,7 +2630,6 @@ export type Database = {
           predicate: Json
           quantity_source: string | null
           rate_version_id: number
-          rule_id: number | null
         }
         Insert: {
           active?: boolean
@@ -2662,7 +2642,6 @@ export type Database = {
           predicate?: Json
           quantity_source?: string | null
           rate_version_id: number
-          rule_id?: number | null
         }
         Update: {
           active?: boolean
@@ -2675,7 +2654,6 @@ export type Database = {
           predicate?: Json
           quantity_source?: string | null
           rate_version_id?: number
-          rule_id?: number | null
         }
         Relationships: [
           {
@@ -2685,14 +2663,61 @@ export type Database = {
             referencedRelation: "rate_versions"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "surcharges_rule_id_fkey"
-            columns: ["rule_id"]
-            isOneToOne: false
-            referencedRelation: "rate_version_rules"
-            referencedColumns: ["id"]
-          },
         ]
+      }
+      translations: {
+        Row: {
+          attempts: number
+          context: string
+          created_at: string
+          id: number
+          last_error: string | null
+          origin: string
+          prompt_version: number | null
+          source_hash: string
+          source_lang: string
+          source_text: string
+          status: string
+          target_lang: string
+          translated_text: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          attempts?: number
+          context: string
+          created_at?: string
+          id?: never
+          last_error?: string | null
+          origin?: string
+          prompt_version?: number | null
+          source_hash: string
+          source_lang: string
+          source_text: string
+          status?: string
+          target_lang: string
+          translated_text?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          attempts?: number
+          context?: string
+          created_at?: string
+          id?: never
+          last_error?: string | null
+          origin?: string
+          prompt_version?: number | null
+          source_hash?: string
+          source_lang?: string
+          source_text?: string
+          status?: string
+          target_lang?: string
+          translated_text?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       vehicle_classes: {
         Row: {
@@ -2700,9 +2725,9 @@ export type Database = {
           hidden_at: string | null
           hidden_reason: string | null
           id: string
-          luggage_capacity: number
+          luggage_capacity: number | null
           name: string | null
-          passenger_capacity: number
+          passenger_capacity: number | null
           photo_path: string | null
           slug: string
           sort_order: number
@@ -2712,9 +2737,9 @@ export type Database = {
           hidden_at?: string | null
           hidden_reason?: string | null
           id?: string
-          luggage_capacity: number
+          luggage_capacity?: number | null
           name?: string | null
-          passenger_capacity: number
+          passenger_capacity?: number | null
           photo_path?: string | null
           slug: string
           sort_order?: number
@@ -2724,9 +2749,9 @@ export type Database = {
           hidden_at?: string | null
           hidden_reason?: string | null
           id?: string
-          luggage_capacity?: number
+          luggage_capacity?: number | null
           name?: string | null
-          passenger_capacity?: number
+          passenger_capacity?: number | null
           photo_path?: string | null
           slug?: string
           sort_order?: number
@@ -2977,6 +3002,10 @@ export type Database = {
           outcome: string
           request_id: string
         }[]
+      }
+      booking_edit_request_class_retired: {
+        Args: { p_request_id: string }
+        Returns: boolean
       }
       booking_edit_request_set_extra_session: {
         Args: { p_extra_session_id: string; p_request_id: string }
@@ -3748,11 +3777,28 @@ export type Database = {
         }
         Returns: number
       }
+      notification_claim_refund: {
+        Args: {
+          p_booking_id: string
+          p_stripe_refund_id: string
+          p_template_version: string
+        }
+        Returns: number
+      }
       notification_confirmation_missing: {
         Args: { p_older_than: string }
         Returns: {
           booking_id: string
           locale: string
+        }[]
+      }
+      notification_refund_read: {
+        Args: { p_claim_id: number }
+        Returns: {
+          booking_id: string
+          locale: string
+          refund_rappen: number
+          stripe_refund_id: string
         }[]
       }
       notification_settle: {
@@ -3944,6 +3990,18 @@ export type Database = {
         Args: { p_id: string; p_reason: string }
         Returns: string
       }
+      ops_vehicle_class_missing: {
+        Args: { p_id: string }
+        Returns: string
+      }
+      ops_vehicle_class_set_status: {
+        Args: { p_id: string; p_reason: string; p_to: string }
+        Returns: string
+      }
+      ops_vehicle_class_unassigned_paid_trips: {
+        Args: { p_id: string }
+        Returns: number
+      }
       paid_cancel_mail_read: {
         Args: { p_booking_id: string }
         Returns: {
@@ -4062,6 +4120,24 @@ export type Database = {
         }
         Returns: undefined
       }
+      refund_check_read: {
+        Args: { p_refunds: Json }
+        Returns: {
+          booking_reference: string
+          booking_refund_status: string
+          booking_refunded_rappen: number
+          booking_rows_sum_rappen: number
+          payment_found: boolean
+          payment_intent_id: string
+          payment_status: string
+          refund_mail_claimed: boolean
+          site_reason: string
+          site_refund_booking_id: string
+          site_refund_rappen: number
+          site_reversed: boolean
+          stripe_refund_id: string
+        }[]
+      }
       reminder_24h_candidates: {
         Args: { p_from: string; p_to: string }
         Returns: {
@@ -4077,6 +4153,14 @@ export type Database = {
           reference: string
           scheduled_local: string
           vehicle: string
+        }[]
+      }
+      review_ref: { Args: { p_body: string }; Returns: string }
+      review_translation_source: {
+        Args: { p_ref: string }
+        Returns: {
+          body: string
+          language: string
         }[]
       }
       staff_active_for_email: { Args: { p_email: string }; Returns: boolean }
@@ -4309,6 +4393,136 @@ export type Database = {
         Returns: {
           booking_id: string
           review_id: string
+        }[]
+      }
+      system_booking_note_source: {
+        Args: { p_booking_id: string }
+        Returns: {
+          has_done: boolean
+          note: string
+          note_hash: string
+        }[]
+      }
+      system_booking_note_translation_fail: {
+        Args: { p_booking_id: string; p_note_hash: string }
+        Returns: undefined
+      }
+      system_booking_note_translation_put: {
+        Args: {
+          p_booking_id: string
+          p_detected: string
+          p_note_hash: string
+          p_rows: Json
+        }
+        Returns: number
+      }
+      system_extra_label_fill: {
+        Args: { p_code: string; p_labels: Json }
+        Returns: number
+      }
+      system_extra_labels_missing: {
+        Args: never
+        Returns: {
+          code: string
+          label_en: string
+          missing_ar: boolean
+          missing_de: boolean
+          missing_fr: boolean
+        }[]
+      }
+      system_review_language_set: {
+        Args: { p_lang: string; p_review_id: string }
+        Returns: undefined
+      }
+      system_review_language_source: {
+        Args: { p_review_id: string }
+        Returns: {
+          body: string
+          language: string
+          published: boolean
+        }[]
+      }
+      system_support_form_message_id: {
+        Args: { p_submission_id: string }
+        Returns: string
+      }
+      system_support_translation_fail: {
+        Args: { p_message_id: string }
+        Returns: undefined
+      }
+      system_support_translation_put: {
+        Args: { p_detected: string; p_message_id: string; p_rows: Json }
+        Returns: number
+      }
+      system_support_translation_source: {
+        Args: { p_message_id: string }
+        Returns: {
+          body_text: string
+          detected_lang: string
+          direction: string
+          form_locale: string
+        }[]
+      }
+      system_translation_backlog: {
+        Args: { p_limit: number }
+        Returns: {
+          id: string
+          kind: string
+        }[]
+      }
+      system_translation_mark: {
+        Args: {
+          p_context: string
+          p_hash: string
+          p_reason: string
+          p_source_lang: string
+          p_source_text: string
+          p_status: string
+          p_target_lang: string
+        }
+        Returns: undefined
+      }
+      system_translation_put_machine: {
+        Args: {
+          p_context: string
+          p_hash: string
+          p_prompt_version: number
+          p_source_lang: string
+          p_source_text: string
+          p_target_lang: string
+          p_text: string
+        }
+        Returns: {
+          origin: string
+          status: string
+          translated_text: string
+        }[]
+      }
+      system_translation_stale: {
+        Args: { p_limit: number; p_prompt_version: number }
+        Returns: {
+          id: string
+          origin: string
+          prompt_version: number
+        }[]
+      }
+      system_translation_stale_source: {
+        Args: { p_id: number; p_prompt_version: number }
+        Returns: {
+          context: string
+          source_hash: string
+          source_lang: string
+          source_text: string
+          target_lang: string
+        }[]
+      }
+      translation_read: {
+        Args: { p_hash: string; p_lang: string }
+        Returns: {
+          attempts: number
+          status: string
+          translated_text: string
+          updated_at: string
         }[]
       }
     }

@@ -35,8 +35,10 @@ interface CloudflareEnv {
   PHOTOS: R2Bucket;
 
   /**
-   * Workers AI (`env.staging`/`env.production` `ai` block). Translates extra names on save (D-44).
-   * Optional: absent in tests and local runs, the save still succeeds.
+   * Workers AI (`env.staging`/`env.production` `ai` block). Used by `lib/translate` (Gemma 4,
+   * Phase 32 D-03) for extras, customer messages, his replies and review taps; called directly
+   * through this binding, never through AI Gateway (D-04: Gateway logs keep prompts).
+   * Optional: absent in tests and local runs; every caller then shows the source text (F-07).
    */
   AI?: Ai;
 
@@ -53,6 +55,15 @@ interface CloudflareEnv {
    * proven no-op (D-36).
    */
   STRIPE_EVENTS: Queue;
+
+  /**
+   * Phase 32 translate queue: producer and consumer both bind under this name, on the queue
+   * `vamos-translate-<env>` (DLQ `vamos-translate-<env>-dlq`). The body carries ids only, never
+   * text (`lib/translate/jobs-contract.ts` refuses any other shape), so customer words never sit
+   * in queue storage. Optional so tests and local runs typecheck and work without it: a missing
+   * binding makes `sendTranslateJob` a logged no-op and the nightly sweep picks the row up.
+   */
+  TRANSLATE_QUEUE?: Queue;
 
   /**
    * Supabase direct-connection pool via Cloudflare Hyperdrive — the cacheable, public-content
@@ -379,6 +390,13 @@ interface CloudflareEnv {
    * Staging uses the live publishable key (6a5f274e). The secret key is a wrangler secret, never this field.
    */
   STRIPE_PUBLISHABLE_KEY: string;
+  /**
+   * Stripe account id (`acct_…`). OPTIONAL. wrangler.jsonc `vars` — not a secret.
+   * The Stripe account the dashboard REFUND links open (Phase 31 D-06/C-01); used only on the
+   * staff-only stripe-payments route, never on a public page. Unset or malformed: the links
+   * leave the account segment out and Stripe opens the account the owner is signed into.
+   */
+  STRIPE_ACCOUNT_ID?: string;
   /** "on" adds TWINT to the hosted Checkout page; anything else is card only (D-20). */
   STRIPE_CHECKOUT_TWINT?: string;
 

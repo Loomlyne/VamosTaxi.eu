@@ -152,7 +152,7 @@ describe("dashboard shell: a dead session goes to /login, not a blank screen (U8
 
   it("a second 404 while the first is being checked or after it, still one redirect and one /api/staff/me call", async () => {
     const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : NO_SESSION));
-    await Promise.all([t.win.fetch(SCREEN), t.win.fetch("/app/ops/OpsFleet.dc.html")]);
+    await Promise.all([t.win.fetch(SCREEN), t.win.fetch("/app/ops/OpsChauffeurs.dc.html")]);
     await flush();
     await t.win.fetch("/app/ops/OpsReviews.dc.html");
     await flush();
@@ -183,7 +183,7 @@ describe("dashboard shell: a dead session goes to /login, not a blank screen (U8
 
   it("several screen files missing at once are one probe and one reload", async () => {
     const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: {} } }));
-    await Promise.all([t.win.fetch(SCREEN), t.win.fetch("/app/ops/OpsFleet.dc.html")]);
+    await Promise.all([t.win.fetch(SCREEN), t.win.fetch("/app/ops/OpsChauffeurs.dc.html")]);
     await flush();
     await t.win.fetch("/app/ops/OpsReviews.dc.html");
     await flush();
@@ -346,7 +346,9 @@ describe("dashboard shell: a dead session goes to /login, not a blank screen (U8
   it("finds the shell's route screens, its top-level imports and the nested parts (the next tests are not reading nothing)", () => {
     expect(ROUTE_SCREENS).toContain("OpsBoard");
     expect(ROUTE_SCREENS).toContain("OpsDetail");
-    expect(ROUTE_SCREENS.length).toBeGreaterThanOrEqual(13);
+    // Phase 32 (32-03) removed the Content › Pages/Legal screen: 12 route screens remain.
+    expect(ROUTE_SCREENS.length).toBeGreaterThanOrEqual(12);
+    expect(ROUTE_SCREENS).not.toContain("OpsContent");
     // Follow-up 2 (2026-10-05): the sidebar is imported at the top level of the shell, outside any sc-if.
     expect(TOP_LEVEL_IMPORTS).toContain("OpsSidebar");
     expect(ROUTE_SCREENS).not.toContain("OpsSidebar");

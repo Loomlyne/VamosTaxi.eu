@@ -17,7 +17,7 @@ describe("dashboard photos have no Remove control", () => {
     expect(s).not.toMatch(/clearPhoto|photoClearShow|removePhoto/);
   });
   it("no screen still carries a Remove-photo string", () => {
-    for (const f of ["OpsPricing.dc.html", "OpsFleet.dc.html", "OpsReviews.dc.html"]) {
+    for (const f of ["OpsPricing.dc.html", "OpsChauffeurs.dc.html", "OpsReviews.dc.html"]) {
       expect(read(f), f).not.toMatch(/clearPhoto|removePhoto/);
     }
   });

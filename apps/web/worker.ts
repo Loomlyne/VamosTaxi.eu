@@ -33,11 +33,15 @@ import { consumeDlqMessage, consumeStripeEventMessage } from "./lib/checkout/que
 import { sweepUnprocessedEvents } from "./lib/checkout/stripe-events-sweep";
 import { sweepStuckNotifications } from "./lib/checkout/notify";
 import { sweepStripeFees } from "./lib/checkout/stripe-fee";
+import { refundCheck } from "./lib/checkout/refund-check";
 import { sweepMetaPurchaseIds } from "./lib/meta/purchase";
 import { expireUnpaidBookings } from "./lib/checkout/expire-unpaid";
 import { purgeExpiredUnpaid } from "./lib/checkout/purge-unpaid";
 import { runReminder24h } from "./lib/lifecycle/reminder";
 import { probeHealth } from "./lib/health/probe";
+import { bindTranslateStore } from "./lib/translate/jobs";
+import { consumeTranslateBatch, type TranslateConsumerDeps } from "./lib/translate/queue-consumer";
+import { runTranslateSweep } from "./lib/translate/sweep";
 import { stripInternalHeaders } from "./lib/security/strip-internal-headers";
 
 /**
@@ -135,6 +139,34 @@ export default {
       } catch {
         emit("error", "meta_purchase_sweep", { outcome: "failed" });
       }
+      // Phase 31 D-09: nightly refund check (Stripe refunds of the last 48 hours against the bookings; mails
+      // info@ on a finding or when Stripe does not answer). Writes no money table; its one write is the
+      // customer refund mail for a recorded refund whose mail claim never landed (PR #82). Counts only.
+      try {
+        const check = await refundCheck(env);
+        emit(check.outcome === "ok" ? "info" : "error", "refund_check", {
+          outcome: check.outcome,
+          stripeRefunds: check.stripeRefunds,
+          compared: check.compared,
+          skippedInFlight: check.skippedInFlight,
+          skippedAppMissing: check.skippedAppMissing,
+          findings: check.findings,
+          truncated: check.truncated,
+          mailed: check.mailed,
+          refundMailsStarted: check.refundMailsStarted,
+        });
+      } catch {
+        emit("error", "refund_check", { outcome: "failed" });
+      }
+      // Phase 32 plan 05: re-enqueue what is still untranslated, extras with a missing name and machine
+      // cache rows of an older house-rule version (ids only). Own try/catch, counts only, never a mail.
+      // Runs after the Phase 31 refund check (merge order agreed in 32-05).
+      try {
+        const r = await runTranslateSweep(env);
+        emit(r.failed > 0 ? "error" : "info", "translate_sweep", { enqueued: r.enqueued, failed: r.failed });
+      } catch {
+        emit("error", "translate_sweep", { outcome: "failed" });
+      }
       return;
     }
 
@@ -221,6 +253,20 @@ export default {
     // consumers take their bindings here, never from the fetch/RSC-only context helper, and
     // Placement Hints do not pin this handler either. A future consumer opens an identity
     // door the same way: `ctx.waitUntil(asStaff(env, claims, fn))`, never a captured `tx`.
+
+    // Phase 32 plan 05: the translate queue and its dead-letter queue come FIRST. Two traps below:
+    // (1) the `-dlq` branch sends every DLQ batch to the Stripe alert mail, so a translate DLQ would mail
+    // info@ at night; (2) everything else is parsed as a Stripe event. The translate consumer acks its
+    // DLQ quietly (marks the message "not available") and never mails. Bodies carry ids only.
+    if (batch.queue.startsWith("vamos-translate")) {
+      await consumeTranslateBatch(batch, {
+        ai: (env as { AI?: TranslateConsumerDeps["ai"] }).AI ?? null,
+        store: bindTranslateStore(env),
+        emitFor: (messageId) =>
+          withRequestContext({ requestId: messageId, route: `queue:${batch.queue}`, locale: null }),
+      });
+      return;
+    }
 
     // D-06: the DLQ is an ordinary queue on the Cloudflare side — its consumer is a second
     // `consumers[]` entry in wrangler.jsonc, and this same exported `queue()` receives its

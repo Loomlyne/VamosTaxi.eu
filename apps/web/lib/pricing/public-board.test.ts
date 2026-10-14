@@ -47,8 +47,6 @@ function book(partial: Partial<RateBook> & Pick<RateBook, "classes" | "distance_
     rate_version: { id: 1, slug: "live" },
     classes: partial.classes,
     distance_rates: partial.distance_rates,
-    distance_bands: [],
-    region_premiums: [],
     fixed_routes: partial.fixed_routes ?? [],
     surcharges: [],
     zones: partial.zones ?? [],
@@ -547,8 +545,6 @@ describe("hidden classes never reach a public board (26.1-19 D-15)", () => {
         available: true,
       },
     ],
-    distance_bands: [],
-    region_premiums: [],
     fixed_routes: [],
     surcharges: [],
     zones: [],
@@ -583,5 +579,59 @@ describe("hidden classes never reach a public board (26.1-19 D-15)", () => {
       }),
     );
     expect(board.map((c) => c.slug)).toEqual(["saden"]);
+  });
+});
+
+describe("Phase 30: Draft and Retired classes never reach the public board", () => {
+  it("a book rating a Live, a Draft and a Retired class lists only the Live one (CLS-07)", () => {
+    const live = classRow({ slug: "p30-live", sort_order: 1 });
+    const draft = classRow({ slug: "p30-draft", sort_order: 2, active: false });
+    const retired = { ...classRow({ slug: "p30-retired", sort_order: 3, active: false }), hidden_at: "2026-10-12T00:00:00Z" };
+    const board = liveBookBoard(
+      book({
+        classes: [live, draft, retired],
+        distance_rates: [
+          rateRow({ id: 1, vehicle_class_id: live.id }),
+          rateRow({ id: 2, vehicle_class_id: draft.id }),
+          rateRow({ id: 3, vehicle_class_id: retired.id }),
+        ],
+        fixed_routes: [
+          {
+            id: 9,
+            rate_version_id: 1,
+            origin_zone_id: "z-a",
+            dest_zone_id: "z-b",
+            vehicle_class_id: draft.id,
+            price_rappen: null,
+            live: true,
+            kind: "place",
+          },
+        ],
+      }),
+    );
+    expect(board.map((c) => c.slug)).toEqual(["p30-live"]);
+  });
+
+  it("a Draft with empty seats and bags is dropped by the mapper and never listed (decision 6)", () => {
+    const doc = {
+      rate_version: { id: 1, slug: "live", status: "live" },
+      classes: [
+        { id: "vc-live", slug: "p30-live", passenger_capacity: 3, luggage_capacity: 3, sort_order: 1, active: true },
+        { id: "vc-draft", slug: "p30-draft", passenger_capacity: null, luggage_capacity: null, sort_order: 2, active: false },
+      ],
+      distance_rates: [
+        { id: 1, rate_version_id: 1, vehicle_class_id: "vc-live", max_pax: 3, available: true },
+        { id: 2, rate_version_id: 1, vehicle_class_id: "vc-draft", max_pax: null, available: true },
+      ],
+      fixed_routes: [],
+      surcharges: [],
+      zones: [],
+    };
+    const board = liveBookBoard(mapRateBook(doc));
+    expect(board.map((c) => c.slug)).toEqual(["p30-live"]);
+    for (const entry of board) {
+      expect(Number.isFinite(entry.effective_max_pax)).toBe(true);
+      expect(Number.isFinite(entry.max_bags)).toBe(true);
+    }
   });
 });

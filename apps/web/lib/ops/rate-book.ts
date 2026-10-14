@@ -31,7 +31,7 @@ export type DistanceRateRow = {
   minFareRappen: number | null;
   /** Comment 11. NULL until staff set it. */
   airportStartRappen: number | null;
-  maxPax: number;
+  maxPax: number | null;
   available: boolean;
   hideFromPublic: boolean;
 };
@@ -60,31 +60,6 @@ export type SurchargeRow = {
   percent: number | null;
   appliesTo: SurchargeAppliesTo;
   active: boolean;
-  ruleId: number | null;
-};
-
-export type DistanceBandRow = {
-  id: number;
-  rateVersionId: number;
-  vehicleClassId: string;
-  vehicleClassSlug: string;
-  fromKm: number;
-  toKm: number | null;
-  perKmRappen: number | null;
-};
-
-export type RegionPremiumRow = {
-  id: number;
-  rateVersionId: number;
-  zoneId: string;
-  percent: number;
-};
-
-export type RateRuleRow = {
-  id: number;
-  rateVersionId: number;
-  kind: string;
-  payload: unknown;
 };
 
 export type VehicleClassRef = {
@@ -96,6 +71,8 @@ export type VehicleClassRef = {
   sortOrder?: number;
   /** 26.1-19 D-15: why an admin hid this class (null while it is not hidden). */
   hiddenReason?: string | null;
+  /** Phase 30: the class's `active` flag (Live when true and not retired). */
+  active?: boolean;
 };
 
 export type RateBook = {
@@ -109,9 +86,6 @@ export type RateBook = {
   distanceRates: DistanceRateRow[];
   fixedRoutes: FixedRouteRow[];
   surcharges: SurchargeRow[];
-  distanceBands: DistanceBandRow[];
-  regionPremiums: RegionPremiumRow[];
-  rules: RateRuleRow[];
   vehicleClasses: VehicleClassRef[];
 };
 
@@ -129,7 +103,8 @@ export type DistanceRateInput = {
   perKmRappen: number | null;
   minFareRappen: number | null;
   airportStartRappen: number | null;
-  maxPax: number;
+  /** Decision 6: null while a Draft class has no seat count yet. */
+  maxPax: number | null;
   available: boolean;
   hideFromPublic: boolean;
 };
@@ -149,7 +124,6 @@ export type SurchargeInput = {
   percent: number | null;
   appliesTo: SurchargeAppliesTo;
   active: boolean;
-  ruleId: number | null;
 };
 
 export type ServiceZoneInput = {
@@ -244,7 +218,10 @@ export function assertDistanceRateInput(input: DistanceRateInput): DistanceRateI
   if (!input.vehicleClassId) {
     throw new RateBookInputError("rateBook.error-class-required");
   }
-  if (!Number.isInteger(input.maxPax) || input.maxPax < 1 || input.maxPax > 16) {
+  if (
+    input.maxPax !== null &&
+    (!Number.isInteger(input.maxPax) || input.maxPax < 1 || input.maxPax > 16)
+  ) {
     throw new RateBookInputError("rateBook.error-max-pax");
   }
   return {
@@ -260,6 +237,24 @@ export function assertDistanceRateInput(input: DistanceRateInput): DistanceRateI
     available: input.available,
     hideFromPublic: input.hideFromPublic === true,
   };
+}
+
+/**
+ * Phase 30 decision 5: whether a Pricing save of a class's distance row counts (available).
+ * A Draft class's row counts only when start fare, per-km, seats and bags are all set (the
+ * publish guard refuses an available row with any of them empty); a Live class keeps the
+ * `available` the save asked for, so an unpriced Live row still blocks Publish.
+ */
+export function draftRowAvailable(
+  classIsLive: boolean,
+  parsed: { available: boolean; baseFareRappen: number | null; perKmRappen: number | null },
+  seats: number | null,
+  bags: number | null,
+): boolean {
+  if (classIsLive) return parsed.available;
+  return (
+    parsed.baseFareRappen != null && parsed.perKmRappen != null && seats != null && bags != null
+  );
 }
 
 export function assertFixedRouteInput(input: FixedRouteInput): FixedRouteInput {
@@ -296,7 +291,6 @@ export function assertSurchargeInput(input: SurchargeInput): SurchargeInput {
       percent: null,
       appliesTo: input.appliesTo,
       active: input.active,
-      ruleId: input.ruleId ?? null,
     };
   }
   if (input.kind === "percent") {
@@ -311,7 +305,6 @@ export function assertSurchargeInput(input: SurchargeInput): SurchargeInput {
       percent,
       appliesTo: input.appliesTo,
       active: input.active,
-      ruleId: input.ruleId ?? null,
     };
   }
   if (amount != null || percent != null) {
@@ -324,7 +317,6 @@ export function assertSurchargeInput(input: SurchargeInput): SurchargeInput {
     percent: null,
     appliesTo: input.appliesTo,
     active: input.active,
-    ruleId: input.ruleId ?? null,
   };
 }
 
@@ -363,7 +355,7 @@ type DistanceSqlRow = {
   per_km_rappen: number | string | null;
   min_fare_rappen: number | string | null;
   airport_start_rappen: number | string | null;
-  max_pax: number;
+  max_pax: number | null;
   available: boolean;
   hide_from_public: boolean;
 };
@@ -392,31 +384,6 @@ type SurchargeSqlRow = {
   percent: number | string | null;
   applies_to: SurchargeAppliesTo;
   active: boolean;
-  rule_id: number | string | null;
-};
-
-type BandSqlRow = {
-  id: number | string;
-  rate_version_id: number | string;
-  vehicle_class_id: string;
-  vehicle_class_slug: string;
-  from_km: number | string;
-  to_km: number | string | null;
-  per_km_rappen: number | string | null;
-};
-
-type RegionSqlRow = {
-  id: number | string;
-  rate_version_id: number | string;
-  zone_id: string;
-  percent: number | string;
-};
-
-type RuleSqlRow = {
-  id: number | string;
-  rate_version_id: number | string;
-  kind: string;
-  payload: unknown;
 };
 
 type ClassSqlRow = {
@@ -428,6 +395,7 @@ type ClassSqlRow = {
   sort_order?: number | null;
   hidden_at?: Date | string | null;
   hidden_reason?: string | null;
+  active?: boolean | null;
 };
 
 type ZoneSqlRow = {
@@ -506,44 +474,14 @@ export async function loadRateBook(
         s.amount_rappen,
         s.percent,
         s.applies_to,
-        s.active,
-        s.rule_id
+        s.active
       from public.surcharges s
       where s.rate_version_id = ${versionId}
       order by s.code
     `;
 
-    const bands = await tx<BandSqlRow[]>`
-      select
-        b.id,
-        b.rate_version_id,
-        b.vehicle_class_id,
-        vc.slug as vehicle_class_slug,
-        b.from_km,
-        b.to_km,
-        b.per_km_rappen
-      from public.distance_bands b
-      join public.vehicle_classes vc on vc.id = b.vehicle_class_id
-      where b.rate_version_id = ${versionId}
-      order by vc.slug, b.from_km
-    `;
-
-    const regions = await tx<RegionSqlRow[]>`
-      select id, rate_version_id, zone_id, percent
-        from public.region_premiums
-       where rate_version_id = ${versionId}
-       order by zone_id
-    `;
-
-    const rules = await tx<RuleSqlRow[]>`
-      select id, rate_version_id, kind, payload
-        from public.rate_version_rules
-       where rate_version_id = ${versionId}
-       order by id
-    `;
-
     const classes = await tx<ClassSqlRow[]>`
-      select id, slug, name, photo_path, luggage_capacity, sort_order, hidden_at, hidden_reason
+      select id, slug, name, photo_path, luggage_capacity, sort_order, hidden_at, hidden_reason, active
         from public.vehicle_classes
        order by sort_order, slug
     `;
@@ -595,31 +533,9 @@ export async function loadRateBook(
             percent: asPercent(row.percent),
             appliesTo: row.applies_to,
             active: row.active,
-            ruleId: row.rule_id == null ? null : asId(row.rule_id),
           },
         ];
       }),
-      distanceBands: bands.map((row) => ({
-        id: asId(row.id),
-        rateVersionId: asId(row.rate_version_id),
-        vehicleClassId: row.vehicle_class_id,
-        vehicleClassSlug: row.vehicle_class_slug,
-        fromKm: asRappen(row.from_km) ?? 0,
-        toKm: asRappen(row.to_km),
-        perKmRappen: asRappen(row.per_km_rappen),
-      })),
-      regionPremiums: regions.map((row) => ({
-        id: asId(row.id),
-        rateVersionId: asId(row.rate_version_id),
-        zoneId: row.zone_id,
-        percent: asPercent(row.percent) ?? 0,
-      })),
-      rules: rules.map((row) => ({
-        id: asId(row.id),
-        rateVersionId: asId(row.rate_version_id),
-        kind: row.kind,
-        payload: row.payload,
-      })),
       vehicleClasses: classes.map((row) => ({
         id: row.id,
         slug: row.slug,
@@ -631,6 +547,7 @@ export async function loadRateBook(
           row.hidden_at != null
             ? (typeof row.hidden_reason === "string" && row.hidden_reason) || ""
             : null,
+        active: row.active === true,
       })),
     };
   });
@@ -687,6 +604,7 @@ export { vehicleClassLabelKey } from "./vehicle-class-label";
  * Clone a live or retired book into a new draft (D-06 / D-09).
  * When `tx` is passed, the copy joins that asStaff transaction — Publish
  * must clone in the same tx as the public_chf / VAT flip.
+ * Phase 30 CLS-06: new price books skip retired classes; frozen books keep theirs.
  */
 async function cloneRateVersionFrom(
   tx: StaffTx,
@@ -724,63 +642,34 @@ async function cloneRateVersionFrom(
       min_fare_rappen, airport_start_rappen, city_price_rappen,
       max_pax, available, hide_from_public
     )
-    select ${newId}, vehicle_class_id, base_fare_rappen, per_km_rappen,
-           min_fare_rappen, airport_start_rappen, city_price_rappen,
-           max_pax, available, hide_from_public
-      from public.distance_rates
-     where rate_version_id = ${source.id}
+    select ${newId}, d.vehicle_class_id, d.base_fare_rappen, d.per_km_rappen,
+           d.min_fare_rappen, d.airport_start_rappen, d.city_price_rappen,
+           d.max_pax, d.available, d.hide_from_public
+      from public.distance_rates d
+      join public.vehicle_classes vc
+        on vc.id = d.vehicle_class_id and vc.hidden_at is null
+     where d.rate_version_id = ${source.id}
   `;
   await tx`
     insert into public.fixed_routes (
       rate_version_id, origin_zone_id, dest_zone_id, vehicle_class_id, price_rappen, live
     )
-    select ${newId}, origin_zone_id, dest_zone_id, vehicle_class_id, price_rappen, live
-      from public.fixed_routes
-     where rate_version_id = ${source.id}
-  `;
-  await tx`
-    insert into public.rate_version_rules (rate_version_id, kind, payload)
-    select ${newId}, kind, payload
-      from public.rate_version_rules
-     where rate_version_id = ${source.id}
-     order by id
+    select ${newId}, f.origin_zone_id, f.dest_zone_id, f.vehicle_class_id, f.price_rappen, f.live
+      from public.fixed_routes f
+      join public.vehicle_classes vc
+        on vc.id = f.vehicle_class_id and vc.hidden_at is null
+     where f.rate_version_id = ${source.id}
   `;
   await tx`
     insert into public.surcharges (
       rate_version_id, code, kind, amount_rappen, percent, applies_to, active,
-      predicate, quantity_source, rule_id
+      predicate, quantity_source
     )
     select
       ${newId}, s.code, s.kind, s.amount_rappen, s.percent, s.applies_to, s.active,
-      s.predicate, s.quantity_source,
-      (
-        select n.id
-          from public.rate_version_rules n
-          join public.rate_version_rules o on o.id = s.rule_id
-         where n.rate_version_id = ${newId}
-           and n.kind is not distinct from o.kind
-           and n.payload is not distinct from o.payload
-         order by n.id
-         limit 1
-      )
+      s.predicate, s.quantity_source
       from public.surcharges s
      where s.rate_version_id = ${source.id}
-  `;
-  await tx`
-    insert into public.distance_bands (
-      rate_version_id, vehicle_class_id, from_km, to_km, per_km_rappen
-    )
-    select ${newId}, vehicle_class_id, from_km, to_km, per_km_rappen
-      from public.distance_bands
-     where rate_version_id = ${source.id}
-  `;
-  await tx`
-    insert into public.region_premiums (
-      rate_version_id, zone_id, percent
-    )
-    select ${newId}, zone_id, percent
-      from public.region_premiums
-     where rate_version_id = ${source.id}
   `;
   await tx`
     insert into public.coupons (
@@ -884,16 +773,6 @@ async function quoteBookDocById(
           select coalesce(jsonb_agg(to_jsonb(d) order by d.vehicle_class_id), '[]'::jsonb)
             from public.distance_rates as d
            where d.rate_version_id = rv.id
-        ),
-        'distance_bands', (
-          select coalesce(jsonb_agg(to_jsonb(b) order by b.vehicle_class_id, b.from_km), '[]'::jsonb)
-            from public.distance_bands as b
-           where b.rate_version_id = rv.id
-        ),
-        'region_premiums', (
-          select coalesce(jsonb_agg(to_jsonb(p) order by p.zone_id), '[]'::jsonb)
-            from public.region_premiums as p
-           where p.rate_version_id = rv.id
         ),
         'fixed_routes', (
           select coalesce(

@@ -174,7 +174,7 @@ test("out-of-order canceled is superseded; booking stays confirmed @checkout", a
       throw new Error("not used: no dispute event in this scenario");
     },
     findSessionIdForPaymentIntent: async () => null,
-    recordChargeRefund: async () => ({ outcome: "not_used" }),
+    recordChargeRefund: async () => ({ outcome: "not_used", bookingId: null }),
     upsertDispute: async () => undefined,
     emit: () => undefined,
   };
@@ -246,7 +246,7 @@ test("a second confirmation deliver is not issued when already_settled @checkout
       throw new Error("not used: no dispute event in this scenario");
     },
     findSessionIdForPaymentIntent: async () => null,
-    recordChargeRefund: async () => ({ outcome: "not_used" }),
+    recordChargeRefund: async () => ({ outcome: "not_used", bookingId: null }),
     upsertDispute: async () => undefined,
     emit: () => undefined,
   };

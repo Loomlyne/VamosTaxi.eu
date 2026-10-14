@@ -10,6 +10,8 @@
 <body>
 <x-dc>
 <style>
+:root{--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
 [data-kb]{display:grid;grid-template-columns:repeat(5,minmax(17.5rem,1fr));gap:14px;min-width:0;overflow-x:auto;overflow-y:hidden;align-items:start;padding-block-end:4px}
 [data-kb-col]{box-sizing:border-box;width:auto;min-width:0;min-inline-size:17.5rem;padding:12px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);display:flex;flex-direction:column;gap:10px;min-block-size:280px}
 [data-kb-col][data-open="0"]{min-block-size:0;gap:0}
@@ -58,7 +60,7 @@
 [data-meta-toggle]{margin:0}
 [data-note-save]{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
 [data-note-save] .vt-field{flex:1 1 160px;min-width:0}
-[data-ov-foot]{flex:0 0 auto;display:flex;flex-direction:column;gap:12px;padding:12px 14px;border-top:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface)}
+[data-ov-foot]{flex:0 0 auto;display:flex;flex-direction:column;gap:12px;padding:12px 14px;border-top:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);max-block-size:56%;overflow-y:auto;overscroll-behavior:contain}
 [data-ov-actions]{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:10px}
 [data-facts]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 14px}
 [data-fact]{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -73,6 +75,23 @@
 [data-msg][data-from="note"]{align-self:center;max-width:100%;background:transparent;border-style:dashed;border-width:1px;color:var(--vt-text-muted);font-size:var(--vt-body-xs);text-align:center}
 [data-msg][data-from="staff"] [data-chip]{background:transparent;border-color:rgb(255 255 255 / .28);color:var(--vt-text-inverse)}
 [data-msg] p{white-space:pre-wrap}
+[data-msg-body],[data-msg-tr]{margin:0;font-size:var(--vt-body-sm);line-height:1.55;text-wrap:pretty}
+[data-msg-from],[data-msg-status]{display:flex;align-items:center;gap:4px;margin-block-start:8px;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted)}
+[data-msg-orig]{margin:8px 0 0;padding-block-start:8px;border-block-start:1px solid var(--vt-border-subtle);font-size:var(--vt-body-xs);line-height:1.55;color:var(--vt-text-muted);text-align:start;unicode-bidi:plaintext;overflow-wrap:anywhere}
+[data-tr-spin]{display:inline-flex}
+[data-reply]{display:flex;flex-direction:column;gap:8px;min-width:0}
+[data-reply] .vt-field,[data-reply] .vt-input{min-width:0;width:100%}
+[data-reply-hint],[data-reply-note]{margin:0;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted)}
+[data-reply-note]{display:flex;align-items:flex-start;gap:4px}
+[data-ov-answer]{display:inline-flex}
+@media (prefers-reduced-motion:no-preference){
+  [data-tr-spin="1"]{animation:tr-spin 1s linear infinite}
+}
+@keyframes tr-spin{to{transform:rotate(360deg)}}
+@media (max-width:560px){
+  [data-ov-answer]{display:flex;flex:1 1 100%}
+  [data-ov-answer] .vt-btn{flex:1 1 auto}
+}
 [data-files]{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin-block-start:8px;min-width:0}
 [data-msg][data-from="staff"] [data-files]{align-items:flex-end}
 [data-files] .vt-btn{max-inline-size:100%}
@@ -104,7 +123,7 @@
   [data-ov]{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:10px}
   [data-ov-meta]{order:-1;overflow:visible;gap:8px;padding-inline:0;max-block-size:none}
   [data-ov-chat]{min-block-size:0;height:100%;max-block-size:none;align-self:stretch}
-  [data-thread]{min-block-size:240px;flex:1 1 0%}
+  [data-thread]{min-block-size:160px;flex:1 1 0%}
   [data-person]{grid-template-columns:36px minmax(0,1fr) auto;padding:10px 12px;gap:6px 10px}
   [data-person] [data-av]{width:36px;height:36px;font-size:13px}
   [data-person-name]{flex-wrap:wrap}
@@ -116,7 +135,7 @@
   [data-fact-pair]{gap:8px;flex-direction:column}
   [data-ov-foot]{padding:8px 10px;gap:8px}
   [data-ov-foot] .vt-field__label{display:none}
-  [data-ov-actions] .vt-btn{min-block-size:36px}
+  [data-ov-actions] .vt-btn{min-block-size:44px}
   [data-person-tel]{display:none!important}
 }
 @media (prefers-reduced-motion: no-preference){
@@ -223,7 +242,23 @@
 <span data-chip="1">{{ m.who }}</span>
 <span style="font-size:var(--vt-body-xs);opacity:.72">{{ m.when }}</span>
 </div>
-<p data-vt-no-i18n="1" style="margin:0;font-size:var(--vt-body-sm);line-height:1.55;text-wrap:pretty">{{ m.body }}</p>
+<sc-if value="{{ m.isTr }}" hint-placeholder-val="{{ false }}">
+<p data-msg-tr="1" data-vt-no-i18n="1" lang="{{ m.dashLang }}" dir="{{ m.dashDir }}">{{ m.trText }}</p>
+<div data-msg-from="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="globe" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+<span>{{ m.fromLine }}</span>
+</div>
+<p data-msg-orig="1" data-vt-no-i18n="1" lang="{{ m.lang }}" dir="{{ m.dir }}">{{ m.body }}</p>
+</sc-if>
+<sc-if value="{{ m.isPlain }}" hint-placeholder-val="{{ true }}">
+<p data-msg-body="1" data-vt-no-i18n="1" lang="{{ m.bodyLang }}" dir="{{ m.bodyDir }}">{{ m.body }}</p>
+<sc-if value="{{ m.hasNote }}" hint-placeholder-val="{{ false }}">
+<div data-msg-status="{{ m.noteKind }}">
+<span data-tr-spin="{{ m.noteSpin }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ m.noteIcon }}" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import></span>
+<span>{{ m.noteText }}</span>
+</div>
+</sc-if>
+</sc-if>
 <div data-files="1">
 <sc-for list="{{ m.files }}" as="f" hint-placeholder-count="0">
 <span data-chip="1" data-file-name="1" data-vt-no-i18n="1">{{ f.filename }}</span>
@@ -237,7 +272,16 @@
 <p data-ov-err="1">{{ tSendError }}</p>
 </sc-if>
 <sc-if value="{{ canReply }}" hint-placeholder-val="{{ true }}">
-<p data-hint="1" style="margin:0">{{ tMailHint }}</p>
+<div data-reply="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tReplyLabel }}" aria-label="{{ tReplyLabel }}" placeholder="{{ tReplyPh }}" rows="{{ replyRows }}" value="{{ replyText }}" onChange="{{ setReplyText }}" data-reply-text="1" hint-size="100%,96px"></x-import>
+<p data-reply-hint="1">{{ replyHint }}</p>
+<sc-if value="{{ replyNote }}" hint-placeholder-val="{{ false }}">
+<p data-reply-note="{{ replyNoteKind }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+<span>{{ replyNote }}</span>
+</p>
+</sc-if>
+</div>
 </sc-if>
 <sc-if value="{{ isClosed }}" hint-placeholder-val="{{ false }}">
 <p data-hint="1" style="margin:0">{{ tClosedBody }}</p>
@@ -249,7 +293,7 @@
 </sc-if>
 <sc-if value="{{ canReply }}" hint-placeholder-val="{{ true }}">
 <dc-import name="BrandSelect" icon="settings" value="{{ mailApp }}" options="{{ mailAppOptions }}" onSelect="{{ setMailApp }}" a11y-label="{{ tMailApp }}" hint-size="48px,36px"></dc-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" icon="mail" disabled="{{ answerOff }}" onClick="{{ answerByMail }}" hint-size="220px,44px">{{ tAnswer }}</x-import>
+<span data-ov-answer="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" icon="{{ answerIcon }}" disabled="{{ answerOff }}" aria-busy="{{ answerBusy }}" onClick="{{ answerByMail }}" data-answer="1" hint-size="220px,44px">{{ answerLabel }}</x-import></span>
 </sc-if>
 </div>
 </div>
@@ -335,7 +379,7 @@ const T = {
     emptyTitle:'No tickets', emptyBody:'Contact-page messages land here.', colEmpty:'No tickets',
     status:'Status', close:'Close', closeTicket:'Close Ticket', reopen:'Reopen', customer:'Customer', staff:'Dispatcher', noteWho:'Note',
     kanban:'Kanban', table:'Table', colName:'Customer', colEmail:'Email', colPhone:'Phone', colRef:'Ref', colWhen:'When', colLocale:'Locale',
-    answer:'Answer by e-mail', mailHint:'Read only. The button opens a reply to this customer in your mail app.', mailApp:'Mail app', mailAuto:'This device’s mail app', mailGmail:'Gmail in the browser', closedBody:'This ticket is closed. Reopen it to keep working.',
+    answer:'Answer by e-mail', translatedFrom:"Translated from %s", translatedNoLang:"Translated", translating:"Translating…", trNotAvailable:"Translation not available", replyLabel:"Your reply", replyPh:"Write in your language.", replyHint:"The button opens a reply in your mail app. The customer gets it in their language, with your text below.", replyHintSame:"The button opens a reply in your mail app.", replyHintRaw:"The button opens a reply in your mail app. Your text stays as written: the customer’s language is not one of our four.", replyUntranslated:"Couldn’t translate. The e-mail opened with your text as written.", replyReady:"Translation ready. Press the button again to open your mail.", mailTooLong:"Your original text was left out: it is too long for your mail app link.", mailApp:'Mail app', mailAuto:'This device’s mail app', mailGmail:'Gmail in the browser', closedBody:'This ticket is closed. Reopen it to keep working.',
     loadError:'Could not load tickets. Try again.',
     sendError:'Couldn’t save. Try again.',
     footNew:'Waiting on dispatch', footOpen:'In progress', footMsgs:'Across every ticket', footAll:'On the board',
@@ -351,7 +395,7 @@ const T = {
     emptyTitle:'Keine Tickets', emptyBody:'Nichts in diesem Filter.', colEmpty:'Keine Tickets',
     status:'Status', close:'Schliessen', closeTicket:'Ticket schliessen', reopen:'Wieder öffnen', customer:'Kunde', staff:'Disponent', noteWho:'Notiz',
     kanban:'Kanban', table:'Tabelle', colName:'Kunde', colEmail:'E-Mail', colPhone:'Telefon', colRef:'Ref.', colWhen:'Wann', colLocale:'Sprache',
-    answer:'Per E-Mail antworten', mailHint:'Nur lesen. Die Schaltfläche öffnet eine Antwort an diesen Kunden in Ihrem E-Mail-Programm.', mailApp:'E-Mail-Programm', mailAuto:'E-Mail-Programm dieses Geräts', mailGmail:'Gmail im Browser', closedBody:'Dieses Ticket ist geschlossen. Öffnen Sie es erneut, um weiterzuarbeiten.',
+    answer:'Per E-Mail antworten', translatedFrom:"Übersetzt (Original: %s)", translatedNoLang:"Übersetzt", translating:"Wird übersetzt …", trNotAvailable:"Übersetzung nicht verfügbar", replyLabel:"Ihre Antwort", replyPh:"Schreiben Sie in Ihrer Sprache.", replyHint:"Die Schaltfläche öffnet eine Antwort in Ihrem E-Mail-Programm. Der Kunde erhält sie in seiner Sprache, Ihr Text steht darunter.", replyHintSame:"Die Schaltfläche öffnet eine Antwort in Ihrem E-Mail-Programm.", replyHintRaw:"Die Schaltfläche öffnet eine Antwort in Ihrem E-Mail-Programm. Ihr Text bleibt unverändert: Die Sprache des Kunden gehört nicht zu unseren vier.", replyUntranslated:"Übersetzung nicht möglich. Die E-Mail wurde mit Ihrem Text unverändert geöffnet.", replyReady:"Übersetzung fertig. Drücken Sie die Schaltfläche erneut, um Ihr E-Mail-Programm zu öffnen.", mailTooLong:"Ihr Originaltext wurde weggelassen: Er ist zu lang für den Link Ihres E-Mail-Programms.", mailApp:'E-Mail-Programm', mailAuto:'E-Mail-Programm dieses Geräts', mailGmail:'Gmail im Browser', closedBody:'Dieses Ticket ist geschlossen. Öffnen Sie es erneut, um weiterzuarbeiten.',
     loadError:'Tickets konnten nicht geladen werden. Bitte erneut versuchen.',
     sendError:'Speichern fehlgeschlagen. Bitte erneut versuchen.',
     footNew:'Wartet auf Dispatch', footOpen:'In Bearbeitung', footMsgs:'Über alle Tickets', footAll:'Auf dem Board',
@@ -367,7 +411,7 @@ const T = {
     emptyTitle:'Aucun ticket', emptyBody:'Rien dans ce filtre.', colEmpty:'Aucun ticket',
     status:'Statut', close:'Fermer', closeTicket:'Fermer le ticket', reopen:'Réouvrir', customer:'Client', staff:'Régulateur', noteWho:'Note',
     kanban:'Kanban', table:'Tableau', colName:'Client', colEmail:'E-mail', colPhone:'Téléphone', colRef:'Réf.', colWhen:'Quand', colLocale:'Langue',
-    answer:'Répondre par e-mail', mailHint:'Lecture seule. Le bouton ouvre une réponse à ce client dans votre messagerie.', mailApp:'Messagerie', mailAuto:'Messagerie de cet appareil', mailGmail:'Gmail dans le navigateur', closedBody:'Ce ticket est fermé. Réouvrez-le pour continuer.',
+    answer:'Répondre par e-mail', translatedFrom:"Traduit (original : %s)", translatedNoLang:"Traduit", translating:"Traduction en cours…", trNotAvailable:"Traduction indisponible", replyLabel:"Votre réponse", replyPh:"Écrivez dans votre langue.", replyHint:"Le bouton ouvre une réponse dans votre messagerie. Le client la reçoit dans sa langue, votre texte en dessous.", replyHintSame:"Le bouton ouvre une réponse dans votre messagerie.", replyHintRaw:"Le bouton ouvre une réponse dans votre messagerie. Votre texte reste tel quel : la langue du client ne fait pas partie de nos quatre.", replyUntranslated:"Traduction impossible. L’e-mail s’est ouvert avec votre texte tel quel.", replyReady:"Traduction prête. Appuyez de nouveau sur le bouton pour ouvrir votre messagerie.", mailTooLong:"Votre texte d’origine a été retiré : il est trop long pour le lien de votre messagerie.", mailApp:'Messagerie', mailAuto:'Messagerie de cet appareil', mailGmail:'Gmail dans le navigateur', closedBody:'Ce ticket est fermé. Réouvrez-le pour continuer.',
     loadError:'Impossible de charger les tickets. Réessayez.',
     sendError:'Impossible d’enregistrer. Réessayez.',
     footNew:'En attente dispatch', footOpen:'En cours', footMsgs:'Tous tickets confondus', footAll:'Sur le tableau',
@@ -383,7 +427,7 @@ const T = {
     emptyTitle:'لا تذاكر', emptyBody:'لا شيء في هذا التصفية.', colEmpty:'لا تذاكر',
     status:'الحالة', close:'إغلاق', closeTicket:'إغلاق التذكرة', reopen:'إعادة الفتح', customer:'العميل', staff:'الموزّع', noteWho:'ملاحظة',
     kanban:'كانبان', table:'جدول', colName:'العميل', colEmail:'البريد', colPhone:'الهاتف', colRef:'المرجع', colWhen:'متى', colLocale:'اللغة',
-    answer:'الرد عبر البريد الإلكتروني', mailHint:'للقراءة فقط. الزر يفتح ردًا على هذا العميل في تطبيق بريدك.', mailApp:'تطبيق البريد', mailAuto:'تطبيق البريد على هذا الجهاز', mailGmail:'Gmail في المتصفح', closedBody:'هذه التذكرة مغلقة. أعد فتحها للمتابعة.',
+    answer:'الرد عبر البريد الإلكتروني', translatedFrom:"تُرجم من %s", translatedNoLang:"مترجم", translating:"جارٍ الترجمة…", trNotAvailable:"الترجمة غير متاحة", replyLabel:"ردّك", replyPh:"اكتب بلغتك.", replyHint:"يفتح الزر ردًا في تطبيق بريدك. يتلقاه العميل بلغته، ونصّك تحته.", replyHintSame:"يفتح الزر ردًا في تطبيق بريدك.", replyHintRaw:"يفتح الزر ردًا في تطبيق بريدك. يبقى نصّك كما هو: لغة العميل ليست من لغاتنا الأربع.", replyUntranslated:"تعذّرت الترجمة. فُتح البريد بنصّك كما كتبته.", replyReady:"الترجمة جاهزة. اضغط الزر مرة أخرى لفتح تطبيق البريد.", mailTooLong:"حُذف نصّك الأصلي لأنه أطول من أن يتسع له رابط تطبيق البريد.", mailApp:'تطبيق البريد', mailAuto:'تطبيق البريد على هذا الجهاز', mailGmail:'Gmail في المتصفح', closedBody:'هذه التذكرة مغلقة. أعد فتحها للمتابعة.',
     loadError:'تعذر تحميل التذاكر. حاول مرة أخرى.',
     sendError:'تعذر الحفظ. حاول مرة أخرى.',
     footNew:'بانتظار التوزيع', footOpen:'قيد المعالجة', footMsgs:'عبر كل التذاكر', footAll:'على اللوحة',
@@ -400,7 +444,8 @@ function replyOf(r) {
   const x = r && typeof r === 'object' ? r : {};
   const mailto = typeof x.mailto === 'string' && x.mailto.indexOf('mailto:') === 0 ? x.mailto : '';
   const gmail = typeof x.gmail === 'string' && x.gmail.indexOf('https://mail.google.com/') === 0 ? x.gmail : '';
-  return { mailto: mailto, gmail: gmail };
+  const lang = typeof x.lang === 'string' ? x.lang.trim().toLowerCase().slice(0, 8) : '';
+  return { mailto: mailto, gmail: gmail, lang: lang };
 }
 const MAIL_APP_KEY = 'vamosOpsMailApp';
 function readMailApp() {
@@ -414,6 +459,8 @@ function cloneTickets(rows) {
     reply: replyOf(t.reply),
     messages: (t.messages || []).map((m) => ({
       whoKey: m.whoKey, when: m.when, body: m.body, files: Array.isArray(m.files) ? m.files.slice() : [],
+      lang: typeof m.lang === 'string' ? m.lang : '',
+      translation: m.translation && typeof m.translation === 'object' ? { text: String(m.translation.text || ''), status: String(m.translation.status || '') } : null,
     })),
   }));
 }
@@ -486,12 +533,35 @@ function opsPhone() {
 function opsHand() {
   try { return window.matchMedia('(max-width: 767px)').matches; } catch (e) { return false; }
 }
+/* Phase 32: customer messages in another language, and his reply in the customer's language. */
+const RTL = { ar: 1, he: 1, fa: 1, ur: 1 };
+const PENDING_TRIES = 5;
+const PENDING_GAP_MS = 2000;
+const REPLY_LANGS = ['de', 'en', 'fr', 'ar'];
+const REPLY_WAIT_MS = 800;
+const REPLY_CEILING_MS = 20000;
+const MAIL_MAX = 1800;
+const MAIL_RULE = '--------------------';
+function withBody(url, body) {
+  if (!url || !body) return url;
+  return url + (url.indexOf('?') === -1 ? '?' : '&') + 'body=' + encodeURIComponent(body);
+}
+function dirOf(code) { return RTL[String(code || '').slice(0, 2)] ? 'rtl' : 'ltr'; }
+/** Language name in the dashboard language (Intl), first letter capitalised; '' when Intl does not know the code. */
+function langName(code, inLang) {
+  try {
+    const n = new Intl.DisplayNames([inLang || 'en'], { type: 'language' }).of(code);
+    if (!n || n === code) return '';
+    return n.charAt(0).toLocaleUpperCase(inLang || 'en') + n.slice(1);
+  } catch (e) { return ''; }
+}
 class Component extends DCLogic {
   state = {
     lang: 'en', filter: 'all', view: opsPhone() ? 'table' : 'kanban', query: '', tickets: [],
     openId: null, mailApp: readMailApp(), filterOpen: false, metaOpen: true, loadError: false, overlayError: false,
     sortNewest: Object.assign({}, SORT_NEWEST),
     colOpen: { new: true, open: true, replied: true, responded: true, closed: true },
+    replyDraft: null,
   };
   hydrate = () => {
     const api = window.VamosOpsApi;
@@ -499,7 +569,11 @@ class Component extends DCLogic {
       this._retry = setTimeout(this.hydrate, 120);
       return;
     }
-    api.request('GET', '/api/staff/tickets').then((json) => {
+    // The translations come back in his dashboard language, so the language rides along on every read.
+    const lang = this._lang || this.state.lang || 'en';
+    const seq = (this._hseq = (this._hseq || 0) + 1);
+    api.request('GET', '/api/staff/tickets?lang=' + encodeURIComponent(lang)).then((json) => {
+      if (seq !== this._hseq) return;
       if (!json || json.ok === false || !Array.isArray(json.data)) {
         this.setState({ loadError: true });
         return;
@@ -508,17 +582,37 @@ class Component extends DCLogic {
       this.setState({ tickets: tickets, loadError: false }, () => {
         publishBadge(tickets);
         if (this.state.openId) requestAnimationFrame(() => this.scrollThread());
+        this.watchPending();
       });
-    }, () => this.setState({ loadError: true }));
+    }, () => { if (seq === this._hseq) this.setState({ loadError: true }); });
+  };
+  /* A customer message whose translation is still pending: re-read the thread at most 5 times, 2 s apart;
+     after that it reads "Translation not available" until the ticket is opened again. */
+  watchPending = () => {
+    const id = this.state.openId;
+    const open = id ? this.state.tickets.find((t) => t.id === id) : null;
+    if (!open) return;
+    const pending = open.messages.some((m) => m.whoKey === 'customer' && m.translation && m.translation.status === 'pending');
+    if (!pending) return;
+    if (this._pendFor !== id) { this._pendFor = id; this._pendTries = 0; this._pendGaveUp = null; }
+    if (this._pendTries >= PENDING_TRIES) { if (this._pendGaveUp !== id) { this._pendGaveUp = id; this.forceUpdate(); } return; }
+    this._pendTries += 1;
+    clearTimeout(this._pendT);
+    this._pendT = setTimeout(this.hydrate, PENDING_GAP_MS);
   };
   componentDidMount() {
-    this._onLocale = (e) => this.setState({ lang: e.detail.lang });
+    this._onLocale = (e) => {
+      const lang = e && e.detail && e.detail.lang ? e.detail.lang : 'en';
+      this._lang = lang;
+      this._pendFor = null; this._pendGaveUp = null;
+      this.setState({ lang: lang }, this.hydrate);
+    };
     this._onFocus = () => this.hydrate();
     this._onVis = () => { if (document.visibilityState === 'visible') this.hydrate(); };
     window.addEventListener('vamos:locale', this._onLocale);
     window.addEventListener('focus', this._onFocus);
     document.addEventListener('visibilitychange', this._onVis);
-    if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
+    if (window.VamosLocale) { this._lang = window.VamosLocale.lang(); this.setState({ lang: this._lang }); }
     if (opsPhone() && this.state.view === 'kanban') this.setState({ view: 'table' });
     // The badge is set when the list has loaded (hydrate). Publishing the empty start list here
     // showed "no tickets" until then, and for good when the load failed.
@@ -537,6 +631,122 @@ class Component extends DCLogic {
     if (this._onFocus) window.removeEventListener('focus', this._onFocus);
     if (this._onVis) document.removeEventListener('visibilitychange', this._onVis);
     clearTimeout(this._retry);
+    clearTimeout(this._pendT);
+    clearTimeout(this._rt); clearTimeout(this._rceil);
+  }
+  blankReply(row) {
+    return { id: row ? row.id : null, text: '', out: '', outFor: '', status: 'idle', busy: false, lapsed: false, failedOpened: false };
+  }
+  openNow() { return this.state.tickets.find((t) => t.id === this.state.openId) || null; }
+  replyFor(open) {
+    const r = this.state.replyDraft;
+    return r && open && r.id === open.id ? r : this.blankReply(open);
+  }
+  patchReply = (patch, cb) => {
+    const open = this.openNow();
+    if (!open) return;
+    this.setState({ replyDraft: Object.assign({}, this.replyFor(open), patch) }, cb);
+  };
+  /** The language his reply goes out in: the server's reply language, else the latest detected customer language, else the ticket locale. */
+  targetOf(open) {
+    if (!open) return 'en';
+    const set = open.reply && open.reply.lang ? String(open.reply.lang).slice(0, 2).toLowerCase() : '';
+    if (set) return set;
+    for (let i = open.messages.length - 1; i >= 0; i--) {
+      const m = open.messages[i];
+      if (m.whoKey === 'customer' && m.lang) return String(m.lang).slice(0, 2).toLowerCase();
+    }
+    return String(open.locale || 'en').slice(0, 2).toLowerCase() || 'en';
+  }
+  /** empty | same (his own language) | raw (outside en/de/fr/ar) | translate */
+  replyMode(open, text) {
+    if (!String(text || '').trim()) return 'empty';
+    const target = this.targetOf(open);
+    if (target === (this.state.lang || 'en')) return 'same';
+    return REPLY_LANGS.indexOf(target) === -1 ? 'raw' : 'translate';
+  }
+  dropTab() {
+    if (this._gtab) { try { this._gtab.close(); } catch (e) {} }
+    this._gtab = null;
+  }
+  /* Typing: the answer of an earlier text is dropped; the translation runs silently 800 ms after he stops. */
+  setReplyText = (e) => {
+    const v = e && e.target ? e.target.value : '';
+    this._rseq = (this._rseq || 0) + 1;
+    clearTimeout(this._rceil);
+    this.dropTab();
+    this.patchReply({ text: v, out: '', outFor: '', status: 'idle', busy: false, lapsed: false, failedOpened: false });
+    clearTimeout(this._rt);
+    this._rt = setTimeout(() => this.runTranslate(), REPLY_WAIT_MS);
+  };
+  runTranslate = () => {
+    const open = this.openNow();
+    if (!open) return;
+    const r = this.replyFor(open);
+    const text = String(r.text || '').trim();
+    if (this.replyMode(open, text) !== 'translate') return;
+    const target = this.targetOf(open);
+    const key = target + '\u0000' + text;
+    if (r.outFor === key && r.status !== 'idle') return;
+    const api = window.VamosOpsApi;
+    if (!api || typeof api.request !== 'function') return;
+    const seq = (this._rseq = (this._rseq || 0) + 1);
+    this.patchReply({ status: 'translating', outFor: key, out: '' });
+    clearTimeout(this._rceil);
+    this._rceil = setTimeout(() => {
+      if (seq !== this._rseq) return;
+      this._rseq += 1;
+      this.patchReply({ status: 'failed' }, this.finishBusy);
+    }, REPLY_CEILING_MS);
+    api.request('POST', '/api/staff/tickets/' + encodeURIComponent(open.id) + '/reply-translate', { text: text, lang: target, from: this.state.lang || 'en' }).then((json) => {
+      if (seq !== this._rseq) return;
+      clearTimeout(this._rceil);
+      const d = json && json.ok ? json.data : null;
+      if (d && d.status === 'skipped') { this.patchReply({ status: 'skipped' }, this.finishBusy); return; }
+      if (!d || d.status !== 'ready' || !d.text) { this.patchReply({ status: 'failed' }, this.finishBusy); return; }
+      this.patchReply({ status: 'ready', out: String(d.text), outFor: key }, this.finishBusy);
+    }, () => {
+      if (seq !== this._rseq) return;
+      clearTimeout(this._rceil);
+      this.patchReply({ status: 'failed' }, this.finishBusy);
+    });
+  };
+  /* The answer arrived while he was waiting on the button. Browser click activation may have lapsed: then the
+     mail is not forced (one quiet line), and the next press opens it at once. The Gmail tab was opened at the click. */
+  finishBusy = () => {
+    const open = this.openNow();
+    if (!open) return;
+    const r = this.replyFor(open);
+    if (!r.busy) return;
+    const ua = typeof navigator !== 'undefined' ? navigator.userActivation : null;
+    const lapsed = !!ua && ua.isActive === false;
+    if (r.status === 'ready' && lapsed && !this._gtab) { this.patchReply({ busy: false, lapsed: true }); return; }
+    this.patchReply({ busy: false }, () => this.openMail(this.openNow()));
+  };
+  /** Mail body: the customer's text, a blank line, 20 hyphens, a blank line, his original. The link itself
+      (recipient, subject) is the server's (tickets-map.ts); only the body is added here. */
+  mailBody(open) {
+    const r = this.replyFor(open);
+    const orig = String(r.text || '').trim();
+    if (!orig) return { body: '', long: false };
+    if (this.replyMode(open, orig) !== 'translate' || r.status !== 'ready' || !r.out) return { body: orig, long: false };
+    const full = r.out + '\n\n' + MAIL_RULE + '\n\n' + orig;
+    if (full.length > MAIL_MAX) return { body: r.out, long: true };
+    return { body: full, long: false };
+  }
+  openMail(open) {
+    if (!open || !open.reply) return;
+    const r = this.replyFor(open);
+    if (r.status === 'failed' && !r.failedOpened) this.patchReply({ failedOpened: true });
+    const body = this.mailBody(open).body;
+    if (this.state.mailApp === 'gmail' && open.reply.gmail) {
+      const url = withBody(open.reply.gmail, body);
+      const tab = this._gtab;
+      this._gtab = null;
+      if (tab) { try { tab.location.href = url; } catch (e) { window.open(url, '_blank', 'noopener'); } } else window.open(url, '_blank', 'noopener');
+      return;
+    }
+    if (open.reply.mailto) window.location.href = withBody(open.reply.mailto, body);
   }
   setFilter = (key) => this.setState({ filter: key || 'all', filterOpen: false });
   toggleMeta = () => { if (!opsHand()) return; this.setState({ metaOpen: !this.state.metaOpen }); };
@@ -547,13 +757,21 @@ class Component extends DCLogic {
     this.setState({ mailApp: next });
   };
   answerByMail = () => {
-    const open = this.state.tickets.find((t) => t.id === this.state.openId);
+    const open = this.openNow();
     if (!open || !open.reply) return;
-    if (this.state.mailApp === 'gmail' && open.reply.gmail) {
-      window.open(open.reply.gmail, '_blank', 'noopener');
+    const r = this.replyFor(open);
+    if (r.busy) return;
+    const gmail = this.state.mailApp === 'gmail' && open.reply.gmail;
+    const text = String(r.text || '').trim();
+    const waiting = this.replyMode(open, text) === 'translate' && r.status !== 'ready' && r.status !== 'failed' && r.status !== 'skipped';
+    // Gmail: the tab is opened synchronously at the click (popup rules) and filled when the answer is ready.
+    if (gmail && waiting && !this._gtab) { try { this._gtab = window.open('', '_blank'); if (this._gtab) this._gtab.opener = null; } catch (e) { this._gtab = null; } }
+    if (waiting) {
+      clearTimeout(this._rt);
+      this.patchReply({ busy: true, lapsed: false }, this.runTranslate);
       return;
     }
-    if (open.reply.mailto) window.location.href = open.reply.mailto;
+    this.openMail(open);
   };
   setQuery = (e) => this.setState({ query: e && e.target ? e.target.value : '' });
   toggleSort = (status) => {
@@ -616,11 +834,13 @@ class Component extends DCLogic {
   openTicket = (id) => {
     const current = this.state.tickets.find((t) => t.id === id);
     if (!current) return;
+    this._pendFor = null; this._pendGaveUp = null; clearTimeout(this._pendT);
     if (current.status === 'new') {
       const tickets = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: 'open' }) : t);
       this.setState({ openId: id, tickets: tickets, overlayError: false, metaOpen: !opsHand() }, () => {
         publishBadge(tickets);
         requestAnimationFrame(() => this.scrollThread());
+        this.watchPending();
       });
       this.persistTicket(id, { status: 'open' }, () => {
         const reverted = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: 'new' }) : t);
@@ -631,12 +851,15 @@ class Component extends DCLogic {
     }
     this.setState({ openId: id, overlayError: false, metaOpen: !opsHand() }, () => {
       requestAnimationFrame(() => this.scrollThread());
+      this.watchPending();
     });
   };
   openRow = (row) => { if (row && row.id) this.openTicket(row.id); };
   closeOverlay = () => {
     this._draft = null;
-    this.setState({ openId: null, overlayError: false });
+    this._pendFor = null; this._pendGaveUp = null; clearTimeout(this._pendT);
+    this._rseq = (this._rseq || 0) + 1; clearTimeout(this._rt); clearTimeout(this._rceil); this.dropTab();
+    this.setState({ openId: null, overlayError: false, replyDraft: null });
   };
   scrollThread = () => {
     const root = document.querySelector('[data-vt-support] [data-thread]');
@@ -714,14 +937,25 @@ class Component extends DCLogic {
       };
     });
     const phoneDigits = open ? digitsOf(open.phone) : '';
+    const dash = this.state.lang || 'en';
+    const rp = open ? this.replyFor(open) : this.blankReply(null);
+    const mode = open ? this.replyMode(open, rp.text) : 'empty';
+    const mail = open ? this.mailBody(open) : { long: false };
+    const noteKey = !open || mode === 'empty' ? '' : (mail.long ? 'long' : (rp.lapsed ? 'ready' : (rp.failedOpened && rp.status === 'failed' ? 'failed' : '')));
+    const notes = { long: t.mailTooLong, ready: t.replyReady, failed: t.replyUntranslated };
     return {
+      tReplyLabel: t.replyLabel, tReplyPh: t.replyPh,
+      replyRows: opsPhone() ? 2 : 3, replyText: rp.text, setReplyText: this.setReplyText,
+      replyHint: mode === 'same' ? t.replyHintSame : (mode === 'raw' ? t.replyHintRaw : t.replyHint),
+      replyNote: noteKey ? notes[noteKey] : '', replyNoteKind: noteKey,
+      answerIcon: rp.busy ? 'loader-circle' : 'mail', answerLabel: rp.busy ? t.translating : t.answer, answerBusy: rp.busy ? 'true' : 'false',
       yes: true, n16: 16, n18: 18, n3: 3, n6: 6,
       tTitle: t.title, tSubtitle: t.subtitle, tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody,
       tStatus: t.status, tClose: t.close, tCloseTicket: t.closeTicket, tReopen: t.reopen, tKanban: t.kanban, tTable: t.table, tColEmpty: t.colEmpty, tSeeAll: t.seeAll,
-      tAnswer: t.answer, tMailHint: t.mailHint, tMailApp: t.mailApp,
+      tAnswer: t.answer, tMailApp: t.mailApp,
       mailApp: this.state.mailApp, setMailApp: this.setMailApp, answerByMail: this.answerByMail,
       mailAppOptions: [{ value: 'auto', label: t.mailAuto }, { value: 'gmail', label: t.mailGmail }],
-      answerOff: !(open && open.reply && (open.reply.mailto || open.reply.gmail)), tClosedBody: t.closedBody, tLoadError: t.loadError, tSendError: t.sendError,
+      answerOff: !(open && open.reply && (open.reply.mailto || open.reply.gmail)) || rp.busy, tClosedBody: t.closedBody, tLoadError: t.loadError, tSendError: t.sendError,
       tTicket: t.ticket, tChannel: t.channel, tChannelForm: t.channelForm, tOpened: t.opened, tLastAct: t.lastAct,
       tBooking: t.booking, tBookingPh: t.bookingPh, tMail: t.mail, tCall: t.call, tWhatsApp: t.whatsApp,
       tPhone: t.phone, tPhonePh: t.phonePh, tNote: t.note, tNotePh: t.notePh, tSearchPh: t.searchPh, tFilter: t.filter,
@@ -785,10 +1019,29 @@ class Component extends DCLogic {
       isClosed: !!(open && open.status === 'closed'),
       closeTicket: this.closeTicket,
       reopenTicket: this.reopenTicket,
-      thread: open ? open.messages.map((m) => ({
-        from: m.whoKey, who: whoLabel[m.whoKey] || m.whoKey, when: m.when, body: m.body,
-        files: fileItems(m.files),
-      })) : [],
+      thread: open ? open.messages.map((m) => {
+        const base = { from: m.whoKey, who: whoLabel[m.whoKey] || m.whoKey, when: m.when, body: m.body, files: fileItems(m.files) };
+        const tr = m.translation;
+        /* A message is pending only while its language is not detected yet, and a job that failed early leaves it
+           undetected too: the note must not wait for a language. The server already answers 'same' for his own. */
+        const other = m.whoKey === 'customer' && (!m.lang || m.lang !== dash) && tr && tr.status && tr.status !== 'same';
+        let st = other ? tr.status : 'same';
+        if (st === 'pending' && this._pendGaveUp === open.id) st = 'failed';
+        if (st === 'ready' && tr.text) {
+          const nm = langName(m.lang, dash);
+          return Object.assign(base, {
+            isTr: true, isPlain: false, trText: tr.text, dashLang: dash, dashDir: dirOf(dash),
+            fromLine: nm ? t.translatedFrom.replace('%s', nm) : t.translatedNoLang, lang: m.lang, dir: dirOf(m.lang),
+          });
+        }
+        if (st === 'ready') st = 'failed';
+        const note = st === 'pending' ? t.translating : (st === 'failed' ? t.trNotAvailable : '');
+        return Object.assign(base, {
+          isTr: false, isPlain: true,
+          bodyLang: note && m.lang ? m.lang : undefined, bodyDir: note && m.lang ? dirOf(m.lang) : undefined,
+          hasNote: !!note, noteKind: st, noteSpin: st === 'pending' ? '1' : '0', noteIcon: st === 'pending' ? 'loader-circle' : 'info', noteText: note,
+        });
+      }) : [],
     };
   }
 }

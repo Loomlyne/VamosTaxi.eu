@@ -1214,12 +1214,67 @@ Plans:
 
 **Goal:** A class is added as Draft, goes live only with seats, bags, photo and a price in the live price book, and is retired (never deleted) and can be brought back, all on the dashboard Pricing page. New price books skip retired classes. The word "fleet" leaves the dashboard (`/chauffeurs`). One-off: the 5 test classes and reviews rv-1…rv-5 are removed by a script Koss runs himself.
 **Decisions:** `.planning/decisions/2026-10-11-fleet-lifecycle.md` (signed 2026-10-11)
-**Requirements**: TBD
+**Requirements**: CLS-01, CLS-02, CLS-03, CLS-04, CLS-05, CLS-06, CLS-07, CLS-08, CLS-09, CLS-10, CLS-11, CLS-12, CLS-13, CLS-14 (INT-08 superseded by CLS-04/05)
 **Depends on:** Phase 29
-**Plans:** 0 plans
+**Plans:** 11/11 plans executed
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 30 to break down)
+- [x] 30-01-PLAN.md — DB: class state RPC + missing function, test-classes guard (no backfill), empty seats/bags until Go live, assign guard + shared paid rule, pgTAP, types (owner decisions signed 2026-10-12)
+- [x] 30-02-PLAN.md — Dictionary for all Phase 30 strings, About title pin, dead fleet strings removed
+- [x] 30-03-PLAN.md — Server guards: clone skips retired, assign class-retired, chauffeur write refusal, no date change in a retired class, null seats never public
+- [x] 30-04-PLAN.md — Class status API: GET state/missing/unassigned count, PATCH status, DELETE removed, Draft birth with empty seats/bags
+- [x] 30-05-PLAN.md — /chauffeurs route, /fleet forwards (console-paths module)
+- [x] 30-06-PLAN.md — Ops data store PATCH contract, Live-only pickers, OpsTable props
+- [x] 30-07-PLAN.md — Chauffeurs screen flag/select/count and Assign left-out line
+- [x] 30-08-PLAN.md — Pricing: badges, Go live dialog, Retire dialog, Retired list
+- [x] 30-09-PLAN.md — Owner-run removal script for 5 test classes + rv-1..rv-5, native-lab proof
+- [x] 30-11-PLAN.md — Atomic rename OpsFleet -> OpsChauffeurs with every reference and the moved integration spec
+- [x] 30-10-PLAN.md — Merge main, sweep, full gates, lab brief, REQUIREMENTS, hand-over
+
+### Phase 31: Refunds in Stripe
+
+**Goal:** Money goes back to customers from the Stripe Dashboard only. On dashboard booking detail, REFUND opens that booking's payment in Stripe in a new tab; the site sends no refund itself except the automatic duplicate-charge refund. The refund-decision box goes. Refunds Stripe makes keep reaching the booking, the dashboard totals and the customer's account through the existing webhook. A paid trip that is cancelled shows one policy line (no amount, never the word Stripe) in en, de, fr and ar. A nightly read-only check mails him when a Stripe refund of the last 48 h is missing on its booking or differs.
+**Decisions:** `.planning/decisions/2026-10-12-refunds-in-stripe.md` (signed 2026-10-12); context `.planning/phases/31-refunds-in-stripe/31-CONTEXT.md`
+**Requirements**: R31-01, R31-02, R31-03, R31-04, R31-05, R31-06, R31-07, R31-08, R31-09, R31-10
+**Depends on:** Phase 29 (no code dependency on Phase 30; shares only `app/vamos-i18n-dict.js`)
+**Plans:** 13/13 plans complete
+
+Plans:
+- [x] 31-01-PLAN.md — Stripe Dashboard URL builder, admin GET /stripe-payments on both mounts, STRIPE_ACCOUNT_ID declared (wave 1)
+- [x] 31-02-PLAN.md — remove the site-sent refund (refund.ts, refund/refund-decision routes, parsers); webhook and duplicate path untouched (wave 1)
+- [x] 31-03-PLAN.md — refund_check_reader migration + pgTAP + types, gated on the migration number (wave 1)
+- [x] 31-04-PLAN.md — customer refund mail sender, gated on the owner's copy signature (wave 1)
+- [x] 31-05-PLAN.md — webhook sends the customer mail on 'recorded' only; sweep retries kind 'refund' (wave 2)
+- [x] 31-06-PLAN.md — nightly read-only refund check at 03:00 UTC, English mail to info@ (wave 2)
+- [x] 31-07-PLAN.md — customer cancel answers and cancelled booking reads carry no refund amount (wave 1)
+- [x] 31-08-PLAN.md — cancellation e-mail policy line, ops mails say refund in Stripe, signed wording decision file (wave 1)
+- [x] 31-09-PLAN.md — dashboard booking detail: Refund in Stripe, Which payment?, Refund to check; decision box removed (wave 2)
+- [x] 31-10-PLAN.md — customer pages, account Refund row, React twins, dictionary and legal pins (wave 2)
+- [x] 31-11-PLAN.md — STRIPE_ACCOUNT_ID for the live Worker after the controller confirms it (wave 2)
+- [x] 31-12-PLAN.md — owner question O-1 (cancel fork sub-line), applied if A (wave 3)
+- [x] 31-13-PLAN.md — merge main, browser test brief via vamos-tester, gate:local, pgTAP, runbook, hand-over (wave 4)
+
+### Phase 32: Automatic translator
+
+**Goal:** Every text that has a language reaches the customer in English, German, French and Arabic without Koss checking it: gaps in the site dictionary and messages, text he types on the dashboard (extras, FAQ, content), emails, customer messages to him and his replies. Gemma 4 on Cloudflare Workers AI fills it in the background, cached by source text and language, never in a public page view; a missing translation shows the source, never a blank. Human strings and owner-approved legal wording are never touched. Nothing marks machine text; a value he types himself always wins (D-05). Dashboard Content › Pages and Legal are removed; home reviews get an on-tap translate button.
+**Decisions:** owner, question form 2026-10-12 ~19:20 and 2026-10-13 ~16:00 +04, design signed 2026-10-13 ~18:35 (`.planning/decisions/2026-10-13-auto-translate.md`); context `.planning/phases/32-auto-translate/32-CONTEXT.md`
+**Requirements**: TR-01 (gaps in the site dictionary, Next messages and e-mail catalog filled silently, never overwriting a human string), TR-02 (text he types on the dashboard is translated on write: extras de/fr/ar filled with no mark, his typed value always wins; review language detected on write), TR-03 (customer messages from the form and e-mail shown to him in his dashboard language with "Translated from" and the original underneath), TR-04 (his reply goes out in the customer's language through his mail app: translation, divider, his text), TR-05 (a customer language outside en/de/fr/ar: inbound still translated for him, his reply goes untranslated), TR-06 (home review cards show the original with a Translate button: on tap, cached, rate-limited, opaque review ref, no vendor name, never at page load), TR-07 (Content › Pages and Content › Legal removed everywhere: screens, rail, routes, staff API, library, tests, docs; no table or column dropped), TR-08 (Vamos Taxi written in Latin in every Arabic string, as a human edit), TR-09 (never machine-translated: legal pages, data-vt-legal, owner-approved and decision-cited lines, non_translatable rows, data-tok copy, dictionary patterns; amounts, CHF, refs, flight numbers, ZRH, class names, Vamos Taxi stay Latin; Swiss ss, never ß), TR-10 (the model is called only through the Workers AI binding with Gemma 4 and thinking off, never AI Gateway, never in a public page load or e-mail render; customer text never on a queue or in logs), TR-11 (a failed or rejected translation shows the source, never a blank, and never blocks a save or a send)
+**Depends on:** Phase 29, Phase 30 merged on main (plan 32-01 stops until it is; Phase 30 changes OpsSidebar, OpsTable, OpsPricing, vamos-ops-data.js and the dictionary). Phase 31 overlaps only on files (dictionary, worker.ts 03:00 cron, env.d.ts, messages/emails ar.json, seed.sql) and does not block.
+**Plans:** 12 plans
+
+Plans:
+- [x] 32-01-PLAN.md — merge main with Phase 30; shared translator engine (Gemma 4 binding, mask, guard, ss, ids-only job contract)
+- [x] 32-02-PLAN.md — database: translation cache, staff-only message and note translations, review language and ref, extras fill; pgTAP; store wrappers
+- [x] 32-03-PLAN.md — remove Content › Pages and Legal everywhere (screens, rail, routes, staff API, tests, docs)
+- [x] 32-04-PLAN.md — signed strings in four languages; Vamos Taxi in Latin in Arabic; seed regenerated
+- [x] 32-05-PLAN.md — queue consumer, job handlers, quiet DLQ, nightly sweep, Worker and wrangler wiring, model-call boundary test
+- [x] 32-06-PLAN.md — extras on the shared translator, his typed names win
+- [x] 32-07-PLAN.md — support server: enqueue customer messages, ticket translations and reply target, staff reply-translate route
+- [x] 32-08-PLAN.md — review server: language and opaque ref, cache-first public translation route, language detection on write
+- [x] 32-09-PLAN.md — catalog filler (pnpm i18n:fill) with never-translate list and smoke script
+- [x] 32-10-PLAN.md — support ticket DC: translated messages with original, reply box opening his mail app
+- [x] 32-11-PLAN.md — home review card DC: translate on tap
+- [x] 32-12-PLAN.md — browser proof 4 widths x 4 languages, full gates and pgTAP, VALIDATION sign-off, controller hand-over
 
 ## Progress
 

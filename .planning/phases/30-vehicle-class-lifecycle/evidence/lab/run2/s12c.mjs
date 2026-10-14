@@ -1,0 +1,14 @@
+import { start, open, goPricing, signIn, dlgText, S, db, goLiveInfo, gl } from "./lib.mjs";
+await start({ evidenceDir: process.argv[2] });
+const s = await open({ viewport: 1440, name: "s1440" });
+await signIn(s);
+await goPricing(s);
+s.page.on("response", r => { if (r.url().includes("/api/staff") && r.request().method() !== "GET") console.log("API", r.request().method(), r.url().replace(/^.*\/api/, "/api"), r.status()); });
+await s.page.getByRole("button", { name: /discard draft/i }).first().click(); await s.page.waitForTimeout(800);
+await s.page.locator('[role="dialog"] button', { hasText: /^discard draft$/i }).click(); await s.page.waitForTimeout(3000);
+console.log("dlg after:", await dlgText(s.page));
+console.log(db("select id,status,label from public.rate_versions order by id"));
+console.log("PAGE:\n" + (await s.page.evaluate(() => document.body.innerText)).slice(0, 1500));
+console.log("INPUTS:", await s.page.evaluate(() => [...document.querySelectorAll("input")].filter(i => i.offsetParent).map(i => `${i.type}|${i.value}|${i.getAttribute("aria-label")}|${i.name}|${i.placeholder}|${i.dataset ? Object.keys(i.dataset).join(",") : ""}`).slice(0, 40)));
+await s.shot("S12-after-discard");
+process.exit(0);

@@ -113,7 +113,7 @@
     "call-us-with-whatever-you-have-the-email-address": "Appelez-nous avec ce que vous avez — l’adresse e-mail utilisée pour réserver suffit le plus souvent. Un régulateur peut modifier ou annuler votre trajet par téléphone.",
     "cancel-booking": "Annuler la réservation",
     "cancel-instead": "Annuler plutôt",
-    "cancelled-by-you-the-refund-is-with-our-team-for": "Annulé par vous. Le remboursement est en cours d’examen par notre équipe.",
+    "cancelled-by-you-the-refund-is-with-our-team-for": "Annulé par vous. Tout remboursement suit la politique d’annulation.",
     "cancelledOn": "Annulé le {date}",
     "cancelling-is-still-open-to-you-but-this-close-i": "L’annulation vous reste ouverte, mais si près du départ elle ne donne plus droit à un remboursement intégral.",
     "cannot-get-in": "Vous n’arrivez pas à entrer ?",
@@ -226,7 +226,6 @@
     "rebook-this-trip": "Réserver de nouveau ce trajet",
     "receipt": "Reçu",
     "reference-place-or-class": "Référence, lieu ou classe",
-    "refund-waiting-on-review": "Remboursement · en cours d’examen",
     "remove-photo": "Supprimer la photo",
     "request-a-change": "Demander une modification",
     "request-these-changes": "Demander ces modifications",
@@ -570,9 +569,9 @@
     "timeChangeFailed": "Impossible de demander ce changement d’heure.",
     "flightSaved": "Numéro de vol enregistré.",
     "flightSaveFailed": "Impossible d’enregistrer ce numéro de vol.",
-    "cancelSheetFull": "Ce trajet sera annulé. Vous êtes remboursé intégralement ; notre équipe envoie le remboursement.",
-    "cancelSheetOps": "Ce trajet sera annulé. Notre équipe décide du remboursement et vous en informe par e-mail.",
-    "refundPendingOps": "Remboursement en cours d’examen",
+    "cancelSheetFull": "Ce trajet sera annulé. Tout remboursement suit la politique d’annulation.",
+    "cancelSheetOps": "Ce trajet sera annulé. Tout remboursement suit la politique d’annulation.",
+    "refundPendingOps": "Remboursement selon la politique d’annulation",
     "refundDeclinedLabel": "Aucun remboursement",
     "refundProcessing": "En cours",
     "refundFailedLabel": "Échoué",
@@ -2724,10 +2723,6 @@
       "oversized_luggage": {
         "label": "Bagage volumineux",
         "rule": "Par article déclaré"
-      },
-      "region_premium": {
-        "label": "Région",
-        "rule": "Prise en charge ou destination dans une région nommée"
       }
     }
   },

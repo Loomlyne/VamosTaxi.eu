@@ -1,0 +1,209 @@
+225c225
+<           payload: Json;
+---
+>           payload: NonNullable<Json>;
+239c239
+<           payload?: Json;
+---
+>           payload?: NonNullable<Json>;
+253c253
+<           payload?: Json;
+---
+>           payload?: NonNullable<Json>;
+299c299
+<           payload: Json;
+---
+>           payload: NonNullable<Json>;
+315c315
+<           payload?: Json;
+---
+>           payload?: NonNullable<Json>;
+331c331
+<           payload?: Json;
+---
+>           payload?: NonNullable<Json>;
+442c442
+<           scheduled_range?: unknown;
+---
+>           scheduled_range?: never;
+478c478
+<           scheduled_range?: unknown;
+---
+>           scheduled_range?: never;
+839c839
+<           tier_applied: Json;
+---
+>           tier_applied: NonNullable<Json>;
+857c857
+<           tier_applied: Json;
+---
+>           tier_applied: NonNullable<Json>;
+875c875
+<           tier_applied?: Json;
+---
+>           tier_applied?: NonNullable<Json>;
+1865c1865
+<           lines: Json;
+---
+>           lines: NonNullable<Json>;
+1867c1867
+<           policy: Json;
+---
+>           policy: NonNullable<Json>;
+1873c1873
+<           shown_alternatives: Json;
+---
+>           shown_alternatives: NonNullable<Json>;
+1896,1897c1896,1897
+<           is_chargeable?: boolean;
+<           lines: Json;
+---
+>           is_chargeable?: never;
+>           lines: NonNullable<Json>;
+1899c1899
+<           policy: Json;
+---
+>           policy: NonNullable<Json>;
+1905c1905
+<           shown_alternatives?: Json;
+---
+>           shown_alternatives?: NonNullable<Json>;
+1928,1929c1928,1929
+<           is_chargeable?: boolean;
+<           lines?: Json;
+---
+>           is_chargeable?: never;
+>           lines?: NonNullable<Json>;
+1931c1931
+<           policy?: Json;
+---
+>           policy?: NonNullable<Json>;
+1937c1937
+<           shown_alternatives?: Json;
+---
+>           shown_alternatives?: NonNullable<Json>;
+1994c1994
+<           payload: Json;
+---
+>           payload: NonNullable<Json>;
+2000c2000
+<           payload?: Json;
+---
+>           payload?: NonNullable<Json>;
+2006c2006
+<           payload?: Json;
+---
+>           payload?: NonNullable<Json>;
+2140c2140
+<           locked?: boolean;
+---
+>           locked?: never;
+2164c2164
+<           locked?: boolean;
+---
+>           locked?: never;
+2328c2328
+<           cancellation_tiers: Json;
+---
+>           cancellation_tiers: NonNullable<Json>;
+2351c2351
+<           cancellation_tiers?: Json;
+---
+>           cancellation_tiers?: NonNullable<Json>;
+2374c2374
+<           cancellation_tiers?: Json;
+---
+>           cancellation_tiers?: NonNullable<Json>;
+2497c2497
+<           payload: Json;
+---
+>           payload: NonNullable<Json>;
+2512c2512
+<           payload: Json;
+---
+>           payload: NonNullable<Json>;
+2527c2527
+<           payload?: Json;
+---
+>           payload?: NonNullable<Json>;
+2649c2649
+<           predicate: Json;
+---
+>           predicate: NonNullable<Json>;
+2662c2662
+<           predicate?: Json;
+---
+>           predicate?: NonNullable<Json>;
+2675c2675
+<           predicate?: Json;
+---
+>           predicate?: NonNullable<Json>;
+2859c2859
+<       __seed_apply: { Args: never; Returns: undefined };
+---
+>       __seed_apply: { Args: Record<PropertyKey, never>; Returns: undefined };
+3145c3145,3148
+<       checkout_account_settings: { Args: never; Returns: boolean };
+---
+>       checkout_account_settings: {
+>         Args: Record<PropertyKey, never>;
+>         Returns: boolean;
+>       };
+3270c3273
+<         Args: never;
+---
+>         Args: Record<PropertyKey, never>;
+3551c3554,3557
+<       customer_claim_guest_bookings: { Args: never; Returns: number };
+---
+>       customer_claim_guest_bookings: {
+>         Args: Record<PropertyKey, never>;
+>         Returns: number;
+>       };
+3620c3626
+<         Args: never;
+---
+>         Args: Record<PropertyKey, never>;
+3738c3744,3747
+<       meta_purchase_sweep: { Args: never; Returns: number };
+---
+>       meta_purchase_sweep: {
+>         Args: Record<PropertyKey, never>;
+>         Returns: number;
+>       };
+3749c3758,3761
+<       next_booking_reference: { Args: never; Returns: string };
+---
+>       next_booking_reference: {
+>         Args: Record<PropertyKey, never>;
+>         Returns: string;
+>       };
+3957,3960c3969
+<       ops_vehicle_class_missing: {
+<         Args: { p_id: string };
+<         Returns: string;
+<       };
+---
+>       ops_vehicle_class_missing: { Args: { p_id: string }; Returns: string };
+4015c4024
+<         Args: never;
+---
+>         Args: Record<PropertyKey, never>;
+4105c4114,4117
+<       staff_claim_invite: { Args: never; Returns: undefined };
+---
+>       staff_claim_invite: {
+>         Args: Record<PropertyKey, never>;
+>         Returns: undefined;
+>       };
+4129c4141
+<         Args: never;
+---
+>         Args: Record<PropertyKey, never>;
+4171c4183,4186
+<       staff_extra_labels_prune: { Args: never; Returns: number };
+---
+>       staff_extra_labels_prune: {
+>         Args: Record<PropertyKey, never>;
+>         Returns: number;
+>       };

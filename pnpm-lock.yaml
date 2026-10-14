@@ -56,6 +56,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@formatjs/icu-messageformat-parser':
+        specifier: 3.5.17
+        version: 3.5.17
       '@supabase/ssr':
         specifier: 0.12.5
         version: 0.12.5(@supabase/supabase-js@2.112.4)

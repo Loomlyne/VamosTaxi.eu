@@ -73,6 +73,8 @@
         // No Mapbox plan exists yet, so no ceiling in francs can be honest.
         "MAPBOX_DAILY_UNIT_SENTINEL": "5000",
         "STRIPE_PUBLISHABLE_KEY": "pk_live_51UIZmAQbJiSLxJfuw0YAE95fkqETwgzH71G5c0122QI2mDmCSvFHo9yRAOcjmJfFxtaVPWysPTw8u8UD8SC43wd900xHfwhwqO",
+        // Phase 31 (C-01): live Stripe account the dashboard REFUND links open; not a secret; confirmed by the controller against the live publishable key on 2026-10-13 (31-CONTEXT S-11).
+        "STRIPE_ACCOUNT_ID": "acct_1UIZmAQbJiSLxJfu",
         "STRIPE_CHECKOUT_TWINT": "off"
       },
       "kv_namespaces": [
@@ -86,7 +88,7 @@
           "id": "5080f3d518c24eaeb7b0590c922349c2"
         }
       ],
-      // Workers AI: extra names are machine-translated on save (D-44).
+      // Workers AI: the one translator in lib/translate (Gemma 4, Phase 32), never AI Gateway.
       "ai": { "binding": "AI" },
       "r2_buckets": [
         { "binding": "PHOTOS", "bucket_name": "vamos-photos-staging" },
@@ -94,7 +96,12 @@
       ],
       "queues": {
         "producers": [
-          { "binding": "STRIPE_EVENTS", "queue": "vamos-stripe-events-staging" }
+          { "binding": "STRIPE_EVENTS", "queue": "vamos-stripe-events-staging" },
+          // Phase 32 plan 05: translate jobs (ids only, never text). The queue and its DLQ must be
+          // created on the account (`wrangler queues create vamos-translate-staging` and
+          // `vamos-translate-staging-dlq`, a controller step) BEFORE the next deploy: a deploy that
+          // names a consumer for a queue that does not exist fails.
+          { "binding": "TRANSLATE_QUEUE", "queue": "vamos-translate-staging" }
         ],
         "consumers": [
           {
@@ -129,6 +136,24 @@
             // the unprocessed-event sweep is the durable second line. Still no dead_letter_queue here.
             "max_retries": 5,
             "retry_delay": 600
+          },
+          // Phase 32 plan 05: worker.ts routes every batch whose queue starts with "vamos-translate"
+          // (this queue and its -dlq) to lib/translate/queue-consumer.ts BEFORE the Stripe branches.
+          // Transient model failures retry with backoff (6 retries), then the DLQ.
+          {
+            "queue": "vamos-translate-staging",
+            "max_batch_size": 5,
+            "max_batch_timeout": 2,
+            "max_retries": 6,
+            "retry_delay": 30,
+            "dead_letter_queue": "vamos-translate-staging-dlq"
+          },
+          // The translate DLQ is quiet: it marks the message "Translation not available" and acks;
+          // it never mails and never retries. No dead_letter_queue on the DLQ itself.
+          {
+            "queue": "vamos-translate-staging-dlq",
+            "max_batch_size": 5,
+            "max_retries": 3
           }
         ]
       },
@@ -300,14 +325,19 @@
           "id": "<quote-abuse production kv id — created by plan 04-13 via wrangler kv namespace create>"
         }
       ],
-      // Workers AI: extra names are machine-translated on save (D-44).
+      // Workers AI: the one translator in lib/translate (Gemma 4, Phase 32), never AI Gateway.
       "ai": { "binding": "AI" },
       "r2_buckets": [
         { "binding": "PHOTOS", "bucket_name": "vamos-photos-production" }
       ],
       "queues": {
         "producers": [
-          { "binding": "STRIPE_EVENTS", "queue": "vamos-stripe-events-production" }
+          { "binding": "STRIPE_EVENTS", "queue": "vamos-stripe-events-production" },
+          // Phase 32 plan 05: translate jobs (ids only, never text). The queue and its DLQ must be
+          // created on the account (`wrangler queues create vamos-translate-production` and
+          // `vamos-translate-production-dlq`, a controller step) BEFORE the next deploy: a deploy that
+          // names a consumer for a queue that does not exist fails.
+          { "binding": "TRANSLATE_QUEUE", "queue": "vamos-translate-production" }
         ],
         "consumers": [
           {
@@ -340,6 +370,24 @@
             // the unprocessed-event sweep is the durable second line. Still no dead_letter_queue here.
             "max_retries": 5,
             "retry_delay": 600
+          },
+          // Phase 32 plan 05: worker.ts routes every batch whose queue starts with "vamos-translate"
+          // (this queue and its -dlq) to lib/translate/queue-consumer.ts BEFORE the Stripe branches.
+          // Transient model failures retry with backoff (6 retries), then the DLQ.
+          {
+            "queue": "vamos-translate-production",
+            "max_batch_size": 5,
+            "max_batch_timeout": 2,
+            "max_retries": 6,
+            "retry_delay": 30,
+            "dead_letter_queue": "vamos-translate-production-dlq"
+          },
+          // The translate DLQ is quiet: it marks the message "Translation not available" and acks;
+          // it never mails and never retries. No dead_letter_queue on the DLQ itself.
+          {
+            "queue": "vamos-translate-production-dlq",
+            "max_batch_size": 5,
+            "max_retries": 3
           }
         ]
       },

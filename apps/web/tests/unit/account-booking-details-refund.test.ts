@@ -66,3 +66,31 @@ describe("GET /api/account/bookings/details: refund fields (20-10 B4)", () => {
     expect(q.values).toContain("A@Example.test");
   });
 });
+
+// Phase 31 D-04: no owed amount for a cancel (the customer sees one policy line, never a computed refund).
+// The refunded amount stays (D-02); a live booking keeps its owed amount for the class/trip difference line
+// (owner-approved 2026-10-01). Synthetic rappen.
+describe("GET /api/account/bookings/details: no owed amount on a cancelled booking (Phase 31 D-04)", () => {
+  beforeEach(() => {
+    queries.length = 0;
+    asCustomer.mockReset();
+    asSystem.mockReset();
+    customerClaims.mockReset();
+    customerClaims.mockResolvedValue({ sub: "u1", email: "A@Example.test" });
+  });
+
+  for (const status of ["cancelled", "refunded", "partially_cancelled"]) {
+    it(`${status}: refundOwedRappen 0, refundedRappen unchanged`, async () => {
+      install([{ id: "b1", status, has_review: false, refund_status: "pending_ops", refund_owed_rappen: "12000", refunded_rappen: "3000" }]);
+      const body = await (await call()).json();
+      expect(body).toMatchObject({ ok: true, status, refundStatus: "pending_ops", refundOwedRappen: 0, refundedRappen: 3000 });
+    });
+  }
+
+  it("a live booking (confirmed) keeps the stored owed amount for the difference line", async () => {
+    asSystem.mockResolvedValue("auto_full");
+    install([{ id: "b1", status: "confirmed", has_review: false, refund_status: "pending_ops", refund_owed_rappen: "1500", refunded_rappen: "0" }]);
+    const body = await (await call()).json();
+    expect(body).toMatchObject({ ok: true, status: "confirmed", refundOwedRappen: 1500, refundedRappen: 0 });
+  });
+});

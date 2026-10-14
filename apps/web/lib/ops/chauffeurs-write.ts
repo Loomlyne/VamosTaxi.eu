@@ -12,6 +12,34 @@ function pgTextArrayLiteral(values: string[]): string {
   return `{${values.map((value) => `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`).join(",")}}`;
 }
 
+type ClassLookupSql = <T extends object[]>(strings: TemplateStringsArray, ...values: unknown[]) => Promise<T>;
+
+/**
+ * Phase 30 CLS-08: a retired class can be kept, never newly chosen. Runs inside the caller's asStaff
+ * callback before the write. `currentChauffeurId` is the chauffeur being updated (his stored class may
+ * be re-sent untouched); null on an insert, where a retired class is always refused. The error
+ * propagates (no catch here: postgres.js begin() rethrows a caught error). A class id that does not
+ * exist is left to the existing foreign-key path.
+ */
+async function refuseNewRetiredClass(
+  sql: ClassLookupSql,
+  classId: string | null | undefined,
+  currentChauffeurId: string | null,
+): Promise<void> {
+  if (typeof classId !== "string" || classId === "") return;
+  const rows = await sql<{ hidden_at: string | Date | null; vehicle_class_id: string | null }[]>`
+    select vc.hidden_at,
+           (select c.vehicle_class_id from public.chauffeurs as c
+             where c.id = ${currentChauffeurId}::uuid) as vehicle_class_id
+      from public.vehicle_classes as vc
+     where vc.id = ${classId}::uuid
+  `;
+  const row = rows[0];
+  if (!row || row.hidden_at == null) return;
+  if (currentChauffeurId && row.vehicle_class_id && String(row.vehicle_class_id) === classId) return;
+  throw new ChauffeurInputError("class-retired");
+}
+
 export async function insertChauffeur(
   env: CloudflareEnv,
   claims: VamosClaims,
@@ -21,6 +49,7 @@ export async function insertChauffeur(
   // Owner, decision 7 (2026-10-01): a new chauffeur needs a plate number.
   if (!parsed.plate) throw new ChauffeurInputError("chauffeurs-failure-plate-required");
   return asStaff(env, claims, async (sql) => {
+    await refuseNewRetiredClass(sql as never, parsed.vehicleClassId, null);
     if (id) {
       const rows = await sql<{ id: string }[]>`
         insert into public.chauffeurs (
@@ -89,6 +118,7 @@ export async function updateChauffeurRow(
   parsed: AssertedChauffeurInput,
 ): Promise<boolean> {
   return asStaff(env, claims, async (sql) => {
+    await refuseNewRetiredClass(sql as never, parsed.vehicleClassId, id);
     const rows = await sql<{ id: string }[]>`
       update public.chauffeurs set
         full_name = ${parsed.fullName},

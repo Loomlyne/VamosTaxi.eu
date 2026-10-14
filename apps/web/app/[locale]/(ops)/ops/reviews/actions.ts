@@ -28,7 +28,8 @@ const OPS_REVIEWS_PATH = "/ops/reviews";
 const PUBLIC_ROUTES = ["/", "/dev/home/reviews", OPS_REVIEWS_PATH] as const;
 const LOCALES = ["en", "de", "fr", "ar"] as const;
 
-export type ReviewActionResult = { ok: true } | { ok: false; key: string };
+/** `id` is set by createReview only (Phase 32: the new row's language job needs it). */
+export type ReviewActionResult = { ok: true; id?: string } | { ok: false; key: string };
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -68,8 +69,8 @@ export async function createReview(input: ReviewInput): Promise<ReviewActionResu
     const parsed = assertReviewInput(input);
     const { env, claims } = await staffDoor();
     const vehicleClassId = await resolveVehicleClassId(env, claims, parsed.vehicleClassId);
-    await asStaff(env, claims, async (sql) => {
-      await sql`
+    const id = await asStaff(env, claims, async (sql) => {
+      const inserted = await sql<{ id: string }[]>`
         insert into public.reviews (
           external_ref,
           source,
@@ -101,11 +102,12 @@ export async function createReview(input: ReviewInput): Promise<ReviewActionResu
           ${parsed.sortOrder},
           now()
         )
+        returning id
       `;
-      return null;
+      return inserted[0]?.id ?? null;
     });
     revalidateReviews();
-    return { ok: true };
+    return id ? { ok: true, id } : { ok: true };
   } catch (err) {
     return fail(err);
   }
@@ -119,6 +121,9 @@ export async function updateReview(id: string, input: ReviewInput): Promise<Revi
     const row = rows.find((item) => item.id === id);
     if (!row) return { ok: false, key: "reviews-error" };
     const rewrite = lockedContentTouched(row, input);
+    // Phase 32 (D-09): a text change clears the stored language, so the language job (which skips a
+    // review that already has one) detects the new text. Same text keeps it. In an UPDATE the right-
+    // hand `body` is the stored value.
     if (rewrite) assertNotLocked(row);
     const parsed = assertReviewInput(input);
     const vehicleClassId = await resolveVehicleClassId(env, claims, parsed.vehicleClassId);
@@ -139,6 +144,7 @@ export async function updateReview(id: string, input: ReviewInput): Promise<Revi
             verified = ${parsed.verified},
             published = ${parsed.published},
             sort_order = ${parsed.sortOrder},
+            language = case when body = ${parsed.body} then language else null end,
             updated_at = now()
           where id = ${id}
         `;
@@ -155,6 +161,7 @@ export async function updateReview(id: string, input: ReviewInput): Promise<Revi
             avatar_path = ${parsed.avatarPath},
             route_label = ${parsed.routeLabel},
             source_url = ${parsed.sourceUrl},
+            language = case when body = ${parsed.body} then language else null end,
             updated_at = now()
           where id = ${id}
         `;

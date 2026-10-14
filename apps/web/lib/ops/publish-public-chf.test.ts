@@ -104,12 +104,15 @@ describe("Publish-as-flip public_chf (D-18)", () => {
     expect(publish).not.toMatch(/set\s+status\s*=\s*'draft'/i);
   });
 
-  it("D-09: fork copies hide, classed bands, rules, coupons, and draft VAT/lock", () => {
+  it("D-09: fork copies hide, rates, routes, extras, coupons, and draft VAT/lock; no bands, region % or rules", () => {
     const fork = webSource("lib/ops/rate-book.ts");
     expect(fork).toMatch(/export async function forkLiveRateVersion/);
     expect(fork).toMatch(/hide_from_public/);
-    expect(fork).toMatch(/vehicle_class_id, from_km, to_km, per_km_rappen/);
-    expect(fork).toMatch(/rate_version_rules/);
+    expect(fork).toMatch(/insert into public\.distance_rates/);
+    expect(fork).toMatch(/insert into public\.fixed_routes/);
+    expect(fork).toMatch(/insert into public\.surcharges/);
+    // Decision 2026-10-13 items 10, 13: the three tables and surcharges.rule_id are gone.
+    expect(fork).not.toMatch(/distance_bands|region_premiums|rate_version_rules|rule_id/);
     expect(fork).toMatch(/insert into public\.coupons/);
     expect(fork).toMatch(
       /vat_rate_bps, quote_lock_minutes, service_area_geojson/,
@@ -169,5 +172,16 @@ describe("Publish-as-flip public_chf (D-18)", () => {
       /asStaff\([\s\S]*public_chf\s*=\s*true[\s\S]*insert into public\.settings_versions/,
     );
     expect(publish).not.toMatch(/forkLiveRateVersion/);
+  });
+
+  it("decision 2026-10-13 item 13: Publish keeps the draft's quote_lock_minutes, 1440 only when it has none", () => {
+    const publish = webSource(PUBLISH_ROUTE);
+    expect(publish).toMatch(
+      /const lockMinutes = asNullableInt\(row\.quote_lock_minutes\) \?\? QUOTE_LOCK_MINUTES;/,
+    );
+    expect(publish).toMatch(/quote_lock_minutes = \$\{lockMinutes\}/);
+    expect(publish).not.toMatch(/quote_lock_minutes = \$\{QUOTE_LOCK_MINUTES\}/);
+    expect(publish).toMatch(/coalesce\(\$\{lockMinutes\}, sv\.quote_lock_minutes\)/);
+    expect(publish).toMatch(/sv\.checkout_window_minutes/);
   });
 });

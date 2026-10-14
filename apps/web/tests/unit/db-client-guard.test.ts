@@ -31,8 +31,6 @@ const PORT_HELPERS = new Set([...HELPERS, "apps/web/tests/support/test-stack.ts"
 const CLIENT_EXEMPT: Record<string, string> = {
   "apps/web/tests/support/ops-fixtures.ts":
     "ops fixture seeds and cleans rows as the database owner; staff/bookings have no INSERT for the Worker roles by design",
-  "apps/web/tests/integration/content-string-edit.spec.ts":
-    "owner-role fixture reads and restores content_strings around a UI edit; the assertion runs through the app",
   "apps/web/tests/integration/ops-claims-bridge.spec.ts":
     "owner-role insertStaff: public.staff has no INSERT grant for service_role (42501 by design)",
   "apps/web/tests/integration/auth-flows.spec.ts":

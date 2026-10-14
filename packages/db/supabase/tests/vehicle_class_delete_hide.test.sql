@@ -4,7 +4,7 @@
 -- references the class; otherwise the admin gives a reason and the class is hidden
 -- everywhere (hidden_at, hidden_reason, active = false, draft distance_rates hidden).
 -- Every FK to vehicle_classes counts: booking_legs, price_snapshots, vehicles, chauffeurs,
--- reviews, and non-draft distance_rates / fixed_routes / distance_bands.
+-- reviews, and non-draft distance_rates / fixed_routes (km bands dropped in 20261012300000).
 -- Rolled back. Synthetic integer rappen only, never a product CHF.
 begin;
 select plan(32);
@@ -58,9 +58,6 @@ select vh.draft_rv, z.a, z.b, vh.free
     select (select id from public.service_zones order by slug limit 1) as a,
            (select id from public.service_zones order by slug offset 1 limit 1) as b
   ) z;
-
-insert into public.distance_bands (rate_version_id, vehicle_class_id, from_km, per_km_rappen)
-select draft_rv, free, 900, 0 from vh;
 
 -- Real references.
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -215,8 +212,7 @@ select is(
   0, 'deleted classes are gone');
 select is(
   (select count(*)::int from public.distance_rates where vehicle_class_id = (select free from vh))
-  + (select count(*)::int from public.fixed_routes where vehicle_class_id = (select free from vh))
-  + (select count(*)::int from public.distance_bands where vehicle_class_id = (select free from vh)),
+  + (select count(*)::int from public.fixed_routes where vehicle_class_id = (select free from vh)),
   0, 'the deleted class''s draft rate rows are gone');
 select isnt(
   (select hidden_at from public.vehicle_classes where id = (select leg from vh)),

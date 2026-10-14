@@ -1,0 +1,30 @@
+import { start, open, goPricing, signIn, dlgText, S, db, retireInfo } from "./lib.mjs";
+await start({ evidenceDir: process.argv[2] });
+const bizRow = (s) => s.page.locator("tr", { has: s.page.locator("[data-class-name]", { hasText: /^Business$/ }) });
+const s = await open({ viewport: 1440, name: "s1440" });
+await signIn(s);
+await goPricing(s);
+const m = await open({ viewport: 390, lang: "ar", name: "s390ar" });
+await S("S15", "Retire dialog on Business, en 1440 and ar 390", async () => {
+  await bizRow(s).locator('button[aria-label="Retire"]').click(); await s.page.waitForTimeout(1500);
+  const a = await retireInfo(s.page);
+  await s.shot("S15-en-1440");
+  await s.page.locator('[role="dialog"] button', { hasText: /^cancel$/i }).click(); await s.page.waitForTimeout(800);
+  const dbA = db("select active, hidden_at is null from public.vehicle_classes where name = 'Business'");
+  const stillLive = await bizRow(s).innerText();
+  const okEn = a.title === "Retire this class?" && a.notes[0] === "1 chauffeur is on this class" && a.notes[1] === "1 paid trip ahead has no chauffeur yet" && a.notes.length === 2 && !a.lastLive && dbA === "t|t" && /Live/i.test(stillLive);
+  // Arabic at 390
+  await signIn(m);
+  await goPricing(m);
+  await bizRow(m).locator("button").last().click(); await m.page.waitForTimeout(1500);
+  const b = await retireInfo(m.page);
+  const dirDoc = await m.page.evaluate(() => document.documentElement.dir);
+  await m.shot("S15-ar-390");
+  await m.page.locator('[role="dialog"] button').filter({ hasText: /.+/ }).first().waitFor();
+  const cancel = m.page.locator('[role="dialog"] [data-hide-actions] button, [role="dialog"] .vt-dialog__foot button').first();
+  await cancel.click(); await m.page.waitForTimeout(800);
+  const dbB = db("select active, hidden_at is null from public.vehicle_classes where name = 'Business'");
+  const okAr = b.notes.length === 2 && b.notes[1] === "رحلة واحدة مدفوعة قادمة بلا سائق بعد" && !b.lastLive && dbB === "t|t" && dirDoc === "rtl";
+  return { s, ok: okEn && okAr, evidence: `en: title "${a.title}", notes ${JSON.stringify(a.notes)}, lastLive warning ${a.lastLive}, after CANCEL db active|not hidden ${dbA}; ar 390: dir=${dirDoc}, title "${b.title}", notes ${JSON.stringify(b.notes)}, lastLive ${b.lastLive}, after CANCEL db ${dbB}` };
+}, { s });
+process.exit(0);

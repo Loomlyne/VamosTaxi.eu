@@ -73,7 +73,6 @@ describe("vehicle-classes POST on the draft (D-19)", () => {
     const reexport = webSource("app/api/staff/vehicle-classes/route.ts");
     expect(locale).toMatch(/export const POST = withAdmin/);
     expect(locale).toMatch(/insertVehicleClassOnDraft/);
-    expect(locale).toMatch(/in-use/);
-    expect(reexport).toMatch(/export \{ GET, PATCH, POST, DELETE \}/);
+    expect(reexport).toMatch(/export \{ GET, PATCH, POST \}/);
   });
 });

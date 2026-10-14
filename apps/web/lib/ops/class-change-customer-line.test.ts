@@ -4,7 +4,9 @@
 // "Refund due"). Until the refund is sent the page shows the owner-approved line, word for word in
 // four languages (.planning/decisions/2026-10-01-class-change-pay-mail.md, section "Refund line on the
 // customer's booking page", signed 2026-10-01); it disappears once the refund is sent. The cancel line
-// "Full refund · sent by our team" is never shown on a trip that still runs.
+// is never shown on a trip that still runs. Phase 31 D-04: a cancelled paid trip reads one policy line
+// ("Refund follows the cancellation policy", .planning/decisions/2026-10-12-refund-wording-signed.md W2),
+// whatever amount is owed.
 
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -92,10 +94,11 @@ describe("the customer's Refund row and a change credit", () => {
     expect(refundLine({ status: "assigned", refundStatus: "pending_ops", refundOwedRappen: 300 })).toBe("");
   });
 
-  it("a cancelled trip keeps the approved cancel line", () => {
-    expect(refundLine({ status: "cancelled", refundStatus: "pending_ops", refundOwedRappen: 300 })).toBe("Full refund · sent by our team");
-    expect(refundLine({ status: "cancelled", refundStatus: "pending_ops", refundOwedRappen: 0 })).toBe("Refund under review");
+  it("a cancelled trip reads the signed policy line, with no branch on the owed amount", () => {
+    expect(refundLine({ status: "cancelled", refundStatus: "pending_ops", refundOwedRappen: 300 })).toBe("Refund follows the cancellation policy");
+    expect(refundLine({ status: "cancelled", refundStatus: "pending_ops", refundOwedRappen: 0 })).toBe("Refund follows the cancellation policy");
     expect(refundLine({ status: "cancelled", refundStatus: "refunded" })).toBe("Refunded");
+    expect(refundLine({ status: "cancelled", refundStatus: "failed" })).toBe("Failed");
   });
 });
 

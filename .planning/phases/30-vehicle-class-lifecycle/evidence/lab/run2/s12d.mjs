@@ -1,0 +1,27 @@
+import { start, open, goPricing, signIn, dlgText, S, db } from "./lib.mjs";
+await start({ evidenceDir: process.argv[2] });
+const s = await open({ viewport: 1440, name: "s1440" });
+await signIn(s);
+await goPricing(s);
+s.page.on("response", async (r) => { if (r.url().includes("/api/staff") && r.request().method() !== "GET") console.log("API", r.request().method(), r.url().replace(/^.*\/api/, "/api"), r.status(), (await r.text().catch(() => "")).slice(0, 300)); });
+await S("S12", "Publish a draft without Lab Draft Class amounts", async () => {
+  console.log("before:", db("select id,status,label from public.rate_versions order by id").replace(/\n/g, " ; "), "| class bags:", db("select passenger_capacity, luggage_capacity from public.vehicle_classes where name='Lab Draft Class'"));
+  const tr = s.page.locator("tr", { has: s.page.locator("[data-class-name]", { hasText: /^Economy$/ }) });
+  await tr.locator('button[aria-label="Edit"]').click(); await s.page.waitForTimeout(900);
+  const inputs = s.page.locator('[role="dialog"] input:not([type=file])');
+  console.log("n inputs", await inputs.count(), "dialog:", (await dlgText(s.page)).slice(0, 80));
+  await inputs.nth(1).fill("0.01", { timeout: 5000 }); await s.page.waitForTimeout(300);
+  await s.page.locator('[role="dialog"] button', { hasText: /^save class$/i }).click(); await s.page.waitForTimeout(3000);
+  const afterSave = db("select id,status,label from public.rate_versions order by id").replace(/\n/g, " ; ");
+  const header = await s.page.evaluate(() => document.body.innerText.match(/(LIVE BOOK|DRAFT[^\n]*)/)?.[0]);
+  console.log("after save:", afterSave, "| header:", header);
+  await s.shot("S12-after-edit");
+  await s.page.getByRole("button", { name: /publish fare book/i }).first().click(); await s.page.waitForTimeout(1500);
+  const d1 = await dlgText(s.page);
+  console.log("publish dialog:", d1);
+  await s.shot("S12-publish-dialog");
+  const btns = await s.page.locator('[role="dialog"] button').allInnerTexts();
+  console.log("dlg buttons:", btns);
+  return { s, ok: false, blocked: true, evidence: "intermediate (see below)" };
+}, { s });
+process.exit(0);

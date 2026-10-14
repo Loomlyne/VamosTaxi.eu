@@ -13,6 +13,8 @@
     "lint:css": "pnpm --filter web run lint:css",
     "i18n:check": "node scripts/check-i18n-coverage.mjs",
     "i18n:pull": "node scripts/pull-content-strings.mjs",
+    "i18n:fill": "node scripts/i18n-fill.mjs",
+    "i18n:smoke": "node scripts/i18n-smoke.mjs",
     "check:legal-claims": "node scripts/check-legal-language-claims.mjs",
     "check:numbers": "node scripts/check-no-invented-numbers.mjs",
     "test:unit": "pnpm test:scripts && pnpm -r --if-present run test",

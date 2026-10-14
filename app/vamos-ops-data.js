@@ -15,8 +15,9 @@
    Bookings write bookingId (UUID), display id stays VT-…. Failed writes
    return { ok:false, code } and the overlay must stay open.
 
-   Draft fare-book verbs: publish / discard / saveDraftVat hit
-   /api/staff/rate-versions/:id/{publish,discard} and PUT rate-book for VAT.
+   Draft fare-book verbs: publish / discard / saveDraftVat / saveDraftQuoteLock hit
+   /api/staff/rate-versions/:id/{publish,discard} and PUT rate-book for VAT and
+   the price-valid hours.
    OpsPricing does not call Preview or test unpaid. Never sets public preferDraft. */
 (function () {
   // 261001-chauffeur-car: the shell's helmet runs this file twice (parser, then the dc-runtime). A
@@ -116,13 +117,15 @@
     liveBook.status = "loading";
     var names = api("GET", "/api/staff/vehicle-classes").then(function (json) {
       var map = {};
+      var state = {};
       var rows = json && json.ok && Array.isArray(json.data) ? json.data : [];
       rows.forEach(function (c) {
         var id = str(c && c.id);
         var name = str(c && (c.name || c.klass)).trim();
         if (id && name) map[id] = name;
+        if (id) state[id] = str(c && c.status);
       });
-      return map;
+      return { names: map, status: state };
     });
     var live = api("GET", "/api/staff/rate-versions").then(function (json) {
       var versions = json && json.ok && json.data && Array.isArray(json.data.versions) ? json.data.versions : null;
@@ -144,10 +147,14 @@
     });
     Promise.all([names, live]).then(function (both) {
       var res = both[1] || { failed: true };
+      var info = both[0] || { names: {}, status: {} };
+      /* CLS-07: pickers offer Live classes only. The server field status decides (never
+         derived from active); a class the price book still rates as Draft or Retired is left out. */
+      var classes = res.failed ? [] : res.classes.filter(function (c) { return info.status[c.id] === "live"; });
       liveBook = {
-        status: res.failed ? "failed" : (res.classes.length ? "ok" : "none"),
-        classes: res.failed ? [] : res.classes,
-        names: both[0] || {}
+        status: res.failed ? "failed" : (classes.length ? "ok" : "none"),
+        classes: classes,
+        names: info.names || {}
       };
       emit("liveClasses");
     }, function () {
@@ -620,6 +627,8 @@
   function id(prefix) { return prefix + "-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
   function str(v) { return v === undefined || v === null ? "" : String(v); }
   function num(v, d) { var n = parseInt(v, 10); return isNaN(n) ? (d || 0) : n; }
+  /* Decision 6 (sheet-11a): an empty seat or bag count stays null, never a made-up 3. */
+  function numOrNull(v) { if (v == null || v === "") return null; var n = parseInt(v, 10); return isNaN(n) ? null : n; }
 
   var CURRENCIES = ["CHF", "EUR", "USD", "AED"];
   function cleanMoneySet(v, fallback) {
@@ -894,8 +903,8 @@
       photoPath: photo,
       baseFare: cleanMoneySet(r.baseFare), perKm: cleanMoneySet(r.perKm), minFare: cleanMoneySet(r.minFare),
       airportStart: cleanMoneySet(r.airportStart),
-      maxPax: num(r.maxPax, 3),
-      maxBags: num(r.maxBags || r.luggageCapacity, 3),
+      maxPax: numOrNull(r.maxPax),
+      maxBags: numOrNull(r.maxBags != null && r.maxBags !== "" ? r.maxBags : r.luggageCapacity),
       available: r.available === false ? false : true,
       hideFromPublic: !!r.hideFromPublic,
       hiddenReason: str(r.hiddenReason),
@@ -915,46 +924,10 @@
       code: str(s.code || s.label),
       type: str(s.type),
       rule: str(s.rule),
-      ruleId: str(s.ruleId),
       kind: SURCHARGE_KINDS.indexOf(s.kind) === -1 ? "amount" : s.kind,
       amounts: cleanMoneySet(s.amounts), pct: str(s.pct),
       labelEn: str(s.labelEn), labelDe: str(s.labelDe), labelFr: str(s.labelFr), labelAr: str(s.labelAr),
       machineLangs: Array.isArray(s.machineLangs) ? s.machineLangs.slice() : []
-    };
-  }
-
-  function cleanBand(b) {
-    b = b || {};
-    return {
-      id: str(b.id),
-      fromKm: num(b.fromKm, 0),
-      toKm: b.toKm === "" || b.toKm == null ? "" : num(b.toKm, 0),
-      perKm: cleanMoneySet(b.perKm),
-      klass: str(b.klass || b.vehicleClass),
-      vehicleClassId: str(b.vehicleClassId)
-    };
-  }
-
-  function cleanRegion(r) {
-    r = r || {};
-    return {
-      id: str(r.id),
-      zoneId: str(r.zoneId),
-      zone: str(r.zone),
-      percent: str(r.percent)
-    };
-  }
-
-  function cleanRule(r) {
-    r = r || {};
-    var payload = r.payload;
-    if (payload && typeof payload === "object") {
-      try { payload = JSON.stringify(payload); } catch (e) { payload = ""; }
-    }
-    return {
-      id: str(r.id),
-      kind: str(r.kind || r.ruleKind),
-      payload: str(payload)
     };
   }
 
@@ -1066,9 +1039,6 @@
     routes: rateBookCollection("routes", "route", cleanRoute),
     rates: rateBookCollection("rates", "distance", cleanRate),
     surcharges: rateBookCollection("surcharges", "surcharge", cleanSurcharge),
-    bands: rateBookCollection("bands", "band", cleanBand),
-    regionPremiums: rateBookCollection("regionPremiums", "region", cleanRegion),
-    rules: rateBookCollection("rules", "rule", cleanRule),
     settings: remoteSingleton("settings", "/api/staff/settings", settingsFromPayload),
     profile: remoteSingleton("profile", "/api/staff/me", profileFromMe),
     onAny: function (fn) { return subscribe(null, fn); },
@@ -1119,22 +1089,34 @@
         return json;
       });
     },
-    /* 26.1-19 D-15: delete a class. Nothing but draft rows references it -> deleted.
-       Still in use -> { ok:false, code:"in-use" } without a reason; with a reason it is
-       hidden everywhere. Callers re-read the rate book (rates.reset()). */
-    deleteClass: function (id, reason) {
+    /* Phase 30 class lifecycle. Retire never deletes: the class leaves the site, the new-trip form and
+       new price books, past books keep it. Bring back returns it as a draft; go live is refused by
+       the server until photo, seats, bags and a price in the live book are all there. Every state
+       change is a PATCH {id, status, reason?}; the state is the server field `status`, never derived
+       from `active`. There is no client DELETE for a class. */
+    classes: function () {
+      return api("GET", "/api/staff/vehicle-classes").then(function (json) {
+        return json && json.ok && Array.isArray(json.data) ? json.data : [];
+      }, function () { return []; });
+    },
+    retireClass: function (id, reason) {
       if (id == null || id === "") return Promise.resolve({ ok: false, code: "missing-id" });
-      var body = { id: String(id) };
-      if (reason) body.reason = String(reason);
-      return api("DELETE", "/api/staff/vehicle-classes?id=" + encodeURIComponent(String(id)), body).then(function (json) {
+      return api("PATCH", "/api/staff/vehicle-classes", { id: String(id), status: "retired", reason: reason ? String(reason) : null }).then(function (json) {
         json = json || { ok: false, code: "save-failed" };
-        if (json.ok) {
-          bookFetch.loaded = false;
-          bookFetch.json = null;
-        }
+        if (json.ok) { bookFetch.loaded = false; bookFetch.json = null; }
         return json;
       });
     },
+    setClassStatus: function (id, status) {
+      if (id == null || id === "") return Promise.resolve({ ok: false, code: "missing-id" });
+      return api("PATCH", "/api/staff/vehicle-classes", { id: String(id), status: status }).then(function (json) {
+        json = json || { ok: false, code: "save-failed" };
+        if (json.ok) { bookFetch.loaded = false; bookFetch.json = null; }
+        return json;
+      });
+    },
+    bringBackClass: function (id) { return window.VamosOps.setClassStatus(id, "draft"); },
+    goLiveClass: function (id) { return window.VamosOps.setClassStatus(id, "live"); },
     saveDraftVat: function (bps) {
       return api("PUT", "/api/staff/rate-book", {
         kind: "rule",
@@ -1143,8 +1125,18 @@
         payload: { vat_rate_bps: bps }
       });
     },
+    /* Decision 2026-10-13 item 13: "Price stays valid for" on Pricing › Distance rules. Whole hours, 1 or more;
+       the server writes the draft's quote_lock_minutes (forking the live book when there is no draft) and
+       answers the whole book, with data.quoteLockHours as saved. Publish keeps it. */
+    saveDraftQuoteLock: function (hours) {
+      return api("PUT", "/api/staff/rate-book", { kind: "rule", ruleKind: "quote_lock", quoteLockHours: hours }).then(function (json) {
+        json = json || { ok: false, code: "unknown" };
+        if (json.ok) { bookFetch.loaded = false; bookFetch.json = null; }
+        return json;
+      });
+    },
     resetAll: function () {
-      ["vehicles", "chauffeurs", "bookings", "customers", "coupons", "routes", "rates", "surcharges", "bands", "regionPremiums", "rules", "settings", "profile"]
+      ["vehicles", "chauffeurs", "bookings", "customers", "coupons", "routes", "rates", "surcharges", "settings", "profile"]
         .forEach(function (k) { window.VamosOps[k].reset(); });
     }
   };

@@ -32,8 +32,6 @@ function liveBook(): RateBook {
     rate_version: { id: 18, slug: "live-test" },
     classes: [saden, business, van],
     distance_rates: [rateRow(1, saden.id, 3), rateRow(2, business.id, 7), rateRow(3, van.id, 12)],
-    distance_bands: [],
-    region_premiums: [],
     fixed_routes: [],
     surcharges: [],
     zones: [],

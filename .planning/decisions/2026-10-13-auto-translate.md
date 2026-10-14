@@ -19,3 +19,7 @@ Signed by Koss in the question form. First round 2026-10-12 ~19:20 (+04), second
 5. Home-page reviews show the original text, with a small button that translates the review into the visitor's current site language (on tap, cached, never in the page-load path, no vendor name).
 
 Controller defaults (no owner choice needed): the 44 Arabic spellings of "Vamos Taxi" become Latin per D-14a; new strings reuse existing wording where they clashed; "live at once" means within about 60 seconds; extra names on Pricing get de/fr/ar filled automatically with no mark.
+
+## Signed ~18:35 (+04), 2026-10-13
+
+Koss signed in the question form: signing sheets a (`sheet-a-sidebar-content.png`), b (`sheet-b-support-ticket-part-a.png` and `-part-b.png`) and c (`sheet-c-review-translate.png`) in `.planning/phases/32-auto-translate/screens/`, plus every new string in en/de/fr/ar in `32-STRINGS.md`. The old sheet 4 is deleted (sheet b replaces it). No table or column is dropped in this phase.
