@@ -112,6 +112,12 @@ describe("POST /api/staff/tickets/:id/reply-translate", () => {
     expect(ai?.calls).toHaveLength(0);
   });
 
+  it("nothing to translate (no words, e.g. a time only): skipped, never a copy shown as a translation", async () => {
+    const res = await call({ text: "08:15", lang: "de", from: "en" });
+    expect(await data(res)).toEqual({ status: "skipped" });
+    expect(ai?.calls).toHaveLength(0);
+  });
+
   it("from equal to lang: skipped, no model call", async () => {
     const res = await call({ text: REPLY, lang: "fr", from: "fr" });
     expect(await data(res)).toEqual({ status: "skipped" });
