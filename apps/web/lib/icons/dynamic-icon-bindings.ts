@@ -15,6 +15,7 @@ const OPS_FIELD = [
 const BRAND_SELECT = ["globe", "banknote", "calendar", "car", "funnel", "layout-dashboard", "settings", "star"];
 
 export const DYNAMIC_ICON_BINDINGS: Array<{ files: string[]; expr: string; values: string[]; from: string }> = [
+  { files: ["app/home/Reviews.dc.html"], expr: "r.trIcon", values: ["globe", "loader-circle"], from: "translate idle/done/failed or busy" },
   { files: ["app/home/BookingSheet.dc.html", "app/home/home.dc.html"], expr: "flightIcon", values: ["plane-landing", "plane"], from: "flight row: airport pickup or not" },
   { files: ["app/home/BookingSheet.dc.html", "app/home/home.dc.html"], expr: "s.icon", values: PLACE, from: "address suggestion rows (kindIcon, saved places, KIND_META)" },
   { files: ["app/home/home.dc.html"], expr: "pickupIcon", values: ["plane-landing", "map-pin"], from: "pickup field: airport or address" },
