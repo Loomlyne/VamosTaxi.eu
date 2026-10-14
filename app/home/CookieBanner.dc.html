@@ -478,7 +478,7 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state;
     // Owner texts: the banner (2026-10-09 §1) and, after it, the Tag Manager sentence (2026-10-13-gtm-wording.md §1).
-    const bannerText = this.segs('banner').map((g) => g.t).join('') + ' ' + this.segs('gtmBanner').map((g) => g.t).join('');
+    const bannerText = this.segs('banner').map((g) => g.t).join('') + (window.VamosMetaTexts && window.VamosMetaTexts.gtmShown ? ' ' + this.segs('gtmBanner').map((g) => g.t).join('') : '');
     const card = (label, o) => Object.assign({
       label, busy: false, busyStr: 'false', alertSave: false, alertCheck: false, ts: false,
     }, o, { busyStr: o && o.busy ? 'true' : 'false' });
@@ -496,7 +496,7 @@ class Component extends DCLogic {
       dialogRef: this.dialogRef, bannerRef: this.bannerRef,
       tsBannerRef: this.tsBannerRef, tsSheetRef: this.tsSheetRef,
       gallery: this.gallery,
-      galleryText: this.gallery ? this.segs('banner', 'en').map((g) => g.t).join('') + ' ' + this.segs('gtmBanner', 'en').map((g) => g.t).join('') : '',
+      galleryText: this.gallery ? this.segs('banner', 'en').map((g) => g.t).join('') + (window.VamosMetaTexts && window.VamosMetaTexts.gtmShown ? ' ' + this.segs('gtmBanner', 'en').map((g) => g.t).join('') : '') : '',
       galleryCards: this.gallery ? [
         card('Default', {}),
         card('Busy', { busy: true }),

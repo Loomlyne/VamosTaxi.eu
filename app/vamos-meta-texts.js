@@ -94,10 +94,17 @@
   },
   };
 
-  /** Returns the segment array of one owner text for a language, falling back to English. */
+  /* The four Tag Manager texts are shown only while Tag Manager loads. Same value as GTM_ON in
+     app/vamos-google.js and GTM_OPEN in apps/web/lib/google/flag.ts (a test pins all three). Off since 2026-10-15
+     (.planning/decisions/2026-10-15-gtm-off.md). The adopted wording above stays unchanged. */
+  var GTM_SHOWN = false;
+  var GTM_KEYS = { gtmBanner: 1, gtmRow: 1, gtmPrivacyLine: 1, gtmProcessor: 1 };
+
+  /** Returns the segment array of one owner text for a language, falling back to English. Tag Manager texts are empty while GTM_SHOWN is false. */
   function segments(key, lang) {
     var t = TEXTS[key];
     if (!t) return [];
+    if (GTM_KEYS[key] && !GTM_SHOWN) return [];
     return t[lang] || t.en;
   }
 
@@ -116,6 +123,7 @@
     gtmRow: TEXTS.gtmRow,
     gtmPrivacyLine: TEXTS.gtmPrivacyLine,
     gtmProcessor: TEXTS.gtmProcessor,
+    gtmShown: GTM_SHOWN,
     segments: segments,
   };
 })();

@@ -107,7 +107,8 @@ describe("meta legal gate", () => {
     expect(banner).toContain('{t("you-choose-what-we-measure")}');
     expect(banner).toContain('t.rich("meta-banner"');
     // Owner, 2026-10-13: the GTM sentence follows the banner text in the same paragraph.
-    expect(banner.replace(/\s+/g, " ")).toContain('{t.rich("meta-banner", {})} {t.rich("gtm-banner", {})}');
+    // Tag Manager is off since 2026-10-15: the sentence renders only while GTM_OPEN is true.
+    expect(banner.replace(/\s+/g, " ")).toContain('{t.rich("meta-banner", {})} {GTM_OPEN ? <> {t.rich("gtm-banner", {})}</> : null}');
     for (const locale of ["en", "de", "fr", "ar"]) {
       const messages = source(`i18n/messages/${locale}.json`);
       expect(messages, locale).toContain('"you-choose-what-we-measure"');
