@@ -38,7 +38,11 @@ interface Seen {
 const POLICY = contentSecurityPolicy({ metaPixel: false, googleTag: true });
 const policyHosts = (directive: string) =>
   POLICY.split("; ").find((d) => d.startsWith(`${directive} `))!.split(" ").slice(1).filter((h) => h.startsWith("https://"));
-const allowedBy = (directive: string, url: URL) => policyHosts(directive).includes(url.origin);
+// GA4's two hosts are leftmost wildcards (https://*.google-analytics.com): a subdomain matches, the bare name does not.
+const allowedBy = (directive: string, url: URL) =>
+  policyHosts(directive).some(
+    (h) => h === url.origin || (h.startsWith("https://*.") && url.protocol === "https:" && url.port === "" && url.hostname.endsWith(h.slice("https://*".length))),
+  );
 
 async function setup(context: BrowserContext, alias?: Record<string, string>) {
   await blockOthers(context);

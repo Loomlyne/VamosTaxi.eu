@@ -122,6 +122,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <sc-if value="{{ r.isSeg }}" hint-placeholder-val="{{ false }}">
 <p data-vt-no-i18n="1" style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><sc-for list="{{ r.segs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code data-ck-code="1" class="vt-dir-keep">{{ g.t }}</code></sc-if></sc-for></p>
 </sc-if>
+<sc-if value="{{ r.isSegMeta }}" hint-placeholder-val="{{ false }}">
+<p data-vt-no-i18n="1" style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><sc-for list="{{ r.segs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code data-ck-code="1" class="vt-dir-keep">{{ g.t }}</code></sc-if></sc-for></p>
+</sc-if>
 <sc-if value="{{ r.hasMeta }}" hint-placeholder-val="{{ true }}">
 <div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>{{ r.m1 }}</span><span>{{ r.m2 }}</span></div>
 </sc-if>
@@ -197,6 +200,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </sc-if>
 <sc-if value="{{ r.isSeg }}" hint-placeholder-val="{{ false }}">
 <p style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><sc-for list="{{ r.segs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code data-ck-code="1" class="vt-dir-keep">{{ g.t }}</code></sc-if></sc-for></p>
+</sc-if>
+<sc-if value="{{ r.isSegMeta }}" hint-placeholder-val="{{ false }}">
+<p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><sc-for list="{{ r.segs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code data-ck-code="1" class="vt-dir-keep">{{ g.t }}</code></sc-if></sc-for></p>
 </sc-if>
 <sc-if value="{{ r.hasMeta }}" hint-placeholder-val="{{ true }}">
 <div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>{{ r.m1 }}</span><span>{{ r.m2 }}</span></div>
@@ -451,19 +457,19 @@ class Component extends DCLogic {
   rowsFor(o) {
     const off = o.off;
     return [
-      { title: 'Strictly necessary', isText: true, isSeg: false, segs: [],
+      { title: 'Strictly necessary', isText: true, isSeg: false, isSegMeta: false, segs: [],
         desc: 'Holds your booking while you fill it in, processes the payment, blocks fraud and records this consent. The site does not work without them.',
         hasMeta: true, m1: 'Vamos Taxi · Stripe · Supabase · Cloudflare', m2: 'Up to 400 days',
         always: true, checked: true, off: true, aria: 'Strictly necessary cookies, always on', change: NOOP },
-      { title: 'Functional', isText: true, isSeg: false, segs: [],
+      { title: 'Functional', isText: true, isSeg: false, isSegMeta: false, segs: [],
         desc: 'Remembers your language and your last pickup address so you do not type them twice.',
         hasMeta: true, m1: 'Vamos Taxi', m2: 'until you change language or clear recent places',
         always: false, checked: o.f, off: off, aria: 'Functional cookies', change: this.toggleFunctional },
-      { title: 'Analytics', isText: true, isSeg: false, segs: [],
-        desc: 'Tells us which step of a booking people abandon.',
-        hasMeta: true, m1: 'Cloudflare Web Analytics (cookieless)', m2: 'No cookie',
+      { title: 'Analytics', isText: false, isSeg: false, isSegMeta: true, segs: this.segs('analyticsRow', o.lang),
+        desc: '',
+        hasMeta: true, m1: 'Cloudflare Web Analytics (cookieless) · Google Analytics', m2: 'Up to 90 days',
         always: false, checked: o.a, off: off, aria: 'Analytics cookies', change: this.toggleAnalytics },
-      { title: 'Marketing', isText: false, isSeg: true, segs: this.segs('cookiesRow', o.lang).concat([{ t: ' ', isText: true, isB: false, isCode: false }], this.segs('googleRow', o.lang)),
+      { title: 'Marketing', isText: false, isSeg: true, isSegMeta: false, segs: this.segs('cookiesRow', o.lang).concat([{ t: ' ', isText: true, isB: false, isCode: false }], this.segs('googleRow', o.lang)),
         desc: '', hasMeta: false, m1: '', m2: '',
         always: false, checked: o.m, off: off, aria: 'Marketing cookies', change: this.toggleMarketing },
     ];
@@ -471,7 +477,8 @@ class Component extends DCLogic {
 
   renderVals() {
     const s = this.state;
-    const bannerText = this.segs('banner').map((g) => g.t).join('');
+    // Owner texts: the banner (2026-10-09 §1) and, after it, the Tag Manager sentence (2026-10-13-gtm-wording.md §1).
+    const bannerText = this.segs('banner').map((g) => g.t).join('') + ' ' + this.segs('gtmBanner').map((g) => g.t).join('');
     const card = (label, o) => Object.assign({
       label, busy: false, busyStr: 'false', alertSave: false, alertCheck: false, ts: false,
     }, o, { busyStr: o && o.busy ? 'true' : 'false' });
@@ -489,7 +496,7 @@ class Component extends DCLogic {
       dialogRef: this.dialogRef, bannerRef: this.bannerRef,
       tsBannerRef: this.tsBannerRef, tsSheetRef: this.tsSheetRef,
       gallery: this.gallery,
-      galleryText: this.gallery ? this.segs('banner', 'en').map((g) => g.t).join('') : '',
+      galleryText: this.gallery ? this.segs('banner', 'en').map((g) => g.t).join('') + ' ' + this.segs('gtmBanner', 'en').map((g) => g.t).join('') : '',
       galleryCards: this.gallery ? [
         card('Default', {}),
         card('Busy', { busy: true }),

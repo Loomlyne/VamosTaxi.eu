@@ -155,6 +155,11 @@ export default async function CookiesPage({
               code: (chunks) => <code className="vt-dir-keep">{chunks}</code>,
             })}
           </p>
+          <p>
+            {tCookies.rich("gtm-row", {
+              b: (chunks) => <strong>{chunks}</strong>,
+            })}
+          </p>
         </div>
       </section>
 
@@ -165,6 +170,13 @@ export default async function CookiesPage({
         </h2>
         <p>{tCookies("cookieless-analytics")}</p>
         <p>{tCookies("no-ads")}</p>
+        {/* Owner text, .planning/decisions/2026-10-11-ga4-wording.md §2 */}
+        <p data-ga-row="cookies">
+          {tCookies.rich("ga-row", {
+            b: (chunks) => <strong>{chunks}</strong>,
+            code: (chunks) => <code className="vt-dir-keep">{chunks}</code>,
+          })}
+        </p>
       </section>
 
       <section id="change">

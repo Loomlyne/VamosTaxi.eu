@@ -44,7 +44,15 @@ const GOOGLE_IMG = [
   "https://www.google.com",
   ...googleCountryHosts,
 ];
-const GOOGLE_CONNECT = [...GOOGLE_IMG, "https://ad.doubleclick.net"];
+/**
+ * Google Analytics 4 (adopted wording 2026-10-11): the hosts Google documents for GA4 with a Content Security
+ * Policy (same guide, its GA4 section). GA4 picks its collection host per region (region1.google-analytics.com,
+ * www.google-analytics.com, region1.analytics.google.com), so the two leftmost wildcards are Google's own advice.
+ * gtag.js and Tag Manager's gtm.js both come from www.googletagmanager.com, already listed above.
+ */
+const GA4_HOSTS = ["https://*.google-analytics.com", "https://*.analytics.google.com"];
+const GOOGLE_IMG_ALL = [...GOOGLE_IMG, GA4_HOSTS[0]!];
+const GOOGLE_CONNECT = [...GOOGLE_IMG, "https://ad.doubleclick.net", ...GA4_HOSTS];
 const GOOGLE_FRAME = ["https://www.googletagmanager.com"];
 
 const withHosts = (on: boolean, hosts: readonly string[]): string => (on ? ` ${hosts.join(" ")}` : "");
@@ -53,7 +61,7 @@ const withHosts = (on: boolean, hosts: readonly string[]): string => (on ? ` ${h
  * The Content-Security-Policy string. `metaPixel: false` is the policy of every page today; `true`
  * adds Meta's script, beacon and fallback-frame hosts and nothing else (connect-src does not gain the
  * script host, so Meta's telemetry stays blocked; no Instagram or gateway host). `googleTag: true` adds
- * Google's documented Ads hosts and nothing else; it is chosen per address by `lib/google/google-csp.ts`
+ * Google's documented Ads and GA4 hosts and nothing else; it is chosen per address by `lib/google/google-csp.ts`
  * (never on a pay link, never on the dashboard) and only while the Google flag is open.
  */
 export function contentSecurityPolicy(opts: { metaPixel: boolean; googleTag?: boolean }): string {
@@ -64,7 +72,7 @@ export function contentSecurityPolicy(opts: { metaPixel: boolean; googleTag?: bo
     `script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com${meta ? " https://connect.facebook.net" : ""}${withHosts(google, GOOGLE_SCRIPT)}`,
     `frame-src challenges.cloudflare.com${meta ? " https://www.facebook.com" : ""}${withHosts(google, GOOGLE_FRAME)}`,
     `connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com${meta ? " https://www.facebook.com" : ""}${withHosts(google, GOOGLE_CONNECT)}`,
-    `img-src 'self' data: blob: https://*.mapbox.com${meta ? " https://www.facebook.com" : ""}${withHosts(google, GOOGLE_IMG)}`,
+    `img-src 'self' data: blob: https://*.mapbox.com${meta ? " https://www.facebook.com" : ""}${withHosts(google, GOOGLE_IMG_ALL)}`,
     "worker-src 'self' blob:",
     "style-src 'self' 'unsafe-inline'",
     "object-src 'none'",
