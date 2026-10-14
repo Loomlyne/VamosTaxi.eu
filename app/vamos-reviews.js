@@ -75,6 +75,8 @@
     var avatar = r.avatarPath || r.avatar || "";
     return {
       id: r.id || "",
+      ref: typeof r.ref === "string" ? r.ref : "",
+      lang: r.language ? String(r.language).slice(0, 2).toLowerCase() : "",
       source: src,
       name: r.authorName != null ? String(r.authorName) : (r.name != null ? String(r.name) : ""),
       role: r.authorRole != null ? String(r.authorRole) : (r.role != null ? String(r.role) : ""),
@@ -202,6 +204,16 @@
       return list.filter(function (r) { return r.published; });
     },
     ready: function () { return loaded; },
+    /* Asks for one review in the site language by its opaque ref (phase 32). Never throws;
+       the text is returned to the caller only, never stored here or on the device. */
+    translate: function (ref, lang) {
+      return api("GET", "/api/reviews/" + encodeURIComponent(ref) + "/translation?lang=" + encodeURIComponent(lang))
+        .then(function (json) {
+          if (json && json.ok && json.data && json.data.text) return { ok: true, text: String(json.data.text) };
+          return { ok: false };
+        })
+        .catch(function () { return { ok: false }; });
+    },
     get: function (id) {
       hydrate();
       for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
