@@ -7,6 +7,7 @@ import { contactSchema } from "@/lib/forms/schemas";
 import { formFailure, formSuccess, sendContactMessage } from "@/lib/forms/notify";
 import { contactMessageId, ticketReplyAddress } from "@/lib/ops/ticket-mail";
 import { csrfForbidden } from "@/lib/security/origin";
+import { sendTranslateJob } from "@/lib/translate/jobs-contract";
 import { verifyTurnstile } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
@@ -70,6 +71,14 @@ export async function POST(request: Request) {
     return formFailure("unavailable", 503);
   }
   if (!submissionId) return formFailure("unavailable", 503);
+
+  // Phase 32 (D-01, T-32-26/27): queue the form message for translation by submission id only. The
+  // job finds the inbound_form row itself. A queue fault never changes the form's answer.
+  try {
+    await sendTranslateJob(env, { v: 1, kind: "support-form", submissionId });
+  } catch {
+    // F-07: the nightly sweep picks the message up.
+  }
 
   const from = bindings.CONTACT_EMAIL_FROM ?? process.env.CONTACT_EMAIL_FROM;
   const supportRecipient = bindings.CONTACT_SUPPORT_RECIPIENT ?? process.env.CONTACT_SUPPORT_RECIPIENT;

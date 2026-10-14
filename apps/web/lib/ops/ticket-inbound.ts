@@ -14,6 +14,7 @@ import {
   type InboundPayload,
 } from "./ticket-mail";
 import { storeInboundFiles } from "./ticket-inbound-files";
+import { sendTranslateJob } from "@/lib/translate/jobs-contract";
 import type { TicketStatus } from "./tickets-map";
 
 export type { InboundPayload };
@@ -48,8 +49,11 @@ export async function ingestInboundEmail(
   const fromAddress = inboundFromAddress(payload.from);
   const inboundRfc = payload.messageId ? asRfcMessageId(payload.messageId) : "";
 
+  // Set inside the transaction, read only after it committed (Phase 32: never enqueue before commit).
+  let newMessageId: string | null = null;
+  let result: "ok" | "drop";
   try {
-    return await asSystem(env, async (sql) => {
+    result = await asSystem(env, async (sql) => {
       let ticket: { id: string; ticket_status: string | null } | undefined;
 
       if (token) {
@@ -122,6 +126,7 @@ export async function ingestInboundEmail(
       `;
       const messageId = insertedMsg[0]?.id;
       if (messageId) {
+        newMessageId = messageId;
         const nextBody = await storeInboundFiles(env, payload.attachments, {
           sql,
           submissionId: ticket.id,
@@ -149,4 +154,14 @@ export async function ingestInboundEmail(
   } catch {
     return "unavailable";
   }
+  if (result === "ok" && newMessageId) {
+    // Phase 32 (D-01, T-32-26/27): the row id only, never the text. A queue fault never fails the
+    // webhook: sendTranslateJob does not throw by contract, and the nightly sweep picks up a miss.
+    try {
+      await sendTranslateJob(env, { v: 1, kind: "support", messageId: newMessageId });
+    } catch {
+      // F-07: the message is stored; translation catches up in the sweep.
+    }
+  }
+  return result;
 }
