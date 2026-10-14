@@ -40,8 +40,6 @@ function liveBook(vanRateMaxPax = 12): RateBook {
     rate_version: { id: 1, slug: "draft-v1" },
     classes: [saden, vClass, van],
     distance_rates: [rateRow(10, saden.id, 3), rateRow(11, vClass.id, 7), rateRow(12, van.id, vanRateMaxPax)],
-    distance_bands: [],
-    region_premiums: [],
     fixed_routes: [],
     surcharges: [],
     zones: [],

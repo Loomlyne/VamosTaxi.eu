@@ -113,8 +113,6 @@ function launchBook(overrides?: {
       rateRow({ vehicle_class_id: business.id, id: 11 }),
       rateRow({ vehicle_class_id: van.id, id: 12, max_pax: 8 }),
     ],
-    distance_bands: [],
-    region_premiums: [],
     fixed_routes: overrides?.fixed_routes ?? [],
     surcharges: overrides?.surcharges ?? [
       surcharge({
@@ -194,8 +192,6 @@ function pricedBook(): RateBook {
         airport_start_rappen: 1600,
       }),
     ],
-    distance_bands: [],
-    region_premiums: [],
     fixed_routes: [],
     surcharges: [
       surcharge({
@@ -637,9 +633,7 @@ describe("priceQuote — owner formula: airport fee additive, pair applies regar
           ...extra,
         }),
       ],
-      distance_bands: [],
       fixed_routes: [],
-      region_premiums: [],
       surcharges: [
         surcharge({
           code: "child_seat",

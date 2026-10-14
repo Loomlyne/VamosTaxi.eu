@@ -24,10 +24,7 @@ export type CompletenessKind =
   | "distance_rate"
   | "surcharge"
   | "fixed_route"
-  | "coupon"
-  | "rule"
-  | "band"
-  | "band_overlap";
+  | "coupon";
 
 export type CompletenessGap = {
   kind: CompletenessKind;
@@ -96,8 +93,9 @@ export async function loadRateVersions(
  * Changing one without the other is the known failure mode: the checklist
  * would disagree with the publish gate.
  *
- * Extra TS-only gaps (coupon / rule / band) catch empty admin-added rows the
- * trigger does not yet name. Zero rows in those tables is not a gap.
+ * Extra TS-only gaps (coupon) catch empty admin-added rows the trigger does
+ * not yet name. Zero rows in that table is not a gap. Km bands, region % and
+ * the Rules list were removed (decision 2026-10-13 items 10, 13).
  */
 export async function loadCompleteness(
   env: CloudflareEnv,
@@ -159,31 +157,6 @@ export async function loadCompleteness(
            or (c.kind = 'amount' and c.amount_rappen is null)
          )
     `;
-    const rules = await tx<{ name: string }[]>`
-      select r.kind as name
-        from public.rate_version_rules r
-       where r.rate_version_id = ${versionId}
-         and (nullif(btrim(r.kind), '') is null or r.payload = '{}'::jsonb)
-    `;
-    const bands = await tx<{ name: string }[]>`
-      select coalesce(nullif(btrim(vc.slug), ''), 'band') as name
-        from public.distance_bands b
-        left join public.vehicle_classes vc on vc.id = b.vehicle_class_id
-       where b.rate_version_id = ${versionId}
-         and (b.vehicle_class_id is null or b.per_km_rappen is null)
-    `;
-    const bandOverlap = await tx<{ name: string }[]>`
-      select distinct coalesce(nullif(btrim(vc.slug), ''), 'band') as name
-        from public.distance_bands as overlap_left
-        join public.distance_bands as overlap_right
-          on overlap_left.rate_version_id = overlap_right.rate_version_id
-         and overlap_left.vehicle_class_id = overlap_right.vehicle_class_id
-         and overlap_left.id < overlap_right.id
-        left join public.vehicle_classes vc on vc.id = overlap_left.vehicle_class_id
-       where overlap_left.rate_version_id = ${versionId}
-         and overlap_left.from_km < coalesce(overlap_right.to_km, 1000000000)
-         and overlap_right.from_km < coalesce(overlap_left.to_km, 1000000000)
-    `;
     return [
       ...distance.map((row) => ({
         kind: "distance_rate" as const,
@@ -194,9 +167,6 @@ export async function loadCompleteness(
       ...surcharges.map((row) => ({ kind: "surcharge" as const, name: row.name })),
       ...routes.map((row) => ({ kind: "fixed_route" as const, name: row.name })),
       ...coupons.map((row) => ({ kind: "coupon" as const, name: row.name })),
-      ...rules.map((row) => ({ kind: "rule" as const, name: row.name })),
-      ...bands.map((row) => ({ kind: "band" as const, name: row.name })),
-      ...bandOverlap.map((row) => ({ kind: "band_overlap" as const, name: row.name })),
     ];
   });
 }

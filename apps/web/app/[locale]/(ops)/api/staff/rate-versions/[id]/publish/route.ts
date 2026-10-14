@@ -7,6 +7,10 @@
 // Next Save starts a new draft (resolveWritableVersionId). D-08: 409 keeps draft.
 // settings_versions is append-only: Publish INSERTs a clone (lock + polygon),
 // it never UPDATE/DELETEs that table.
+// Decision 2026-10-13 item 13 (signed 2026-10-14; supersedes Phase 18 D-13): Publish keeps the
+// draft's quote_lock_minutes ("Price stays valid for" on Pricing › Distance rules) on the live
+// book and on the new settings_versions row; QUOTE_LOCK_MINUTES (1440 = 24 hours) only when the
+// draft has none. checkout_window_minutes stays copied from the current settings row.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { asStaff } from "@/lib/db/identity";
@@ -107,7 +111,7 @@ export async function POST(
           throw err;
         }
         const vatBps = asNullableInt(row.vat_rate_bps);
-        const lockMinutes = QUOTE_LOCK_MINUTES;
+        const lockMinutes = asNullableInt(row.quote_lock_minutes) ?? QUOTE_LOCK_MINUTES;
         // 26.2 audit: `${JSON.stringify(x)}::jsonb` is the double-encoding form. The Worker's
         // client runs with `fetch_types: false` and prepared statements, so Postgres describes
         // the parameter as jsonb and the driver serialises the text a second time — the row
@@ -134,7 +138,7 @@ export async function POST(
                  label = coalesce(nullif(${publishLabel}, ''), label),
                  published_at = now(),
                  published_by = ${claims.sub},
-                 quote_lock_minutes = ${QUOTE_LOCK_MINUTES}
+                 quote_lock_minutes = ${lockMinutes}
            where id = ${id} and status = 'draft'
         `;
         await tx`

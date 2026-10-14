@@ -114,8 +114,6 @@ function book(fixed: FixedRouteRow[] = []): RateBook {
     rate_version: { id: 1, slug: "fixture" },
     classes: [economy],
     distance_rates: [rate],
-    distance_bands: [],
-    region_premiums: [],
     fixed_routes: fixed,
     surcharges: [seatSurcharge],
     zones: [airportZone, neutralZone, cityA, cityB, cantonA, cantonB],

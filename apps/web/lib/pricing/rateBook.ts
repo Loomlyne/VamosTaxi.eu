@@ -27,11 +27,9 @@
 // version is loaded, never whether it counts as live.
 
 import type {
-  DistanceBandRow,
   DistanceRateRow,
   FixedRouteRow,
   RateBook,
-  RegionPremiumRow,
   SettingsSnapshot,
   SurchargeRow,
   VehicleClassRow,
@@ -130,28 +128,6 @@ function mapDistanceRate(item: unknown): DistanceRateRow {
   };
 }
 
-function mapDistanceBand(item: unknown): DistanceBandRow {
-  const row = isRecord(item) ? item : {};
-  return {
-    id: row.id as number,
-    rate_version_id: row.rate_version_id as number,
-    vehicle_class_id: row.vehicle_class_id as string,
-    from_km: row.from_km as number,
-    to_km: (row.to_km ?? null) as number | null,
-    per_km_rappen: row.per_km_rappen as number,
-  };
-}
-
-function mapRegionPremium(item: unknown): RegionPremiumRow {
-  const row = isRecord(item) ? item : {};
-  return {
-    id: row.id as number,
-    rate_version_id: row.rate_version_id as number,
-    zone_id: row.zone_id as string,
-    percent: (row.percent ?? 0) as number | string,
-  };
-}
-
 function mapFixedRoute(item: unknown): FixedRouteRow {
   const row = isRecord(item) ? item : {};
   return {
@@ -218,8 +194,6 @@ export function mapRateBook(doc: unknown): MappedRateBook {
       rate_version: null,
       classes: [],
       distance_rates: [],
-      distance_bands: [],
-      region_premiums: [],
       fixed_routes: [],
       surcharges: [],
       zones: [],
@@ -251,8 +225,6 @@ export function mapRateBook(doc: unknown): MappedRateBook {
     rate_version: mapRateVersion(doc.rate_version),
     classes,
     distance_rates,
-    distance_bands: mapList(doc.distance_bands, mapDistanceBand),
-    region_premiums: mapList(doc.region_premiums, mapRegionPremium),
     fixed_routes,
     surcharges: mapList(doc.surcharges, mapSurcharge),
     zones: mapList(doc.zones, mapZone),
