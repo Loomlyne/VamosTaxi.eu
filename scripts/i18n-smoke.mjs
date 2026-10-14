@@ -33,6 +33,7 @@ const SAMPLES = [
 ];
 const LANGS = ["de", "fr", "ar"];
 
+const { proxyAi } = await import("./i18n-proxy-ai.mjs");
 const { register } = await import("./i18n-ts-hook.mjs");
 register();
 const { translateText } = await import(pathToFileURL(join(repoRoot, "apps/web/lib/translate/translate.ts")).href);
@@ -49,7 +50,8 @@ if (STUB) {
     configPath: join(repoRoot, "apps/web/wrangler.jsonc"),
     remoteBindings: true,
   });
-  ai = proxy.env.AI;
+  // The proxy cannot carry run()'s AbortSignal: see scripts/i18n-proxy-ai.mjs.
+  ai = proxy.env.AI ? proxyAi(proxy.env.AI) : null;
   dispose = () => proxy.dispose();
   if (!ai) {
     await dispose();

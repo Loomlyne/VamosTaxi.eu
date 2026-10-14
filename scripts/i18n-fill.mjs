@@ -172,7 +172,9 @@ async function loadAi() {
     await proxy.dispose();
     fail("no AI binding in the staging environment of apps/web/wrangler.jsonc");
   }
-  return { ai: proxy.env.AI, dispose: () => proxy.dispose() };
+  // The proxy cannot carry run()'s AbortSignal: see scripts/i18n-proxy-ai.mjs.
+  const { proxyAi } = await import("./i18n-proxy-ai.mjs");
+  return { ai: proxyAi(proxy.env.AI), dispose: () => proxy.dispose() };
 }
 
 async function main() {
