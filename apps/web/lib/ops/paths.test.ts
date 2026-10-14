@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -19,9 +19,12 @@ describe("ops auth paths", () => {
     expect(publicDashboardPath("/ops")).toBe("/");
   });
 
-  it("the content-string e2e signs in through /login and the code step, not mfa-challenge", () => {
-    const spec = readFileSync(join(webRoot, "tests/integration/content-string-edit.spec.ts"), "utf8");
-    expect(spec).not.toMatch(/mfa-challenge/);
-    expect(spec).toMatch(/Enter the 6-digit code/);
+  // Phase 32 (plan 03, D-07): Content › Pages and Legal were removed together with content-string-edit.spec.ts, the
+  // spec this pin used to read. The pin now covers every integration spec: none goes through mfa-challenge.
+  it("no integration spec signs in through the removed mfa-challenge page", () => {
+    const dir = join(webRoot, "tests/integration");
+    expect(existsSync(join(dir, "content-string-edit.spec.ts"))).toBe(false);
+    const hits = readdirSync(dir).filter((f) => f.endsWith(".spec.ts") && /mfa-challenge/.test(readFileSync(join(dir, f), "utf8")));
+    expect(hits).toEqual([]);
   });
 });
