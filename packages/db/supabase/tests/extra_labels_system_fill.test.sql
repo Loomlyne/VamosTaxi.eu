@@ -5,7 +5,7 @@
 -- (non-empty, outside machine_langs) is never changed, the payload is jsonb (a twice-serialised string
 -- is unwrapped), and only vamos_system may call either function.
 begin;
-select plan(22);
+select plan(23);
 
 -- ── EXECUTE per role ───────────────────────────────────────────────────────────────────── 6
 select function_privs_are('public', 'system_extra_labels_missing', '{}'::text[], 'vamos_system', '{EXECUTE}'::text[], 'missing: vamos_system has EXECUTE');
@@ -20,12 +20,14 @@ insert into public.extra_labels (code, label_en, label_de, label_fr, label_ar, m
   ('xf_typed', 'Child seat', 'Kindersitz', null, 'قديم', '{ar}'),
   ('xf_full', 'Ski rack', 'Skitraeger', 'Porte-skis', 'حامل تزلج', '{}');
 
--- ── Missing list ───────────────────────────────────────────────────────────────────────── 2
+-- ── Missing list ───────────────────────────────────────────────────────────────────────── 3
 set local role vamos_system;
 select is((select label_en from public.system_extra_labels_missing() where code = 'xf_typed'), 'Child seat',
   'a code with a missing language is listed with his English name');
 select is((select count(*)::int from public.system_extra_labels_missing() where code = 'xf_full'), 0,
   'a code with all four names is not listed');
+select is((select missing_de || '|' || missing_fr || '|' || missing_ar from public.system_extra_labels_missing() where code = 'xf_typed'),
+  'false|true|false', 'the list says which language is missing (only fr here), so the job translates only that');
 
 -- ── Fill: empty filled, machine refreshed, his typed name kept ─────────────────────────── 5
 select is(public.system_extra_label_fill('xf_typed', '{"de":"Maschinensitz","fr":"Siege enfant","ar":"مقعد أطفال"}'::jsonb), 2,

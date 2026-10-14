@@ -44,9 +44,17 @@ export type SupportSourceRow = {
   form_locale: string;
   detected_lang: string | null;
 };
-export type BookingNoteSourceRow = { note: string; note_hash: string };
+/** `has_done`: a done translation already exists for this note_hash (the job skips the model call). */
+export type BookingNoteSourceRow = { note: string; note_hash: string; has_done: boolean };
 export type BacklogRow = { kind: "support" | "note" | "review"; id: string };
-export type ExtraLabelMissingRow = { code: string; label_en: string };
+/** An extra with at least one empty de/fr/ar name; the flags say which (only those are translated). */
+export type ExtraLabelMissingRow = {
+  code: string;
+  label_en: string;
+  missing_de: boolean;
+  missing_fr: boolean;
+  missing_ar: boolean;
+};
 
 /** One target language of a customer-text translation. `body` is null for a rejected answer. */
 export type TranslationRowInput = { body: string | null; status: "done" | "rejected" };

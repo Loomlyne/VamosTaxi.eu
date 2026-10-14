@@ -8,7 +8,7 @@
 -- The note DLQ writer marks failures for the current note only and never touches a done row.
 -- An erased booking's note is never listed, read or written (PR #83 fix round 1, privacy).
 begin;
-select plan(79);
+select plan(82);
 
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -83,8 +83,8 @@ set local role vamos_system;
 select is((select body_text || '|' || direction || '|' || form_locale || '|' || coalesce(detected_lang, 'null') from public.system_support_translation_source((select msg_id from fx))),
   'Bitte mit Kindersitz, danke.|inbound_form|en|null', 'support source: body, direction, form locale, no language yet');
 select is(public.system_support_form_message_id((select sub_id from fx)), (select msg_id from fx), 'the inbound_form message of a submission');
-select is((select note || '|' || note_hash from public.system_booking_note_source((select booking_id from fx))),
-  'Bitte am Ausgang B warten.|' || (select note_hash from fx), 'note source: text and sha256');
+select is((select note || '|' || note_hash || '|' || has_done from public.system_booking_note_source((select booking_id from fx))),
+  'Bitte am Ausgang B warten.|' || (select note_hash from fx) || '|false', 'note source: text, sha256, no done row yet');
 
 -- ── Backlog before any translation ─────────────────────────────────────────────────────── 4
 select ok(exists (select 1 from public.system_translation_backlog(200) b where b.kind = 'support' and b.id = (select msg_id from fx)::text),
@@ -197,6 +197,17 @@ select lives_ok($$ select public.system_booking_note_translation_fail((select bo
 reset role;
 select is((select status || '|' || body || '|' || attempts from public.booking_note_translations where booking_id = (select booking_id from fx) and target_lang = 'en'),
   'done|New text please.|2', 'note fail never touches a done row');
+
+-- ── A done row for the same note hash is final (PR #83 fix round 1) ─────────────────────── 3
+set local role vamos_system;
+select is((select has_done from public.system_booking_note_source((select booking_id from fx))), true,
+  'note source reports a done row for the current hash (the job skips the model call)');
+select is(public.system_booking_note_translation_put((select booking_id from fx), 'de', (select note_hash2 from fx),
+  '{"en":{"body":"Another answer.","status":"done","prompt_version":2},"ar":{"body":null,"status":"rejected"}}'::jsonb), 1,
+  'a second put for the same hash writes only the open language (ar), never over the done en row');
+reset role;
+select is((select status || '|' || body || '|' || attempts || '|' || prompt_version from public.booking_note_translations where booking_id = (select booking_id from fx) and target_lang = 'en'),
+  'done|New text please.|2|1', 'the done row is unchanged: same text, version and attempt count');
 
 -- ── Who can read the tables ────────────────────────────────────────────────────────────── 14
 set local role anon;

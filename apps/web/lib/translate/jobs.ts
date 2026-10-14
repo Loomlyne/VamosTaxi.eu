@@ -226,6 +226,11 @@ async function noteJob(deps: JobDeps, bookingId: string): Promise<JobOutcome> {
     emit("info", "translate_job", { kind: "note", outcome: "skipped" });
     return "skipped";
   }
+  if (src.has_done) {
+    // This note (same hash) is already translated: a retry or a duplicate delivery. No model call.
+    emit("info", "translate_job", { kind: "note", outcome: "skipped", reason: "done" });
+    return "skipped";
+  }
   return translateCustomerText(
     deps,
     "note",
@@ -266,12 +271,15 @@ async function extraJob(deps: JobDeps, code: string): Promise<JobOutcome> {
   const { store, emit } = deps;
   const missing = await storeStep(emit, "extra", "extraLabelsMissing", () => store.extraLabelsMissing());
   const row = missing.find((r) => r.code === code);
-  if (!row || !row.label_en.trim()) {
+  // Only the empty languages: a name already filled (his or an earlier machine fill) is never
+  // translated again, so a retry after a partial fill asks only for what is still missing.
+  const targets = row ? EXTRA_TARGETS.filter((lang) => row[`missing_${lang}`] === true) : [];
+  if (!row || !row.label_en.trim() || targets.length === 0) {
     emit("info", "translate_job", { kind: "extra", outcome: "skipped" });
     return "skipped";
   }
   // The definer writes a language only when it is empty or machine-written (D-02: his names win).
-  const res = await translateText(deps.ai, { text: row.label_en, from: "en", to: [...EXTRA_TARGETS] });
+  const res = await translateText(deps.ai, { text: row.label_en, from: "en", to: targets });
   if (!res.ok) {
     if (res.reason === "no_binding") {
       emit("info", "translate_job", { kind: "extra", outcome: "no_binding" });
@@ -282,7 +290,7 @@ async function extraJob(deps: JobDeps, code: string): Promise<JobOutcome> {
     return "failed";
   }
   const labels: Partial<Record<"de" | "fr" | "ar", string>> = {};
-  for (const lang of EXTRA_TARGETS) {
+  for (const lang of targets) {
     const text = res.out[lang];
     if (typeof text === "string" && text.trim()) labels[lang] = text;
   }

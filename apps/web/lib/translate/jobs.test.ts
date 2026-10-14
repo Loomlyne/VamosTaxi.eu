@@ -41,12 +41,14 @@ function fakeStore(patch: Partial<TranslateStore> = {}): TranslateStore & { call
     supportFormMessageId: rec("supportFormMessageId", MSG),
     putSupportTranslation: rec("putSupportTranslation", 3),
     failSupportTranslation: rec("failSupportTranslation", undefined),
-    bookingNoteSource: rec("bookingNoteSource", { note: DE_TEXT, note_hash: "f".repeat(64) }),
+    bookingNoteSource: rec("bookingNoteSource", { note: DE_TEXT, note_hash: "f".repeat(64), has_done: false }),
     putBookingNoteTranslation: rec("putBookingNoteTranslation", 3),
     failBookingNoteTranslation: rec("failBookingNoteTranslation", undefined),
     reviewLanguageSource: rec("reviewLanguageSource", { body: DE_TEXT, language: null, published: true }),
     setReviewLanguage: rec("setReviewLanguage", undefined),
-    extraLabelsMissing: rec("extraLabelsMissing", [{ code: "child_seat", label_en: "Child seat" }]),
+    extraLabelsMissing: rec("extraLabelsMissing", [
+      { code: "child_seat", label_en: "Child seat", missing_de: true, missing_fr: true, missing_ar: true },
+    ]),
     fillExtraLabel: rec("fillExtraLabel", 3),
     staleTranslationSource: rec("staleTranslationSource", {
       source_hash: "c".repeat(64),
@@ -218,10 +220,40 @@ describe("handleTranslateJob: booking notes", () => {
 
   it("an empty note is skipped without a model call or a write", async () => {
     const ai = stubAi(() => gemmaReply({}));
-    const store = fakeStore({ bookingNoteSource: async () => ({ note: "   ", note_hash: "e".repeat(64) }) });
+    const store = fakeStore({ bookingNoteSource: async () => ({ note: "   ", note_hash: "e".repeat(64), has_done: false }) });
     expect(await handleTranslateJob({ ai, store, emit: vi.fn() }, { v: 1, kind: "note", bookingId: BOOKING })).toBe("skipped");
     expect(ai.calls).toHaveLength(0);
     expect(store.calls.putBookingNoteTranslation).toBeUndefined();
+  });
+
+  // PR #83 review: a retry or a duplicate delivery never translates the same note twice.
+  it("a note that already has a done row for its hash is skipped: zero model calls, no write", async () => {
+    const ai = stubAi(() => gemmaReply({ lang: "de", en: EN, fr: FR, ar: AR }));
+    const store = fakeStore({ bookingNoteSource: async () => ({ note: DE_TEXT, note_hash: "f".repeat(64), has_done: true }) });
+    const emit = vi.fn();
+    expect(await handleTranslateJob({ ai, store, emit }, { v: 1, kind: "note", bookingId: BOOKING })).toBe("skipped");
+    expect(ai.calls).toHaveLength(0);
+    expect(store.calls.putBookingNoteTranslation).toBeUndefined();
+    expect(store.calls.failBookingNoteTranslation).toBeUndefined();
+    expectCleanLogs(emit);
+  });
+
+  it("the same note job delivered twice calls the model once", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const ai = stubAi(() => gemmaReply({ lang: "de", en: EN, fr: FR, ar: AR }));
+    let done = false;
+    const store = fakeStore({
+      bookingNoteSource: async () => ({ note: DE_TEXT, note_hash: "f".repeat(64), has_done: done }),
+      putBookingNoteTranslation: async () => {
+        done = true;
+        return 3;
+      },
+    });
+    const job = { v: 1, kind: "note", bookingId: BOOKING } as const;
+    expect(await handleTranslateJob({ ai, store, emit: vi.fn() }, job)).toBe("done");
+    expect(await handleTranslateJob({ ai, store, emit: vi.fn() }, job)).toBe("skipped");
+    expect(ai.calls).toHaveLength(1);
+    expect(store.calls.putBookingNoteTranslation).toHaveLength(1);
   });
 
   it("a final failure marks the note failed for its current hash", async () => {
@@ -271,9 +303,39 @@ describe("handleTranslateJob: reviews and extras", () => {
     expect(store.calls.fillExtraLabel).toEqual([["child_seat", { de: "Kindersitz", fr: "Siège enfant", ar: "مقعد أطفال" }]]);
   });
 
+  it("only the missing languages are asked for and written (a filled name is never translated again)", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const ai = stubAi(() => gemmaReply({ de: "Kindersitz neu", fr: "Siège enfant", ar: "مقعد أطفال" }));
+    const store = fakeStore({
+      extraLabelsMissing: async () => [
+        { code: "child_seat", label_en: "Child seat", missing_de: false, missing_fr: true, missing_ar: false },
+      ],
+    });
+    expect(await handleTranslateJob({ ai, store, emit: vi.fn() }, { v: 1, kind: "extra", code: "child_seat" })).toBe("done");
+    expect(ai.calls).toHaveLength(1);
+    const messages = ai.calls[0]!.input.messages as { role: string; content: string }[];
+    const user = JSON.parse(messages.find((m) => m.role === "user")!.content) as { targets: string[] };
+    expect(user.targets).toEqual(["fr"]);
+    expect(store.calls.fillExtraLabel).toEqual([["child_seat", { fr: "Siège enfant" }]]);
+  });
+
+  it("an extra listed with no language missing (filled since the sweep) is skipped: zero model calls", async () => {
+    const ai = stubAi(() => gemmaReply({ de: "Kindersitz", fr: "Siège enfant", ar: "مقعد أطفال" }));
+    const store = fakeStore({
+      extraLabelsMissing: async () => [
+        { code: "child_seat", label_en: "Child seat", missing_de: false, missing_fr: false, missing_ar: false },
+      ],
+    });
+    expect(await handleTranslateJob({ ai, store, emit: vi.fn() }, { v: 1, kind: "extra", code: "child_seat" })).toBe("skipped");
+    expect(ai.calls).toHaveLength(0);
+    expect(store.calls.fillExtraLabel).toBeUndefined();
+  });
+
   it("an extra with nothing missing is skipped", async () => {
     const ai = stubAi(() => gemmaReply({}));
-    const store = fakeStore({ extraLabelsMissing: async () => [{ code: "other_code", label_en: "Other" }] });
+    const store = fakeStore({
+      extraLabelsMissing: async () => [{ code: "other_code", label_en: "Other", missing_de: true, missing_fr: true, missing_ar: true }],
+    });
     expect(await handleTranslateJob({ ai, store, emit: vi.fn() }, { v: 1, kind: "extra", code: "child_seat" })).toBe("skipped");
     expect(ai.calls).toHaveLength(0);
     expect(store.calls.fillExtraLabel).toBeUndefined();
@@ -310,6 +372,32 @@ describe("handleTranslateJob: stale machine cache rows (prompt_version bump, pla
     expect(await handleTranslateJob({ ai, store, emit: vi.fn() }, { v: 1, kind: "cache", translationId: "42" })).toBe("skipped");
     expect(ai.calls).toHaveLength(0);
     expect(store.calls.putMachineTranslation).toBeUndefined();
+  });
+
+  it("the same cache job delivered twice calls the model once (the row is current after the first put)", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    const ai = stubAi(() => gemmaReply({ en: EN }));
+    let current = false;
+    const stale = {
+      source_hash: "c".repeat(64),
+      source_lang: "de",
+      target_lang: "en",
+      source_text: DE_TEXT,
+      context: "review" as const,
+    };
+    const store = fakeStore({
+      // The definer returns the source only while the row is machine and older than PROMPT_VERSION.
+      staleTranslationSource: async () => (current ? null : stale),
+      putMachineTranslation: async () => {
+        current = true;
+        return { translated_text: EN, origin: "machine", status: "done" };
+      },
+    });
+    const job = { v: 1, kind: "cache", translationId: "42" } as const;
+    expect(await handleTranslateJob({ ai, store, emit: vi.fn() }, job)).toBe("done");
+    expect(await handleTranslateJob({ ai, store, emit: vi.fn() }, job)).toBe("skipped");
+    expect(ai.calls).toHaveLength(1);
+    expect(store.calls.putMachineTranslation).toHaveLength(1);
   });
 
   it("a source language outside the four is detected again with it as the fallback", async () => {

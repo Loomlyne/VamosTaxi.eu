@@ -4398,6 +4398,7 @@ export type Database = {
       system_booking_note_source: {
         Args: { p_booking_id: string }
         Returns: {
+          has_done: boolean
           note: string
           note_hash: string
         }[]
@@ -4424,6 +4425,9 @@ export type Database = {
         Returns: {
           code: string
           label_en: string
+          missing_ar: boolean
+          missing_de: boolean
+          missing_fr: boolean
         }[]
       }
       system_review_language_set: {

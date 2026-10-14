@@ -41,7 +41,7 @@ function store(patch: Partial<TranslateStore> = {}): TranslateStore & { calls: R
     supportFormMessageId: rec("supportFormMessageId", MSG),
     putSupportTranslation: rec("putSupportTranslation", 3),
     failSupportTranslation: rec("failSupportTranslation", undefined),
-    bookingNoteSource: rec("bookingNoteSource", { note: DE_TEXT, note_hash: HASH }),
+    bookingNoteSource: rec("bookingNoteSource", { note: DE_TEXT, note_hash: HASH, has_done: false }),
     putBookingNoteTranslation: rec("putBookingNoteTranslation", 3),
     failBookingNoteTranslation: rec("failBookingNoteTranslation", undefined),
     reviewLanguageSource: rec("reviewLanguageSource", { body: DE_TEXT, language: null, published: true }),
@@ -184,7 +184,7 @@ describe("consumeTranslateBatch: the quiet dead-letter queue", () => {
   });
 
   it("an empty note calls neither put nor fail", async () => {
-    for (const src of [null, { note: "  ", note_hash: HASH }]) {
+    for (const src of [null, { note: "  ", note_hash: HASH, has_done: false }]) {
       const s = store({ bookingNoteSource: async () => src });
       const { d } = deps(s);
       const m = msg({ v: 1, kind: "note", bookingId: BOOKING });

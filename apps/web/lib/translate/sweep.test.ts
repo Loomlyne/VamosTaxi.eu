@@ -43,8 +43,8 @@ describe("runTranslateSweepWithDeps", () => {
         { kind: "review" as const, id: C },
       ]),
       extrasMissing: vi.fn(async () => [
-        { code: "child_seat", label_en: "Child seat" },
-        { code: "roof_box", label_en: "Roof box" },
+        { code: "child_seat", label_en: "Child seat", missing_de: true, missing_fr: false, missing_ar: true },
+        { code: "roof_box", label_en: "Roof box", missing_de: false, missing_fr: true, missing_ar: false },
       ]),
     });
     const r = await runTranslateSweepWithDeps(d);

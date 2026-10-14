@@ -243,19 +243,29 @@ $$;
 -- Booking note: reader and writers. The hash is sha256 of the stored note text; a job queued for an
 -- older note (stale hash) writes nothing. An erased booking returns no source and takes no write.
 -- ---------------------------------------------------------------------------
+-- has_done: a done row already exists for this note_hash, so the job skips the model call (a retry or a
+-- duplicate delivery never translates the same note twice; PR #83 review).
 create or replace function public.system_booking_note_source(p_booking_id pg_catalog.uuid)
-returns table (note pg_catalog.text, note_hash pg_catalog.text)
+returns table (note pg_catalog.text, note_hash pg_catalog.text, has_done pg_catalog.bool)
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select b.note,
-         pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(b.note, 'UTF8')), 'hex')
-    from public.bookings as b
-   where b.id = p_booking_id
-     and b.erased_at is null
-     and pg_catalog.btrim(b.note) <> ''
+  select s.note,
+         s.note_hash,
+         exists (
+           select 1 from public.booking_note_translations as t
+            where t.booking_id = p_booking_id and t.note_hash = s.note_hash and t.status = 'done'
+         )
+    from (
+      select b.note,
+             pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(b.note, 'UTF8')), 'hex') as note_hash
+        from public.bookings as b
+       where b.id = p_booking_id
+         and b.erased_at is null
+         and pg_catalog.btrim(b.note) <> ''
+    ) as s
 $$;
 
 create or replace function public.system_booking_note_translation_put(
@@ -317,6 +327,8 @@ begin
     end if;
     v_pv := case when (v_entry ->> 'prompt_version') ~ '^[1-9][0-9]{0,5}$' then (v_entry ->> 'prompt_version')::pg_catalog.int4 end;
 
+    -- A done row for the same note_hash is final: a second answer (retry, duplicate delivery) neither
+    -- overwrites it nor counts an attempt (PR #83 review). Only rows actually written are counted.
     insert into public.booking_note_translations as t
       (booking_id, source_lang, target_lang, body, status, prompt_version, attempts, note_hash, updated_at)
     values
@@ -326,10 +338,13 @@ begin
            body = excluded.body,
            status = excluded.status,
            prompt_version = excluded.prompt_version,
+           note_hash = excluded.note_hash,
            attempts = t.attempts + 1,
            updated_at = pg_catalog.now()
-     where t.status <> 'done' or excluded.status = 'done';
-    v_written := v_written + 1;
+     where t.status <> 'done' or t.note_hash <> excluded.note_hash;
+    if found then
+      v_written := v_written + 1;
+    end if;
   end loop;
 
   return v_written;

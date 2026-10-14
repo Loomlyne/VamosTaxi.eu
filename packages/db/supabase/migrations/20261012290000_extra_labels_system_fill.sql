@@ -6,7 +6,9 @@
 -- machine wrote; a language outside that list with a non-empty name is his and is never changed.
 --
 --   system_extra_labels_missing()        codes with a missing de/fr/ar name, plus his English name
---                                        (his own words, not customer text).
+--                                        (his own words, not customer text) and which of the three is
+--                                        missing, so the job translates only those (a filled name is
+--                                        never translated again; PR #83 review).
 --   system_extra_label_fill(code, jsonb) writes a language only when it is empty or machine-written,
 --                                        and adds it to machine_langs. jsonb in, no array parameter
 --                                        (the Worker pg client has no array types).
@@ -16,13 +18,23 @@
 begin;
 
 create or replace function public.system_extra_labels_missing()
-returns table (code pg_catalog.text, label_en pg_catalog.text)
+returns table (
+  code pg_catalog.text,
+  label_en pg_catalog.text,
+  missing_de pg_catalog.bool,
+  missing_fr pg_catalog.bool,
+  missing_ar pg_catalog.bool
+)
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select e.code, e.label_en
+  select e.code,
+         e.label_en,
+         coalesce(pg_catalog.btrim(e.label_de), '') = '',
+         coalesce(pg_catalog.btrim(e.label_fr), '') = '',
+         coalesce(pg_catalog.btrim(e.label_ar), '') = ''
     from public.extra_labels as e
    where coalesce(pg_catalog.btrim(e.label_de), '') = ''
       or coalesce(pg_catalog.btrim(e.label_fr), '') = ''
