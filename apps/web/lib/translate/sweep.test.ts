@@ -3,6 +3,8 @@
 // Phase 32 plan 05: the nightly 03:00 translate sweep. It re-enqueues what is still untranslated (ids
 // only), one extra job per extra code with a missing name, and the machine cache rows written under an
 // older prompt_version (F-06). A human row is never re-queued (F-05). Counts only in the result.
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TranslateJob } from "./jobs-contract";
 import { PROMPT_VERSION } from "./model";
@@ -111,5 +113,20 @@ describe("runTranslateSweep(env)", () => {
     const r = await runTranslateSweep({} as CloudflareEnv);
     expect(r).toEqual({ enqueued: 0, failed: 0, skipped: true });
     expect(spy.mock.calls.map((c) => String(c[0])).join("\n")).toContain("translate_sweep_no_queue");
+  });
+});
+
+describe("worker.ts 03:00 cron order (Phase 31 merge)", () => {
+  it("runs the translate sweep after the Phase 31 refund check and before return, once", () => {
+    const worker = readFileSync(fileURLToPath(new URL("../../worker.ts", import.meta.url)), "utf8");
+    const branch = worker.indexOf('if (controller.cron === "0 3 * * *")');
+    expect(branch).toBeGreaterThan(-1);
+    const ret = worker.indexOf("return;", branch);
+    const refund = worker.indexOf("await refundCheck(env)", branch);
+    const sweep = worker.indexOf("await runTranslateSweep(env)", branch);
+    expect(worker.split("runTranslateSweep(env)")).toHaveLength(2);
+    expect(refund).toBeGreaterThan(branch);
+    expect(sweep).toBeGreaterThan(refund);
+    expect(sweep).toBeLessThan(ret);
   });
 });
