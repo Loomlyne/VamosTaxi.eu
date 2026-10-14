@@ -66,7 +66,11 @@ replaced by `lab.sh dbtests p32 --keep` (same DB tests, stack kept), then full p
 `db:seed:check`, `check:db-fences`, `i18n:fill --check`). Logs: `gate-local.log`, `pgtap.log`,
 `static.log`.
 
-<!-- GATE-RESULTS -->
+Task 2 results, 2026-10-14, head fb13271e (merged with origin/main 8ef7e82d), one lane, logs in `evidence/`:
+- `gate-local.log` 12:15:20-12:18:22, exit=0: check:public-env, typecheck, lint:css, lint, i18n:check (2698 keys), check:legal-claims, check:numbers, build, test:unit (scripts 45/0; packages/db 14; emails 360; apps/web 6607 passed, 57 skipped, 518 files), DB tests via `lab.sh dbtests p32 --keep` (packages/db test/local 76; apps/web `.local.test.ts` 11 + 44), all pass.
+- `pgtap.log` 12:17:44-12:18:15, exit=0: full suite Files=126, Tests=3833, PASS.
+- `static.log` 12:18:19-12:18:22, exit=0: test:scripts, db:seed:check (no drift), check:db-fences, i18n:fill --check (0 gaps), each exit 0.
+- Stack lock taken 12:16:33, lab p32 destroyed and lock released 12:18:19.
 
 ## Incident: stack lock held by a dead agent
 

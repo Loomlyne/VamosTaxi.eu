@@ -91,10 +91,14 @@ signed_off: 2026-10-14
 | 32-11 | 2 Home card Translate / Show original / Try again | same file + `icon-files-exist`; `pnpm i18n:check` | 11 pass; pass |
 | 32-12 | 0 Merge origin/main (Phase 31) | `refund-check.test.ts`, `sweep.test.ts` (03:00 order); typecheck; types compare | pass after `24916f3e`; exit=0; 242 = 242 |
 | 32-12 | 1 Chromium proof A, B, C | `apps/web/tests/e2e-worker/translate-run.sh` → `evidence/browser.log` | A 16/0, B 16/0, C 16/0, exit=0 (05:25:57-05:50:47) |
-| 32-12 | 2 Full local gates and pgTAP | `gate:local` (DB tests via `lab.sh dbtests p32 --keep`), `lab.sh pgtap p32`, static checks | see the marker below |
+| 32-12 | 2 Full local gates and pgTAP | `gate:local` (DB tests via `lab.sh dbtests p32 --keep`), `lab.sh pgtap p32`, static checks | gate exit=0; pgTAP Files=126, Tests=3833; static exit=0 (12:15-12:18) |
 | 32-12 | 3 VALIDATION sign-off and hand-over | `grep` checks of this file and `32-HANDOVER.md` | pass |
 
-<!-- GATE-RESULTS -->
+Task 2 results, 2026-10-14, head fb13271e (merged with origin/main 8ef7e82d), one lane, logs in `evidence/`:
+- `gate-local.log` 12:15:20-12:18:22, exit=0: check:public-env, typecheck, lint:css, lint, i18n:check (2698 keys), check:legal-claims, check:numbers, build, test:unit (scripts 45/0; packages/db 14; emails 360; apps/web 6607 passed, 57 skipped, 518 files), DB tests via `lab.sh dbtests p32 --keep` (packages/db test/local 76; apps/web `.local.test.ts` 11 + 44), all pass.
+- `pgtap.log` 12:17:44-12:18:15, exit=0: full suite Files=126, Tests=3833, PASS.
+- `static.log` 12:18:19-12:18:22, exit=0: test:scripts, db:seed:check (no drift), check:db-fences, i18n:fill --check (0 gaps), each exit 0.
+- Stack lock taken 12:16:33, lab p32 destroyed and lock released 12:18:19.
 
 ---
 
@@ -125,6 +129,6 @@ signed_off: 2026-10-14
 - [x] No watch-mode flags
 - [x] Feedback latency < 60 s
 - [x] `nyquist_compliant: true` set in frontmatter
-- [ ] Full `gate:local` and full pgTAP green on the merged branch (plan 32-12 Task 2; filled by the orchestrator from the logs)
+- [x] Full `gate:local` and full pgTAP green on the merged branch (plan 32-12 Task 2, 2026-10-14 12:15-12:18)
 
-**Approval:** signed off by plan 32-12 Task 3, 2026-10-14, except the full-gate/pgTAP line, which waits for the Task 2 logs.
+**Approval:** signed off by plan 32-12 Task 3, 2026-10-14, full-gate/pgTAP line ticked by the orchestrator from the Task 2 logs (12:18).
