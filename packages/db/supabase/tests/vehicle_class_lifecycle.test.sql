@@ -8,7 +8,7 @@
 -- the staff row); the grant checks and one real vamos_staff call prove the role path.
 -- Rolled back. Synthetic integer rappen only, never a product CHF.
 begin;
-select plan(84);
+select plan(82);
 
 -- ── fixtures ────────────────────────────────────────────────────────────────────────────────────
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -48,11 +48,10 @@ insert into public.rate_versions (slug, label) values ('lc-live1', 'LC live book
 insert into public.distance_rates (rate_version_id, vehicle_class_id, max_pax, base_fare_rappen, per_km_rappen, min_fare_rappen, available, hide_from_public)
 select (select id from public.rate_versions where slug = 'lc-live1'), c.cid, 3, 1, 2, 3, true, c.hid
   from lc, lateral (values (lc.c_nophoto, false), (lc.c_hidden, true), (lc.c_ret, false), (lc.c_back, false), (lc.c_sb, false)) as c(cid, hid);
--- A city_pair rule of lc-ret and a surcharge pointing at it, in the book that is about to be frozen.
-insert into public.rate_version_rules (rate_version_id, kind, payload)
-select (select id from public.rate_versions where slug = 'lc-live1'), 'city_pair', jsonb_build_object('vehicleClassId', lc.c_ret) from lc;
-insert into public.surcharges (rate_version_id, code, kind, amount_rappen, predicate, rule_id)
-select rv.id, 'lc_frozen', 'amount', 100, '{"lc": true}'::jsonb, (select max(id) from public.rate_version_rules where rate_version_id = rv.id)
+-- A surcharge in the book that is about to be frozen (km bands, region % and the Rules list are
+-- gone since 20261012300000, decision 2026-10-13 items 10 and 13).
+insert into public.surcharges (rate_version_id, code, kind, amount_rappen, predicate)
+select rv.id, 'lc_frozen', 'amount', 100, '{"lc": true}'::jsonb
   from public.rate_versions rv where rv.slug = 'lc-live1';
 update public.rate_versions set status = 'live' where slug = 'lc-live1';
 
@@ -60,17 +59,13 @@ update public.rate_versions set status = 'live' where slug = 'lc-live1';
 insert into public.rate_versions (slug, label) values ('lc-draftA', 'LC draft A');
 insert into public.distance_rates (rate_version_id, vehicle_class_id, max_pax, base_fare_rappen, per_km_rappen, min_fare_rappen)
 select (select id from public.rate_versions where slug = 'lc-draftA'), lc.c_ret, 3, 1, 2, 3 from lc;
-insert into public.distance_bands (rate_version_id, vehicle_class_id, from_km, per_km_rappen)
-select (select id from public.rate_versions where slug = 'lc-draftA'), lc.c_ret, 900, 1 from lc;
 insert into public.fixed_routes (rate_version_id, origin_zone_id, dest_zone_id, vehicle_class_id)
 select (select id from public.rate_versions where slug = 'lc-draftA'), z.a, z.b, lc.c_ret
   from lc cross join lateral (
     select (select id from public.service_zones order by slug limit 1) as a,
            (select id from public.service_zones order by slug offset 1 limit 1) as b) z;
-insert into public.rate_version_rules (rate_version_id, kind, payload)
-select (select id from public.rate_versions where slug = 'lc-draftA'), 'city_pair', jsonb_build_object('vehicleClassId', lc.c_ret) from lc;
-insert into public.surcharges (rate_version_id, code, kind, amount_rappen, predicate, rule_id)
-select rv.id, 'lc_extra', 'amount', 100, '{"lc": true}'::jsonb, (select max(id) from public.rate_version_rules where rate_version_id = rv.id)
+insert into public.surcharges (rate_version_id, code, kind, amount_rappen, predicate)
+select rv.id, 'lc_extra', 'amount', 100, '{"lc": true}'::jsonb
   from public.rate_versions rv where rv.slug = 'lc-draftA';
 
 create temporary table lcv as
@@ -219,11 +214,10 @@ select is(
   (select active from public.vehicle_classes where id = (select c_ret from lc)), true,
   'the refused reason left the class Live');
 insert into lcsnap select 'frozen-rows', (select count(*)::text from public.distance_rates where vehicle_class_id = (select c_ret from lc) and rate_version_id = (select live1 from lcv))
-  || '/' || (select count(*)::text from public.surcharges where rate_version_id = (select live1 from lcv) and rule_id is not null)
-  || '/' || (select count(*)::text from public.rate_version_rules where rate_version_id = (select live1 from lcv));
+  || '/' || (select count(*)::text from public.surcharges where rate_version_id = (select live1 from lcv));
 select lives_ok(
   format($f$select public.ops_vehicle_class_set_status(%L::uuid, 'retired', 'No longer offered')$f$, (select c_ret from lc)),
-  'blocker fix: Retire succeeds although a draft surcharge points at the class city_pair rule (no 23503)');
+  'Retire succeeds with a draft surcharge in the open book');
 select is(
   (select hidden_reason from public.vehicle_classes where id = (select c_ret from lc)), 'No longer offered',
   'the reason is stored');
@@ -238,22 +232,15 @@ select is(
   (select count(*)::int from public.fixed_routes where vehicle_class_id = (select c_ret from lc) and rate_version_id = (select draft_a from lcv)), 0,
   'decision 2: the class left the draft fixed_routes');
 select is(
-  (select count(*)::int from public.distance_bands where vehicle_class_id = (select c_ret from lc) and rate_version_id = (select draft_a from lcv)), 0,
-  'decision 2: the class left the draft distance_bands');
-select is(
-  (select count(*)::int from public.rate_version_rules where rate_version_id = (select draft_a from lcv) and kind = 'city_pair'), 0,
-  'decision 2: the class city_pair rule left the draft');
-select is(
   (select count(*)::int from public.distance_rates where vehicle_class_id = (select c_ret from lc) and rate_version_id = (select live1 from lcv)), 1,
   'the frozen live-book price row of the class is kept');
 select is(
-  (select count(*)::int from public.surcharges where rate_version_id = (select draft_a from lcv) and code = 'lc_extra' and rule_id is null), 1,
-  'the draft surcharge stays, detached (rule_id null)');
+  (select count(*)::int from public.surcharges where rate_version_id = (select draft_a from lcv) and code = 'lc_extra'), 1,
+  'the draft surcharge stays (an extra the owner added survives Retire)');
 select is(
   (select (select count(*)::text from public.distance_rates where vehicle_class_id = (select c_ret from lc) and rate_version_id = (select live1 from lcv))
-    || '/' || (select count(*)::text from public.surcharges where rate_version_id = (select live1 from lcv) and rule_id is not null)
-    || '/' || (select count(*)::text from public.rate_version_rules where rate_version_id = (select live1 from lcv))),
-  (select v from lcsnap where k = 'frozen-rows'), 'the frozen book keeps its price row, surcharge pointer and rules');
+    || '/' || (select count(*)::text from public.surcharges where rate_version_id = (select live1 from lcv))),
+  (select v from lcsnap where k = 'frozen-rows'), 'the frozen book keeps its price row and surcharge');
 
 -- Moves out of Retired
 select throws_ok(
