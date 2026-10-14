@@ -13,6 +13,7 @@ import {
 } from "@/app/[locale]/(ops)/ops/reviews/actions";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
 import { loadReviews, type ReviewInput } from "@/lib/ops/reviews";
+import { sendTranslateJob } from "@/lib/translate/jobs-contract";
 import { reviewInputFromBody } from "../route";
 
 export const dynamic = "force-dynamic";
@@ -116,8 +117,18 @@ export function PATCH(request: Request, context: { params: Promise<{ id: string 
     const row = rows.find((item) => item.id === id);
     if (!row) return jsonErr("reviews-error", 404);
     const merged = mergePatch(row, body);
+    const textChanged = BODY_KEYS.body.some((key) => key in body) && merged.body !== row.body;
     const updated = await updateReview(id, merged);
     if (!updated.ok) return jsonErr(updated.key, actionStatus(updated));
+    // Phase 32 (D-09): new text, new language job (updateReview cleared the old language). A move, a
+    // publish switch or another field edit sends nothing. A failed send never changes this answer.
+    if (textChanged) {
+      try {
+        await sendTranslateJob(env, { v: 1, kind: "review", reviewId: id });
+      } catch {
+        /* sendTranslateJob logs its own reason code */
+      }
+    }
     return jsonOk(await loadReviews(env, claims));
   })(request);
 }
