@@ -17,8 +17,6 @@ export const OPS_CONSOLE_EXACT: readonly string[] = [
   "/settings",
   "/coupons",
   "/reviews",
-  "/pages",
-  "/legal",
 ];
 
 /** Drops one trailing slash (not on the root path). */

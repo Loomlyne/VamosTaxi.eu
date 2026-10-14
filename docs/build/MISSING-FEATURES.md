@@ -63,8 +63,7 @@ policy inputs land — single source of truth, not copy.
 DB (same rows ops Reviews manages). 🟡 review source/import decision (Google reviews?),
 schema.org Review markup. ⚪ language-filtered display.
 
-**FAQ (home section)** — 🟡 static strings; move to `content_strings` so ops Content can
-edit; deep-link `#faq` already works.
+**FAQ (home section)** — 🟡 static strings; move to `content_strings`; deep-link `#faq` already works.
 
 **Footer (SiteFooter)** — 🔴 payment marks are typed placeholders (need brand assets);
 🟡 social links go nowhere (need real profiles); newsletter signup absent (decide);
@@ -187,9 +186,9 @@ LTV once prices exist, GDPR tools (export, anonymize/delete), notes. 🟡 merge 
 (same table home reads), moderation states, photo upload. 🟡 import path for existing
 Google/TrustPilot reviews (source field exists in mock). ⚪ reply-to-review.
 
-**Content (OpsContent)** — 🔴 it's a link directory, not an editor: actual string editing
-(`content_strings` en/de/fr/ar) with preview + publish, FAQ manager, legal-doc version
-upload. 🟡 photography/asset manager once real photos land.
+**Content** — only Reviews remains. The Pages and Legal editor was removed on 2026-10-13
+(D-06): site and legal wording change in code. 🟡 photography/asset manager once real
+photos land.
 
 **Settings (OpsSettings)** — 🔴 saves locally: company contacts, booking rules (min advance,
 waiting minutes, cancel window — the `data-tok` sources), service area, email sender

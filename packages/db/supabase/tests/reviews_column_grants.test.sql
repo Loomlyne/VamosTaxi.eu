@@ -9,8 +9,9 @@
 -- Each reader below is the real column list of the real caller:
 --   lib/public/reviews.ts (vamos_public)  lib/db/content.ts (vamos_public)
 --   api/account/bookings/route.ts (authenticated).
+-- Phase 32 (20261012270000, D-09): `language` joins every public list (the review translate button).
 begin;
-select plan(24);
+select plan(27);
 
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -46,7 +47,8 @@ grant select on fx to public;
 set local role vamos_public;
 select lives_ok(
   $$ select r.id, r.source, r.author_name, r.author_role, r.body, r.rating, r.route_label,
-            vc.slug as vehicle_class_slug, r.avatar_path, r.source_url, r.verified, r.published, r.sort_order
+            vc.slug as vehicle_class_slug, r.avatar_path, r.source_url, r.verified, r.published, r.sort_order,
+            r.language
        from public.reviews r
        left join public.vehicle_classes vc on vc.id = r.vehicle_class_id
       where r.published = true
@@ -71,7 +73,8 @@ reset role;
 set local role anon;
 select lives_ok(
   $$ select r.id, r.source, r.author_name, r.author_role, r.body, r.rating, r.route_label,
-            vc.slug as vehicle_class_slug, r.avatar_path, r.source_url, r.verified, r.published, r.sort_order
+            vc.slug as vehicle_class_slug, r.avatar_path, r.source_url, r.verified, r.published, r.sort_order,
+            r.language
        from public.reviews r
        left join public.vehicle_classes vc on vc.id = r.vehicle_class_id
       where r.published = true
@@ -96,7 +99,7 @@ select set_config('request.jwt.claims',
   true);
 
 select lives_ok(
-  $$ select r.id, r.author_name, r.body, r.rating, r.published, r.sort_order, r.created_at
+  $$ select r.id, r.author_name, r.body, r.rating, r.published, r.sort_order, r.created_at, r.language
        from public.reviews r where r.published = true order by r.sort_order, r.created_at desc $$,
   '(14) authenticated: the public column list works'
 );
@@ -129,6 +132,17 @@ reset role;
 
 -- vamos_staff keeps whole-table read (ops reviews screen).
 select ok(has_table_privilege('vamos_staff', 'public.reviews', 'select'), '(24) vamos_staff keeps table-wide SELECT');
+
+-- Phase 32: reviews.language is in the pinned list of every public reader.
+set local role vamos_public;
+select lives_ok($$ select language from public.reviews where published $$, '(25) vamos_public can select language');
+reset role;
+set local role anon;
+select lives_ok($$ select language from public.reviews where published $$, '(26) anon can select language');
+reset role;
+set local role authenticated;
+select lives_ok($$ select language from public.reviews where published $$, '(27) authenticated can select language');
+reset role;
 
 select * from finish();
 rollback;

@@ -633,7 +633,12 @@ function withExtraLabels<T extends { surcharges: Record<string, unknown>[] }>(
   };
 }
 
-/** Save the four-language name of an extra. Never throws: the surcharge save has already succeeded. */
+/**
+ * Save the four-language name of an extra. Never throws: the surcharge save has already succeeded (F-07).
+ * Missing languages are filled by the shared translator (Phase 32, `lib/translate`) with one call at save
+ * time; whatever it could not fill stays empty and the nightly fill (`system_extra_label_fill`) completes it.
+ * A name he typed is never replaced (D-02). No machine mark is shown on Pricing (D-10).
+ */
 async function saveExtraLabels(
   env: Parameters<typeof loadRateBook>[0],
   claims: Parameters<typeof loadRateBook>[1],

@@ -526,6 +526,50 @@ export type Database = {
           },
         ]
       }
+      booking_note_translations: {
+        Row: {
+          attempts: number
+          body: string | null
+          booking_id: string
+          note_hash: string
+          prompt_version: number | null
+          source_lang: string | null
+          status: string
+          target_lang: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          body?: string | null
+          booking_id: string
+          note_hash: string
+          prompt_version?: number | null
+          source_lang?: string | null
+          status: string
+          target_lang: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          body?: string | null
+          booking_id?: string
+          note_hash?: string
+          prompt_version?: number | null
+          source_lang?: string | null
+          status?: string
+          target_lang?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_note_translations_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_notifications: {
         Row: {
           booking_id: string
@@ -2006,6 +2050,7 @@ export type Database = {
           created_at: string
           external_ref: string | null
           id: string
+          language: string | null
           locked: boolean
           photo_path: string | null
           published: boolean
@@ -2030,6 +2075,7 @@ export type Database = {
           created_at?: string
           external_ref?: string | null
           id?: string
+          language?: string | null
           locked?: boolean
           photo_path?: string | null
           published?: boolean
@@ -2054,6 +2100,7 @@ export type Database = {
           created_at?: string
           external_ref?: string | null
           id?: string
+          language?: string | null
           locked?: boolean
           photo_path?: string | null
           published?: boolean
@@ -2483,12 +2530,51 @@ export type Database = {
           },
         ]
       }
+      support_message_translations: {
+        Row: {
+          attempts: number
+          body: string | null
+          message_id: string
+          prompt_version: number | null
+          status: string
+          target_lang: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          body?: string | null
+          message_id: string
+          prompt_version?: number | null
+          status: string
+          target_lang: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          body?: string | null
+          message_id?: string
+          prompt_version?: number | null
+          status?: string
+          target_lang?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_message_translations_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "support_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_messages: {
         Row: {
           actor_user_id: string | null
           body_html: string | null
           body_text: string
           created_at: string
+          detected_lang: string | null
           direction: string
           from_address: string | null
           id: string
@@ -2501,6 +2587,7 @@ export type Database = {
           body_html?: string | null
           body_text: string
           created_at?: string
+          detected_lang?: string | null
           direction: string
           from_address?: string | null
           id?: string
@@ -2513,6 +2600,7 @@ export type Database = {
           body_html?: string | null
           body_text?: string
           created_at?: string
+          detected_lang?: string | null
           direction?: string
           from_address?: string | null
           id?: string
@@ -2576,6 +2664,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      translations: {
+        Row: {
+          attempts: number
+          context: string
+          created_at: string
+          id: number
+          last_error: string | null
+          origin: string
+          prompt_version: number | null
+          source_hash: string
+          source_lang: string
+          source_text: string
+          status: string
+          target_lang: string
+          translated_text: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          attempts?: number
+          context: string
+          created_at?: string
+          id?: never
+          last_error?: string | null
+          origin?: string
+          prompt_version?: number | null
+          source_hash: string
+          source_lang: string
+          source_text: string
+          status?: string
+          target_lang: string
+          translated_text?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          attempts?: number
+          context?: string
+          created_at?: string
+          id?: never
+          last_error?: string | null
+          origin?: string
+          prompt_version?: number | null
+          source_hash?: string
+          source_lang?: string
+          source_text?: string
+          status?: string
+          target_lang?: string
+          translated_text?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       vehicle_classes: {
         Row: {
@@ -4013,6 +4155,14 @@ export type Database = {
           vehicle: string
         }[]
       }
+      review_ref: { Args: { p_body: string }; Returns: string }
+      review_translation_source: {
+        Args: { p_ref: string }
+        Returns: {
+          body: string
+          language: string
+        }[]
+      }
       staff_active_for_email: { Args: { p_email: string }; Returns: boolean }
       staff_claim_invite: { Args: never; Returns: undefined }
       staff_digest_claim: {
@@ -4243,6 +4393,136 @@ export type Database = {
         Returns: {
           booking_id: string
           review_id: string
+        }[]
+      }
+      system_booking_note_source: {
+        Args: { p_booking_id: string }
+        Returns: {
+          has_done: boolean
+          note: string
+          note_hash: string
+        }[]
+      }
+      system_booking_note_translation_fail: {
+        Args: { p_booking_id: string; p_note_hash: string }
+        Returns: undefined
+      }
+      system_booking_note_translation_put: {
+        Args: {
+          p_booking_id: string
+          p_detected: string
+          p_note_hash: string
+          p_rows: Json
+        }
+        Returns: number
+      }
+      system_extra_label_fill: {
+        Args: { p_code: string; p_labels: Json }
+        Returns: number
+      }
+      system_extra_labels_missing: {
+        Args: never
+        Returns: {
+          code: string
+          label_en: string
+          missing_ar: boolean
+          missing_de: boolean
+          missing_fr: boolean
+        }[]
+      }
+      system_review_language_set: {
+        Args: { p_lang: string; p_review_id: string }
+        Returns: undefined
+      }
+      system_review_language_source: {
+        Args: { p_review_id: string }
+        Returns: {
+          body: string
+          language: string
+          published: boolean
+        }[]
+      }
+      system_support_form_message_id: {
+        Args: { p_submission_id: string }
+        Returns: string
+      }
+      system_support_translation_fail: {
+        Args: { p_message_id: string }
+        Returns: undefined
+      }
+      system_support_translation_put: {
+        Args: { p_detected: string; p_message_id: string; p_rows: Json }
+        Returns: number
+      }
+      system_support_translation_source: {
+        Args: { p_message_id: string }
+        Returns: {
+          body_text: string
+          detected_lang: string
+          direction: string
+          form_locale: string
+        }[]
+      }
+      system_translation_backlog: {
+        Args: { p_limit: number }
+        Returns: {
+          id: string
+          kind: string
+        }[]
+      }
+      system_translation_mark: {
+        Args: {
+          p_context: string
+          p_hash: string
+          p_reason: string
+          p_source_lang: string
+          p_source_text: string
+          p_status: string
+          p_target_lang: string
+        }
+        Returns: undefined
+      }
+      system_translation_put_machine: {
+        Args: {
+          p_context: string
+          p_hash: string
+          p_prompt_version: number
+          p_source_lang: string
+          p_source_text: string
+          p_target_lang: string
+          p_text: string
+        }
+        Returns: {
+          origin: string
+          status: string
+          translated_text: string
+        }[]
+      }
+      system_translation_stale: {
+        Args: { p_limit: number; p_prompt_version: number }
+        Returns: {
+          id: string
+          origin: string
+          prompt_version: number
+        }[]
+      }
+      system_translation_stale_source: {
+        Args: { p_id: number; p_prompt_version: number }
+        Returns: {
+          context: string
+          source_hash: string
+          source_lang: string
+          source_text: string
+          target_lang: string
+        }[]
+      }
+      translation_read: {
+        Args: { p_hash: string; p_lang: string }
+        Returns: {
+          attempts: number
+          status: string
+          translated_text: string
+          updated_at: string
         }[]
       }
     }

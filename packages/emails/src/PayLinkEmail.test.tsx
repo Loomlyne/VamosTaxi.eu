@@ -57,6 +57,7 @@ describe("PayLinkEmail", () => {
     expect(html).toContain('width="216"');
     expect(html).not.toContain("Vamos Taxi · Zurich");
     expect(html).not.toContain("فاموس تاكسي · زيورخ");
+    expect(html).not.toContain("Vamos Taxi · زيورخ");
     expect(html).toContain("tel:+41790000000");
     expect(html).not.toContain("tel:+41796267082");
     expect(html).not.toContain("+41 79 626 70 82");

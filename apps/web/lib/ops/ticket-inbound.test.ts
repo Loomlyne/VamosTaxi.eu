@@ -7,6 +7,17 @@ vi.mock("@/lib/db/identity", () => ({
   asSystem: (...args: unknown[]) => asSystem(...args),
 }));
 
+// Phase 32 plan 07: the translate producer. Records whether it ran inside the transaction callback.
+let insideTx = false;
+const sendTranslateJob = vi.fn();
+const sendCalls: Array<{ job: unknown; insideTx: boolean }> = [];
+vi.mock("@/lib/translate/jobs-contract", () => ({
+  sendTranslateJob: (env: unknown, job: unknown) => {
+    sendCalls.push({ job, insideTx });
+    return sendTranslateJob(env, job);
+  },
+}));
+
 const TOKEN = "0123456789abcdef0123456789abcdef";
 const PLUS = `ticket+${TOKEN}@replies.vamostaxi.site`;
 const TICKET_ID = "11111111-1111-4111-8111-111111111111";
@@ -29,6 +40,8 @@ type DbState = {
   updates: Array<{ ticket_status: string; id: string }>;
   tickets: Array<{ id: string; reply_token: string; ticket_status: string }>;
   rfc: Array<{ rfc_message_id: string; submission_id: string }>;
+  /** When set, the support_messages insert returns this id (`returning id`). */
+  newMessageId?: string;
 };
 
 function makeState(partial?: Partial<DbState>): DbState {
@@ -77,7 +90,7 @@ function installSql(state: DbState) {
           from_address: String(values[1] ?? ""),
           body_text: String(values[2] ?? ""),
         });
-        return [];
+        return state.newMessageId ? [{ id: state.newMessageId }] : [];
       }
       if (text.includes("update") && text.includes("contact_submissions")) {
         state.updates.push({ ticket_status: String(values[0] ?? ""), id: String(values[1] ?? "") });
@@ -85,7 +98,12 @@ function installSql(state: DbState) {
       }
       return [];
     };
-    return fn(sql);
+    insideTx = true;
+    try {
+      return await fn(sql);
+    } finally {
+      insideTx = false;
+    }
   });
 }
 
@@ -293,5 +311,89 @@ describe("INB-02 D-01 D-02 D-04 D-12 Wave 0 ingest (RED until 14-03)", () => {
     const result = await ingestInboundEmail(ENV, payload);
     expect(result).toBe("ok");
     expect(state.messages[0]?.body_text).toBe(KEPT_FILES_BODY);
+  });
+});
+
+describe("Phase 32 plan 07: a new inbound message is queued for translation by id only", () => {
+  const MSG_ID = "33333333-3333-4333-8333-333333333333";
+
+  beforeEach(() => {
+    asSystem.mockReset();
+    sendTranslateJob.mockReset();
+    sendTranslateJob.mockResolvedValue(true);
+    sendCalls.length = 0;
+  });
+
+  it("enqueues exactly { v:1, kind:'support', messageId } once, after the transaction resolved", async () => {
+    const { ingestInboundEmail } = await import("./ticket-inbound");
+    const state = makeState({ newMessageId: MSG_ID });
+    installSql(state);
+    const result = await ingestInboundEmail(ENV, {
+      emailId: "em_tr_ok",
+      to: PLUS,
+      from: "guest@example.com",
+      text: "Wo wartet der Fahrer?",
+    });
+    expect(result).toBe("ok");
+    expect(sendCalls).toHaveLength(1);
+    expect(sendCalls[0]?.insideTx).toBe(false);
+    expect(sendCalls[0]?.job).toEqual({ v: 1, kind: "support", messageId: MSG_ID });
+    // Ids only: no text, no address, nothing but v, kind and the id.
+    expect(Object.keys(sendCalls[0]?.job as object).sort()).toEqual(["kind", "messageId", "v"]);
+    expect(JSON.stringify(sendCalls[0]?.job)).not.toContain("Fahrer");
+    expect(sendTranslateJob.mock.calls[0]?.[0]).toBe(ENV);
+  });
+
+  it("a dropped (unmatched) message does not enqueue", async () => {
+    const { ingestInboundEmail } = await import("./ticket-inbound");
+    const state = makeState({ newMessageId: MSG_ID, tickets: [], rfc: [] });
+    installSql(state);
+    const result = await ingestInboundEmail(ENV, {
+      emailId: "em_tr_drop",
+      to: "someone@else.example",
+      from: "guest@example.com",
+      text: "hello",
+    });
+    expect(result).toBe("drop");
+    expect(sendCalls).toHaveLength(0);
+  });
+
+  it("a duplicate delivery (same email_id) does not enqueue a second time", async () => {
+    const { ingestInboundEmail } = await import("./ticket-inbound");
+    const state = makeState({ newMessageId: MSG_ID });
+    installSql(state);
+    const payload = { emailId: "em_tr_dup", to: PLUS, from: "guest@example.com", text: "hello" };
+    expect(await ingestInboundEmail(ENV, payload)).toBe("ok");
+    expect(await ingestInboundEmail(ENV, payload)).toBe("ok");
+    expect(state.messages).toHaveLength(1);
+    expect(sendCalls).toHaveLength(1);
+  });
+
+  it("a queue that answers false still returns ok (F-07)", async () => {
+    const { ingestInboundEmail } = await import("./ticket-inbound");
+    sendTranslateJob.mockResolvedValue(false);
+    const state = makeState({ newMessageId: MSG_ID });
+    installSql(state);
+    const result = await ingestInboundEmail(ENV, { emailId: "em_tr_false", to: PLUS, from: "g@example.com", text: "hi" });
+    expect(result).toBe("ok");
+    expect(sendCalls).toHaveLength(1);
+  });
+
+  it("a queue that throws still returns ok (F-07)", async () => {
+    const { ingestInboundEmail } = await import("./ticket-inbound");
+    sendTranslateJob.mockRejectedValue(new Error("queue down"));
+    const state = makeState({ newMessageId: MSG_ID });
+    installSql(state);
+    const result = await ingestInboundEmail(ENV, { emailId: "em_tr_throw", to: PLUS, from: "g@example.com", text: "hi" });
+    expect(result).toBe("ok");
+    expect(sendCalls).toHaveLength(1);
+  });
+
+  it("a store fault returns unavailable and enqueues nothing", async () => {
+    const { ingestInboundEmail } = await import("./ticket-inbound");
+    asSystem.mockRejectedValue(new Error("db down"));
+    const result = await ingestInboundEmail(ENV, { emailId: "em_tr_db", to: PLUS, from: "g@example.com", text: "hi" });
+    expect(result).toBe("unavailable");
+    expect(sendCalls).toHaveLength(0);
   });
 });

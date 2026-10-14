@@ -30,6 +30,8 @@ describe("GET /api/reviews", () => {
     const sql = vi.fn().mockResolvedValue([
       {
         id: "r1",
+        ref: "0123456789abcdef",
+        language: "de",
         source: "google",
         author_name: "Ada",
         author_role: "Guest",
@@ -57,6 +59,9 @@ describe("GET /api/reviews", () => {
       data: [
         {
           // Security S10 (2026-10-05): no review row id in the public answer.
+          // Phase 32 (D-09): an opaque ref (sha256 of the body) and the detected language instead.
+          ref: "0123456789abcdef",
+          language: "de",
           source: "google",
           authorName: "Ada",
           authorRole: "Guest",
@@ -78,6 +83,14 @@ describe("GET /api/reviews", () => {
     expect(fragments.join(" ")).toMatch(/published\s*=\s*true/);
     // Not even read: the select names no review row id.
     expect(fragments.join(" ")).not.toMatch(/\br\.id\b(?!\s*=)/);
+    // Phase 32: the ref is computed in SQL from the body, never from the row id.
+    expect(fragments.join(" ")).toMatch(/public\.review_ref\(r\.body\)\s+as\s+ref/);
+    expect(fragments.join(" ")).toMatch(/\br\.language\b/);
+    for (const item of (json as { data: { ref: string; language: string | null }[] }).data) {
+      expect(item.ref).toMatch(/^[0-9a-f]{16}$/);
+      expect(item.ref).not.toBe("r1");
+      expect(item).toHaveProperty("language");
+    }
   });
 
   it("returns { ok: true, data: [] } when none are published, not 404", async () => {
@@ -106,10 +119,37 @@ describe("loadPublishedReviews", () => {
     expect(fragments.join(" ")).toMatch(/published\s*=\s*true/);
   });
 
+  it("maps a missing language to null, never undefined", async () => {
+    publicSql.mockReturnValue(
+      vi.fn().mockResolvedValue([
+        {
+          ref: "aaaaaaaaaaaaaaaa",
+          source: "manual",
+          author_name: "Cy",
+          author_role: "Guest",
+          body: "Clean.",
+          rating: 4,
+          route_label: "",
+          vehicle_class_slug: null,
+          avatar_path: null,
+          source_url: null,
+          verified: false,
+          published: true,
+          sort_order: 2,
+        },
+      ]),
+    );
+    const rows = await loadPublishedReviews(env);
+    expect(rows[0]?.language).toBeNull();
+    expect(rows[0]?.ref).toBe("aaaaaaaaaaaaaaaa");
+  });
+
   it("drops invalid source_url and never returns an avatar", async () => {
     const sql = vi.fn().mockResolvedValue([
       {
         id: "r2",
+        ref: "fedcba9876543210",
+        language: null,
         source: "manual",
         author_name: "Bea",
         author_role: "Guest",
@@ -128,6 +168,8 @@ describe("loadPublishedReviews", () => {
     const rows = await loadPublishedReviews(env);
     expect(rows).toEqual([
       {
+        ref: "fedcba9876543210",
+        language: null,
         source: "manual",
         authorName: "Bea",
         authorRole: "Guest",

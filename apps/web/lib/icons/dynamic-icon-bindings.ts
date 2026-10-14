@@ -15,6 +15,7 @@ const OPS_FIELD = [
 const BRAND_SELECT = ["globe", "banknote", "calendar", "car", "funnel", "layout-dashboard", "settings", "star"];
 
 export const DYNAMIC_ICON_BINDINGS: Array<{ files: string[]; expr: string; values: string[]; from: string }> = [
+  { files: ["app/home/Reviews.dc.html"], expr: "r.trIcon", values: ["globe", "loader-circle"], from: "translate idle/done/failed or busy" },
   { files: ["app/home/BookingSheet.dc.html", "app/home/home.dc.html"], expr: "flightIcon", values: ["plane-landing", "plane"], from: "flight row: airport pickup or not" },
   { files: ["app/home/BookingSheet.dc.html", "app/home/home.dc.html"], expr: "s.icon", values: PLACE, from: "address suggestion rows (kindIcon, saved places, KIND_META)" },
   { files: ["app/home/home.dc.html"], expr: "pickupIcon", values: ["plane-landing", "map-pin"], from: "pickup field: airport or address" },
@@ -46,7 +47,7 @@ export const DYNAMIC_ICON_BINDINGS: Array<{ files: string[]; expr: string; value
   { files: ["app/ops/OpsReviews.dc.html"], expr: "r.removeIcon", values: ["circle-alert", "trash-2"], from: "armed or not" },
   { files: ["app/ops/OpsSettings.dc.html"], expr: "p.icon", values: ["briefcase", "clock", "globe", "credit-card", "bell", "shield-check"], from: "panes" },
   { files: ["app/ops/OpsSidebar.dc.html"], expr: "n.icon", values: ["layout-dashboard", "receipt", "calendar-days", "users", "user", "mail", "banknote"], from: "NAV_TOP, NAV_BOTTOM, NAV_ADMIN" },
-  { files: ["app/ops/OpsSidebar.dc.html"], expr: "c.icon", values: ["globe", "shield-check", "star"], from: "CONTENT" },
+  { files: ["app/ops/OpsSidebar.dc.html"], expr: "c.icon", values: ["star"], from: "CONTENT" },
   { files: ["app/ops/OpsSidebar.dc.html"], expr: "contentChevron", values: CHEVRONS, from: "content group open or closed" },
   { files: ["app/ops/OpsSidebar.dc.html"], expr: "toggleIcon", values: ["chevron-right", "chevron-left"], from: "rail collapsed or not" },
   { files: ["app/ops/OpsSidebar.dc.html"], expr: "menuChevron", values: CHEVRONS, from: "profile menu open or closed" },
@@ -54,6 +55,8 @@ export const DYNAMIC_ICON_BINDINGS: Array<{ files: string[]; expr: string; value
   { files: ["app/ops/OpsSupportTicket.dc.html"], expr: "c.icon", values: ["mail", "clock", "message-circle", "users"], from: "counts" },
   { files: ["app/ops/OpsSupportTicket.dc.html"], expr: "col.chevron", values: CHEVRONS, from: "board column open or closed" },
   { files: ["app/ops/OpsSupportTicket.dc.html"], expr: "col.sortIcon", values: ["arrow-up", "arrow-down"], from: "newest first or oldest first" },
+  { files: ["app/ops/OpsSupportTicket.dc.html"], expr: "m.noteIcon", values: ["loader-circle", "info"], from: "translation pending or failed" },
+  { files: ["app/ops/OpsSupportTicket.dc.html"], expr: "answerIcon", values: ["mail", "loader-circle"], from: "idle or busy" },
   { files: ["app/ops/OpsTable.dc.html"], expr: "f.inputIcon", values: OPS_FIELD, from: "f.icon || FIELD_ICONS[f.key]" },
   { files: ["app/ops/OpsTable.dc.html"], expr: "f.icon", values: OPS_FIELD, from: "field lists of the screens that use the table" },
   { files: ["app/ops/OpsTable.dc.html"], expr: "s.icon", values: OPS_FIELD, from: "paired select slots, same field lists" },

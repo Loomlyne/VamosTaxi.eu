@@ -34,7 +34,6 @@ export const E2E_SPECS: string[] = [
   "**/contact.spec.ts",
   "**/contact-form.spec.ts",
   "**/contact-lifecycle.spec.ts",
-  "**/content-string-edit.spec.ts",
   "**/currency.spec.ts",
   "**/dev-exclusion.spec.ts",
   "**/email-hook.spec.ts",

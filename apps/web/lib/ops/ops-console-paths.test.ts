@@ -22,6 +22,12 @@ describe("ops console paths (Phase 30 CLS-11)", () => {
     expect(isOpsConsolePath("/nope")).toBe(false);
   });
 
+  it("serves /reviews and no longer serves the removed Content pages (Phase 32 D-06)", () => {
+    expect(isOpsConsolePath("/reviews")).toBe(true);
+    expect(isOpsConsolePath("/pages")).toBe(false);
+    expect(isOpsConsolePath("/legal")).toBe(false);
+  });
+
   it("no longer serves the fleet addresses as console paths", () => {
     expect(isOpsConsolePath("/fleet")).toBe(false);
     expect(isOpsConsolePath("/fleet/chauffeurs")).toBe(false);

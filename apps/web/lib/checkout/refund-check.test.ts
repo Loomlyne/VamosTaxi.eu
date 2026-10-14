@@ -473,8 +473,12 @@ describe("source pins", () => {
     expect(at).toBeGreaterThan(worker.indexOf('"meta_purchase_sweep", { outcome: "failed" }', branch));
     expect(at).toBeGreaterThan(branch);
     expect(at).toBeLessThan(ret);
-    const block = worker.slice(worker.lastIndexOf("try {", at), ret);
-    expect(block).toMatch(/\} catch \{\s*emit\("error", "refund_check", \{ outcome: "failed" \}\);\s*\}\s*$/);
+    // Phase 32 merge: the translate sweep runs after this block in the same cron branch, so the
+    // block ends at the next `try {` (or `return;` when nothing follows).
+    const nextTry = worker.indexOf("try {", at);
+    const end = nextTry > -1 && nextTry < ret ? nextTry : ret;
+    const block = worker.slice(worker.lastIndexOf("try {", at), end);
+    expect(block).toMatch(/\} catch \{\s*emit\("error", "refund_check", \{ outcome: "failed" \}\);\s*\}(\s*\/\/[^\n]*)*\s*$/);
     expect(block).toContain('emit(check.outcome === "ok" ? "info" : "error", "refund_check", {');
     // Counts and booleans only.
     expect(block).not.toMatch(/reference|refundId|amountRappen|err\b/);
