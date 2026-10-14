@@ -12,6 +12,8 @@
 --                                    screen shows them until he signs a design.
 --
 -- No column is added to public.bookings (the customer column-grant list stays untouched).
+-- An erased booking (bookings.erased_at set by staff_erase_unpaid_booking) is never read, written or
+-- listed here: its note never reaches the translator (PR #83 review, privacy).
 -- Both tables: enable + force RLS, every client role revoked, vamos_staff SELECT through app.is_staff().
 -- Writes: SECURITY DEFINER system_* functions, EXECUTE vamos_system only (vamos_system is definer-only).
 -- jsonb parameters, never arrays (the Worker pg client has no array types). No table or column is
@@ -239,7 +241,7 @@ $$;
 
 -- ---------------------------------------------------------------------------
 -- Booking note: reader and writers. The hash is sha256 of the stored note text; a job queued for an
--- older note (stale hash) writes nothing.
+-- older note (stale hash) writes nothing. An erased booking returns no source and takes no write.
 -- ---------------------------------------------------------------------------
 create or replace function public.system_booking_note_source(p_booking_id pg_catalog.uuid)
 returns table (note pg_catalog.text, note_hash pg_catalog.text)
@@ -252,6 +254,7 @@ as $$
          pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(b.note, 'UTF8')), 'hex')
     from public.bookings as b
    where b.id = p_booking_id
+     and b.erased_at is null
      and pg_catalog.btrim(b.note) <> ''
 $$;
 
@@ -287,10 +290,12 @@ begin
     v_detected := null;
   end if;
 
-  select b.note into v_note from public.bookings as b where b.id = p_booking_id for update;
+  select b.note into v_note from public.bookings as b
+   where b.id = p_booking_id and b.erased_at is null
+     for update;
   if not found or pg_catalog.btrim(v_note) = ''
      or p_note_hash is distinct from pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(v_note, 'UTF8')), 'hex') then
-    return 0;  -- no note, or the note changed since the job was queued
+    return 0;  -- erased booking, no note, or the note changed since the job was queued
   end if;
 
   -- Rows of an earlier note go: the table holds the current note's translations only.
@@ -345,7 +350,9 @@ as $$
 declare
   v_note pg_catalog.text;
 begin
-  select b.note into v_note from public.bookings as b where b.id = p_booking_id for update;
+  select b.note into v_note from public.bookings as b
+   where b.id = p_booking_id and b.erased_at is null
+     for update;
   if not found or pg_catalog.btrim(v_note) = ''
      or p_note_hash is distinct from pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(v_note, 'UTF8')), 'hex') then
     return;
@@ -404,7 +411,8 @@ begin
       union all
       (select 'note'::pg_catalog.text, b.id::pg_catalog.text, 2, b.created_at
          from public.bookings as b
-        where pg_catalog.btrim(b.note) <> ''
+        where b.erased_at is null
+          and pg_catalog.btrim(b.note) <> ''
           and not exists (
                 select 1 from public.booking_note_translations as t
                  where t.booking_id = b.id

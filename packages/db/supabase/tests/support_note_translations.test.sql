@@ -6,8 +6,9 @@
 -- Every system_* function is vamos_system only. The backlog lists ids, stops listing an item once it
 -- has rows, lists a changed note again, and retries failed items after 24 h (fewer than 10 attempts).
 -- The note DLQ writer marks failures for the current note only and never touches a done row.
+-- An erased booking's note is never listed, read or written (PR #83 fix round 1, privacy).
 begin;
-select plan(74);
+select plan(79);
 
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
@@ -29,6 +30,11 @@ insert into public.bookings (contact_name, contact_email, customer_id, status, n
 select 'Booking SNT', 'snt-customer@example.test', c.id, 'confirmed', 'Bitte am Ausgang B warten.'
   from public.customers c where c.user_id = '32020000-0000-4000-a000-000000000002';
 
+-- An erased booking (staff_erase_unpaid_booking sets erased_at) that still carries a note.
+insert into public.bookings (contact_name, contact_email, customer_id, status, note, erased_at)
+select 'Booking SNT erased', 'snt-customer@example.test', c.id, 'quote', 'Bitte nicht uebersetzen.', now()
+  from public.customers c where c.user_id = '32020000-0000-4000-a000-000000000002';
+
 create temporary table fx as
 select (select id from public.contact_submissions where idempotency_key = 'k-snt-1') as sub_id,
        (select m.id from public.support_messages m join public.contact_submissions s on s.id = m.submission_id
@@ -36,6 +42,8 @@ select (select id from public.contact_submissions where idempotency_key = 'k-snt
        (select m.id from public.support_messages m join public.contact_submissions s on s.id = m.submission_id
          where s.idempotency_key = 'k-snt-2' and m.direction = 'inbound_form') as msg2_id,
        (select id from public.bookings where contact_name = 'Booking SNT') as booking_id,
+       (select id from public.bookings where contact_name = 'Booking SNT erased') as erased_id,
+       encode(sha256(convert_to('Bitte nicht uebersetzen.', 'UTF8')), 'hex') as erased_hash,
        encode(sha256(convert_to('Bitte am Ausgang B warten.', 'UTF8')), 'hex') as note_hash,
        encode(sha256(convert_to('Neuer Text bitte.', 'UTF8')), 'hex') as note_hash2;
 grant select on fx to public;
@@ -87,6 +95,21 @@ select ok(exists (select 1 from public.system_translation_backlog(200) b where b
   'backlog lists a booking whose note has no rows');
 select is((select count(*)::int from public.system_translation_backlog(100000)), (select count(*)::int from public.system_translation_backlog(200)),
   'backlog caps the limit at 200');
+
+-- ── Erased booking: never listed, read or written ───────────────────────────────────────── 5
+select ok(not exists (select 1 from public.system_translation_backlog(200) b where b.id = (select erased_id from fx)::text),
+  'backlog never lists an erased booking, even with a note');
+select is((select count(*)::int from public.system_booking_note_source((select erased_id from fx))), 0,
+  'note source returns nothing for an erased booking');
+select is(public.system_booking_note_translation_put((select erased_id from fx), 'de', (select erased_hash from fx),
+  '{"en":{"body":"Please do not translate.","status":"done","prompt_version":1}}'::jsonb), 0,
+  'note put writes nothing for an erased booking');
+select lives_ok($$ select public.system_booking_note_translation_fail((select erased_id from fx), (select erased_hash from fx)) $$,
+  'note fail on an erased booking runs');
+reset role;
+select is((select count(*)::int from public.booking_note_translations where booking_id = (select erased_id from fx)), 0,
+  'no translation row exists for the erased booking');
+set local role vamos_system;
 
 -- ── Support put ────────────────────────────────────────────────────────────────────────── 8
 select is(public.system_support_translation_put((select msg_id from fx), 'DE',
