@@ -154,6 +154,9 @@ Task 2 results, 2026-10-14, head fb13271e (merged with origin/main 8ef7e82d), on
 - `static.log` 12:18:19-12:18:22, exit=0: test:scripts, db:seed:check (no drift), check:db-fences, i18n:fill --check (0 gaps), each exit 0.
 - Stack lock taken 12:16:33, lab p32 destroyed and lock released 12:18:19.
 
+- 2026-10-14 12:32-12:44: clean clone of the pushed branch at `d06dcd31`: `pnpm install --frozen-lockfile`, then the whole `gate:local` chain incl. `test:db-lab`, exit=0 (apps/web 6609 passed, 57 skipped; DB tests 76 + 11 + 44).
+- 2026-10-14 12:45: merged origin/main `4efcda9d` (PR #81: drops `distance_bands`, `region_premiums`, `rate_version_rules`, `surcharges.rule_id`) as `f09c9ff7`, no conflicts. Phase 32 reads none of them (grep of every Phase 32 file and the four migrations); `rate-book/route.ts` keeps the 32-06 extras translator. Touched tests 342 passed (1 skipped), typecheck exit 0, `i18n:check` pass. Lab DB window 12:46: DB tests 76 + 12 + 44 pass, full pgTAP Files=126, Tests=3870, exit=0 (`evidence/pgtap-merge.log`); lab destroyed and lock released.
+
 ### Not verified
 
 - Billed `pnpm i18n:fill --write --yes-billed` and `pnpm i18n:smoke --yes-billed`: controller
