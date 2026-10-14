@@ -1263,18 +1263,18 @@ Plans:
 **Plans:** 12 plans
 
 Plans:
-- [ ] 32-01-PLAN.md — merge main with Phase 30; shared translator engine (Gemma 4 binding, mask, guard, ss, ids-only job contract)
-- [ ] 32-02-PLAN.md — database: translation cache, staff-only message and note translations, review language and ref, extras fill; pgTAP; store wrappers
-- [ ] 32-03-PLAN.md — remove Content › Pages and Legal everywhere (screens, rail, routes, staff API, tests, docs)
-- [ ] 32-04-PLAN.md — signed strings in four languages; Vamos Taxi in Latin in Arabic; seed regenerated
-- [ ] 32-05-PLAN.md — queue consumer, job handlers, quiet DLQ, nightly sweep, Worker and wrangler wiring, model-call boundary test
-- [ ] 32-06-PLAN.md — extras on the shared translator, his typed names win
-- [ ] 32-07-PLAN.md — support server: enqueue customer messages, ticket translations and reply target, staff reply-translate route
-- [ ] 32-08-PLAN.md — review server: language and opaque ref, cache-first public translation route, language detection on write
-- [ ] 32-09-PLAN.md — catalog filler (pnpm i18n:fill) with never-translate list and smoke script
-- [ ] 32-10-PLAN.md — support ticket DC: translated messages with original, reply box opening his mail app
-- [ ] 32-11-PLAN.md — home review card DC: translate on tap
-- [ ] 32-12-PLAN.md — browser proof 4 widths x 4 languages, full gates and pgTAP, VALIDATION sign-off, controller hand-over
+- [x] 32-01-PLAN.md — merge main with Phase 30; shared translator engine (Gemma 4 binding, mask, guard, ss, ids-only job contract)
+- [x] 32-02-PLAN.md — database: translation cache, staff-only message and note translations, review language and ref, extras fill; pgTAP; store wrappers
+- [x] 32-03-PLAN.md — remove Content › Pages and Legal everywhere (screens, rail, routes, staff API, tests, docs)
+- [x] 32-04-PLAN.md — signed strings in four languages; Vamos Taxi in Latin in Arabic; seed regenerated
+- [x] 32-05-PLAN.md — queue consumer, job handlers, quiet DLQ, nightly sweep, Worker and wrangler wiring, model-call boundary test
+- [x] 32-06-PLAN.md — extras on the shared translator, his typed names win
+- [x] 32-07-PLAN.md — support server: enqueue customer messages, ticket translations and reply target, staff reply-translate route
+- [x] 32-08-PLAN.md — review server: language and opaque ref, cache-first public translation route, language detection on write
+- [x] 32-09-PLAN.md — catalog filler (pnpm i18n:fill) with never-translate list and smoke script
+- [x] 32-10-PLAN.md — support ticket DC: translated messages with original, reply box opening his mail app
+- [x] 32-11-PLAN.md — home review card DC: translate on tap
+- [x] 32-12-PLAN.md — browser proof 4 widths x 4 languages, full gates and pgTAP, VALIDATION sign-off, controller hand-over
 
 ## Progress
 
