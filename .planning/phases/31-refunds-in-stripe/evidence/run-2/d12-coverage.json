@@ -1,0 +1,56 @@
+[
+ {
+  "lang": "de",
+  "menu": {
+   "count": 0,
+   "strings": []
+  },
+  "region": {
+   "count": 0,
+   "strings": []
+  },
+  "rowsInList": 2,
+  "noteTarget": "Alert",
+  "note": {
+   "count": 0,
+   "strings": [],
+   "alert": "Rückerstattung prüfen\nStorniert, die Zahlung ist erfasst. Se"
+  }
+ },
+ {
+  "lang": "fr",
+  "menu": {
+   "count": 0,
+   "strings": []
+  },
+  "region": {
+   "count": 0,
+   "strings": []
+  },
+  "rowsInList": 2,
+  "noteTarget": "Alert",
+  "note": {
+   "count": 0,
+   "strings": [],
+   "alert": "Remboursement à vérifier\nAnnulée avec un paiement enregistré"
+  }
+ },
+ {
+  "lang": "ar",
+  "menu": {
+   "count": 0,
+   "strings": []
+  },
+  "region": {
+   "count": 0,
+   "strings": []
+  },
+  "rowsInList": 2,
+  "noteTarget": "Alert",
+  "note": {
+   "count": 0,
+   "strings": [],
+   "alert": "استرداد للمراجعة\nأُلغي الحجز وعليه دفعة مسجّلة. إذا كانت سيا"
+  }
+ }
+]

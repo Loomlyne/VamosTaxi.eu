@@ -15,3 +15,13 @@
 - Customer emails that state a refund amount today.
 
 **Signed 2026-10-12 ~19:05 (+04), question form:** sheets 1–3 (branch `phase-31-refunds-in-stripe`, `25b65671`) as drawn; the customer wording as written in en/de/fr/ar (cancel sheet: "This trip will be cancelled. Any refund follows the cancellation policy."; Refund row: "Refund follows the cancellation policy"; cancellation email line); Q1 A: when he refunds in Stripe, the customer gets a Vamos email in their language with the amount Stripe sent back (wording still to sign); Q2 A: the dashboard shows "Refund to check" until Stripe records a refund or the pickup time has passed, with no NO REFUND button.
+
+## Owner signatures, 2026-10-13 ~16:20 (+04), question form via the controller
+
+1. Customer refund email copy (subject + body, en/de/fr/ar) SIGNED as drafted in `.planning/phases/31-refunds-in-stripe/31-CONTEXT.md` ("Customer refund mail"); used verbatim, pinned in `2026-10-12-refund-mail-copy.md` by plan 31-04.
+2. O-1 = A, SIGNED: "Read the cancellation policy before anything is confirmed." / "Lesen Sie die Stornierungsbedingungen, bevor etwas bestätigt wird." / "Consultez la politique d’annulation avant toute confirmation." / "اطّلع على سياسة الإلغاء قبل تأكيد أي شيء." (pinned as W6 by plan 31-12).
+3. KEEP both extra customer lines: "See what comes back" and "— keep it, because that is what your refund is calculated from."
+4. Ops mails that say Stripe (31-08): ACCEPTED, replacing the action sentence of the signed 2026-10-02 T1 wording.
+Also: migration `20261012240000_refund_check_reader.sql`; `STRIPE_ACCOUNT_ID` `acct_1UIZmAQbJiSLxJfu` (controller-verified against the live publishable key); owner said "Start building".
+
+Renumbered 2026-10-13 ~23:25 (+04), owner via the controller: the migration is `20261012240000_refund_check_reader.sql` (Phase 30 lands first with `20261012220000_edit_request_retired_class.sql`).

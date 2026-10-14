@@ -33,6 +33,7 @@ import { consumeDlqMessage, consumeStripeEventMessage } from "./lib/checkout/que
 import { sweepUnprocessedEvents } from "./lib/checkout/stripe-events-sweep";
 import { sweepStuckNotifications } from "./lib/checkout/notify";
 import { sweepStripeFees } from "./lib/checkout/stripe-fee";
+import { refundCheck } from "./lib/checkout/refund-check";
 import { sweepMetaPurchaseIds } from "./lib/meta/purchase";
 import { expireUnpaidBookings } from "./lib/checkout/expire-unpaid";
 import { purgeExpiredUnpaid } from "./lib/checkout/purge-unpaid";
@@ -138,9 +139,28 @@ export default {
       } catch {
         emit("error", "meta_purchase_sweep", { outcome: "failed" });
       }
+      // Phase 31 D-09: nightly refund check (Stripe refunds of the last 48 hours against the bookings; mails
+      // info@ on a finding or when Stripe does not answer). Writes no money table; its one write is the
+      // customer refund mail for a recorded refund whose mail claim never landed (PR #82). Counts only.
+      try {
+        const check = await refundCheck(env);
+        emit(check.outcome === "ok" ? "info" : "error", "refund_check", {
+          outcome: check.outcome,
+          stripeRefunds: check.stripeRefunds,
+          compared: check.compared,
+          skippedInFlight: check.skippedInFlight,
+          skippedAppMissing: check.skippedAppMissing,
+          findings: check.findings,
+          truncated: check.truncated,
+          mailed: check.mailed,
+          refundMailsStarted: check.refundMailsStarted,
+        });
+      } catch {
+        emit("error", "refund_check", { outcome: "failed" });
+      }
       // Phase 32 plan 05: re-enqueue what is still untranslated, extras with a missing name and machine
       // cache rows of an older house-rule version (ids only). Own try/catch, counts only, never a mail.
-      // Merge note: Phase 31 adds its refundCheck block here too; keep Phase 31 first, then this one.
+      // Runs after the Phase 31 refund check (merge order agreed in 32-05).
       try {
         const r = await runTranslateSweep(env);
         emit(r.failed > 0 ? "error" : "info", "translate_sweep", { enqueued: r.enqueued, failed: r.failed });

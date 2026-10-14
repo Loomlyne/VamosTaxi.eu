@@ -1,0 +1,18 @@
+{
+ "at": "2026-10-13T14:36:01.105Z",
+ "base": "http://localhost:4720",
+ "results": [
+  {
+   "id": "D6",
+   "title": "(f) Refund issued visible, no Refund to check",
+   "status": "PASS",
+   "evidence": "refund to check (ci) false; \"Refund issued\" visible true"
+  },
+  {
+   "id": "D12",
+   "title": "1440 de/fr/ar coverage (9 calls)",
+   "status": "PASS",
+   "evidence": "de: menu 0, region 0 (rows 2), note[Alert] 0; fr: menu 0, region 0 (rows 2), note[Alert] 0; ar: menu 0, region 0 (rows 2), note[Alert] 0"
+  }
+ ]
+}

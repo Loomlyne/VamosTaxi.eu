@@ -492,14 +492,14 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-noprint="1" data-card="1" style="padding:clamp(22px,2.6vw,30px)">
 <button type="button" data-back="1" onClick="{{ backToBooking }}" style-hover="color:var(--vt-charcoal-900)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Back to your booking</button>
 <h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Cancel this transfer</h2>
-<p style="margin:0 0 22px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><span class="vt-dir-keep" data-vt-no-i18n="1">{{ ref }}</span> · {{ routeShort }} · <span data-vt-no-i18n="1">{{ bookedDay }}</span> · <span class="vt-dir-keep" data-vt-no-i18n="1">{{ bookedTime }}</span>.</p>
+<p style="margin:0 0 22px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><span class="vt-dir-keep" data-vt-no-i18n="1">{{ ref }}</span> · <span class="vt-dir-keep" data-vt-no-i18n="1">{{ routeShort }}</span> · <span data-vt-no-i18n="1">{{ bookedDay }}</span> · <span class="vt-dir-keep" data-vt-no-i18n="1">{{ bookedTime }}</span>.</p>
 
 <div data-refund="1" style="margin-bottom:20px">
 <sc-if value="{{ cancelFull }}" hint-placeholder-val="{{ true }}">
-<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. You get a full refund; our team sends it.</p>
+<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. Any refund follows the cancellation policy.</p>
 </sc-if>
 <sc-if value="{{ cancelOps }}" hint-placeholder-val="{{ false }}">
-<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. Our team decides the refund and tells you by email.</p>
+<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. Any refund follows the cancellation policy.</p>
 </sc-if>
 </div>
 
@@ -546,17 +546,10 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 </div>
 
-<sc-if value="{{ refundFull }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ refundPolicyCard }}" hint-placeholder-val="{{ true }}">
 <div data-refund="1" style="margin-bottom:20px">
 <p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">Refund</p>
-<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">You will get a full refund of the amount you paid. Our team sends it; your bank may take a few days to show it.</p>
-</div>
-</sc-if>
-
-<sc-if value="{{ refundReview }}" hint-placeholder-val="{{ true }}">
-<div data-refund="1" style="margin-bottom:20px">
-<p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">Refund · waiting on review</p>
-<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Our team decides the refund and tells you by email.</p>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Any refund follows the cancellation policy and goes back to the payment method you used. Your bank may take a few days to show it.</p>
 </div>
 </sc-if>
 
@@ -567,7 +560,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p style="margin:0 0 16px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Same pickup, same destination, same class — you only choose the day and the time. Prices are quoted fresh, so the fare may differ from the one you paid.</p>
 <div data-card="1" style="padding:16px 18px;margin-bottom:18px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px">
 <span data-tile="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="car" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
-<span style="min-width:0;flex:1 1 220px"><span data-row-k="1">The trip you cancelled</span><span data-row-v="1">{{ routeShort }}</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ vehicleName }} · {{ paxLabel }} · {{ bagLabel }}</span></span>
+<span style="min-width:0;flex:1 1 220px"><span data-row-k="1">The trip you cancelled</span><span data-row-v="1" data-vt-no-i18n="1">{{ routeShort }}</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ vehicleName }} · {{ paxLabel }} · {{ bagLabel }}</span></span>
 </div>
 <div data-actions2="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" href="../home/home.dc.html" iconEnd="arrow-right" hint-size="100%,54px">Rebook this trip</x-import>
@@ -962,7 +955,6 @@ class Component extends DCLogic {
         status: 'cancelled',
         canCancel: false,
         refundStatus,
-        refundOwedRappen: result.body.refundRappen || null,
         // 261002: the cancel routes answer the ISO code (payoutCountry), never a label; the helper names the country.
         payoutCountry: result.body.payoutCountry || ticket.payoutCountry,
         availableOn: result.body.availableOn || null,
@@ -1184,9 +1176,7 @@ class Component extends DCLogic {
       modifySub: late
         ? 'Your pickup is close, so a change now needs a phone call — we will show you why.'
         : 'We confirm every change by email before it counts.',
-      cancelSub: windowKind === 'pending_ops'
-        ? 'See what comes back at this notice before you decide.'
-        : 'See the refund you are due before anything is confirmed.',
+      cancelSub: 'Read the cancellation policy before anything is confirmed.',
 
       startModify: this.startModify, startCancel: this.startCancel, backToBooking: this.backToBooking,
 
@@ -1201,8 +1191,7 @@ class Component extends DCLogic {
       confirmModify: this.confirmModify, resetChanges: this.resetChanges,
 
       earlyTier: windowKind === 'auto_full', lateTier: windowKind === 'pending_ops',
-      refundReview: String(ticket.refundStatus || '').toLowerCase() === 'pending_ops' && !(Number(ticket.refundOwedRappen) > 0),
-      refundFull: String(ticket.refundStatus || '').toLowerCase() === 'pending_ops' && Number(ticket.refundOwedRappen) > 0,
+      refundPolicyCard: String(ticket.refundStatus || '').toLowerCase() === 'pending_ops',
       confirmCancel: this.confirmCancel,
 
       voucherOpen: s.voucher, voucherClosed: !s.voucher,

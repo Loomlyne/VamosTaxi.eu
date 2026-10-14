@@ -116,8 +116,14 @@ export type MoneyEventDeps = {
   /** J7 W6-07: mail ops about a dispute status, then record the mail. Throws when the mail did not go out. */
   alertDispute?: (input: MoneyAlertInput) => Promise<void>;
   findSessionIdForPaymentIntent: (paymentIntentId: string) => Promise<string | null>;
-  /** public.stripe_charge_refunded_record -- idempotent on stripeRefundId. */
-  recordChargeRefund: (input: ChargeRefundInput) => Promise<{ outcome: string }>;
+  /** public.stripe_charge_refunded_record -- idempotent on stripeRefundId; bookingId from the row, or null. */
+  recordChargeRefund: (input: ChargeRefundInput) => Promise<{ outcome: string; bookingId: string | null }>;
+  /**
+   * Phase 31 (S-03, D-10): the customer refund mail. Called only after outcome 'recorded' for a refund the
+   * app did not make (never metadata vamos_source=app), with that Stripe refund's own amount (D-11).
+   * Never throws by contract; a failure is logged and never changes the webhook answer (D-02).
+   */
+  mailCustomerRefund?: (input: { bookingId: string; stripeRefundId: string; refundRappen: number }) => Promise<void>;
   /** public.stripe_dispute_upsert -- one row per stripeDisputeId. */
   upsertDispute: (input: DisputeInput) => Promise<DisputeUpsertResult | void>;
   eventSettle: (eventId: string, error: string | null) => Promise<void>;
@@ -245,19 +251,31 @@ export async function handleChargeRefundedWithDeps(
     if (refund.status !== "succeeded") continue;
     if (refund.currency !== "chf") continue;
     try {
-      const { outcome } = await deps.recordChargeRefund({
+      const appSource = refund.metadata?.vamos_source === "app";
+      const { outcome, bookingId } = await deps.recordChargeRefund({
         paymentIntentId,
         sessionId,
         stripeRefundId: refund.id,
         refundRappen: refund.amount,
         created: new Date(refund.created * 1000),
-        appSource: refund.metadata?.vamos_source === "app",
+        appSource,
       });
       deps.emit("info", "charge_refund_recorded", {
         eventId: message.eventId,
         refundId: refund.id,
         outcome,
       });
+      // Phase 31 (D-10): only 'recorded' starts the mail ('already' is a replay or an app refund) and
+      // never for an app-made refund (duplicate charge, paid after cancel: D-03). Its own try/catch:
+      // the refund is recorded, so a mail that did not go out never turns into a retry (the retry would
+      // answer 'already'); the claim keeps it for the notification sweep.
+      if (outcome === "recorded" && bookingId && refund.metadata?.vamos_source !== "app" && deps.mailCustomerRefund) {
+        try {
+          await deps.mailCustomerRefund({ bookingId, stripeRefundId: refund.id, refundRappen: refund.amount });
+        } catch {
+          deps.emit("error", "customer_refund_mail_failed", { eventId: message.eventId, refundId: refund.id });
+        }
+      }
     } catch (err) {
       if (isAppRefundPending(err)) {
         return { retry: true, delaySeconds: APP_REFUND_PENDING_DELAY_SECONDS };

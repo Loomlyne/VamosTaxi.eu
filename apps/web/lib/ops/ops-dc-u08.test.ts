@@ -228,7 +228,8 @@ describe("dashboard literals resolve in the platform dictionary", () => {
 
 describe("OpsDetail edit form save", () => {
   const src = readDc("OpsDetail.dc.html");
-  const saveEdit = grab(src, /\n      saveEdit: \(\) => \{\n([\s\S]*?)\n      \},\n      markRefund:/, "OpsDetail saveEdit");
+  // Phase 31: the slice ends at canCancel; the optional line spans the retired refund handler on older pages.
+  const saveEdit = grab(src, /\n      saveEdit: \(\) => \{\n([\s\S]*?)\n      \},\n(?:      [A-Za-z]+: [^\n]*\n)?      canCancel,/, "OpsDetail saveEdit");
   const literal = grab(
     saveEdit,
     /client\.request\('PATCH', '\/api\/staff\/bookings\/' \+ encodeURIComponent\(id\), \{\n([\s\S]*?)\n        \}\)\.then/,

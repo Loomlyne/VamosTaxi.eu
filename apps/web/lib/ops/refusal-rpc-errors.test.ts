@@ -1,8 +1,8 @@
 // apps/web/lib/ops/refusal-rpc-errors.test.ts
 //
-// Quick 261001-refusal-messages. Cancel, Complete, No-show (bookings-write.ts) and the refund
-// Decline / Reject decision (refund.ts) must hand the dashboard the RPC's named refusal
-// ({ ok:false, code }) — never throw. A throw leaves the route without an answer: the Worker
+// Quick 261001-refusal-messages. Cancel, Complete, No-show (bookings-write.ts) must hand the
+// dashboard the RPC's named refusal ({ ok:false, code }) — never throw. (Phase 31 D-01: the refund
+// Decline / Reject decision in refund.ts is gone with the site-side refund sender.) A throw leaves the route without an answer: the Worker
 // sends a 500 with no JSON and OpsDetail shows its generic "Could not cancel / refund VT-…".
 //
 // asSystem / asStaff are stood in with the one postgres.js rule that matters here
@@ -40,7 +40,6 @@ vi.mock("../lifecycle/paid-cancel", () => ({
 }));
 
 import { cancelBooking, markComplete, markNoShow } from "./bookings-write";
-import { decideRefund } from "./refund";
 
 const BOOKING = "b0000000-0000-4000-8000-000000000006";
 const env = {} as CloudflareEnv;
@@ -158,50 +157,6 @@ describe("markComplete / markNoShow answer the RPC's refusal instead of throwing
     await expect(markComplete(env, claims, BOOKING)).resolves.toMatchObject({
       ok: true,
       booking: { bookingId: BOOKING, reference: "VT-26-0101", token: "manage-token-raw" },
-    });
-  });
-});
-
-describe("decideRefund answers the RPC's refusal instead of throwing", () => {
-  it("decline on a refund that is no longer waiting → not-pending", async () => {
-    // First asStaff call: readRefundState (no full-tier state); second: ops_refund_decide.
-    asStaff.mockImplementationOnce(async () => null);
-    asStaff.mockImplementationOnce(beginLike({ queryError: pgError("not-pending", "P0001") }));
-    await expect(decideRefund(env, claims, BOOKING, "decline")).resolves.toEqual({ ok: false, code: "not-pending" });
-  });
-
-  it("decline that meets the 24 h full-refund rule under the row lock → full-refund-only", async () => {
-    asStaff.mockImplementationOnce(async () => null);
-    asStaff.mockImplementationOnce(beginLike({ queryError: pgError("full-refund-only", "P0001") }));
-    await expect(decideRefund(env, claims, BOOKING, "decline")).resolves.toEqual({
-      ok: false,
-      code: "full-refund-only",
-    });
-  });
-
-  it("every reject refusal reaches the page", async () => {
-    for (const name of ["not-post-trip", "not-open", "not-paid"]) {
-      asStaff.mockImplementationOnce(beginLike({ queryError: pgError(name, "P0001") }));
-      await expect(decideRefund(env, claims, BOOKING, "reject")).resolves.toEqual({ ok: false, code: name });
-    }
-    asStaff.mockImplementationOnce(beginLike({ queryError: pgError("not-found", "P0002") }));
-    await expect(decideRefund(env, claims, BOOKING, "reject")).resolves.toEqual({ ok: false, code: "not-found" });
-  });
-
-  it("not an admin in the database → not-admin", async () => {
-    asStaff.mockImplementationOnce(beginLike({ queryError: pgError("admin-only", "42501") }));
-    await expect(decideRefund(env, claims, BOOKING, "reject")).resolves.toEqual({ ok: false, code: "not-admin" });
-  });
-
-  it("a clean run still records the decision", async () => {
-    asStaff.mockImplementationOnce(
-      beginLike({ rows: [{ booking_id: BOOKING, refund_status: "declined", reference: "VT-26-0101" }] }),
-    );
-    await expect(decideRefund(env, claims, BOOKING, "reject")).resolves.toEqual({
-      ok: true,
-      bookingId: BOOKING,
-      refundStatus: "declined",
-      reference: "VT-26-0101",
     });
   });
 });

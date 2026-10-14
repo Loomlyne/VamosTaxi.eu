@@ -76,7 +76,7 @@ describe("what counts as a trip change (places only from the address search)", (
 });
 
 describe("saving: the PATCH carries only what is saved at once; the trip goes through its confirm step", () => {
-  const save = between(dc, "      saveEdit: () => {", "      markRefund:");
+  const save = between(dc, "      saveEdit: () => {", "      canCancel,");
   const patch = between(save, "client.request('PATCH'", "}).then");
 
   it("PATCH sends name, e-mail, phone, note and flight — never places, date, time, party or class", () => {

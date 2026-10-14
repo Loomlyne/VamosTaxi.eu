@@ -1,12 +1,15 @@
 // packages/emails/src/CancellationEmail.tsx
 //
-// D-11 cancel mail. PayLink envelope. Refund line is Pending Ops / full
-// captured / none. D-07 payout copy: card issuer timing, no day count.
-// No WhatsApp. No invented CHF.
+// D-11 cancel mail. PayLink envelope. No WhatsApp. No invented CHF.
+// Phase 31 D-08: one policy line for a paid cancel (full_captured and
+// pending_ops render the same signed sentence, W3 of
+// .planning/decisions/2026-10-12-refund-wording-signed.md), no amount, never
+// Stripe. "none" keeps its own line. The sentence is plain text, not ltr():
+// it must wrap and follow the mail's direction.
 
 import type { EmailLocale } from "./lib/types";
 import { t } from "./lib/t";
-import { Fact, LifecycleMail, ltr, tripLines } from "./lib/lifecycle-mail";
+import { Fact, LifecycleMail, tripLines } from "./lib/lifecycle-mail";
 
 export type CancellationRefundLine = "pending_ops" | "full_captured" | "none";
 
@@ -21,9 +24,9 @@ export type CancellationForEmail = {
   urgent?: boolean;
 };
 
+/** Paid cancel (either window) → the signed policy line; nothing paid → the "none" line. */
 function refundKey(line: CancellationRefundLine): string {
-  if (line === "pending_ops") return "cancellation.refundPendingOps";
-  if (line === "full_captured") return "cancellation.refundFullCaptured";
+  if (line === "pending_ops" || line === "full_captured") return "cancellation.refundPolicy";
   return "cancellation.refundNone";
 }
 
@@ -40,7 +43,7 @@ export function CancellationEmail({ trip }: { trip: CancellationForEmail }) {
       scheduledLocal={trip.scheduledLocal}
     >
       <Fact label={t(locale, "cancellation.refundLabel")}>
-        {ltr(t(locale, refundKey(trip.refundLine)))}
+        {t(locale, refundKey(trip.refundLine))}
       </Fact>
     </LifecycleMail>
   );

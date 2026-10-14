@@ -102,8 +102,7 @@ function visibleTexts(rel: string): string[] {
 const LOGIC_LINES = [
   "Your surname",
   "you@example.com",
-  "See what comes back at this notice before you decide.",
-  "See the refund you are due before anything is confirmed.",
+  "Read the cancellation policy before anything is confirmed.",
   "the booked time",
 ];
 
@@ -134,8 +133,7 @@ const STEP3 = [
   "cancellation and refund policy",
   "Another booking",
   "Your surname",
-  "See what comes back at this notice before you decide.",
-  "See the refund you are due before anything is confirmed.",
+  "Read the cancellation policy before anything is confirmed.",
   "the booked time",
   "Pick a new date and time",
   "Use this time",
@@ -169,6 +167,15 @@ describe.each(PAGES)("%s in four languages", (rel) => {
       expect(all, v).toBeGreaterThan(0);
       expect(kept, `${v}: ${all - kept} left bare`).toBe(all);
     }
+  });
+
+  it("the route (place names) is data: never looked up, left to right in the cancel sheet header (step C8)", () => {
+    const markup = markupOf(rel);
+    expect(markup).toContain(`</span> · ${KEEP}{{ routeShort }}</span> · <span data-vt-no-i18n="1">{{ bookedDay }}`);
+    const all = markup.split("{{ routeShort }}").length - 1;
+    const skipped = markup.match(/<span\b[^>]*\bdata-vt-no-i18n="1"[^>]*>\{\{ routeShort \}\}<\/span>/g) ?? [];
+    expect(all).toBeGreaterThan(0);
+    expect(skipped.length, `${all - skipped.length} routeShort left bare`).toBe(all);
   });
 
   it("names, cars and the charged amount are never looked up (data-vt-no-i18n, not the ignored data-i18n-skip)", () => {

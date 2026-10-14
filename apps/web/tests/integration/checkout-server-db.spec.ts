@@ -412,7 +412,7 @@ async function buildHarness(tx: Tx) {
         retrieveCharge: none,
         retrieveDispute: none,
         findSessionIdForPaymentIntent: async () => null,
-        recordChargeRefund: async () => ({ outcome: "unused" }),
+        recordChargeRefund: async () => ({ outcome: "unused", bookingId: null }),
         upsertDispute: async () => undefined,
         emit,
       };

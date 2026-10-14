@@ -7,8 +7,8 @@
 //   dearer  preview -> confirm (request waits, booking unchanged) -> the difference is paid (extra
 //           settle) -> the class changes, the driver comes off, the confirmation is built from the
 //           definer reads and handed to the mail sender;
-//   cheaper confirm -> class changes at once, Refund due -> the admin's Refund sends exactly the
-//           difference (credit tier) -> the live trip reads none again.
+//   cheaper confirm -> class changes at once, Refund due -> the site sends no refund (Phase 31 D-01:
+//           the owner refunds the difference in Stripe; refund_owed_rappen keeps the amount).
 // Skipped unless VAMOS_LOCAL_DB_PORT names a DISPOSABLE local stack; rows are committed (use a scratch
 // stack); synthetic rappen only. Host fixed to 127.0.0.1.
 // Test-only raw client to seed the disposable local stack as the superuser; named in
@@ -95,7 +95,6 @@ describe.skipIf(!PORT)("class change on a paid trip through the real Worker clie
       const { loadSettingsRows } = await import("./draft-preview");
       const { quoteInputFromFacts } = await import("./booking-change-price");
       const { previewBookingChange, confirmBookingChange, afterExtraSettled, withdrawBookingChange } = await import("./booking-change");
-      const { refundBooking } = await import("./refund");
       const { asSystem } = await import("../db/identity");
 
       // --- checkout, as it writes a booking (real live book through asQuote) -------------------------
@@ -221,7 +220,7 @@ describe.skipIf(!PORT)("class change on a paid trip through the real Worker clie
          where r.booking_id = ${wd.id}`)[0]).toEqual({ st: "withdrawn", slug: ECO });
       expect(await withdrawBookingChange(env, claims, wd.reference)).toEqual({ ok: false, code: "nothing-waiting" });
 
-      // --- cheaper: Business -> Economy, then the admin's Refund ------------------------------------
+      // --- cheaper: Business -> Economy; the difference stays owed, no refund is sent ----------------
       const cheap = await seedBooking("cheap", BIZ, false);
       const p2 = await previewBookingChange(env, claims, cheap.reference);
       if (!p2.ok) throw new Error(`preview refused: ${JSON.stringify(p2)}`);
@@ -233,14 +232,14 @@ describe.skipIf(!PORT)("class change on a paid trip through the real Worker clie
       expect(down).toMatchObject({ ok: true, outcome: "refund_due", differenceRappen: -due, confirmationSent: true });
       expect((await su<{ s: string; owed: string }[]>`select refund_status as s, refund_owed_rappen::text as owed from public.bookings where id = ${cheap.id}`)[0])
         .toEqual({ s: "pending_ops", owed: String(due) });
+      // Phase 31 (D-01): nothing on the site sends the difference back; the owner refunds it in Stripe and
+      // the webhook records it. The Stripe stand-in saw no refund call and no refund row was written.
       expect(createRefund).not.toHaveBeenCalled();
-
-      createRefund.mockImplementation(async () => ({ id: `re_p1e_${tag}`, status: "succeeded" }));
-      const refunded = await refundBooking(env, claims, cheap.reference, {});
-      expect(refunded).toMatchObject({ ok: true, refundedRappen: due });
-      expect(createRefund.mock.calls[0]![1]).toMatchObject({ amountRappen: due });
-      expect((await su<{ s: string; r: string }[]>`select refund_status as s, refunded_rappen::text as r from public.bookings where id = ${cheap.id}`)[0])
-        .toEqual({ s: "none", r: String(due) });
+      expect((await su<{ s: string; owed: string; r: string; n: string }[]>`
+        select b.refund_status as s, b.refund_owed_rappen::text as owed, b.refunded_rappen::text as r,
+               (select count(*) from public.booking_refunds br where br.booking_id = b.id)::text as n
+          from public.bookings b where b.id = ${cheap.id}`)[0])
+        .toEqual({ s: "pending_ops", owed: String(due), r: "0", n: "0" });
     } finally {
       // The other local suites publish their own live book (one live at a time): leave none live.
       await su`update public.rate_versions set status = 'retired' where slug = ${`p1e-${tag}`} and status = 'live'`.catch(() => undefined);

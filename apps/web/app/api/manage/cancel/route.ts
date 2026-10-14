@@ -56,11 +56,11 @@ export async function POST(request: Request): Promise<Response> {
   const { env } = await getCloudflareContext({ async: true });
   const result = await paidCancelGuest(env, tokenHashHex, bookingKey);
   if (!result.ok) return json({ ok: false, code: result.code }, failStatus(result.code));
+  // Phase 31 D-04: status only, never a refund amount (the customer sees one policy line).
   return json({
     ok: true,
     refundMode: result.refundMode,
     refundStatus: result.refundStatus,
-    refundRappen: result.refundRappen,
     payoutCountry: result.payoutCountry ?? null,
     availableOn: result.availableOn ?? null,
   });
