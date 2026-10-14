@@ -175,7 +175,7 @@ select is(
   'false/false/false',
   '(L8d) the three availability toggles changed the live rows');
 select is(
-  (select per_km_rappen from public.distance_rates where rate_version_id = (select draft from plc)),
+  (select per_km_rappen::integer from public.distance_rates where rate_version_id = (select draft from plc)),
   10, '(L10c) the draft price change was written');
 
 -- L5 the connecting superuser (no role switch) is bound too.
