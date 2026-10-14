@@ -45,5 +45,8 @@ describe("D-23 grep gate — no off-session extra-wait debit", () => {
     const quote = readFileSync(join(here, "../pricing/priceQuote.ts"), "utf8");
     expect(quote).not.toMatch(/buildRegionPremiumLine/);
     expect(quote).not.toMatch(/region_premium/);
+    // Decision 2026-10-13 items 10, 13: the region line builder is gone from the engine.
+    const lines = readFileSync(join(here, "../pricing/lines.ts"), "utf8");
+    expect(lines).not.toMatch(/buildRegionPremiumLine/);
   });
 });

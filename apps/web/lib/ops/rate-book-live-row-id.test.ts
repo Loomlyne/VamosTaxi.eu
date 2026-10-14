@@ -11,33 +11,38 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 type Extra = { id: number; version: number; code: string; kind: string; amount: number | null };
-type Band = { id: number; version: number; classId: string; fromKm: number; toKm: number | null; perKm: number | null };
-type Rule = { id: number; version: number; kind: string; payload: string };
-type Version = { id: number; status: "live" | "draft"; label: string };
+type Version = {
+  id: number;
+  status: "live" | "draft";
+  label: string;
+  lock: number | null;
+  vat: number | null;
+};
 
 const CLASS_ID = "11111111-1111-4111-8111-111111111111";
 
-const db: { versions: Version[]; extras: Extra[]; bands: Band[]; rules: Rule[] } = {
+const db: { versions: Version[]; extras: Extra[] } = {
   versions: [],
   extras: [],
-  bands: [],
-  rules: [],
 };
 
 function seedLiveOnly() {
-  db.versions = [{ id: 18, status: "live", label: "Book 18" }];
+  db.versions = [{ id: 18, status: "live", label: "Book 18", lock: null, vat: null }];
   db.extras = [{ id: 401, version: 18, code: "vip-welcome", kind: "amount", amount: 1000 }];
-  db.bands = [{ id: 701, version: 18, classId: CLASS_ID, fromKm: 0, toKm: 50, perKm: 300 }];
-  db.rules = [{ id: 801, version: 18, kind: "night", payload: JSON.stringify({ hours: null, from: "22:00" }) }];
 }
 
 /** What cloneRateVersionFrom does: a new draft, every row copied under a new id. */
 function forkInto(source: number): number {
   const next = source + 1;
-  db.versions.push({ id: next, status: "draft", label: `Book ${source} draft` });
+  const from = db.versions.find((v) => v.id === source);
+  db.versions.push({
+    id: next,
+    status: "draft",
+    label: `Book ${source} draft`,
+    lock: from?.lock ?? null,
+    vat: from?.vat ?? null,
+  });
   db.extras.push(...db.extras.filter((r) => r.version === source).map((r) => ({ ...r, id: r.id + 100, version: next })));
-  db.bands.push(...db.bands.filter((r) => r.version === source).map((r) => ({ ...r, id: r.id + 100, version: next })));
-  db.rules.push(...db.rules.filter((r) => r.version === source).map((r) => ({ ...r, id: r.id + 100, version: next })));
   return next;
 }
 
@@ -64,11 +69,18 @@ async function fakeTx(strings: TemplateStringsArray, ...values: unknown[]): Prom
   if (text.startsWith("select n.id from public.surcharges n")) {
     return twin(db.extras, (a, b) => a.code === b.code, values);
   }
-  if (text.startsWith("select n.id from public.distance_bands n")) {
-    return twin(db.bands, (a, b) => a.classId === b.classId && a.fromKm === b.fromKm, values);
+  // The book settings writers: `update public.rate_versions set <col> = $1 where id = $2 and status = 'draft'`.
+  if (text.startsWith("update public.rate_versions set quote_lock_minutes")) {
+    for (const v of db.versions) {
+      if (v.id === Number(values[1]) && v.status === "draft") v.lock = Number(values[0]);
+    }
+    return [];
   }
-  if (text.startsWith("select n.id from public.rate_version_rules n")) {
-    return twin(db.rules, (a, b) => a.kind === b.kind && a.payload === b.payload, values);
+  if (text.startsWith("update public.rate_versions set vat_rate_bps")) {
+    for (const v of db.versions) {
+      if (v.id === Number(values[1]) && v.status === "draft") v.vat = Number(values[0]);
+    }
+    return [];
   }
   if (text.startsWith("update public.surcharges set")) {
     for (const row of hit(db.extras)) {
@@ -81,32 +93,6 @@ async function fakeTx(strings: TemplateStringsArray, ...values: unknown[]): Prom
   if (text.startsWith("delete from public.surcharges")) {
     const gone = new Set(hit(db.extras).map((r) => r.id));
     db.extras = db.extras.filter((r) => !gone.has(r.id));
-    return [];
-  }
-  if (text.startsWith("update public.distance_bands set")) {
-    for (const row of hit(db.bands)) {
-      row.fromKm = Number(values[1]);
-      row.toKm = values[2] == null ? null : Number(values[2]);
-      row.perKm = values[3] == null ? null : Number(values[3]);
-    }
-    return [];
-  }
-  if (text.startsWith("delete from public.distance_bands")) {
-    const gone = new Set(hit(db.bands).map((r) => r.id));
-    db.bands = db.bands.filter((r) => !gone.has(r.id));
-    return [];
-  }
-  if (text.startsWith("update public.rate_version_rules set")) {
-    for (const row of hit(db.rules)) {
-      row.kind = String(values[0]);
-      // 26.2 audit: the route binds the payload through tx.json (an object); stored as its JSON text.
-      row.payload = typeof values[1] === "string" ? values[1] : JSON.stringify(values[1]);
-    }
-    return [];
-  }
-  if (text.startsWith("delete from public.rate_version_rules")) {
-    const gone = new Set(hit(db.rules).map((r) => r.id));
-    db.rules = db.rules.filter((r) => !gone.has(r.id));
     return [];
   }
   return [];
@@ -154,8 +140,8 @@ vi.mock("@/lib/ops/rate-book", async (importOriginal) => {
         status: version.status,
         slug: `book-${versionId}`,
         label: version.label,
-        vatRateBps: null,
-        quoteLockMinutes: null,
+        vatRateBps: version.vat,
+        quoteLockMinutes: version.lock,
         freeWaitMinutes: null,
         distanceRates: [],
         fixedRoutes: [],
@@ -170,23 +156,7 @@ vi.mock("@/lib/ops/rate-book", async (importOriginal) => {
             percent: null,
             appliesTo: "leg",
             active: true,
-            ruleId: null,
           })),
-        distanceBands: db.bands
-          .filter((r) => r.version === versionId)
-          .map((r) => ({
-            id: r.id,
-            rateVersionId: versionId,
-            vehicleClassId: r.classId,
-            vehicleClassSlug: "saden",
-            fromKm: r.fromKm,
-            toKm: r.toKm,
-            perKmRappen: r.perKm,
-          })),
-        regionPremiums: [],
-        rules: db.rules
-          .filter((r) => r.version === versionId)
-          .map((r) => ({ id: r.id, rateVersionId: versionId, kind: r.kind, payload: r.payload })),
         vehicleClasses: [],
       };
     },
@@ -253,39 +223,6 @@ describe("rate-book writes that name a row of the live book land on the draft's 
     expect(db.extras.map((r) => r.id)).toEqual([401]);
   });
 
-  it("PUT band: the new per-km rate is saved on the draft", async () => {
-    const res = await put({
-      id: "701",
-      kind: "band",
-      vehicleClassId: CLASS_ID,
-      fromKm: 0,
-      toKm: 50,
-      perKm: { CHF: "4" },
-    });
-
-    expect(res.status).toBe(200);
-    expect(db.bands.find((r) => r.version === 19)?.perKm).toBe(400);
-    expect(db.bands.find((r) => r.id === 701)?.perKm).toBe(300);
-  });
-
-  it("DELETE band and DELETE rule remove the draft's copies", async () => {
-    expect((await del("band", 701)).status).toBe(200);
-    expect((await del("rule", 801)).status).toBe(200);
-
-    expect(db.bands.filter((r) => r.version === 19)).toEqual([]);
-    expect(db.rules.filter((r) => r.version === 19)).toEqual([]);
-    expect(db.bands.map((r) => r.id)).toEqual([701]);
-    expect(db.rules.map((r) => r.id)).toEqual([801]);
-  });
-
-  it("PUT rule: the changed rule is saved on the draft", async () => {
-    const res = await put({ id: "801", kind: "rule", ruleKind: "night", payload: { from: "23:00" } });
-
-    expect(res.status).toBe(200);
-    expect(db.rules.find((r) => r.version === 19)?.payload).toBe(JSON.stringify({ hours: null, from: "23:00" }));
-    expect(db.rules.find((r) => r.id === 801)?.payload).toBe(JSON.stringify({ hours: null, from: "22:00" }));
-  });
-
   it("a draft row id still writes that row and no other", async () => {
     forkInto(18);
     db.extras.push({ id: 502, version: 19, code: "pet", kind: "amount", amount: 500 });
@@ -296,5 +233,97 @@ describe("rate-book writes that name a row of the live book land on the draft's 
     expect(db.extras.find((r) => r.id === 501)?.amount).toBe(3000);
     expect(db.extras.find((r) => r.id === 502)?.amount).toBe(500);
     expect(db.extras.find((r) => r.id === 401)?.amount).toBe(1000);
+  });
+});
+
+/** The rate_versions stand-in row with this id. */
+const book = (id: number) => db.versions.find((v) => v.id === id);
+
+describe("price-valid hours: PUT kind rule, ruleKind quote_lock (decision 2026-10-13 item 13)", () => {
+  beforeEach(() => {
+    seedLiveOnly();
+  });
+
+  it("whole hours land on the draft as minutes; the live book stays; the answer carries the hours", async () => {
+    const res = await put({ kind: "rule", ruleKind: "quote_lock", quoteLockHours: 48 });
+
+    expect(res.status).toBe(200);
+    const json = (await res.json()) as { ok: boolean; data: { quoteLockHours: string } };
+    expect(json.ok).toBe(true);
+    expect(json.data.quoteLockHours).toBe("48");
+    expect(book(19)?.status).toBe("draft");
+    expect(book(19)?.lock).toBe(2880);
+    expect(book(18)?.lock).toBeNull();
+  });
+
+  it("a digit string is accepted (the dashboard field is text)", async () => {
+    const res = await put({ kind: "rule", ruleKind: "quote_lock", quoteLockHours: "36" });
+    expect(res.status).toBe(200);
+    expect(book(19)?.lock).toBe(2160);
+  });
+
+  it.each([0, -1, "", "x", 1.5, "1.5", null, 35791395, true])(
+    "refuses %j with 400, forks no draft and changes nothing",
+    async (hours) => {
+      const res = await put({ kind: "rule", ruleKind: "quote_lock", quoteLockHours: hours });
+      expect(res.status).toBe(400);
+      expect(((await res.json()) as { code: string }).code).toBe("invalid");
+      expect(db.versions.map((v) => v.id)).toEqual([18]);
+      expect(book(18)?.lock).toBeNull();
+    },
+  );
+
+  it("the largest value the integer column holds is accepted", async () => {
+    const res = await put({ kind: "rule", ruleKind: "quote_lock", quoteLockHours: 35791394 });
+    expect(res.status).toBe(200);
+    expect(book(19)?.lock).toBe(35791394 * 60);
+  });
+
+  it("an existing draft is written, not forked again", async () => {
+    forkInto(18);
+    const res = await put({ kind: "rule", ruleKind: "quote_lock", quoteLockHours: 12 });
+    expect(res.status).toBe(200);
+    expect(db.versions.map((v) => v.id)).toEqual([18, 19]);
+    expect(book(19)?.lock).toBe(720);
+  });
+
+  it.each(["waiting", "free_wait", "service_area", "city_pair", "lock", "night", ""])(
+    "ruleKind %j is refused with 400",
+    async (ruleKind) => {
+      const res = await put({ kind: "rule", ruleKind, quoteLockHours: 48 });
+      expect(res.status).toBe(400);
+      expect(db.versions.map((v) => v.id)).toEqual([18]);
+    },
+  );
+
+  it("ruleKind vat still writes vat_rate_bps on the draft", async () => {
+    const res = await put({ kind: "rule", ruleKind: "vat", vat_rate_bps: 81 });
+    expect(res.status).toBe(200);
+    expect(book(19)?.vat).toBe(81);
+    expect(book(19)?.lock).toBeNull();
+  });
+
+  it("another kind carrying quoteLockHours no longer touches the minutes", async () => {
+    const res = await put({ ...extraBody(401, "25"), quoteLockHours: 99 });
+    expect(res.status).toBe(200);
+    expect(book(19)?.lock).toBeNull();
+    expect(book(18)?.lock).toBeNull();
+  });
+
+  it("GET-shaped answer: a book with no minutes shows the 24-hour default", async () => {
+    const res = await put({ kind: "rule", ruleKind: "vat", vat_rate_bps: 81 });
+    const json = (await res.json()) as { data: Record<string, unknown> };
+    expect(json.data.quoteLockHours).toBe("24");
+    expect(json.data).not.toHaveProperty("bands");
+    expect(json.data).not.toHaveProperty("regionPremiums");
+    expect(json.data).not.toHaveProperty("rules");
+  });
+
+  it("kind band is refused on PUT and DELETE; kind rule has nothing to DELETE", async () => {
+    const putBand = await put({ kind: "band", vehicleClassId: CLASS_ID, fromKm: 0, perKm: { CHF: "1" } });
+    expect(putBand.status).toBe(400);
+    expect((await del("band", 701)).status).toBe(400);
+    expect((await del("rule", 801)).status).toBe(400);
+    expect(db.versions.map((v) => v.id)).toEqual([18]);
   });
 });

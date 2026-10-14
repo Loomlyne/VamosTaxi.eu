@@ -1596,48 +1596,6 @@ export type Database = {
         }
         Relationships: []
       }
-      distance_bands: {
-        Row: {
-          from_km: number
-          id: number
-          per_km_rappen: number
-          rate_version_id: number
-          to_km: number | null
-          vehicle_class_id: string | null
-        }
-        Insert: {
-          from_km: number
-          id?: never
-          per_km_rappen: number
-          rate_version_id: number
-          to_km?: number | null
-          vehicle_class_id?: string | null
-        }
-        Update: {
-          from_km?: number
-          id?: never
-          per_km_rappen?: number
-          rate_version_id?: number
-          to_km?: number | null
-          vehicle_class_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "distance_bands_rate_version_id_fkey"
-            columns: ["rate_version_id"]
-            isOneToOne: false
-            referencedRelation: "rate_versions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "distance_bands_vehicle_class_id_fkey"
-            columns: ["vehicle_class_id"]
-            isOneToOne: false
-            referencedRelation: "vehicle_classes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       distance_rates: {
         Row: {
           airport_start_rappen: number | null
@@ -2031,35 +1989,6 @@ export type Database = {
           },
         ]
       }
-      rate_version_rules: {
-        Row: {
-          id: number
-          kind: string
-          payload: Json
-          rate_version_id: number
-        }
-        Insert: {
-          id?: never
-          kind: string
-          payload?: Json
-          rate_version_id: number
-        }
-        Update: {
-          id?: never
-          kind?: string
-          payload?: Json
-          rate_version_id?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rate_version_rules_rate_version_id_fkey"
-            columns: ["rate_version_id"]
-            isOneToOne: false
-            referencedRelation: "rate_versions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       rate_versions: {
         Row: {
           created_at: string
@@ -2110,42 +2039,6 @@ export type Database = {
           vat_rate_bps?: number | null
         }
         Relationships: []
-      }
-      region_premiums: {
-        Row: {
-          id: number
-          percent: number
-          rate_version_id: number
-          zone_id: string
-        }
-        Insert: {
-          id?: never
-          percent: number
-          rate_version_id: number
-          zone_id: string
-        }
-        Update: {
-          id?: never
-          percent?: number
-          rate_version_id?: number
-          zone_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "region_premiums_rate_version_id_fkey"
-            columns: ["rate_version_id"]
-            isOneToOne: false
-            referencedRelation: "rate_versions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "region_premiums_zone_id_fkey"
-            columns: ["zone_id"]
-            isOneToOne: false
-            referencedRelation: "service_zones"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       reviews: {
         Row: {
@@ -2737,7 +2630,6 @@ export type Database = {
           predicate: Json
           quantity_source: string | null
           rate_version_id: number
-          rule_id: number | null
         }
         Insert: {
           active?: boolean
@@ -2750,7 +2642,6 @@ export type Database = {
           predicate?: Json
           quantity_source?: string | null
           rate_version_id: number
-          rule_id?: number | null
         }
         Update: {
           active?: boolean
@@ -2763,7 +2654,6 @@ export type Database = {
           predicate?: Json
           quantity_source?: string | null
           rate_version_id?: number
-          rule_id?: number | null
         }
         Relationships: [
           {
@@ -2771,13 +2661,6 @@ export type Database = {
             columns: ["rate_version_id"]
             isOneToOne: false
             referencedRelation: "rate_versions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "surcharges_rule_id_fkey"
-            columns: ["rule_id"]
-            isOneToOne: false
-            referencedRelation: "rate_version_rules"
             referencedColumns: ["id"]
           },
         ]

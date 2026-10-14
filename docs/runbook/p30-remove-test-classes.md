@@ -9,7 +9,8 @@ changes nothing. It never touches a booking, a payment, a price snapshot, a vehi
 surcharge or a price book that is not about these classes.
 
 Files: `docs/runbook/p30-remove-test-classes.sql`. It was proven on a local copy of the schema with
-`scripts/p30-local-proof.sh` (never on live).
+`scripts/p30-local-proof.sh` (never on live); that script was removed after Phase 30 shipped, because it
+writes to tables PR #81 drops (in git history before 2026-10-14).
 
 ## Order: this script comes first
 

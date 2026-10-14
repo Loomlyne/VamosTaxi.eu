@@ -92,16 +92,19 @@
 [data-price-hist-title]{display:block;font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);color:var(--vt-text-primary);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 [data-price-hist-sub]{display:block;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-muted);line-height:1.4;margin-block-start:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 [data-price-hist-meta]{display:flex;flex-wrap:nowrap;align-items:center;gap:var(--vt-space-2);margin-inline-start:auto;flex:0 0 auto}
-[data-price-warn]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary)}
 [data-price-err]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-danger)}
 [data-price-empty]{display:flex;flex-direction:column;gap:var(--vt-space-2);padding:22px 24px;border:1px dashed var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface)}
 [data-price-empty] h2{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.25}
-[data-vat-save] .vt-btn[disabled],
-[data-vat-save] button:disabled{opacity:.45;cursor:default;pointer-events:none}
-[data-vat-save] .vt-btn--primary:not([disabled]):hover,
-[data-vat-save] button:not(:disabled):hover{background:var(--vt-accent-hover)}
-[data-vat-save] .vt-btn:not([disabled]):active,
-[data-vat-save] button:not(:disabled):active{transform:translateY(1px)}
+[data-vat-save] .vt-btn[disabled],[data-lock-save] .vt-btn[disabled],
+[data-vat-save] button:disabled,[data-lock-save] button:disabled{opacity:.45;cursor:default;pointer-events:none}
+[data-vat-save] .vt-btn--primary:not([disabled]):hover,[data-lock-save] .vt-btn--primary:not([disabled]):hover,
+[data-vat-save] button:not(:disabled):hover,[data-lock-save] button:not(:disabled):hover{background:var(--vt-accent-hover)}
+[data-vat-save] .vt-btn:not([disabled]):active,[data-lock-save] .vt-btn:not([disabled]):active,
+[data-vat-save] button:not(:disabled):active,[data-lock-save] button:not(:disabled):active{transform:translateY(1px)}
+/* The kit Input shows its error under the box; here the error takes the hint's place, so Save stays level with the box. */
+[data-lock-field] .vt-field{position:relative}
+[data-lock-field] .vt-field__err{position:absolute;inset-block-start:calc(100% + 6px);inset-inline:0}
+[data-lock-field][data-err="1"] > p.vt-field__hint{visibility:hidden}
 [data-coupon-uses]{display:flex;flex-direction:column;min-width:0;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);overflow:hidden}
 [data-coupon-uses] h2{margin:0;padding:14px 16px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);border-block-end:1px solid var(--vt-border-subtle)}
 [data-coupon-use-row]{box-sizing:border-box;display:flex;flex-wrap:nowrap;align-items:center;gap:var(--vt-space-4);padding:14px 16px;border-block-end:1px solid var(--vt-border-subtle);color:inherit;text-decoration:none;cursor:pointer}
@@ -177,6 +180,18 @@
 
 <sc-if value="{{ isDistance }}" hint-placeholder-val="{{ false }}">
 <div data-price-pane="1" data-price-swipe="1" data-scroll-native="1">
+<div data-lock-field="1" data-err="{{ lockErrFlag }}" style="display:flex;flex-direction:column;gap:6px;max-width:520px;margin-bottom:var(--vt-space-5)">
+<div style="display:flex;align-items:flex-end;gap:8px;min-width:0">
+<div style="flex:1 1 auto;min-width:0">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tLockLabel }}" value="{{ lockHours }}" onChange="{{ setLockHours }}" suffix="{{ tLockSuffix }}" inputMode="numeric" error="{{ lockErrorText }}" hint-size="100%,76px"></x-import>
+</div>
+<div data-lock-save="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="{{ lockSaveVariant }}" disabled="{{ lockSaveOff }}" onClick="{{ saveLock }}" hint-size="110px,44px">{{ tSaveLock }}</x-import>
+</div>
+</div>
+<p class="vt-field__hint" style="margin:0">{{ tLockHint }}</p>
+<p data-lock-ok="1" role="status" style="display:{{ lockOkDisplay }};margin:0;font-size:var(--vt-body-xs);color:var(--vt-success)">{{ tLockSaved }}</p>
+</div>
 <dc-import name="OpsTable" fill="1" rows="{{ distanceRows }}" columns="{{ distanceColumns }}" fields="{{ distanceFields }}" blank="{{ distanceBlank }}" onSave="{{ saveDistance }}" onDelete="{{ deleteDistance }}" noun="{{ tNounClass }}" noun-plural="{{ tNounClasses }}" add-title="{{ tAddClass }}" edit-title="{{ tEditClass }}" delete-label="{{ tRetire }}" delete-icon="eye-off" onAskDelete="{{ askRetire }}" footDelete="{{ no }}" actionsGap="{{ n12 }}" tapArea="{{ yes }}" label-key="klass" add-label="{{ tAddClass }}" save-label="{{ tSaveClass }}" add-save-label="{{ tAddClass }}" search-placeholder="{{ tSearchDistance }}" search-keys="{{ distanceSearchKeys }}" empty-title="{{ tEmptyClassesTitle }}" empty-body="{{ tEmptyClassesBody }}" edit-id="{{ distanceEditId }}" edit-tick="{{ distanceEditTick }}" onReorder="{{ reorderDistance }}" hint-size="100%,420px"></dc-import>
 <sc-if value="{{ hasRetired }}" hint-placeholder-val="{{ false }}">
 <section data-retired="1">
@@ -262,7 +277,6 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ g.fix }}" hint-size="90px,36px">{{ tFixThis }}</x-import>
 </div>
 </sc-for>
-<p data-price-warn="1" style="display:{{ bandWarnDisplay }}">{{ tBandOverlapWarn }}</p>
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary)">{{ tCompletenessBody }}</p>
 <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--vt-space-2);margin-top:var(--vt-space-4)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ closePublish }}" hint-size="130px,36px">{{ tKeepEditing }}</x-import>
@@ -438,7 +452,7 @@ const T = {
     colId:'ID', colFrom:'From', colTo:'To', colEconomy:'Economy', colBusiness:'Business', colLive:'Live', live:'Live', draft:'Draft',
     colClass:'Class', colPhoto:'Photo', moveClassUp:'Move class up', moveClassDown:'Move class down', colName:'Name', startFare:'Start', perKm:'Per kilometre', maxPax:'Max passengers', maxBags:'Max bags', hidePublic:'Hide from public', hiddenPublic:'Hidden from public', showPublic:'Show on public', shownPublic:'Shown on public',
     fPhoto:'Photo', choosePhoto:'Choose photo', hClassPhoto:'Required to Publish. Stored on R2, not on this machine.',
-    colRule:'Rule', colAppliesWhen:'Applies when', colAmount:'Amount', colKind:'Kind',
+    colAppliesWhen:'Applies when', colAmount:'Amount', colKind:'Kind',
     addRoute:'Add route', editRoute:'Edit route', saveRoute:'Save route', deleteRouteTitle:'Delete this route from the draft?', deleteRouteBody:'Delete this route from the draft? Public does not change until Publish.',
     emptyRoutesTitle:'No city-to-city pairs yet', emptyRoutesBody:'Add a city to city, or a canton to canton. One row covers A to B and B to A. Public stays on the last published book until you publish.',
     searchRoutes:'From, to or ID', nounRoute:'route', nounRoutes:'routes',
@@ -454,11 +468,6 @@ const T = {
     
     emptyClassesTitle:'No vehicle classes yet', emptyClassesBody:'Add a class with photo, name, start fare, per-kilometre rate, max passengers and max bags.',
     searchDistance:'Class', nounClass:'class', nounClasses:'classes',
-    addRule:'Add rule', editRule:'Edit rule', saveRule:'Save rule', deleteRuleTitle:'Delete this rule from the draft?', deleteRuleBody:'Delete this rule from the draft? Public does not change until Publish.',
-    emptyRulesTitle:'No rules yet', emptyRulesBody:'Waiting unit, free-wait hours, or Mapbox service area.',
-    searchRules:'Kind', nounRule:'rule', nounRules:'rules',
-    kindWaiting:'Waiting unit', kindLock:'Quote-lock hours', kindFreeWait:'Free-wait hours', kindServiceArea:'Service area',
-    fPayload:'Value', hRulePayload:'Waiting unit, hours, or Mapbox area. Timezone is Europe/Zurich.',
     addSurcharge:'Add surcharge', editSurcharge:'Edit surcharge', saveSurcharge:'Save surcharge', deleteSurchargeTitle:'Delete this surcharge from the draft?', deleteSurchargeBody:'Delete this surcharge from the draft? Public does not change until Publish.',
     emptySurchargesTitle:'No surcharges in this draft', emptySurchargesBody:'Add an extra. Customers choose it at checkout.',
     searchSurcharges:'Search by name', nounSurcharge:'surcharge', nounSurcharges:'surcharges',
@@ -494,7 +503,7 @@ const T = {
     completenessReady:'Every required class field is filled. Publish fare book writes the live book.',
     completenessGaps:(n) => n === 1 ? '1 gap before Publish fare book' : n + ' gaps before Publish fare book',
     completenessEmpty:'No draft fare book.',
-    gapDistance:'Distance class', gapSurcharge:'Surcharge', gapRoute:'Fixed route', gapCoupon:'Coupon', gapRule:'Rule', gapBand:'Km band', gapBandOverlap:'Overlapping km band',
+    gapDistance:'Distance class', gapSurcharge:'Surcharge', gapRoute:'Fixed route', gapCoupon:'Coupon',
     gapFieldName:'name', gapFieldPhoto:'photo', gapFieldStart:'start fare', gapFieldPerKm:'per-km', gapFieldPax:'max passengers', gapFieldBags:'max bags',
     gapMissing:'{class} — missing {fields}.',
     publishDisabledGaps:'Publish fare book stays off until the gaps are filled.',
@@ -512,8 +521,7 @@ const T = {
       network:'Publish did not flip — the request did not reach the server.',
       unknown:'Publish did not flip — the server did not accept this draft.',
     },
-    bandOverlapWarn:'Overlapping km bands: the higher CHF per kilometre wins. You can still publish.',
-    regionPercentWarn:'Two matching region percents: the highest percent wins. You can still publish.',
+    lockLabel:'Price stays valid for', lockSuffix:'hours', lockHint:'How long a price you show a customer stays the same.', saveLock:'Save', lockError:'Enter whole hours, 1 or more.', lockSaveError:'Could not save. Try again.', lockSaved:'Saved in the draft.',
     vatLabel:'VAT', vatSuffix:'%', vatError:'VAT must be 0 or more.', saveVat:'Save VAT', draftMark:'Draft — not public until Publish', fixThis:'Fix this',
     liveBook:'Live book',
     when:'When', pax:'Passengers', coupon:'Coupon',
@@ -532,7 +540,7 @@ const T = {
     colId:'ID', colFrom:'Von', colTo:'Nach', colEconomy:'Economy', colBusiness:'Business', colLive:'Live', live:'Live', draft:'Entwurf',
     colClass:'Klasse', colPhoto:'Foto', moveClassUp:'Klasse nach oben', moveClassDown:'Klasse nach unten', colName:'Name', startFare:'Start', perKm:'Pro Kilometer', maxPax:'Max. Passagiere', maxBags:'Max. Gepäckstücke', hidePublic:'Vor der Öffentlichkeit verbergen', hiddenPublic:'Vor der Öffentlichkeit verborgen', showPublic:'Öffentlich zeigen', shownPublic:'Öffentlich sichtbar',
     fPhoto:'Foto', choosePhoto:'Foto wählen', hClassPhoto:'Pflicht vor dem Veröffentlichen. Liegt auf R2, nicht auf diesem Gerät.',
-    colRule:'Regel', colAppliesWhen:'Gilt bei', colAmount:'Betrag', colKind:'Art',
+    colAppliesWhen:'Gilt bei', colAmount:'Betrag', colKind:'Art',
     addRoute:'Route hinzufügen', editRoute:'Route bearbeiten', saveRoute:'Route speichern', deleteRouteTitle:'Diese Route aus dem Entwurf löschen?', deleteRouteBody:'Diese Route aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptyRoutesTitle:'Noch keine Stadt-zu-Stadt-Paare', emptyRoutesBody:'Stadt zu Stadt oder Kanton zu Kanton hinzufügen. Eine Zeile gilt für A nach B und B nach A. Die Öffentlichkeit bleibt auf dem letzten veröffentlichten Buch, bis du veröffentlichst.',
     searchRoutes:'Von, nach oder ID', nounRoute:'Route', nounRoutes:'Routen',
@@ -548,11 +556,6 @@ const T = {
     
     emptyClassesTitle:'Noch keine Fahrzeugklassen', emptyClassesBody:'Klasse mit Foto, Name, Startpreis, Kilometersatz, max. Passagieren und max. Gepäckstücken hinzufügen.',
     searchDistance:'Klasse', nounClass:'Klasse', nounClasses:'Klassen',
-    addRule:'Regel hinzufügen', editRule:'Regel bearbeiten', saveRule:'Regel speichern', deleteRuleTitle:'Diese Regel aus dem Entwurf löschen?', deleteRuleBody:'Diese Regel aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
-    emptyRulesTitle:'Noch keine Regeln', emptyRulesBody:'Warteeinheit, Freiwarte-Stunden oder Mapbox-Servicegebiet.',
-    searchRules:'Art', nounRule:'Regel', nounRules:'Regeln',
-    kindWaiting:'Warteeinheit', kindLock:'Quote-Lock-Stunden', kindFreeWait:'Freiwarte-Stunden', kindServiceArea:'Servicegebiet',
-    fPayload:'Wert', hRulePayload:'Warteeinheit, Stunden oder Mapbox-Gebiet. Zeitzone ist Europe/Zurich.',
     addSurcharge:'Zuschlag hinzufügen', editSurcharge:'Zuschlag bearbeiten', saveSurcharge:'Zuschlag speichern', deleteSurchargeTitle:'Diesen Zuschlag aus dem Entwurf löschen?', deleteSurchargeBody:'Diesen Zuschlag aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptySurchargesTitle:'Keine Zuschläge in diesem Entwurf', emptySurchargesBody:'Fügen Sie ein Extra hinzu. Kundinnen und Kunden wählen es beim Checkout.',
     searchSurcharges:'Nach Name suchen', nounSurcharge:'Zuschlag', nounSurcharges:'Zuschläge',
@@ -588,7 +591,7 @@ const T = {
     completenessReady:'Jedes Pflichtfeld der Klasse ist gefüllt. Tarifbuch veröffentlichen schreibt das Live-Buch.',
     completenessGaps:(n) => n === 1 ? '1 Lücke vor Tarifbuch veröffentlichen' : n + ' Lücken vor Tarifbuch veröffentlichen',
     completenessEmpty:'Kein Entwurfs-Tarifbuch.',
-    gapDistance:'Distanzklasse', gapSurcharge:'Zuschlag', gapRoute:'Feste Route', gapCoupon:'Gutschein', gapRule:'Regel', gapBand:'Km-Band', gapBandOverlap:'Überlappendes Km-Band',
+    gapDistance:'Distanzklasse', gapSurcharge:'Zuschlag', gapRoute:'Feste Route', gapCoupon:'Gutschein',
     gapFieldName:'Name', gapFieldPhoto:'Foto', gapFieldStart:'Startpreis', gapFieldPerKm:'pro km', gapFieldPax:'max. Passagiere', gapFieldBags:'max. Gepäck',
     gapMissing:'{class} — fehlt {fields}.',
     publishDisabledGaps:'Tarifbuch veröffentlichen bleibt aus, bis die Lücken gefüllt sind.',
@@ -606,10 +609,8 @@ const T = {
       network:'Veröffentlichen hat nicht umgestellt — die Anfrage hat den Server nicht erreicht.',
       unknown:'Veröffentlichen hat nicht umgestellt — der Server hat diesen Entwurf nicht angenommen.',
     },
-    bandOverlapWarn:'Überlappende km-Bänder: der höhere CHF-Betrag pro Kilometer gewinnt. Du kannst trotzdem veröffentlichen.',
-    regionPercentWarn:'Zwei passende Regionen-Prozente: der höchste Prozent gewinnt. Du kannst trotzdem veröffentlichen.',
+    lockLabel:'Preis gilt für', lockSuffix:'Stunden', lockHint:'Wie lange ein Preis, den du einem Kunden zeigst, gleich bleibt.', saveLock:'Speichern', lockError:'Gib ganze Stunden ein, 1 oder mehr.', lockSaveError:'Speichern nicht möglich. Bitte erneut versuchen.', lockSaved:'Im Entwurf gespeichert.',
     vatLabel:'MwSt.', vatSuffix:'%', vatError:'Die MwSt. muss 0 oder mehr sein.', saveVat:'MwSt. speichern', draftMark:'Entwurf — nicht öffentlich bis Veröffentlichen', fixThis:'Dies beheben',
-    previewKicker:'Entwurfsvorschau', recapStart:'Start', recapKm:'Kilometer', recapBands:'Bänder', recapRegion:'Region %', recapExtras:'Extras', recapVat:'MwSt.', recapTotal:'Total',
     when:'Wann', pax:'Passagiere', coupon:'Gutschein',
     testNote:'Test-unbezahlt nutzt diesen Entwurf. Es belastet keine Karte und sendet keine Mail.',
     viewChanges:'Änderungen ansehen', cloneDraft:'In den Entwurf klonen', liveBook:'Live-Buch', gapFree:'Lückenfrei', hasGaps:'Mit Lücken',
@@ -628,7 +629,7 @@ const T = {
     colId:'ID', colFrom:'De', colTo:'Vers', colEconomy:'Economy', colBusiness:'Business', colLive:'Live', live:'Live', draft:'Brouillon',
     colClass:'Classe', colPhoto:'Photo', moveClassUp:'Monter la classe', moveClassDown:'Descendre la classe', colName:'Nom', startFare:'Départ', perKm:'Par kilomètre', maxPax:'Passagers max.', maxBags:'Bagages max.', hidePublic:'Masquer au public', hiddenPublic:'Masqué au public', showPublic:'Afficher au public', shownPublic:'Visible au public',
     fPhoto:'Photo', choosePhoto:'Choisir une photo', hClassPhoto:'Obligatoire pour Publier. Stockée sur R2, pas sur cet appareil.',
-    colRule:'Règle', colAppliesWhen:'S’applique', colAmount:'Montant', colKind:'Type',
+    colAppliesWhen:'S’applique', colAmount:'Montant', colKind:'Type',
     addRoute:'Ajouter un trajet', editRoute:'Modifier le trajet', saveRoute:'Enregistrer le trajet', deleteRouteTitle:'Supprimer ce trajet du brouillon ?', deleteRouteBody:'Supprimer ce trajet du brouillon ? Le public ne change qu’après Publier.',
     emptyRoutesTitle:'Pas encore de paires de ville en ville', emptyRoutesBody:'Ajoutez une ville à ville, ou un canton à canton. Une ligne vaut pour A vers B et B vers A. Le public reste sur le dernier livre publié jusqu’à la publication.',
     searchRoutes:'De, vers ou ID', nounRoute:'trajet', nounRoutes:'trajets',
@@ -644,11 +645,6 @@ const T = {
     
     emptyClassesTitle:'Pas encore de classes', emptyClassesBody:'Ajoutez une classe avec photo, nom, tarif de départ, tarif au kilomètre, passagers max. et bagages max.',
     searchDistance:'Classe', nounClass:'classe', nounClasses:'classes',
-    addRule:'Ajouter une règle', editRule:'Modifier la règle', saveRule:'Enregistrer la règle', deleteRuleTitle:'Supprimer cette règle du brouillon ?', deleteRuleBody:'Supprimer cette règle du brouillon ? Le public ne change qu’après Publier.',
-    emptyRulesTitle:'Pas encore de règles', emptyRulesBody:'Unité d’attente, heures d’attente libre ou zone de service Mapbox.',
-    searchRules:'Type', nounRule:'règle', nounRules:'règles',
-    kindWaiting:'Unité d’attente', kindLock:'Heures de verrouillage', kindFreeWait:'Heures d’attente libre', kindServiceArea:'Zone de service',
-    fPayload:'Valeur', hRulePayload:'Unité d’attente, heures ou zone Mapbox. Fuseau : Europe/Zurich.',
     addSurcharge:'Ajouter un supplément', editSurcharge:'Modifier le supplément', saveSurcharge:'Enregistrer le supplément', deleteSurchargeTitle:'Supprimer ce supplément du brouillon ?', deleteSurchargeBody:'Supprimer ce supplément du brouillon ? Le public ne change qu’après Publier.',
     emptySurchargesTitle:'Aucun supplément dans ce brouillon', emptySurchargesBody:'Ajoutez un extra. Les clients le choisissent au paiement.',
     searchSurcharges:'Rechercher par nom', nounSurcharge:'supplément', nounSurcharges:'suppléments',
@@ -684,7 +680,7 @@ const T = {
     completenessReady:'Chaque champ obligatoire de classe est rempli. Publier le livre tarifaire écrit le livre live.',
     completenessGaps:(n) => n === 1 ? '1 écart avant Publier le livre tarifaire' : n + ' écarts avant Publier le livre tarifaire',
     completenessEmpty:'Pas de brouillon tarifaire.',
-    gapDistance:'Classe distance', gapSurcharge:'Supplément', gapRoute:'Trajet fixe', gapCoupon:'Code', gapRule:'Règle', gapBand:'Tranche km', gapBandOverlap:'Tranche km superposée',
+    gapDistance:'Classe distance', gapSurcharge:'Supplément', gapRoute:'Trajet fixe', gapCoupon:'Code',
     gapFieldName:'nom', gapFieldPhoto:'photo', gapFieldStart:'départ', gapFieldPerKm:'au km', gapFieldPax:'passagers max', gapFieldBags:'bagages max',
     gapMissing:'{class} — manque {fields}.',
     publishDisabledGaps:'Publier le livre tarifaire reste inactif tant que les écarts ne sont pas remplis.',
@@ -702,10 +698,8 @@ const T = {
       network:'La publication n’a pas basculé — la requête n’a pas atteint le serveur.',
       unknown:'La publication n’a pas basculé — le serveur n’a pas accepté ce brouillon.',
     },
-    bandOverlapWarn:'Tranches km qui se chevauchent : le CHF par kilomètre le plus élevé l’emporte. Vous pouvez quand même publier.',
-    regionPercentWarn:'Deux pourcents de région qui correspondent : le plus élevé l’emporte. Vous pouvez quand même publier.',
+    lockLabel:'Le prix reste valable', lockSuffix:'heures', lockHint:'Combien de temps un prix montré à un client reste le même.', saveLock:'Enregistrer', lockError:'Saisissez des heures entières, 1 ou plus.', lockSaveError:'Enregistrement impossible. Réessayez.', lockSaved:'Enregistré dans le brouillon.',
     vatLabel:'TVA', vatSuffix:'%', vatError:'La TVA doit être 0 ou plus.', saveVat:'Enregistrer la TVA', draftMark:'Brouillon — pas public tant que non publié', fixThis:'Corriger',
-    previewKicker:'Aperçu du brouillon', recapStart:'Départ', recapKm:'Kilomètres', recapBands:'Tranches', recapRegion:'Région %', recapExtras:'Extras', recapVat:'TVA', recapTotal:'Total',
     when:'Quand', pax:'Passagers', coupon:'Code',
     testNote:'L’impayé test utilise ce brouillon. Il ne débite aucune carte et n’envoie aucun mail.',
     viewChanges:'Voir les changements', cloneDraft:'Cloner dans le brouillon', liveBook:'Livre live', gapFree:'Sans écart', hasGaps:'Avec écarts',
@@ -724,7 +718,7 @@ const T = {
     colId:'المعرّف', colFrom:'من', colTo:'إلى', colEconomy:'اقتصادي', colBusiness:'أعمال', colLive:'مباشر', live:'مباشر', draft:'مسودة',
     colClass:'الفئة', colPhoto:'الصورة', moveClassUp:'تحريك الفئة لأعلى', moveClassDown:'تحريك الفئة لأسفل', colName:'الاسم', startFare:'البداية', perKm:'لكل كيلومتر', maxPax:'أقصى عدد مسافرين', maxBags:'أقصى حقائب', hidePublic:'إخفاء عن العامة', hiddenPublic:'مخفي عن العامة', showPublic:'إظهار للعامة', shownPublic:'ظاهر للعامة',
     fPhoto:'الصورة', choosePhoto:'اختيار صورة', hClassPhoto:'مطلوبة للنشر. تُحفظ على R2 وليس على هذا الجهاز.',
-    colRule:'القاعدة', colAppliesWhen:'ينطبق عند', colAmount:'المبلغ', colKind:'النوع',
+    colAppliesWhen:'ينطبق عند', colAmount:'المبلغ', colKind:'النوع',
     addRoute:'إضافة مسار', editRoute:'تعديل المسار', saveRoute:'حفظ المسار', deleteRouteTitle:'حذف هذا المسار من المسودة؟', deleteRouteBody:'حذف هذا المسار من المسودة؟ لا يتغير العام حتى النشر.',
     emptyRoutesTitle:'لا توجد أزواج بين المدن بعد', emptyRoutesBody:'أضف مدينة إلى مدينة أو كانتون إلى كانتون. صفّ واحد يغطي من أ إلى ب ومن ب إلى أ. يبقى العام على آخر كتاب منشور حتى تنشر.',
     searchRoutes:'من أو إلى أو المعرّف', nounRoute:'مسار', nounRoutes:'مسارات',
@@ -740,11 +734,6 @@ const T = {
     
     emptyClassesTitle:'لا توجد فئات مركبات بعد', emptyClassesBody:'أضف فئة بالصورة والاسم وأجرة البداية وسعر الكيلومتر وأقصى عدد مسافرين وأقصى حقائب.',
     searchDistance:'الفئة', nounClass:'فئة', nounClasses:'فئات',
-    addRule:'إضافة قاعدة', editRule:'تعديل القاعدة', saveRule:'حفظ القاعدة', deleteRuleTitle:'حذف هذه القاعدة من المسودة؟', deleteRuleBody:'حذف هذه القاعدة من المسودة؟ لا يتغير العام حتى النشر.',
-    emptyRulesTitle:'لا توجد قواعد بعد', emptyRulesBody:'وحدة انتظار أو ساعات انتظار مجاني أو منطقة خدمة مابوكس.',
-    searchRules:'النوع', nounRule:'قاعدة', nounRules:'قواعد',
-    kindWaiting:'وحدة الانتظار', kindLock:'ساعات قفل العرض', kindFreeWait:'ساعات الانتظار المجاني', kindServiceArea:'منطقة الخدمة',
-    fPayload:'القيمة', hRulePayload:'وحدة الانتظار أو الساعات أو منطقة مابوكس. المنطقة الزمنية Europe/Zurich.',
     addSurcharge:'إضافة رسم', editSurcharge:'تعديل الرسم', saveSurcharge:'حفظ الرسم', deleteSurchargeTitle:'حذف هذا الرسم من المسودة؟', deleteSurchargeBody:'حذف هذا الرسم من المسودة؟ لا يتغير العام حتى النشر.',
     emptySurchargesTitle:'لا رسوم في هذه المسودة', emptySurchargesBody:'أضف إضافة. يختارها العملاء عند الدفع.',
     searchSurcharges:'ابحث بالاسم', nounSurcharge:'رسم', nounSurcharges:'رسوم',
@@ -780,7 +769,7 @@ const T = {
     completenessReady:'كل حقول الفئة المطلوبة ممتلئة. نشر دفتر الأسعار يكتب الكتاب المباشر.',
     completenessGaps:(n) => n === 1 ? 'فجوة واحدة قبل نشر دفتر الأسعار' : n + ' فجوات قبل نشر دفتر الأسعار',
     completenessEmpty:'لا مسودة دفتر أسعار.',
-    gapDistance:'فئة المسافة', gapSurcharge:'رسم', gapRoute:'مسار ثابت', gapCoupon:'قسيمة', gapRule:'قاعدة', gapBand:'شريحة كم', gapBandOverlap:'شريحة كم متداخلة',
+    gapDistance:'فئة المسافة', gapSurcharge:'رسم', gapRoute:'مسار ثابت', gapCoupon:'قسيمة',
     gapFieldName:'الاسم', gapFieldPhoto:'الصورة', gapFieldStart:'سعر البداية', gapFieldPerKm:'لكل كم', gapFieldPax:'الركاب الأقصى', gapFieldBags:'الحقائب الأقصى',
     gapMissing:'{class} — ناقص {fields}.',
     publishDisabledGaps:'يبقى نشر دفتر الأسعار متوقفًا حتى تُملأ الفجوات.',
@@ -798,10 +787,8 @@ const T = {
       network:'لم ينقلب النشر — لم يصل الطلب إلى الخادم.',
       unknown:'لم ينقلب النشر — لم يقبل الخادم هذه المسودة.',
     },
-    bandOverlapWarn:'شرائح كم متداخلة: يفوز الأعلى بالفرنك لكل كيلومتر. يمكنك النشر رغم ذلك.',
-    regionPercentWarn:'نسبتا منطقة متطابقتان: تفوز الأعلى. يمكنك النشر رغم ذلك.',
+    lockLabel:'يبقى السعر صالحًا لمدة', lockSuffix:'ساعة', lockHint:'المدة التي يبقى فيها السعر الذي تعرضه على العميل كما هو.', saveLock:'حفظ', lockError:'أدخل عددًا صحيحًا من الساعات، 1 أو أكثر.', lockSaveError:'تعذّر الحفظ. حاول مرة أخرى.', lockSaved:'تم الحفظ في المسودة.',
     vatLabel:'ضريبة القيمة المضافة', vatSuffix:'%', vatError:'يجب أن تكون الضريبة 0 أو أكثر.', saveVat:'حفظ الضريبة', draftMark:'مسودة — ليست عامة حتى النشر', fixThis:'أصلح هذا',
-    previewKicker:'معاينة المسودة', recapStart:'البداية', recapKm:'الكيلومترات', recapBands:'الشرائح', recapRegion:'المنطقة %', recapExtras:'الإضافات', recapVat:'الضريبة', recapTotal:'الإجمالي',
     when:'متى', pax:'المسافرون', coupon:'قسيمة',
     testNote:'غير المدفوع للاختبار يستخدم هذه المسودة. لا يخصم بطاقة ولا يرسل بريدًا.',
     viewChanges:'عرض التغييرات', cloneDraft:'استنساخ إلى المسودة', liveBook:'الكتاب المباشر', gapFree:'بلا فجوات', hasGaps:'فيه فجوات',
@@ -829,6 +816,11 @@ class Component extends DCLogic {
     vat_rate_bps: 81,
     vatSavedBps: 81,
     vatError: false,
+    lockHours: '',
+    lockSavedHours: '',
+    lockError: '',
+    lockBusy: false,
+    lockOk: false,
     couponUses: [],
     publishOpen: false,
     discardOpen: false,
@@ -853,7 +845,6 @@ class Component extends DCLogic {
     previewPax: '1',
     previewCoupon: '',
     testEmail: '',
-    recap: null,
     testNote: '',
     histDate: '',
     dateOpen: null,
@@ -965,11 +956,6 @@ class Component extends DCLogic {
     if (loc && typeof loc.money === 'function') return loc.money(figure, 'CHF');
     return 'CHF ' + figure;
   }
-  recapLine(code) {
-    const recap = this.state.recap || [];
-    const hit = recap.filter((x) => x.code === code)[0];
-    return this.rappenMoney(hit ? hit.amount_rappen : null);
-  }
   api() {
     return window.VamosOpsApi;
   }
@@ -998,6 +984,10 @@ class Component extends DCLogic {
     const api = this.api();
     if (!api || typeof api.request !== 'function') return;
     api.request('GET', '/api/staff/rate-book').then((json) => {
+      // Decision 2026-10-13 item 13: the same answer carries the book's "Price stays valid for" hours (a string;
+      // the server sends 24 when the book has none, so no default lives here).
+      const lock = json && json.ok && json.data && json.data.quoteLockHours != null ? String(json.data.quoteLockHours) : '';
+      if (lock) this.setState({ lockHours: lock, lockSavedHours: lock, lockError: '' });
       const raw = json && json.ok && json.data ? json.data.vatRateBps : null;
       const bps = typeof raw === 'number' ? raw : Number(raw);
       if (Number.isFinite(bps) && bps >= 0) {
@@ -1033,6 +1023,39 @@ class Component extends DCLogic {
         this.setState({ vatSavedBps: bps, vat_rate_bps: bps });
       }, () => this.setState({ vatError: true }));
     }
+  };
+  /** Whole hours, 1 or more, else null (the PUT refuses anything else with 400 invalid). */
+  lockHoursValue(text) {
+    const raw = String(text == null ? '' : text).trim();
+    if (!/^\d+$/.test(raw)) return null;
+    const n = Number(raw);
+    return Number.isSafeInteger(n) && n >= 1 ? n : null;
+  }
+  setLockHours = (v) => {
+    const raw = v && typeof v === 'object' && v.target ? v.target.value : v;
+    const text = raw == null ? '' : String(raw);
+    // An empty box only turns Save off; a typed value that is not whole hours (0, 1.5, abc) says why.
+    const bad = text.trim() !== '' && this.lockHoursValue(text) === null;
+    this.setState({ lockHours: text, lockError: bad ? 'invalid' : '', lockOk: false });
+  };
+  /** Pricing › Distance rules "Price stays valid for": PUT rate-book {kind:"rule", ruleKind:"quote_lock"} writes the
+      draft's quote_lock_minutes (the server forks the live book into a draft when none exists); Publish keeps it. */
+  saveLock = () => {
+    const n = this.lockHoursValue(this.state.lockHours);
+    if (n === null) { this.setState({ lockError: 'invalid', lockOk: false }); return; }
+    if (String(n) === this.state.lockSavedHours || this.state.lockBusy) return;
+    const ops = window.VamosOps;
+    if (!ops || typeof ops.saveDraftQuoteLock !== 'function') { this.setState({ lockError: 'save' }); return; }
+    const hadDraft = !!this.state.draftId;
+    this.setState({ lockBusy: true, lockError: '', lockOk: false });
+    const fail = () => this.setState({ lockBusy: false, lockError: 'save' });
+    Promise.resolve(ops.saveDraftQuoteLock(n)).then((json) => {
+      if (!json || json.ok !== true) { fail(); return; }
+      const back = json.data && json.data.quoteLockHours != null ? String(json.data.quoteLockHours) : String(n);
+      this.setState({ lockBusy: false, lockHours: back, lockSavedHours: back, lockError: '', lockOk: true });
+      // The first save on a live book makes a draft: read the versions again so the Draft mark and Publish follow.
+      if (!hadDraft) this.loadDraft();
+    }, fail);
   };
   couponCapStatus(row) {
     if (!row) return 'paused';
@@ -1248,7 +1271,8 @@ class Component extends DCLogic {
     if (ops && typeof ops.discard === 'function') {
       const run = ops.discard(this.state.draftId);
       if (run && typeof run.then === 'function') {
-        run.then(() => { this.setState({ discardOpen: false }); this.loadDraft(); if (ops.resetAll) ops.resetAll(); }, () => {});
+        // The book on screen is now the live one again: re-read its VAT and price-valid hours too.
+        run.then(() => { this.setState({ discardOpen: false }); this.loadDraft(); this.loadVat(); if (ops.resetAll) ops.resetAll(); }, () => {});
         return;
       }
     }
@@ -1258,6 +1282,7 @@ class Component extends DCLogic {
     api.request('POST', '/api/staff/rate-versions/' + id + '/discard').then(() => {
       this.setState({ discardOpen: false });
       this.loadDraft();
+      this.loadVat();
       if (window.VamosOps && window.VamosOps.resetAll) window.VamosOps.resetAll();
     });
   };
@@ -1266,7 +1291,7 @@ class Component extends DCLogic {
     if (ops && typeof ops.cloneIntoDraft === 'function') {
       const run = ops.cloneIntoDraft(id);
       if (run && typeof run.then === 'function') {
-        run.then(() => { this.loadDraft(); if (ops.resetAll) ops.resetAll(); }, () => {});
+        run.then(() => { this.loadDraft(); this.loadVat(); if (ops.resetAll) ops.resetAll(); }, () => {});
         return;
       }
     }
@@ -1274,6 +1299,7 @@ class Component extends DCLogic {
     if (!api || !id) return;
     api.request('POST', '/api/staff/rate-versions/' + id + '/clone').then(() => {
       this.loadDraft();
+      this.loadVat();
       if (window.VamosOps && window.VamosOps.resetAll) window.VamosOps.resetAll();
     });
   };
@@ -1372,25 +1398,6 @@ class Component extends DCLogic {
     if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(raw)) return t.whoUnknown;
     return raw;
   }
-  bandsOverlap(rows) {
-    const sorted = (rows || []).slice().sort((a, b) => Number(a.fromKm) - Number(b.fromKm));
-    for (let i = 1; i < sorted.length; i++) {
-      const prevTo = sorted[i - 1].toKm;
-      if (prevTo === '' || prevTo == null) return true;
-      if (Number(sorted[i].fromKm) < Number(prevTo)) return true;
-    }
-    return false;
-  }
-  regionsOverlap(rows) {
-    const seen = {};
-    for (let i = 0; i < (rows || []).length; i++) {
-      const z = String((rows[i] && rows[i].zone) || '');
-      if (!z) continue;
-      if (seen[z]) return true;
-      seen[z] = 1;
-    }
-    return false;
-  }
 
   renderVals() {
     const t = T[this.state.lang] || T.en;
@@ -1406,18 +1413,18 @@ class Component extends DCLogic {
     const profile = ops && ops.profile ? ops.profile.get() : {};
     const role = profile.role || '';
     const rawGaps = this.state.gaps || [];
+    // Save turns primary only for whole hours that differ from what the book holds (same rule as VAT).
+    const lockValue = this.lockHoursValue(this.state.lockHours);
+    const lockDirty = lockValue !== null && String(lockValue) !== this.state.lockSavedHours;
     const gapKind = (kind) => {
       if (kind === 'distance_rate') return t.gapDistance;
       if (kind === 'surcharge') return t.gapSurcharge;
       if (kind === 'coupon') return t.gapCoupon;
-      if (kind === 'rule') return t.gapRule;
-      if (kind === 'band_overlap') return t.gapBandOverlap;
-      if (kind === 'band') return t.gapBand;
       return t.gapRoute;
     };
     const paneForGap = (kind) => {
-      if (kind === 'distance_rate' || kind === 'band' || kind === 'band_overlap' || kind === 'class') return 'distance';
-      if (kind === 'surcharge' || kind === 'rule') return 'surcharges';
+      if (kind === 'distance_rate' || kind === 'class') return 'distance';
+      if (kind === 'surcharge') return 'surcharges';
       if (kind === 'coupon') return 'coupons';
       return 'routes';
     };
@@ -1542,7 +1549,6 @@ class Component extends DCLogic {
     };
     const routesRaw = ops ? ops.routes.all() : [];
     const surchargesRaw = ops ? ops.surcharges.all() : [];
-    const bandRowsRaw = ops ? ops.bands.all() : [];
     const couponRaw = ops ? ops.coupons.all() : [];
     const historyPublished = (this.state.versions || []).filter((v) => v.status === 'live' || v.status === 'retired').slice().sort((a, b) => {
       if (a.status === 'live' && b.status !== 'live') return -1;
@@ -1657,6 +1663,15 @@ class Component extends DCLogic {
       saveVat: this.saveVat,
       vatSaveVariant: (this.percentToBps(this.state.vatPercent) !== this.state.vatSavedBps && !this.state.vatError) ? 'primary' : 'ghost',
       vatSaveOff: this.percentToBps(this.state.vatPercent) === this.state.vatSavedBps || this.state.vatError,
+      tLockLabel: t.lockLabel, tLockSuffix: t.lockSuffix, tLockHint: t.lockHint, tSaveLock: t.saveLock, tLockSaved: t.lockSaved,
+      lockHours: this.state.lockHours,
+      setLockHours: this.setLockHours,
+      saveLock: this.saveLock,
+      lockErrorText: this.state.lockError === 'invalid' ? t.lockError : this.state.lockError === 'save' ? t.lockSaveError : '',
+      lockErrFlag: this.state.lockError ? '1' : '0',
+      lockOkDisplay: this.state.lockOk ? 'block' : 'none',
+      lockSaveVariant: lockDirty ? 'primary' : 'ghost',
+      lockSaveOff: !lockDirty || this.state.lockBusy,
       gaps: gaps,
       gapListDisplay: hasGaps ? 'block' : 'none',
       headerPublishErrorDisplay: this.state.publishCode ? 'block' : 'none',
@@ -1688,8 +1703,6 @@ class Component extends DCLogic {
       retireClassName: this.state.retireTarget ? this.state.retireTarget.klass : '',
       publishOpen: this.state.publishOpen, discardOpen: this.state.discardOpen,
       tCompletenessBody: completenessBody,
-      tBandOverlapWarn: t.bandOverlapWarn,
-      bandWarnDisplay: this.bandsOverlap(bandRowsRaw) ? 'block' : 'none',
       tColFrom: t.colFrom, tColTo: t.colTo, tWhen: t.when, tPax: t.pax, tCoupon: t.coupon,
       tEmptyHistoryTitle: t.emptyHistoryTitle, tEmptyHistoryBody: t.emptyHistoryBody,
       tEmptyHistoryFilterTitle: t.emptyHistoryFilterTitle, tEmptyHistoryFilterBody: t.emptyHistoryFilterBody,

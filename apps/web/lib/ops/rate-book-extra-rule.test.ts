@@ -193,11 +193,7 @@ vi.mock("@/lib/ops/rate-book", async (importOriginal) => {
             percent: null,
             appliesTo: "leg",
             active: true,
-            ruleId: null,
           })),
-        distanceBands: [],
-        regionPremiums: [],
-        rules: [],
         vehicleClasses: [],
       };
     },

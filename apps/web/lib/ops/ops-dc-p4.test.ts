@@ -189,7 +189,6 @@ function pricing(rows: Json[]): { comp: PricingComp; T: Copy } {
       LOCATIONS: [],
       routes: coll([]),
       rates: coll([]),
-      bands: coll([]),
       coupons: coll([]),
       surcharges: coll(rows),
       profile: { get: () => ({ role: "admin" }), onChange: () => noop },

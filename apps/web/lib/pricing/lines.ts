@@ -25,14 +25,12 @@
 import { evaluatePredicate } from "./predicates";
 import { percentOf, percentToHundredths, perKm } from "./round";
 import type {
-  DistanceBandRow,
   DistanceRateRow,
   FixedRouteRow,
   Line,
   LineKind,
   QuoteInput,
   QuoteLegInput,
-  RegionPremiumRow,
   SettingsSnapshot,
   SurchargeRow,
   VehicleClassRow,
@@ -137,7 +135,6 @@ export interface BuildFareLineArgs {
   distanceRate: DistanceRateRow | null;
   fixedRoutes: FixedRouteRow[];
   rateVersionId: number | null;
-  distanceBands?: DistanceBandRow[];
   /** D-20: airport identity and canton tags live on service_zones. */
   zones?: ZoneRow[];
 }
@@ -578,55 +575,6 @@ export function buildAirportFeeLine(args: {
         }
       : {}),
     amount_rappen: distanceRate?.airport_start_rappen ?? null,
-  };
-}
-
-export function buildRegionPremiumLine(args: {
-  leg: QuoteLegInput;
-  fareLine: Line;
-  premiums: RegionPremiumRow[];
-  rateVersionId: number | null;
-}): Line | null {
-  const { leg, fareLine, premiums, rateVersionId } = args;
-  const ids = [leg.origin_zone_id, leg.dest_zone_id].filter(
-    (id): id is string => typeof id === "string" && id.length > 0,
-  );
-  let best: RegionPremiumRow | null = null;
-  let bestHundredths = 0;
-  for (const row of premiums) {
-    if (!ids.includes(row.zone_id)) continue;
-    const asStr = percentString(row.percent);
-    if (asStr === null) continue;
-    const hundredths = percentToHundredths(asStr);
-    if (hundredths === null || hundredths <= bestHundredths) continue;
-    bestHundredths = hundredths;
-    best = row;
-  }
-  if (best === null || bestHundredths <= 0) return null;
-  const ofRappen = fareLine.amount_rappen;
-  const amount =
-    ofRappen === null ? null : percentOf(ofRappen, bestHundredths);
-  const provisional = seqFor(leg.leg_seq, "surcharge", "region_premium");
-  return {
-    seq: provisional,
-    leg_seq: leg.leg_seq,
-    kind: "surcharge",
-    code: "region_premium",
-    i18n_key: "price.surcharge.region_premium.label",
-    params: { n: 1 },
-    basis: {
-      rule: "percent",
-      of_line_seq: fareLine.seq,
-      of_rappen: ofRappen,
-      percent: best.percent,
-      why: { predicate: "either_zone", zone_id: best.zone_id },
-    },
-    source_row: {
-      table: "region_premiums",
-      id: best.id,
-      ...(rateVersionId !== null ? { rate_version_id: rateVersionId } : {}),
-    },
-    amount_rappen: amount,
   };
 }
 

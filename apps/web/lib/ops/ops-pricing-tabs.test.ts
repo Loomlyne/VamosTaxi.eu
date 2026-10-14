@@ -61,6 +61,9 @@ describe("OpsPricing tabs (D-11 D-12 D-17 D-25)", () => {
     // 26.2-p4 A5 (owner, 2026-09-30): no type list behind the Extras table.
     expect(html).not.toContain("SURCHARGE_TYPES");
     expect(html).not.toContain("ruleRows");
+    // Decision 2026-10-13 items 10, 13: no km band, region % or Rules list strings or logic remain.
+    expect(html).not.toMatch(/bandWarnDisplay|tBandOverlapWarn|bandsOverlap|regionsOverlap|bandRowsRaw|recapLine|gapBand|gapRule|hRulePayload|emptyRulesTitle|regionPercentWarn|recapBands|ops\.bands|ops\.rules|ops\.regionPremiums/);
+    expect(html).not.toMatch(/kind === '(band|band_overlap|rule)'/);
   });
 
   it("refetches completeness before opening Publish so a filled start fare is not a stale gap", () => {

@@ -68,7 +68,6 @@ function page(opts: { rows?: Json[]; lang?: Lang; rates?: Json[]; chauffeurs?: J
       LOCATIONS: [],
       routes: coll([]),
       rates: coll(opts.rates ?? []),
-      bands: coll([]),
       coupons: coll([]),
       surcharges: coll([]),
       chauffeurs: { ...coll(opts.chauffeurs ?? []), peek: () => opts.chauffeurs ?? [] },

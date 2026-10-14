@@ -193,6 +193,8 @@ Recorded mapping (not live, no `rate_versions` row):
 | Night / extra stop / child seat / meet-greet / ski | **Not in V1 calculation.** No surcharge lines until the owner adds them on OPS Pricing & Routes. |
 | Source of truth | OPS Pricing & Routes. A published change must flow into new quotes and into the Stripe charge (the snapshot amount). In-flight snapshots stay frozen. |
 
+2026-10-14: km bands and region % removed from the product (decision 2026-10-13 items 10, 13); city/canton extras on Pricing replace them. This table is history.
+
 Worked blended examples (Economy floor 80, no region %): 15 km → 80 · 40 km → 156 · 70 km → 262 · 120 km → 428.
 
 Not yet answered: when “Geneva long route” applies (km threshold vs named zone).

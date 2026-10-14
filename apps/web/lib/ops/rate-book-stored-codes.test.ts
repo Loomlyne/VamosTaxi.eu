@@ -26,7 +26,6 @@ function surcharge(id: number, code: string) {
     percent: null,
     applies_to: "leg",
     active: true,
-    rule_id: null,
   };
 }
 
