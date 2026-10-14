@@ -36,12 +36,10 @@ async function copies() {
   const find = (table: string) =>
     r.calls.find((t) => new RegExp(`insert into public\\.${table}\\b`).test(t)) ?? "";
   return {
+    all: r.calls.join("\n"),
     rates: find("distance_rates"),
     routes: find("fixed_routes"),
-    rules: find("rate_version_rules"),
     surcharges: find("surcharges"),
-    bands: find("distance_bands"),
-    regions: find("region_premiums"),
     coupons: find("coupons"),
   };
 }
@@ -56,25 +54,17 @@ describe("cloneRateVersionFrom skips retired classes (CLS-06)", () => {
     }
   });
 
-  it("distance_bands keeps class-less bands (left join, null class allowed)", async () => {
+  it("surcharges and coupons are copied as before", async () => {
     const c = await copies();
-    expect(c.bands).toMatch(/left join public\.vehicle_classes vc/);
-    expect(c.bands).toContain("vehicle_class_id is null or vc.hidden_at is null");
-  });
-
-  it("city_pair rules of a retired class are not copied", async () => {
-    const c = await copies();
-    expect(c.rules).toContain("city_pair");
-    expect(c.rules).toContain("hidden_at is not null");
-    expect(c.rules).toContain("payload ->> 'vehicleClassId'");
-    expect(c.rules).toMatch(/order by id/);
-  });
-
-  it("surcharges, region premiums and coupons are copied as before", async () => {
-    const c = await copies();
-    for (const text of [c.surcharges, c.regions, c.coupons]) {
+    expect(c.surcharges).not.toBe("");
+    expect(c.coupons).not.toBe("");
+    for (const text of [c.surcharges, c.coupons]) {
       expect(text).not.toContain("vehicle_classes");
     }
-    expect(c.surcharges).toContain("rule_id");
+  });
+
+  it("decision 2026-10-13 items 10, 13: no km band, region % or rule copy, no surcharges.rule_id", async () => {
+    const c = await copies();
+    expect(c.all).not.toMatch(/distance_bands|region_premiums|rate_version_rules|rule_id/);
   });
 });

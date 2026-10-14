@@ -85,13 +85,13 @@ function book(rv: number, ecoActive = true): RateBook {
     rate_version: { id: rv, slug: `rv-${rv}` },
     classes: [cls(ECO, 4, 1, "Economy", ecoActive), cls(BIZ, 7, 2, "Business"), cls("van-luxury", 8, 3, "Van luxury")],
     distance_rates: [rate(ECO, 1000, 300), rate(BIZ, 1200, 420), rate("van-luxury", 1400, 510)],
-    distance_bands: [], region_premiums: [], fixed_routes: [], surcharges: [], zones: [],
+    fixed_routes: [], surcharges: [], zones: [],
   };
 }
 
 function docOf(b: RateBook) {
   return { rate_version: { ...b.rate_version, status: "live" }, classes: b.classes, distance_rates: b.distance_rates,
-    distance_bands: [], region_premiums: [], fixed_routes: [], surcharges: [], zones: [] };
+    fixed_routes: [], surcharges: [], zones: [] };
 }
 
 const BOOKED: TripFacts = {

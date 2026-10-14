@@ -20,7 +20,6 @@ import {
 import { buildCouponLine, sumPreCouponTotal } from "./policy";
 import { perKm, roundHalfUp } from "./round";
 import type {
-  DistanceBandRow,
   DistanceRateRow,
   FixedRouteRow,
   Line,
@@ -100,20 +99,6 @@ function fixed(
     kind: partial.kind,
     origin_label: partial.origin_label,
     dest_label: partial.dest_label,
-  };
-}
-
-function band(
-  partial: Pick<DistanceBandRow, "vehicle_class_id" | "from_km" | "per_km_rappen"> &
-    Partial<DistanceBandRow>,
-): DistanceBandRow {
-  return {
-    id: partial.id ?? 1,
-    rate_version_id: partial.rate_version_id ?? 1,
-    vehicle_class_id: partial.vehicle_class_id,
-    from_km: partial.from_km,
-    to_km: partial.to_km === undefined ? null : partial.to_km,
-    per_km_rappen: partial.per_km_rappen,
   };
 }
 
@@ -624,7 +609,7 @@ describe("buildFareLine — fixed route (D-08)", () => {
 });
 
 describe("buildFareLine — D-11 D-12 D-13 D-14 live distance recipe", () => {
-  it("D-11: start + (all metres × per-km) with no bands", () => {
+  it("D-11: start + (all metres × per-km)", () => {
     const line = buildFareLine({
       leg: leg({ distance_m: 40_000 }),
       vehicleClass: business,
@@ -636,7 +621,6 @@ describe("buildFareLine — D-11 D-12 D-13 D-14 live distance recipe", () => {
       }),
       fixedRoutes: [],
       rateVersionId: 1,
-      distanceBands: [],
     });
     expect(line.amount_rappen).toBe(1000 + perKm(250, 40_000));
     expect(line.i18n_key).toBe("price.line.transfer");
@@ -655,75 +639,9 @@ describe("buildFareLine — D-11 D-12 D-13 D-14 live distance recipe", () => {
       }),
       fixedRoutes: [],
       rateVersionId: 1,
-      distanceBands: [],
     });
     expect(line.amount_rappen).toBe(1000 + perKm(250, 1_000));
     expect(line.amount_rappen).not.toBe(99_999);
-  });
-
-  it("D-08: distance bands for the class never enter the fare amount", () => {
-    const line = buildFareLine({
-      leg: leg({ distance_m: 40_000 }),
-      vehicleClass: economy,
-      distanceRate: rate({
-        vehicle_class_id: economy.id,
-        base_fare_rappen: 1000,
-        per_km_rappen: 200,
-        min_fare_rappen: 8_000,
-      }),
-      fixedRoutes: [],
-      rateVersionId: 1,
-      distanceBands: [
-        band({
-          id: 1,
-          vehicle_class_id: economy.id,
-          from_km: 20,
-          to_km: 50,
-          per_km_rappen: 100,
-        }),
-        band({
-          id: 2,
-          vehicle_class_id: business.id,
-          from_km: 20,
-          to_km: 50,
-          per_km_rappen: 999,
-        }),
-      ],
-    });
-    // D-08: start + all 40 km × 200 only — the [20, 50) band extra is ignored.
-    expect(line.amount_rappen).toBe(1000 + perKm(200, 40_000));
-  });
-
-  it("D-08: an overlapping band book still ignores every band — no floor, no minimum", () => {
-    const bands = [
-      band({
-        id: 1,
-        vehicle_class_id: economy.id,
-        from_km: 20,
-        to_km: 50,
-        per_km_rappen: 1000,
-      }),
-      band({
-        id: 2,
-        vehicle_class_id: economy.id,
-        from_km: 30,
-        to_km: 60,
-        per_km_rappen: 180,
-      }),
-    ];
-    const line = buildFareLine({
-      leg: leg({ distance_m: 70_000 }),
-      vehicleClass: economy,
-      distanceRate: rate({
-        vehicle_class_id: economy.id,
-        base_fare_rappen: 0,
-        per_km_rappen: 100,
-      }),
-      fixedRoutes: [],
-      rateVersionId: 1,
-      distanceBands: bands,
-    });
-    expect(line.amount_rappen).toBe(perKm(100, 70_000));
   });
 
   it("D-11 D-12: no DISTANCE_FLOOR_KM and no min_fare_rappen floor on the live path", () => {
@@ -738,7 +656,6 @@ describe("buildFareLine — D-11 D-12 D-13 D-14 live distance recipe", () => {
       }),
       fixedRoutes: [],
       rateVersionId: 1,
-      distanceBands: [],
     });
     // raw = 50 + perKm(100, 100) = 60. min_fare 500 must not raise it.
     expect(line.amount_rappen).toBe(50 + perKm(100, 100));
@@ -757,7 +674,6 @@ describe("buildFareLine — D-11 D-12 D-13 D-14 live distance recipe", () => {
       }),
       fixedRoutes: [],
       rateVersionId: 1,
-      distanceBands: [],
     });
     expect(perKm(250, 12_300)).toBe(roundHalfUp(250 * 12_300, 1_000));
     expect(line.amount_rappen).toBe(1000 + roundHalfUp(250 * 12_300, 1_000));

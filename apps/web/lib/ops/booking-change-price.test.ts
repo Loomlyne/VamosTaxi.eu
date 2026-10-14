@@ -59,8 +59,6 @@ function book(rv: number, perKm: { eco: number; biz: number; van: number }, airp
       rate(rv, BIZ.slug, 1200, perKm.biz, airport ? 1800 : null),
       rate(rv, VAN.slug, 1400, perKm.van, airport ? 2100 : null),
     ],
-    distance_bands: [],
-    region_premiums: [],
     fixed_routes: [],
     surcharges: [],
     zones: [AIRPORT],

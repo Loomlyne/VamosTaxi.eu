@@ -4,11 +4,10 @@
 // = 275.20 (27520 rappen). 12.3 km × 10 = 123 (12300 rappen km money). Never invent
 // a currency mark in assertions.
 
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { classBandExtrasRappen } from "./bands";
 import { buildFareLine } from "./lines";
 import { perKm } from "./round";
 import type {
@@ -52,9 +51,8 @@ function leg(distance_m: number): QuoteLegInput {
 }
 
 describe("D-15 distance recipe (275.20 / 27520 and 123 / 12300)", () => {
-  it("start 10000 + perKm(1200, 14600) = 27520 with no bands", () => {
+  it("start 10000 + perKm(1200, 14600) = 27520", () => {
     expect(perKm(1200, 14_600)).toBe(17_520);
-    expect(classBandExtrasRappen(14_600, [], cls.id)).toBe(0);
     const line = buildFareLine({
       leg: leg(14_600),
       vehicleClass: cls,
@@ -64,7 +62,6 @@ describe("D-15 distance recipe (275.20 / 27520 and 123 / 12300)", () => {
       }),
       fixedRoutes: [],
       rateVersionId: 1,
-      distanceBands: [],
     });
     expect(line.amount_rappen).toBe(27_520);
     expect(line.amount_rappen).toBe(10_000 + perKm(1_200, 14_600));
@@ -81,7 +78,6 @@ describe("D-15 distance recipe (275.20 / 27520 and 123 / 12300)", () => {
       }),
       fixedRoutes: [],
       rateVersionId: 1,
-      distanceBands: [],
     });
     expect(line.amount_rappen).toBe(12_300);
   });
@@ -96,19 +92,22 @@ describe("D-15 distance recipe (275.20 / 27520 and 123 / 12300)", () => {
       }),
       fixedRoutes: [],
       rateVersionId: 1,
-      distanceBands: [],
     });
     expect(line.amount_rappen).toBe(10_000 + perKm(1_200, 1_000));
   });
 });
 
-describe("D-17 public stack emits no region %", () => {
-  it("priceQuote does not call buildRegionPremiumLine", () => {
-    const src = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), "priceQuote.ts"),
-      "utf8",
-    );
-    expect(src).not.toMatch(/buildRegionPremiumLine/);
-    expect(src).not.toMatch(/region_premium/);
+describe("D-17 / decision 2026-10-13 items 10, 13: no region % and no km bands in the engine", () => {
+  it("no lib/pricing source builds a region line or reads km bands", () => {
+    const dir = dirname(fileURLToPath(import.meta.url));
+    expect(existsSync(join(dir, "bands.ts"))).toBe(false);
+    const sources = readdirSync(dir).filter((f) => f.endsWith(".ts") && !f.endsWith(".test.ts"));
+    expect(sources.length).toBeGreaterThan(0);
+    for (const file of sources) {
+      const src = readFileSync(join(dir, file), "utf8");
+      expect(src, file).not.toMatch(
+        /buildRegionPremiumLine|classBandExtrasRappen|region_premium|distance_bands|DistanceBandRow|RegionPremiumRow/,
+      );
+    }
   });
 });

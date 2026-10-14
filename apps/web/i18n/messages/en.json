@@ -2716,10 +2716,6 @@
       "oversized_luggage": {
         "label": "Oversized luggage",
         "rule": "Per declared item"
-      },
-      "region_premium": {
-        "label": "Region",
-        "rule": "Pickup or dropoff in a named region"
       }
     }
   },

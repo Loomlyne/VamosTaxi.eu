@@ -70,12 +70,13 @@ describe("preview is draft priceQuote, not public preferDraft (D-05 D-29)", () =
     expect(loader).toMatch(/loadDraftQuoteBookDoc/);
   });
 
-  it("recap order is start, km, bands, region, extras, VAT, total", () => {
+  it("recap order is start, km, extras, VAT, total (km bands and region % removed 2026-10-13)", () => {
     const helper = webSource("lib/ops/draft-preview.ts");
     expect(helper).toMatch(/code: "start"/);
     expect(helper).toMatch(/code: "km"/);
-    expect(helper).toMatch(/code: "bands"/);
-    expect(helper).toMatch(/code: "region"/);
+    expect(helper).not.toMatch(/code: "bands"/);
+    expect(helper).not.toMatch(/code: "region"/);
+    expect(helper).not.toMatch(/region_premium/);
     expect(helper).toMatch(/code: "extras"/);
     expect(helper).toMatch(/code: "vat"/);
     expect(helper).toMatch(/code: "total"/);

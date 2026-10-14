@@ -39,6 +39,9 @@ describe("D-14 dead city-price path", () => {
   it("dashboard page has no city price logic", () => {
     expect(dc).not.toMatch(/cityPair|cityPrice/);
   });
+  it("rate-book route has no city-pair rule path (decision 2026-10-13 item 13)", () => {
+    expect(route).not.toMatch(/cityPair|city_pair/);
+  });
   it("server writes no longer touch city_price_rappen", () => {
     for (const src of [route, actions]) {
       expect(src).not.toMatch(/city_price_rappen/);

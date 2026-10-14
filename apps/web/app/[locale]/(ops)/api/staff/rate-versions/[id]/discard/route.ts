@@ -32,9 +32,6 @@ export const POST = withAdmin(async (claims, request) => {
     await asStaff(env, claims, async (tx) => {
       await tx`delete from public.coupons where rate_version_id = ${id}`;
       await tx`delete from public.surcharges where rate_version_id = ${id}`;
-      await tx`delete from public.rate_version_rules where rate_version_id = ${id}`;
-      await tx`delete from public.distance_bands where rate_version_id = ${id}`;
-      await tx`delete from public.region_premiums where rate_version_id = ${id}`;
       await tx`delete from public.fixed_routes where rate_version_id = ${id}`;
       await tx`delete from public.distance_rates where rate_version_id = ${id}`;
       await tx`delete from public.rate_versions where id = ${id} and status = 'draft'`;
