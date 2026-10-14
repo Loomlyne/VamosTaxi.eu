@@ -45,13 +45,14 @@ describe("customer refund words and amount (26.1-18, UI-SPEC §2)", () => {
   const msgs = (lang: string) =>
     JSON.parse(read(`apps/web/i18n/messages/${lang}.json`)) as { checkout: Record<string, string> };
 
-  it("replaces Pending Ops with Refund under review and adds No refund, in four languages", () => {
+  it("pending_ops reads the signed policy row, and No refund stays", () => {
+    // Phase 31 S-02: W2 of .planning/decisions/2026-10-12-refund-wording-signed.md.
     expect(read("apps/web/i18n/messages/en.json")).not.toContain('"Pending Ops"');
     const want: Record<string, [string, string]> = {
-      en: ["Refund under review", "No refund"],
-      de: ["Rückerstattung in Prüfung", "Keine Rückerstattung"],
-      fr: ["Remboursement en cours d’examen", "Aucun remboursement"],
-      ar: ["الاسترداد قيد المراجعة", "لا يوجد استرداد"],
+      en: ["Refund follows the cancellation policy", "No refund"],
+      de: ["Rückerstattung gemäss Stornierungsbedingungen", "Keine Rückerstattung"],
+      fr: ["Remboursement selon la politique d’annulation", "Aucun remboursement"],
+      ar: ["الاسترداد وفق سياسة الإلغاء", "لا يوجد استرداد"],
     };
     for (const [lang, [pending, declined]] of Object.entries(want)) {
       const c = msgs(lang).checkout;

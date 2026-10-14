@@ -1008,3 +1008,38 @@ describe.each(PAGES)("%s: after a cancel the page keeps the country code (261002
     expect(page.renderVals().refundedCopy).toBe(`Erstattet auf Ihre Karte in Schweiz. ${NOTE.de}`);
   });
 });
+
+// ── Phase 31 D-04 / S-02: one policy line, no amount (31-UI-SPEC sections 2 and 3) ─────────────────────────
+
+const W1 = "This trip will be cancelled. Any refund follows the cancellation policy.";
+const W3 = "Any refund follows the cancellation policy and goes back to the payment method you used. Your bank may take a few days to show it.";
+
+describe.each(PAGES)("%s: a paid cancel shows the signed policy line and no amount (Phase 31 D-04)", (rel) => {
+  it("the cancel sheet carries W1 in both windows, and the dead card one Refund block with W3", () => {
+    const html = read(rel);
+    expect(html.split(`>${W1}</p>`).length - 1).toBe(2);
+    expect(html.split(`>${W3}</p>`).length - 1).toBe(1);
+    expect(html).toMatch(/sc-if value="\{\{ refundPolicyCard \}\}"/);
+    expect(html).not.toMatch(/refundFull|refundReview|refundRappen/);
+    expect(html).not.toContain("waiting on review");
+    expect(html).not.toContain("our team sends it.<");
+    expect(html).not.toContain("Our team decides the refund and tells you by email.<");
+  });
+
+  it("the cancel answer's amount is never read; the card flag follows refundStatus only", async () => {
+    const { page } = openPage(rel, {
+      status: 200,
+      body: { ok: true, bookingId: "b1", refundStatus: "pending_ops", refundRappen: 4000, payoutCountry: "CH" },
+    });
+    page.applyTicket({ ...BOOKED }, "gate", "account");
+    page.confirmCancel();
+    await flush();
+    const ticket = page.state.ticket as Record<string, unknown>;
+    expect(ticket).toMatchObject({ status: "cancelled", refundStatus: "pending_ops" });
+    expect(ticket.refundOwedRappen).not.toBe(4000);
+    const v = page.renderVals();
+    expect(v.refundPolicyCard).toBe(true);
+    expect(v).not.toHaveProperty("refundFull");
+    expect(v).not.toHaveProperty("refundReview");
+  });
+});

@@ -73,6 +73,8 @@
         // No Mapbox plan exists yet, so no ceiling in francs can be honest.
         "MAPBOX_DAILY_UNIT_SENTINEL": "5000",
         "STRIPE_PUBLISHABLE_KEY": "pk_live_51UIZmAQbJiSLxJfuw0YAE95fkqETwgzH71G5c0122QI2mDmCSvFHo9yRAOcjmJfFxtaVPWysPTw8u8UD8SC43wd900xHfwhwqO",
+        // Phase 31 (C-01): live Stripe account the dashboard REFUND links open; not a secret; confirmed by the controller against the live publishable key on 2026-10-13 (31-CONTEXT S-11).
+        "STRIPE_ACCOUNT_ID": "acct_1UIZmAQbJiSLxJfu",
         "STRIPE_CHECKOUT_TWINT": "off"
       },
       "kv_namespaces": [

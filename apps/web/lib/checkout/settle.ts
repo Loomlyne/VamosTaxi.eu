@@ -43,6 +43,7 @@ import { stripeAccountIsLegacyUaeTest } from "./charge-gate";
 import type { StripeQueueMessage } from "./webhook";
 import { purgeDepsFromEnv, purgeOnSessionExpired } from "./purge-unpaid";
 import { deliverConfirmation } from "./notify";
+import { mailCustomerRefund } from "./refund-mail";
 import { provisionCheckoutAccount, provisionDeps } from "./provision-account";
 import {
   deliverAmountMismatchAlert,
@@ -956,8 +957,12 @@ export async function handleStripeMessage(
           )
         `;
       });
-      return { outcome: String(rows[0]?.outcome ?? "unknown") };
+      return {
+        outcome: String(rows[0]?.outcome ?? "unknown"),
+        bookingId: rows[0]?.booking_id ? String(rows[0].booking_id) : null,
+      };
     },
+    mailCustomerRefund: (input) => mailCustomerRefund(env, input),
     upsertDispute: async (input) => {
       const rows = await asSystem(env, async (sql) => {
         return sql`

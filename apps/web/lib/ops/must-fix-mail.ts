@@ -5,8 +5,12 @@
 // OpsChauffeurs browser JS.
 
 import {
+  renderRefundCheckDidNotRun,
+  renderRefundCheckEmail,
   sendOpsMustFix,
+  sendRefundCheck,
   type EmailLocale,
+  type RefundCheckReport,
   type OpsMustFixForEmail,
   type OpsMustFixKind,
   type OpsMustFixTrip,
@@ -166,4 +170,29 @@ export async function deliverDifferenceNotAppliedAlert(
   const row = await loadMustFixTrip(env, key);
   if (!row) throw new MustFixMailError("trip_not_found");
   await deliverOpsMustFix(env, "difference-not-applied", tripsFromRows([row]), emailLocale(row.locale));
+}
+
+/** Phase 31 D-09: the one place a refund check mail's send result is read. Throws MustFixMailError when not ok. */
+async function sendRefundCheckOrThrow(
+  env: CloudflareEnv,
+  mail: { subject: string; html: string; text: string },
+): Promise<void> {
+  const key = env.RESEND_API_KEY ?? "";
+  if (!key) throw new MustFixMailError("no_api_key");
+  const outcome = await sendRefundCheck({ RESEND_API_KEY: key }, mail, SUPPORT_EMAIL);
+  if (!outcome.ok) throw new MustFixMailError("send_failed");
+}
+
+/**
+ * Phase 31 D-09 / D-12: the nightly refund check found Stripe refunds that do not match a booking. One
+ * English mail to info@ with references, CHF amounts and Stripe ids only. Throws MustFixMailError when the
+ * mail did not go out (the cron logs refund_check failed).
+ */
+export async function deliverRefundCheckAlert(env: CloudflareEnv, report: RefundCheckReport): Promise<void> {
+  await sendRefundCheckOrThrow(env, renderRefundCheckEmail(report));
+}
+
+/** Phase 31 D-09: Stripe did not answer the nightly refund check. Throws MustFixMailError when not sent. */
+export async function deliverRefundCheckDidNotRun(env: CloudflareEnv): Promise<void> {
+  await sendRefundCheckOrThrow(env, renderRefundCheckDidNotRun());
 }

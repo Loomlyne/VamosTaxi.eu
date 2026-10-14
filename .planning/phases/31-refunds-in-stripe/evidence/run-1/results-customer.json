@@ -1,0 +1,60 @@
+{
+ "at": "2026-10-13T14:17:40.555Z",
+ "base": "http://localhost:4720",
+ "results": [
+  {
+   "id": "C1",
+   "title": "1440 en manage (a): cancel sheet line, no CHF/Stripe",
+   "status": "PASS",
+   "evidence": "line true; CHF in sheet false; Stripe in sheet false"
+  },
+  {
+   "id": "C2",
+   "title": "390 ar manage (a): cancel sheet line",
+   "status": "PASS",
+   "evidence": "line true; CHF false; Stripe false; scrollWidth 390/390"
+  },
+  {
+   "id": "C6",
+   "title": "1024 de manage (a): cancel sheet line",
+   "status": "PASS",
+   "evidence": "line true; CHF in sheet false; scrollWidth 1024/1024"
+  },
+  {
+   "id": "C8",
+   "title": "1440 de/fr/ar coverage: cancel sheet (a), Refund row (d)",
+   "status": "FAIL",
+   "evidence": "cancel sheet: de 1 [\"Zurich Airport → Zug\"]; fr 1 [\"Zurich Airport → Zug\"]; ar 1 [\"Zurich Airport → Zug\"]"
+  },
+  {
+   "id": "C3",
+   "title": "1440 en booking-detail (d): Refund row",
+   "status": "FAIL",
+   "evidence": "url /booking-detail?ref=VT-99-31304; row \"null\""
+  },
+  {
+   "id": "C4",
+   "title": "390 ar booking-detail (d): Refund row",
+   "status": "FAIL",
+   "evidence": "row \"null\"; scrollWidth 390/390"
+  },
+  {
+   "id": "C7",
+   "title": "768 en booking-detail (d): Refund row",
+   "status": "FAIL",
+   "evidence": "row \"null\"; scrollWidth 768/768"
+  },
+  {
+   "id": "C8b",
+   "title": "C8 second half: Refund row (d) coverage de/fr/ar",
+   "status": "FAIL",
+   "evidence": "refund row: de row missing \"undefined\"; fr row missing \"undefined\"; ar row missing \"undefined\""
+  },
+  {
+   "id": "C5",
+   "title": "no page text of C1-C4, C6-C8 contains Stripe",
+   "status": "PASS",
+   "evidence": "pages read C1,C2,C6,C8-sheet-de,C8-sheet-fr,C8-sheet-ar,C3,C4,C7,C8-row-de,C8-row-fr,C8-row-ar; containing Stripe: []"
+  }
+ ]
+}

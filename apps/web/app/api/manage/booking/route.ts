@@ -176,6 +176,8 @@ export async function GET(request: Request): Promise<Response> {
   // the admin reviews it. Unpaid rows returned "gone" above, so every booking here was paid.
   const windowKind = await cancelWindowOf(env, String(row.booking_id));
   const canCancel = customerCanCancel(status, reviewSubmitted);
+  // Phase 31 D-04: no owed amount for a cancel; the difference line of a live booking keeps it.
+  const cancelledLike = status === "cancelled" || status === "refunded" || status === "partially_cancelled";
 
   return json(
     {
@@ -198,7 +200,7 @@ export async function GET(request: Request): Promise<Response> {
         money: extras.money,
         priceTotalRappen: num(extra?.price_total_rappen),
         refundStatus,
-        refundOwedRappen: num(row.refund_owed_rappen),
+        refundOwedRappen: cancelledLike ? 0 : num(row.refund_owed_rappen),
         refundedRappen: num(row.refunded_rappen),
         payoutCountry: payoutCountry || null,
         payoutCountryLabel: refunded ? countryLabel(payoutCountry || "CH") : null,

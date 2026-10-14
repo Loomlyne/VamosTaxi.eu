@@ -9,7 +9,7 @@
 //   1. Source pins: the toast element takes its tone and role from the page, the call-site rule holds
 //      (a failure key never goes through plain notify, a success key never through notifyError).
 //   2. The page logic is loaded from the source and run with a stubbed window (the technique of
-//      ops-accept-paid-dc.test.ts): the class change, Accept, refund and the one-press actions answer
+//      ops-accept-paid-dc.test.ts): the class change, Accept, Refund in Stripe and the one-press actions answer
 //      success or failure, and the toast state carries the tone.
 
 import { readFileSync } from "node:fs";
@@ -45,7 +45,7 @@ function calls(fn: "notify" | "notifyError"): string[] {
 // T keys that say something failed or was refused. A plain notify with one of these would show a green check.
 const FAILURE_KEY = /\bt\.(?:err[A-Z]\w*|\w*Failed|frozen|mustFix|unpaidNoEditBody|acceptPaid|acceptPriceChanged|withdrawPaid|withdrawNothing|withdrawStripe)\b/;
 // T keys that say something was done.
-const SUCCESS_KEY = /\bt\.(?:unassignedOk|withdrawDone|extraWaiting|refundClick|savedFlight|savedInstant|voucherResent|bookingRemoved|bookingCancelled|payLinkSent|payLinkCopied|driverAssigned)\b/;
+const SUCCESS_KEY = /\bt\.(?:unassignedOk|withdrawDone|extraWaiting|tripDoneRefund|savedFlight|savedInstant|voucherResent|bookingRemoved|bookingCancelled|payLinkSent|payLinkCopied|driverAssigned)\b/;
 
 describe("the toast takes its tone and role from the page", () => {
   it("the Toast element is not hard-coded: tone and role are bindings", () => {
@@ -348,11 +348,11 @@ describe("class change", () => {
     expect(toastOf(logic)).toMatchObject({ shown: true, tone: "success", role: "status", msg: "Class changed. The customer got the confirmation again." });
   });
 
-  it("refund due is a success (the owner presses Confirm refund next)", async () => {
+  it("refund due is a success (Phase 31: the owner refunds the difference in Stripe next)", async () => {
     const { logic } = editing("en", { klass: KEY }, changeAnswers({ ok: true, data: { outcome: "refund_due", differenceRappen: -6_000 } }));
     logic.renderVals().confirmClassChange();
     await flush();
-    expect(toastOf(logic)).toMatchObject({ tone: "success", role: "status", msg: expect.stringMatching(/^Class changed\. Refund due: /) });
+    expect(toastOf(logic)).toMatchObject({ tone: "success", role: "status", msg: expect.stringMatching(/^Class changed\. Difference to refund: .+\. Refund it in Stripe\.$/) });
   });
 
   it("extra payment with the link e-mailed is a success; with the e-mail not sent it is an error", async () => {
@@ -429,18 +429,26 @@ describe("Accept on a customer's change request", () => {
     });
   });
 
-  it("accepted with a refund due is a success", async () => {
-    expect(await accept({ ok: true, data: { outcome: "refund_due" } })).toMatchObject({
-      shown: true, tone: "success", role: "status", msg: "Use Refund for the difference.",
-    });
+  it("accepted with a refund due is a success that says to refund the difference in Stripe", async () => {
+    const toast = await accept({ ok: true, data: { outcome: "refund_due", differenceRappen: -100 } });
+    expect(toast).toMatchObject({ shown: true, tone: "success", role: "status" });
+    expect(toast.msg).toMatch(/^Trip changed\. Difference to refund: .+\. Refund it in Stripe\.$/);
   });
 });
 
-describe("refund", () => {
-  it("a refund that cannot be sent (no connection to the server) is an error", () => {
-    const { logic } = setup(booking({ status: "cancelled", refundStatus: "pending_ops", refundOwedRappen: 100, refundRappen: 0 }), null);
-    logic.renderVals().markRefund();
-    expect(toastOf(logic)).toMatchObject({ shown: true, tone: "danger", role: "alert", msg: "Could not refund VT-26-0801" });
+describe("Refund in Stripe (Phase 31)", () => {
+  it("no Stripe payment to open is the danger error, never a success toast", async () => {
+    const { logic, request } = setup(booking({ status: "cancelled", refundStatus: "pending_ops", refundRappen: 0 }), () => ({ ok: true, data: [] }));
+    (logic as unknown as { componentDidMount(): void }).componentDidMount();
+    await flush();
+    logic.renderVals().pickAction("refund");
+    await flush();
+    const v = logic.renderVals();
+    expect(v.refundErrorShown).toBe(true);
+    expect(v.refundErrorText).toBe("This booking has no Stripe payment to open.");
+    expect(dc).toMatch(/Alert" tone="danger" title="\{\{ refundErrorText \}\}"/);
+    expect(toastOf(logic).shown).not.toBe(true);
+    expect(request.mock.calls.filter((c) => c[0] === "POST")).toEqual([]);
   });
 });
 

@@ -208,7 +208,7 @@ describe("paid cancel, refunds by hand (20-10)", () => {
     stripeFromEnv.mockReturnValue({});
   });
 
-  it("more than 24 h ahead: zero Stripe refund calls, answers refund due with the owed amount", async () => {
+  it("more than 24 h ahead: zero Stripe refund calls, answers refund due with no amount (Phase 31 D-04)", async () => {
     guestReturns({ booking_id: BOOKING_ID, refund_mode: "auto_full", refund_rappen: 10000, stripe_payment_intent_id: PI });
     const { paidCancelGuest } = await import("./paid-cancel");
     const result = await paidCancelGuest(ENV, "ab".repeat(32), "VT-26-0101");
@@ -217,8 +217,8 @@ describe("paid cancel, refunds by hand (20-10)", () => {
       bookingId: BOOKING_ID,
       refundMode: "auto_full",
       refundStatus: "pending_ops",
-      refundRappen: 10000,
     });
+    expect(result).not.toHaveProperty("refundRappen");
     expect(createRefund).not.toHaveBeenCalled();
     expect(retrieveRefund).not.toHaveBeenCalled();
     expect(stripeFromEnv).not.toHaveBeenCalled();
@@ -231,7 +231,8 @@ describe("paid cancel, refunds by hand (20-10)", () => {
     guestReturns({ booking_id: BOOKING_ID, refund_mode: "auto_full", refund_rappen: 10000, stripe_payment_intent_id: PI });
     const { paidCancelGuest } = await import("./paid-cancel");
     const result = await paidCancelGuest({ STRIPE_SECRET_KEY: "sk_live_x" } as CloudflareEnv, "ab".repeat(32), "VT-26-0101");
-    expect(result).toMatchObject({ ok: true, refundStatus: "pending_ops", refundRappen: 10000 });
+    expect(result).toMatchObject({ ok: true, refundStatus: "pending_ops" });
+    expect(result).not.toHaveProperty("refundRappen");
     expect(createRefund).not.toHaveBeenCalled();
     expect(stripeFromEnv).not.toHaveBeenCalled();
     expect(asSystem).not.toHaveBeenCalled();
@@ -241,7 +242,8 @@ describe("paid cancel, refunds by hand (20-10)", () => {
     guestReturns({ booking_id: BOOKING_ID, refund_mode: "pending_ops", refund_rappen: null, stripe_payment_intent_id: PI });
     const { paidCancelGuest } = await import("./paid-cancel");
     const result = await paidCancelGuest(ENV, "ab".repeat(32), "VT-26-0101");
-    expect(result).toMatchObject({ ok: true, refundMode: "pending_ops", refundStatus: "pending_ops", refundRappen: 0 });
+    expect(result).toMatchObject({ ok: true, refundMode: "pending_ops", refundStatus: "pending_ops" });
+    expect(result).not.toHaveProperty("refundRappen");
     expect(createRefund).not.toHaveBeenCalled();
     expect(notifyCancellation.mock.calls[0]![1]).toMatchObject({ refundLine: "pending_ops" });
   });
@@ -250,7 +252,8 @@ describe("paid cancel, refunds by hand (20-10)", () => {
     guestReturns({ booking_id: BOOKING_ID, refund_mode: "auto_full", refund_rappen: 0, stripe_payment_intent_id: null });
     const { paidCancelGuest } = await import("./paid-cancel");
     const result = await paidCancelGuest(ENV, "ab".repeat(32), "VT-26-0101");
-    expect(result).toMatchObject({ ok: true, refundStatus: "none", refundRappen: 0 });
+    expect(result).toMatchObject({ ok: true, refundStatus: "none" });
+    expect(result).not.toHaveProperty("refundRappen");
     expect(createRefund).not.toHaveBeenCalled();
     expect(notifyCancellation.mock.calls[0]![1]).toMatchObject({ refundLine: "none" });
   });
@@ -318,7 +321,6 @@ describe("a paid cancel closes the pages of the changes it ended (261002 settle 
       bookingId: BOOKING_ID,
       refundMode: "auto_full",
       refundStatus: "pending_ops",
-      refundRappen: 10000,
     });
     // A page close is not a refund.
     expect(createRefund).not.toHaveBeenCalled();
@@ -370,7 +372,6 @@ describe("a paid cancel closes the pages of the changes it ended (261002 settle 
       bookingId: BOOKING_ID,
       refundMode: "auto_full",
       refundStatus: "pending_ops",
-      refundRappen: 10000,
     });
     expect(expireCheckoutSession).not.toHaveBeenCalled();
     expect(notifyCancellation).toHaveBeenCalledTimes(1);
@@ -384,7 +385,8 @@ describe("a paid cancel closes the pages of the changes it ended (261002 settle 
     });
     const { finishPaidCancel } = await import("./paid-cancel");
     const result = await finishPaidCancel(ENV, ROW);
-    expect(result).toMatchObject({ ok: true, refundStatus: "pending_ops", refundRappen: 10000 });
+    expect(result).toMatchObject({ ok: true, refundStatus: "pending_ops" });
+    expect(result).not.toHaveProperty("refundRappen");
     expect(expireCheckoutSession.mock.calls.map((c) => c[1])).toEqual(["cs_test_done", "cs_test_wait_2"]);
     expect(notifyCancellation).toHaveBeenCalledTimes(1);
   });

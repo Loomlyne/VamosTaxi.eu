@@ -379,6 +379,13 @@ interface CloudflareEnv {
    * Staging uses the live publishable key (6a5f274e). The secret key is a wrangler secret, never this field.
    */
   STRIPE_PUBLISHABLE_KEY: string;
+  /**
+   * Stripe account id (`acct_…`). OPTIONAL. wrangler.jsonc `vars` — not a secret.
+   * The Stripe account the dashboard REFUND links open (Phase 31 D-06/C-01); used only on the
+   * staff-only stripe-payments route, never on a public page. Unset or malformed: the links
+   * leave the account segment out and Stripe opens the account the owner is signed into.
+   */
+  STRIPE_ACCOUNT_ID?: string;
   /** "on" adds TWINT to the hosted Checkout page; anything else is card only (D-20). */
   STRIPE_CHECKOUT_TWINT?: string;
 

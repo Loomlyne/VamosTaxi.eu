@@ -40,20 +40,26 @@ vi.mock("@/lib/ops/edit-request", () => ({
   }),
   writeCustomerFlightNo: async () => ({ ok: true, bookingId: BOOKING_ID, flightNo: "LX318" }),
 }));
-vi.mock("@/lib/lifecycle/paid-cancel", () => ({
-  paidCancelCustomer: async () => ({
+// Phase 31 D-04: a cancel answer carries no refund amount. The library result no longer has one; the
+// stray `refundRappen` below stands for a library that leaks it again, and the routes must still not echo it.
+vi.mock("@/lib/lifecycle/paid-cancel", () => {
+  const cancelled = async () => ({
     ok: true,
     bookingId: BOOKING_ID,
     refundMode: "auto",
     refundStatus: "pending",
-    refundRappen: 0,
+    refundRappen: 4000,
     payoutCountry: null,
     availableOn: null,
-  }),
-}));
+  });
+  return { paidCancelCustomer: cancelled, paidCancelGuest: cancelled };
+});
 vi.mock("@/lib/db/system-reads", () => ({
   loadManageReviewState: async () => ({ review_submitted: false, price_total_rappen: 0 }),
 }));
+
+// Fields merged over the manage_booking_read row (Phase 31 D-04 cases below); reset before each test.
+let manageRowOver: Record<string, unknown> = {};
 
 function sqlFor(text: string): unknown[] {
   if (text.includes("manage_booking_read")) {
@@ -79,6 +85,7 @@ function sqlFor(text: string): unknown[] {
         refunded_rappen: 0,
         payout_country: null,
         available_on: null,
+        ...manageRowOver,
       },
     ];
   }
@@ -105,6 +112,7 @@ import { POST as accountTimeChange } from "../../app/api/account/bookings/time-c
 import { POST as manageFlight } from "../../app/api/manage/flight/route";
 import { POST as accountFlight } from "../../app/api/account/bookings/flight/route";
 import { POST as accountPaidCancel } from "../../app/api/account/bookings/paid-cancel/route";
+import { POST as manageCancel } from "../../app/api/manage/cancel/route";
 import { POST as reviewSubmit } from "../../app/api/reviews/submit/route";
 
 function post(path: string, body: unknown): Request {
@@ -133,6 +141,7 @@ function noUuid(body: unknown): void {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  manageRowOver = {};
 });
 
 describe("guest and customer booking answers carry no internal id (exact keys)", () => {
@@ -202,11 +211,15 @@ describe("guest and customer booking answers carry no internal id (exact keys)",
     noUuid(body);
   });
 
-  it("POST /api/account/bookings/paid-cancel: refund fields only (no bookingId)", async () => {
+  it("POST /api/account/bookings/paid-cancel: refund status only (no bookingId, no amount: Phase 31 D-04)", async () => {
     const body = await okBody(await accountPaidCancel(post("/api/account/bookings/paid-cancel", { ref: REF })));
-    expect(keys(body)).toStrictEqual(
-      ["availableOn", "ok", "payoutCountry", "refundMode", "refundRappen", "refundStatus"].sort(),
-    );
+    expect(keys(body)).toStrictEqual(["availableOn", "ok", "payoutCountry", "refundMode", "refundStatus"].sort());
+    noUuid(body);
+  });
+
+  it("POST /api/manage/cancel: refund status only (no bookingId, no amount: Phase 31 D-04)", async () => {
+    const body = await okBody(await manageCancel(post("/api/manage/cancel", { ref: REF })));
+    expect(keys(body)).toStrictEqual(["availableOn", "ok", "payoutCountry", "refundMode", "refundStatus"].sort());
     noUuid(body);
   });
 
@@ -220,5 +233,25 @@ describe("guest and customer booking answers carry no internal id (exact keys)",
   it("POST /api/reviews/submit signed in: {ok:true} only (no reviewId, no bookingId)", async () => {
     const body = await okBody(await reviewSubmit(post("/api/reviews/submit", { ...review, bookingRef: REF })));
     expect(body).toStrictEqual({ ok: true });
+  });
+});
+
+// Phase 31 D-04: the customer sees one policy line for a cancel and no computed refund, so the guest booking
+// read gives no owed amount for a cancelled booking. The refunded amount stays (D-02), and a live booking keeps
+// its owed amount for the class/trip difference line (owner-approved 2026-10-01). Synthetic rappen.
+describe("GET /api/manage/booking: no owed amount on a cancelled booking (Phase 31 D-04)", () => {
+  for (const status of ["cancelled", "refunded", "partially_cancelled"]) {
+    it(`${status}: refundOwedRappen 0, refundedRappen unchanged`, async () => {
+      manageRowOver = { status, refund_status: "pending_ops", refund_owed_rappen: "12000", refunded_rappen: "3000" };
+      const body = await okBody(await manageBooking(new Request("https://vamostaxi.site/api/manage/booking")));
+      const booking = body.booking as Record<string, unknown>;
+      expect(booking).toMatchObject({ status, refundStatus: "pending_ops", refundOwedRappen: 0, refundedRappen: 3000 });
+    });
+  }
+
+  it("a live booking (confirmed) keeps the stored owed amount for the difference line", async () => {
+    manageRowOver = { status: "confirmed", refund_status: "pending_ops", refund_owed_rappen: "1500", refunded_rappen: "0" };
+    const body = await okBody(await manageBooking(new Request("https://vamostaxi.site/api/manage/booking")));
+    expect(body.booking).toMatchObject({ status: "confirmed", refundOwedRappen: 1500, refundedRappen: 0 });
   });
 });

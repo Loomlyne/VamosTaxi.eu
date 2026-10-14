@@ -1,0 +1,78 @@
+{
+ "at": "2026-10-13T14:14:52.789Z",
+ "base": "http://localhost:4720",
+ "results": [
+  {
+   "id": "D1",
+   "title": "(a) item disabled before /stripe-payments, one Stripe tab after",
+   "status": "PASS",
+   "evidence": "before {\"disabled\":false,\"aria\":\"true\"}; after {\"disabled\":false,\"aria\":\"false\"}; new pages 1; url https://dashboard.stripe.com/acct_1UIZmAQbJiSLxJfu/test/payments/pi_lab_p31_a; \"Which payment?\" shown false"
+  },
+  {
+   "id": "D2",
+   "title": "(b) Which payment? two rows, safe links",
+   "status": "PASS",
+   "evidence": "rows 2; [{\"txt\":\"OPEN IN STRIPE\",\"href\":\"https://dashboard.stripe.com/acct_1UIZmAQbJiSLxJfu/test/payments/pi_lab_p31_b_extra\",\"target\":\"_blank\",\"rel\":\"noopener noreferrer\"},{\"txt\":\"OPEN IN STRIPE\",\"href\":\"https://dashboard.stripe.com/acct_1UIZmAQbJiSLxJfu/test/payments/pi_lab_p31_b\",\"target\":\"_blank\",\"rel\":\"noopener noreferrer\"}]"
+  },
+  {
+   "id": "D3",
+   "title": "(c) no Stripe payment message",
+   "status": "PASS",
+   "evidence": "item {\"disabled\":false,\"aria\":\"false\"}; message shown true; new pages 0"
+  },
+  {
+   "id": "D4",
+   "title": "(d) Refund to check, no confirm/decline",
+   "status": "PASS",
+   "evidence": "note true; confirm refund false; decline refund false"
+  },
+  {
+   "id": "D5",
+   "title": "(e) Refund to check absent",
+   "status": "PASS",
+   "evidence": "contains \"refund to check\" (case-insensitive): false"
+  },
+  {
+   "id": "D6",
+   "title": "(f) Refunded visible, no Refund to check",
+   "status": "FAIL",
+   "evidence": "refund to check (ci) false; \"Refunded\" exact case false; any case false"
+  },
+  {
+   "id": "D7",
+   "title": "390 ar: item in top-bar menu, list wraps",
+   "status": "PASS",
+   "evidence": "own fold display none; top-bar menu true; menu items [تعيين سائق | تعديل الحجز | إعادة إرسال القسيمة | تسجيل الوصول | الاسترداد في Stripe | إلغاء الحجز]; list shown true; rows 2; geo [{\"textBottom\":512,\"linkTop\":520,\"linkLeft\":139,\"linkRight\":312,\"textH\":52,\"lh\":25.6},{\"textBottom\":641,\"linkTop\":649,\"linkLeft\":139,\"linkRight\":312,\"textH\":52,\"lh\":25.6}]; scrollWidth 390/390; dir rtl"
+  },
+  {
+   "id": "D8",
+   "title": "1440 ar: (d) note text and rtl",
+   "status": "PASS",
+   "evidence": "title true; body true; dir rtl"
+  },
+  {
+   "id": "D10",
+   "title": "1024 de: (b) menu item and list",
+   "status": "PASS",
+   "evidence": "menu [Fahrer zuweisen | Buchung bearbeiten | Gutschein erneut senden | Ankunft markieren | In Stripe rückerstatten | Buchung stornieren]; item 1; \"Welche Zahlung?\" true; rows 2; buttons [\"IN STRIPE ÖFFNEN\",\"IN STRIPE ÖFFNEN\"]; scrollWidth 1024/1024"
+  },
+  {
+   "id": "D11",
+   "title": "768 en: (a) Stripe tab, (d) note, no sideways scroll",
+   "status": "PASS",
+   "evidence": "own fold display none (menu opened from the top bar); new pages 1; url https://dashboard.stripe.com/acct_1UIZmAQbJiSLxJfu/test/payments/pi_lab_p31_a; note true; scrollWidth (a) 768/768, (d) 768/768"
+  },
+  {
+   "id": "D12",
+   "title": "1440 de/fr/ar coverage (9 calls)",
+   "status": "FAIL",
+   "evidence": "de: menu 1, region 0 (rows 2), note[Alert] 0; fr: menu 2, region 0 (rows 2), note[Alert] 0; ar: menu 1, region 0 (rows 2), note[Alert] 0"
+  },
+  {
+   "id": "D9",
+   "title": "request log: no /refund, /refund-decision; a GET /stripe-payments",
+   "status": "PASS",
+   "evidence": "154 api requests; refund paths []; GET stripe-payments 17; methods seen GET,POST"
+  }
+ ]
+}
