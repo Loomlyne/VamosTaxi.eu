@@ -12,6 +12,7 @@
 -- Human wins (F-05, T-32-09): system_translation_put_machine upserts with a conflict clause that
 -- updates machine rows only, and system_translation_mark never touches a human or a done row.
 -- Every write goes through SECURITY DEFINER functions: vamos_system is definer-only (no table grant).
+-- RLS is enabled and forced; no policy, no client grant.
 -- No table or column is dropped. No amount.
 
 begin;
@@ -44,6 +45,10 @@ create index translations_retry_idx on public.translations (status)
   where status in ('pending', 'failed');
 
 alter table public.translations enable row level security;
+-- FORCE (PR #83 review): the table owner is held to RLS too. No policy is needed: no client role has a
+-- table grant, and the SECURITY DEFINER functions below run as the migration owner, which has BYPASSRLS
+-- (as for support_message_translations / booking_note_translations in 20261012280000).
+alter table public.translations force row level security;
 revoke all on table public.translations
   from public, anon, authenticated, vamos_public, vamos_edge, vamos_guest, vamos_staff, vamos_checkout, vamos_system;
 

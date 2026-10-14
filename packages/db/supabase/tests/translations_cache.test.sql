@@ -3,12 +3,22 @@
 -- Phase 32 plan 02 (F-05, F-06, D-09; T-32-07, T-32-09, T-32-10, T-32-11). The public-safe translation
 -- cache: a machine write never overwrites a human row, a mark never touches a human or a done row,
 -- translation_read returns review rows only, the table itself is unreadable by every client role, the
--- writers are vamos_system only, and every write leaves an audit row.
+-- writers are vamos_system only, and every write leaves an audit row. RLS is enabled and forced; the
+-- definer functions still read and write it (PR #83 fix round 1).
 begin;
-select plan(60);
+select plan(62);
 
 select has_table('public', 'translations', 'translations exists');
 select ok((select relrowsecurity from pg_class where oid = 'public.translations'::regclass), 'RLS is on');
+select ok((select relforcerowsecurity from pg_class where oid = 'public.translations'::regclass), 'RLS is forced (owner held to it too)');
+select ok((select bool_and(r.rolbypassrls or r.rolsuper)
+             from pg_proc p join pg_roles r on r.oid = p.proowner
+            where p.oid in ('public.translation_read(text,text)'::regprocedure,
+                            'public.system_translation_put_machine(text,text,text,text,text,text,integer)'::regprocedure,
+                            'public.system_translation_mark(text,text,text,text,text,text,text)'::regprocedure,
+                            'public.system_translation_stale(integer,integer)'::regprocedure,
+                            'public.system_translation_stale_source(bigint,integer)'::regprocedure)),
+  'the definer functions'' owner carries BYPASSRLS (forced RLS with no policy still lets them read and write)');
 
 -- ── EXECUTE per role ───────────────────────────────────────────────────────────────────── 15
 select function_privs_are('public', 'translation_read', '{text,text}'::text[], 'anon', '{EXECUTE}'::text[], 'read: anon has EXECUTE');
