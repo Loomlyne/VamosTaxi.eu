@@ -1022,7 +1022,9 @@ class Component extends DCLogic {
       thread: open ? open.messages.map((m) => {
         const base = { from: m.whoKey, who: whoLabel[m.whoKey] || m.whoKey, when: m.when, body: m.body, files: fileItems(m.files) };
         const tr = m.translation;
-        const other = m.whoKey === 'customer' && m.lang && m.lang !== dash && tr && tr.status && tr.status !== 'same';
+        /* A message is pending only while its language is not detected yet, and a job that failed early leaves it
+           undetected too: the note must not wait for a language. The server already answers 'same' for his own. */
+        const other = m.whoKey === 'customer' && (!m.lang || m.lang !== dash) && tr && tr.status && tr.status !== 'same';
         let st = other ? tr.status : 'same';
         if (st === 'pending' && this._pendGaveUp === open.id) st = 'failed';
         if (st === 'ready' && tr.text) {
