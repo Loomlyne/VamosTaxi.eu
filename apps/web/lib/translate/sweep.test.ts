@@ -130,3 +130,19 @@ describe("worker.ts 03:00 cron order (Phase 31 merge)", () => {
     expect(sweep).toBeLessThan(ret);
   });
 });
+
+describe("worker.ts queue() order (Phase 32 plan 05)", () => {
+  it("routes vamos-translate batches first and returns, before the -dlq alert mail and the Stripe loop", () => {
+    const worker = readFileSync(fileURLToPath(new URL("../../worker.ts", import.meta.url)), "utf8");
+    const handler = worker.indexOf("async queue(batch, env");
+    expect(handler).toBeGreaterThan(-1);
+    const translate = worker.indexOf('if (batch.queue.startsWith("vamos-translate"))', handler);
+    const consume = worker.indexOf("await consumeTranslateBatch(batch", handler);
+    const ret = worker.indexOf("return;", consume);
+    const dlq = worker.indexOf('if (batch.queue.endsWith("-dlq"))', handler);
+    expect(translate).toBeGreaterThan(handler);
+    expect(consume).toBeGreaterThan(translate);
+    expect(ret).toBeGreaterThan(consume);
+    expect(dlq).toBeGreaterThan(ret);
+  });
+});

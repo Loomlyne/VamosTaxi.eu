@@ -77,7 +77,7 @@ The first 32-12 agent died at about 05:50 (API error) holding `~/.vamos-scratch/
 
 ### Gaps recorded in the hand-over (not fixed here)
 
-- `worker.ts` `queue()` branch order is proven only by a one-time 32-05 source check, not a committed test.
+- `worker.ts` `queue()` branch order: pinned by `apps/web/lib/translate/sweep.test.ts` "worker.ts queue() order" (added 12:23; red when the branches are swapped, green restored).
 - `ops-dc-content-loader.spec.ts` (Playwright, kept and edited in 32-03) has not been run.
 - `app/pages/sitemap.dc.html` still lists dashboard `/pages` and `/legal` (needs his word).
 

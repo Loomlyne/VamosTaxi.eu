@@ -80,7 +80,7 @@ Both are on main and live; origin/main is fully merged into this branch (`8930c3
 | Area | What was resolved | Commit |
 |---|---|---|
 | `apps/web/worker.ts` 03:00 cron | Order is: Phase 31 refund check first, then the Phase 32 translate sweep, then `return;`. Pinned by `apps/web/lib/translate/sweep.test.ts` ("worker.ts 03:00 cron order") and by the Phase 31 pin in `apps/web/lib/checkout/refund-check.test.ts`, which assumed its block was last and now ends at the next try block. | `8930c31c`, `24916f3e` |
-| `apps/web/worker.ts` `queue()` | The translate branch sits before the Stripe `-dlq` branch; Phase 31's queue code is untouched. Branch order was a one-time source check in 32-05, not a committed test. | `8930c31c` |
+| `apps/web/worker.ts` `queue()` | The translate branch sits before the Stripe `-dlq` branch; Phase 31's queue code is untouched. Branch order pinned by `apps/web/lib/translate/sweep.test.ts` "worker.ts queue() order" (added 12:23; red when the branches are swapped, green restored). | `8930c31c` |
 | `apps/web/wrangler.jsonc` | Phase 31 edits the `env.staging` vars block; Phase 32 adds the translate queue producer/consumer blocks. Different hunks, both kept. | `8930c31c` |
 | Dictionary and catalogs | `app/vamos-i18n-dict.js` (translator block before `/* Reviews */`, "Translated from" pattern before "Saved on"), `apps/web/i18n/messages/*.json`, `packages/emails/src/messages/*.json` (Latin "Vamos Taxi" in Arabic): both sides kept; `seed.sql` regenerated and `seed_idempotent.test.sql` re-pinned in the merge. | `8930c31c` |
 | E-mail catalog | Only the Arabic brand spelling changed (3 lines) plus Phase 31's refund strings from main; snapshot updated in 32-04. | `d89d1a3a`, `8930c31c` |
@@ -169,7 +169,6 @@ Task 2 results, 2026-10-14, head fb13271e (merged with origin/main 8ef7e82d), on
 - Phase 31 seed regeneration: the merge regenerated `seed.sql` and re-pinned
   `seed_idempotent.test.sql`; `pnpm db:seed:check` in the Task 2 static run is the check (result
   in the marker above).
-- `worker.ts` `queue()` branch order: one-time source check in 32-05, no committed test.
 - Translation on the live Workers AI binding, the 60 s customer-message path, and the 03:00 sweep
   on live: only after deploy (section 2, step 6).
 - `app/pages/sitemap.dc.html` lines 147-148 still list the dashboard `/pages` and `/legal` rows
