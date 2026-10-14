@@ -1,6 +1,33 @@
 import { describe, expect, it, vi, type Mocked } from "vitest";
+
+// Phase 31-05: the env wrapper's wiring (default kinds, deliverRefund binding) is read through these.
+const sweepSql: Array<{ text: string; values: unknown[] }> = [];
+const sweepRows: { stuck: unknown[] } = { stuck: [] };
+const refundDeliveries: unknown[][] = [];
+vi.mock("../db/identity", () => ({
+  asSystem: async (_env: unknown, fn: (sql: unknown) => Promise<unknown>) => {
+    const sql = Object.assign(
+      (strings: TemplateStringsArray, ...values: unknown[]) => {
+        const text = strings.join("?");
+        sweepSql.push({ text, values });
+        if (text.includes("notification_sweep")) return Promise.resolve(sweepRows.stuck);
+        return Promise.resolve([]);
+      },
+      { array: (value: unknown[], type: number) => ({ array: value, type }) },
+    );
+    return fn(sql);
+  },
+}));
+vi.mock("./refund-mail", () => ({
+  mailCustomerRefund: async () => undefined,
+  deliverRefundMailByClaim: async (...args: unknown[]) => {
+    refundDeliveries.push(args);
+  },
+}));
+
 import {
   deliverConfirmationWithDeps,
+  sweepStuckNotifications,
   sweepStuckNotificationsWithDeps,
   type ConfirmationDeps,
   moneyFromRow,
@@ -178,7 +205,7 @@ describe("sweepStuckNotificationsWithDeps", () => {
   it("delivers both notification_sweep rows (on their claim) and missing-claim rows", async () => {
     const d = sweepDeps();
     await sweepStuckNotificationsWithDeps(d, 10 * 60 * 1000);
-    expect(d.stuck).toHaveBeenCalledWith("600 seconds", ["confirmation"]);
+    expect(d.stuck).toHaveBeenCalledWith("600 seconds", ["confirmation", "refund"]);
     expect(d.missing).toHaveBeenCalledWith("600 seconds");
     expect(d.deliver).toHaveBeenCalledTimes(3);
     expect(d.deliver.mock.calls[0]).toEqual([
@@ -214,6 +241,110 @@ describe("sweepStuckNotificationsWithDeps", () => {
     await sweepStuckNotificationsWithDeps(d);
     expect(d.missing).toHaveBeenCalledTimes(1);
     expect(d.deliver).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("sweep: refund mails go to deliverRefund (Phase 31-05, D-10)", () => {
+  function sweepDeps(stuck: unknown[], overrides: Partial<SweepDeps> = {}) {
+    const deps = {
+      stuck: vi.fn(async () => stuck),
+      missing: vi.fn(async () => []),
+      deliver: vi.fn(async () => undefined),
+      deliverRefund: vi.fn(async () => undefined),
+      emit: vi.fn(),
+      ...overrides,
+    };
+    return deps as unknown as Mocked<Required<SweepDeps>>;
+  }
+
+  it("a refund row goes to deliverRefund on its claim id, never to the confirmation deliver", async () => {
+    const d = sweepDeps([{ id: 7, booking_id: "b-ref", kind: "refund", locale: "de" }]);
+    await sweepStuckNotificationsWithDeps(d);
+    expect(d.deliverRefund).toHaveBeenCalledTimes(1);
+    expect(d.deliverRefund).toHaveBeenCalledWith(7);
+    expect(d.deliver).not.toHaveBeenCalled();
+  });
+
+  it("a confirmation row keeps its own deliver; a row without kind is an old confirmation row", async () => {
+    const d = sweepDeps([
+      { id: 8, booking_id: "b-conf", kind: "confirmation", locale: "fr" },
+      { id: 9, booking_id: "b-old", locale: "en" },
+      { id: 10, booking_id: "b-ref", kind: "refund", locale: "en" },
+    ]);
+    await sweepStuckNotificationsWithDeps(d);
+    expect(d.deliver).toHaveBeenCalledTimes(2);
+    expect(d.deliver.mock.calls[0]).toEqual([
+      { booking_id: "b-conf", reference: "", locale: "fr", contact_email: "" },
+      { claimId: 8 },
+    ]);
+    expect(d.deliver.mock.calls[1]).toEqual([
+      { booking_id: "b-old", reference: "", locale: "en", contact_email: "" },
+      { claimId: 9 },
+    ]);
+    expect(d.deliverRefund).toHaveBeenCalledTimes(1);
+    expect(d.deliverRefund).toHaveBeenCalledWith(10);
+  });
+
+  it("without deliverRefund a refund row is skipped with a warn", async () => {
+    const d = sweepDeps([{ id: 7, booking_id: "b-ref", kind: "refund" }], { deliverRefund: undefined });
+    await sweepStuckNotificationsWithDeps(d);
+    expect(d.deliver).not.toHaveBeenCalled();
+    expect(d.emit).toHaveBeenCalledWith("warn", "notification_sweep", { stage: "refund_unbound" });
+  });
+
+  it("a refund row without a claim id is skipped with a warn", async () => {
+    const d = sweepDeps([{ id: null, booking_id: "b-ref", kind: "refund" }]);
+    await sweepStuckNotificationsWithDeps(d);
+    expect(d.deliverRefund).not.toHaveBeenCalled();
+    expect(d.deliver).not.toHaveBeenCalled();
+    expect(d.emit).toHaveBeenCalledWith("warn", "notification_sweep", { stage: "refund_no_claim" });
+  });
+
+  it("a throwing deliverRefund is logged with the claim id and the loop goes on", async () => {
+    const d = sweepDeps(
+      [
+        { id: 7, booking_id: "b-ref", kind: "refund" },
+        { id: 8, booking_id: "b-conf", kind: "confirmation" },
+        { id: 12, booking_id: "b-ref2", kind: "refund" },
+      ],
+      {
+        deliverRefund: vi.fn(async (id: number) => {
+          if (id === 7) throw new Error("boom");
+        }),
+      },
+    );
+    await expect(sweepStuckNotificationsWithDeps(d)).resolves.toBeUndefined();
+    expect(d.emit).toHaveBeenCalledWith("error", "notification_sweep", { claimId: 7, stage: "refund" });
+    expect(d.deliver).toHaveBeenCalledTimes(1);
+    expect(d.deliverRefund).toHaveBeenCalledTimes(2);
+  });
+
+  it("the missing stage runs only when kinds include confirmation, and only for confirmations", async () => {
+    const onlyRefund = sweepDeps([{ id: 7, booking_id: "b-ref", kind: "refund" }]);
+    await sweepStuckNotificationsWithDeps(onlyRefund, 60_000, ["refund"]);
+    expect(onlyRefund.stuck).toHaveBeenCalledWith("60 seconds", ["refund"]);
+    expect(onlyRefund.missing).not.toHaveBeenCalled();
+
+    const both = sweepDeps([], { missing: vi.fn(async () => [{ booking_id: "b-missing", locale: "en" }]) });
+    await sweepStuckNotificationsWithDeps(both);
+    expect(both.missing).toHaveBeenCalledTimes(1);
+    expect(both.deliver).toHaveBeenCalledWith(
+      { booking_id: "b-missing", reference: "", locale: "en", contact_email: "" },
+      {},
+    );
+    expect(both.deliverRefund).not.toHaveBeenCalled();
+  });
+
+  it("the env wrapper sweeps confirmation and refund by default and binds deliverRefundMailByClaim(env, id)", async () => {
+    sweepSql.length = 0;
+    refundDeliveries.length = 0;
+    sweepRows.stuck = [{ id: 21, booking_id: "b-ref", kind: "refund", locale: "en" }];
+    const env = {} as CloudflareEnv;
+    await sweepStuckNotifications(env);
+    const call = sweepSql.find((c) => c.text.includes("notification_sweep"));
+    expect(call?.values[1]).toEqual({ array: ["confirmation", "refund"], type: 1009 });
+    expect(refundDeliveries).toEqual([[env, 21]]);
+    sweepRows.stuck = [];
   });
 });
 

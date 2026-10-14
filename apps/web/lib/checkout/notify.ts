@@ -32,6 +32,7 @@ import {
   type SnapshotLineJson,
 } from "./pay-link";
 import { mintManageToken } from "./manage-token";
+import { deliverRefundMailByClaim } from "./refund-mail";
 
 type SettledBooking = {
   booking_id: string;
@@ -336,7 +337,8 @@ export async function deliverConfirmation(
   await deliverConfirmationWithDeps(confirmationDeps(env), settled);
 }
 
-type SweepRow = { id?: unknown; booking_id: unknown; locale?: unknown };
+/** One notification_sweep (or notification_confirmation_missing) row. */
+export type SweepRow = { id?: unknown; booking_id: unknown; kind?: unknown; locale?: unknown };
 
 /** Injected I/O for {@link sweepStuckNotificationsWithDeps}. */
 export type SweepDeps = {
@@ -345,17 +347,23 @@ export type SweepDeps = {
   /** notification_confirmation_missing(interval): paid bookings with no claim. */
   missing: (interval: string) => Promise<SweepRow[]>;
   deliver: (settled: SettledBooking, opts: { claimId?: number }) => Promise<void>;
+  /**
+   * Phase 31 (D-10): re-send a customer refund mail claim (kind 'refund') by its id, with the claim's own
+   * Stripe refund and the recorded refund_rappen. Never throws by contract.
+   */
+  deliverRefund?: (claimId: number) => Promise<void>;
   emit: ConfirmationDeps["emit"];
 };
 
 /**
- * Resends stuck confirmations and sends the ones that were never claimed.
+ * Resends stuck confirmations and refund mails, and sends the confirmations that were never claimed.
+ * A row of kind 'refund' goes to deliverRefund; every other row (old rows carry no kind) is a confirmation.
  * One failing booking never stops the rest.
  */
 export async function sweepStuckNotificationsWithDeps(
   deps: SweepDeps,
   olderThan = SWEEP_THRESHOLD,
-  kinds: string[] = ["confirmation"],
+  kinds: string[] = ["confirmation", "refund"],
 ): Promise<void> {
   const interval = `${Math.floor(olderThan / 1000)} seconds`;
 
@@ -366,6 +374,23 @@ export async function sweepStuckNotificationsWithDeps(
     deps.emit("error", "notification_sweep", { stage: "stuck" });
   }
   for (const row of stuck) {
+    if (String(row.kind ?? "confirmation") === "refund") {
+      if (!deps.deliverRefund) {
+        deps.emit("warn", "notification_sweep", { stage: "refund_unbound" });
+        continue;
+      }
+      if (row.id == null) {
+        deps.emit("warn", "notification_sweep", { stage: "refund_no_claim" });
+        continue;
+      }
+      const claimId = Number(row.id);
+      try {
+        await deps.deliverRefund(claimId);
+      } catch {
+        deps.emit("error", "notification_sweep", { claimId, stage: "refund" });
+      }
+      continue;
+    }
     const bookingId = String(row.booking_id);
     try {
       await deps.deliver(
@@ -398,23 +423,27 @@ export async function sweepStuckNotificationsWithDeps(
   }
 }
 
+/** public.notification_sweep(interval, kinds) as vamos_system: the rows the sweep retries. */
+export function notificationSweepStuck(env: CloudflareEnv, interval: string, kinds: string[]): Promise<SweepRow[]> {
+  return asSystem(env, async (sql) => {
+    // A plain JS array is typed 0 by postgres.js and would be sent as "a,b" (malformed array
+    // literal). 1009 is text[]; its serializer is registered in @vamos/db pg-types (260929-pga).
+    const rows = await sql`
+      select * from public.notification_sweep(${interval}::interval, ${sql.array(kinds, 1009)}::text[])
+    `;
+    return rows as unknown as SweepRow[];
+  });
+}
+
 export async function sweepStuckNotifications(
   env: CloudflareEnv,
   olderThan = SWEEP_THRESHOLD,
-  kinds: string[] = ["confirmation"],
+  kinds: string[] = ["confirmation", "refund"],
 ): Promise<void> {
   const mail = confirmationDeps(env);
   await sweepStuckNotificationsWithDeps(
     {
-      stuck: (interval, k) =>
-        asSystem(env, async (sql) => {
-          // A plain JS array is typed 0 by postgres.js and would be sent as "a,b" (malformed array
-          // literal). 1009 is text[]; its serializer is registered in @vamos/db pg-types (260929-pga).
-          const rows = await sql`
-            select * from public.notification_sweep(${interval}::interval, ${sql.array(k, 1009)}::text[])
-          `;
-          return rows as unknown as SweepRow[];
-        }),
+      stuck: (interval, k) => notificationSweepStuck(env, interval, k),
       missing: (interval) =>
         asSystem(env, async (sql) => {
           const rows = await sql`
@@ -423,6 +452,7 @@ export async function sweepStuckNotifications(
           return rows as unknown as SweepRow[];
         }),
       deliver: (settled, opts) => deliverConfirmationWithDeps(mail, settled, opts),
+      deliverRefund: (claimId) => deliverRefundMailByClaim(env, claimId),
       emit: mail.emit,
     },
     olderThan,

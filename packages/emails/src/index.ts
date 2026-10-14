@@ -80,9 +80,11 @@ export {
   sendPriceChanged,
   sendExpired,
   sendRefund,
+  sendRefundMailAlert,
   sendChauffeurAssign,
   sendChauffeurUnassign,
   sendOpsMustFix,
+  sendRefundCheck,
   sendCancellation,
   sendRefundFailed,
   sendReminder24h,
@@ -101,7 +103,10 @@ export type {
   LockMailSkip,
   PriceChangedMailInput,
   ExpiredMailInput,
+  RefundMailAlertInput,
 } from "./lib/send";
+export { renderRefundCheckDidNotRun, renderRefundCheckEmail } from "./refund-check";
+export type { RefundCheckReport } from "./refund-check";
 export { buildInvite } from "./lib/ics";
 export type {
   BookingForEmail,

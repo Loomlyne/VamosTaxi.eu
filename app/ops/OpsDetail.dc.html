@@ -14,16 +14,13 @@
 [data-ops-detail] .vt-input--focus{box-shadow:none}
 [data-ops-refund-region]{display:flex;flex-direction:column;gap:12px;margin-top:12px}
 [data-ops-refund-row]{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px}
-[data-ops-refund-pct]{flex:0 1 160px;min-width:120px}
-[data-ops-refund-pct] .vt-field{margin:0}
-[data-ops-refund-pick]{display:flex;flex-direction:column;gap:8px}
 [data-ops-refund-label]{font-family:var(--vt-font-body);font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary)}
 [data-ops-refund-pay]{border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);overflow:hidden}
-[data-ops-refund-payrow]+[data-ops-refund-payrow]{border-block-start:1px solid var(--vt-border-subtle)}
-[data-ops-refund-payrow] .vt-check{display:flex;width:100%;box-sizing:border-box;min-height:44px;padding:12px 16px}
-[data-ops-refund-payrow] .vt-check__text{min-width:0;overflow-wrap:anywhere}
-[data-ops-refund-full]{margin:0;font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)}
-[data-ops-refund-unit] .vt-tab{height:44px;min-width:72px}
+[data-ops-stripe-row]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;padding:12px 16px}
+[data-ops-stripe-row]+[data-ops-stripe-row]{border-block-start:1px solid var(--vt-border-subtle)}
+[data-ops-stripe-text]{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 180px}
+[data-ops-stripe-k]{font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)}
+[data-ops-stripe-v]{font-size:var(--vt-body-sm);color:var(--vt-text-secondary);unicode-bidi:isolate}
 [data-ops-decide-body]{margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty}
 /* 26.2 P1: the Edit fields stack on a phone so a value (the class list too) is never cut. */
 [data-ops-edit-grid]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
@@ -429,8 +426,24 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ openTakeCard }}" hint-size="130px,36px">{{ tTakeCard }}</x-import>
 </div>
 </sc-if>
+<!-- Phase 31 (refunds in Stripe): a paid cancel with no refund recorded is a neutral note, not a red alert. -->
 <sc-if value="{{ showRefundDue }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tRefundTitle }}" hint-size="100%,70px">{{ tRefundBody }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tCheckTitle }}" hint-size="100%,70px">{{ tCheckBody }}</x-import>
+</sc-if>
+<!-- Phase 31: several payments → one row each, each opens that payment in Stripe in a new tab. -->
+<sc-if value="{{ stripeListShown }}" hint-placeholder-val="{{ false }}">
+<div data-ops-refund-region data-ops-stripe-list ref="{{ refundRef }}">
+<span data-ops-refund-label>{{ tWhichPayment }}</span>
+<div data-ops-refund-pay>
+<sc-for list="{{ stripeRows }}" as="p" hint-placeholder-count="2">
+<div data-ops-stripe-row>
+<span data-ops-stripe-text><span data-ops-stripe-k>{{ p.label }}</span><span data-ops-stripe-v data-vt-no-i18n="1">{{ p.detail }}</span></span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" href="{{ p.url }}" target="_blank" rel="noopener noreferrer" iconEnd="external-link" hint-size="190px,44px">{{ tOpenInStripe }}</x-import>
+</div>
+</sc-for>
+</div>
+<p data-ops-decide-body>{{ tStripeNewTab }}</p>
+</div>
 </sc-if>
 <sc-if value="{{ isRefunded }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="success" title="{{ tRefundedTitle }}" hint-size="100%,70px">{{ tRefundedBody }}</x-import>
@@ -441,72 +454,19 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tDisputeTitle }}" hint-size="100%,70px">{{ disputeLine }}</x-import>
 </div>
 </sc-if>
-<sc-if value="{{ refundFormShown }}" hint-placeholder-val="{{ false }}">
-<div data-ops-refund-region ref="{{ refundRef }}">
-<sc-if value="{{ reviewShown }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tReviewTitle }}" hint-size="100%,70px">{{ tReviewBody }}</x-import>
-</sc-if>
-<sc-if value="{{ pickerShown }}" hint-placeholder-val="{{ false }}">
-<div data-ops-refund-pick role="radiogroup" aria-label="{{ tWhichPayment }}">
-<span data-ops-refund-label>{{ tWhichPayment }}</span>
-<div data-ops-refund-pay>
-<sc-for list="{{ payRows }}" as="p" hint-placeholder-count="3">
-<div data-ops-refund-payrow>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Radio" name="refund-pay" label="{{ p.label }}" description="{{ p.description }}" checked="{{ p.checked }}" disabled="{{ p.disabled }}" onChange="{{ p.pick }}" hint-size="100%,44px"></x-import>
-</div>
-</sc-for>
-</div>
-</div>
-</sc-if>
-<sc-if value="{{ fullShown }}" hint-placeholder-val="{{ false }}">
-<p data-ops-refund-full>{{ fullLine }}</p>
-</sc-if>
-<!-- 26.2 P1: a cheaper class left exactly this much due; nothing goes to Stripe before your click. -->
-<sc-if value="{{ creditShown }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tRefundTitle }}" hint-size="100%,70px">{{ tClassCreditBody }}</x-import>
-<p data-ops-refund-full>{{ creditLine }}</p>
-</sc-if>
-<sc-if value="{{ unitSwitchShown }}" hint-placeholder-val="{{ false }}">
-<div data-ops-refund-unit>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tabs" items="{{ unitItems }}" value="{{ unitValue }}" onChange="{{ setUnit }}" variant="segmented" aria-label="{{ tUnitAria }}" hint-size="160px,48px"></x-import>
-</div>
-</sc-if>
-<sc-if value="{{ exactHintShown }}" hint-placeholder-val="{{ false }}">
-<p data-ops-decide-body>{{ tExactNeedsPayment }}</p>
-</sc-if>
-<div data-ops-refund-row>
-<sc-if value="{{ decidedShown }}" hint-placeholder-val="{{ false }}">
-<div data-ops-refund-pct>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="number" min="0" max="{{ inputMax }}" size="md" step="{{ inputStep }}" inputMode="{{ inputMode }}" suffix="{{ unitLabel }}" placeholder="{{ inputPlaceholder }}" aria-label="{{ tRefundAmountLabel }}" value="{{ percentText }}" onChange="{{ setPercent }}" disabled="{{ refundBusy }}" hint-size="160px,44px"></x-import>
-</div>
-</sc-if>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" disabled="{{ confirmDisabled }}" aria-busy="{{ confirmBusy }}" onClick="{{ confirmPercent }}" hint-size="170px,44px">{{ tConfirmRefund }}</x-import>
-<sc-if value="{{ declineShown }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" disabled="{{ refundBusy }}" onClick="{{ openDecline }}" hint-size="170px,44px">{{ tDeclineRefund }}</x-import>
-</sc-if>
-</div>
-</div>
-</sc-if>
 <sc-if value="{{ refundErrorShown }}" hint-placeholder-val="{{ false }}">
 <div data-ops-refund-region>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ refundErrorText }}" hint-size="100%,56px"></x-import>
 </div>
 </sc-if>
-<sc-if value="{{ requestedShown }}" hint-placeholder-val="{{ false }}">
-<div data-ops-refund-region ref="{{ refundRef }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tRequestedTitle }}" hint-size="100%,70px">{{ tRequestedBody }}</x-import>
-<div data-ops-refund-row>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" disabled="{{ refundBusy }}" aria-busy="{{ acceptBusy }}" onClick="{{ acceptPostTrip }}" hint-size="170px,44px">{{ tAcceptRefund }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" disabled="{{ refundBusy }}" onClick="{{ openReject }}" hint-size="170px,44px">{{ tRejectRefund }}</x-import>
-</div>
-</div>
-</sc-if>
 <sc-if value="{{ refundFailedShown }}" hint-placeholder-val="{{ false }}">
 <div data-ops-refund-region ref="{{ refundRef }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tRefundFailedTitle }}" hint-size="100%,70px">{{ tRefundFailedBody }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tRefundFailedTitle }}" hint-size="100%,70px">{{ tFailedStripeBody }}</x-import>
+<sc-if value="{{ stripeOneUrl }}" hint-placeholder-val="{{ true }}">
 <div data-ops-refund-row>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" disabled="{{ refundBusy }}" onClick="{{ retryRefund }}" hint-size="140px,44px">{{ tTryAgain }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" href="{{ stripeOneUrl }}" target="_blank" rel="noopener noreferrer" iconEnd="external-link" hint-size="190px,44px">{{ tOpenInStripe }}</x-import>
 </div>
+</sc-if>
 </div>
 </sc-if>
 </div>
@@ -570,26 +530,6 @@
 <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" onClick="{{ closeCancel }}" hint-size="110px,44px">{{ tKeepBooking }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="danger" onClick="{{ confirmCancel }}" hint-size="150px,44px">{{ tConfirmCancel }}</x-import>
-</div>
-</x-import>
-</sc-if>
-
-<sc-if value="{{ declineOpen }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tDeclineConfirmTitle }}" size="sm" onClose="{{ closeDecide }}" hint-size="400px,240px">
-<p data-ops-decide-body>{{ decidePre }}<span class="vt-dir-keep" data-vt-no-i18n="1">{{ decideRef }}</span>{{ decidePost }}</p>
-<div data-ops-decide-foot>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" autoFocus="{{ yes }}" onClick="{{ closeDecide }}" disabled="{{ refundBusy }}" hint-size="150px,44px">{{ tKeepReviewing }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" disabled="{{ refundBusy }}" aria-busy="{{ decideBusy }}" onClick="{{ confirmDecline }}" hint-size="160px,44px">{{ tDeclineRefund }}</x-import>
-</div>
-</x-import>
-</sc-if>
-
-<sc-if value="{{ rejectOpen }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tRejectConfirmTitle }}" size="sm" onClose="{{ closeDecide }}" hint-size="400px,240px">
-<p data-ops-decide-body>{{ decidePre }}<span class="vt-dir-keep" data-vt-no-i18n="1">{{ decideRef }}</span>{{ decidePost }}</p>
-<div data-ops-decide-foot>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" autoFocus="{{ yes }}" onClick="{{ closeDecide }}" disabled="{{ refundBusy }}" hint-size="150px,44px">{{ tKeepReviewing }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" disabled="{{ refundBusy }}" aria-busy="{{ decideBusy }}" onClick="{{ confirmReject }}" hint-size="160px,44px">{{ tRejectRefund }}</x-import>
 </div>
 </x-import>
 </sc-if>
@@ -843,7 +783,6 @@ const T = {
     fare:'Fare', due:'Due', paid:'Paid', fareNote:'Price snapshot taken at booking; later rule changes do not alter it.',
     outstandingTitle:'Payment outstanding', outstandingBody:'No card capture yet. Send a pay-link or wait for the checkout session to finish.',
     sendPayLink:'Send pay-link', takeCard:'Take card', openStripe:'Open Stripe payment page', copyPayLink:'Copy payment link', payLinkCopied:'Payment link copied', payLinkSent:'Pay-link sent to ', payLinkFailed:'Could not send pay-link ', cardFailed:'Card failed ',
-    refundTitle:'Refund due', refundBody:'Cancelled more than 24 hours before pickup. The customer was told they get a full refund. Nothing is sent until you confirm.',
     refundedTitle:'Refund issued', refundedBody:'The customer has been emailed that the refund was issued to their bank account.',
     resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', action:'Action', complete:'Complete', noShow:'No-show', markArrival:'Mark arrival', arrived:'Arrived', arrivalFailed:'Could not mark arrival ', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
     cancelTitle:'Cancel this booking?', cancelBody:'It is marked cancelled. You will still see it under Cancelled.',
@@ -861,7 +800,7 @@ const T = {
     coupon:'Coupon', extras:'Extras', vat:'VAT', noCoupon:'None', noExtras:'None', noFlight:'None', unassigned:'Unassigned', dropUnknown:'Not stored', minutes:' min',
     vehicleAssigned:'Vehicle', when:'When',
     cardPaid:'Card payment', cardRefund:'Refund to the card', bookedSite:'Booked on the website', emailed:'Email sent', dispatcher:'Dispatcher',
-    saveEdit:'Save changes', cancelEdit:'Cancel', markRefund:'Refund',
+    saveEdit:'Save changes', cancelEdit:'Cancel',
     customer:'Name', pickup:'Pickup', dropoff:'Destination', date:'Date', time:'Time', bagsLabel:'Bags',
  continue:'Continue', accept:'Accept',
  pendingEditTitle:'Pending edit',
@@ -869,7 +808,6 @@ const T = {
  unpaidNoEditBody:'Cancel and create a new trip.',
  unpaidNewTrip:'Cancel and create a new trip',
  extraWaiting:'Extra payment is open for the difference.',
-    refundClick:'Use Refund for the difference.',
     mustFix:'Reassign the chauffeur before this change can apply.',
     acceptPaid:'The customer has already paid the difference. The change is applied when the payment is recorded.',
     acceptPriceChanged:'The amount to pay changed since you first accepted, so no new link was made. Refuse this request; the customer can ask again.',
@@ -877,48 +815,24 @@ const T = {
     refuse:'Refuse',
     refuseFailed:'Could not refuse edit ',
     flightBanner:'Flight number updated',
-    reviewTitle:'Refund review needed', reviewBody:'Cancelled inside 24 hours of pickup. Set the percentage to refund.', percentPlaceholder:'0–100',
-    confirmRefund:'Confirm refund', declineRefund:'Decline refund', declineConfirmTitle:'Decline this refund?', declineConfirmBody:'{ref} stays charged in full — the customer gets nothing back.', keepReviewing:'Keep reviewing',
-    requestedTitle:'Refund requested', requestedBody:'Asked after the trip. Accept or reject the refund.', acceptRefund:'Accept refund', rejectRefund:'Reject refund',
-    rejectConfirmTitle:'Reject this refund?', rejectConfirmBody:'The customer is told no money will be returned for {ref}.',
     disputeTitle:'Payment disputed', disputeManage:'Manage in the Stripe dashboard.', disputeNeedsResponse:'Needs response', disputeUnderReview:'Under review', disputeWon:'Won', disputeLost:'Lost',
-    refundFailedTitle:'Refund failed', refundFailedBody:'Stripe did not accept the refund. You can try again.', tryAgain:'Try again',
-    dueLegacyBody:'Cancelled and paid. Nothing has been refunded yet.',
+    refundInStripe:'Refund in Stripe', openInStripe:'Open in Stripe', stripeNewTab:'Stripe opens in a new tab. This page shows the refund once Stripe records it.', checkTitle:'Refund to check', checkBody:'Cancelled with a payment on file. If the cancellation policy gives money back, refund it in Stripe. This page shows it once Stripe records it.', failedStripeBody:'Stripe could not send the refund. Open the payment in Stripe to try again.', noStripePayment:'This booking has no Stripe payment to open.',
+    refundFailedTitle:'Refund failed',
     whichPayment:'Which payment?',
-    allPayments:'All payments',
     payTrip:'Trip',
     payExtra:'Extra fare',
-    payLine:'refunded {a} · left {b}',
-    partialTitle:'{a} refunded. {b} still due.',
-    partialBody:'Stripe did not accept one refund. Nothing was sent twice.',
-    processingBody:'A refund was sent and is not recorded yet. Press Try again.',
-    refundFullLine:'Full refund: {a}',
-    refundAmountLabel:'Refund amount',
-    unitAria:'Refund as a percentage or as an amount',
-    exactNeedsPayment:'To refund an exact amount, choose one payment.',
-    errFullOnly:'Cancelled more than 24 hours ahead: only the full refund can be sent.',
-    errExceeds:'That is more than is left to refund on this payment.',
-    errInvalid:'Enter a percentage from 0 to 100, or an amount above 0.',
-    errAlready:'Nothing is left to refund on this booking.',
-    errNotPaid:'This booking has no captured payment.',
-    errNothing:'There is nothing to try again. The page now shows what is due.',
-    errDecided:'This refund is no longer waiting for a decision. The page now shows where it stands.',
-    errNotPostTrip:'A refund can only be rejected after a completed trip or a no-show.',
     classLoading:'Working out the prices…', classCurrentTag:'current class',
     classPaidSoFar:'Paid so far', classNewTotal:'New total',
     classDiffToPay:'Difference to pay', classDiffRefund:'Refund due', classDiffNone:'No difference',
     classNoteDearer:'The booking keeps its class until the customer pays the difference. The site e-mails the payment link; it works for 24 hours.',
-    classNoteCheaper:'The class changes when you confirm. The difference shows as Refund due; nothing is sent until you press Confirm refund.',
+    classNoteCheaper:'The class changes when you confirm. Refund the difference in Stripe afterwards.',
     classNoteSame:'The class changes when you confirm. The customer gets the confirmation again.',
     classNoteDriver:'The driver is taken off the trip and told by e-mail.',
     classConfirmTitle:'Change the class?', classKeep:'Keep the class', classConfirm:'Change the class',
     classWaitingTitle:'Waiting for payment of the difference',
     classWaitingBody:'{class} · {a} to pay · the link works until {until}',
-    classCreditBody:'The class was changed to a cheaper one. Nothing is sent until you confirm.',
-    tripCreditBody:'The trip was changed and costs less now. Nothing is sent until you confirm.',
-    classCreditLine:'Difference to refund: {a}',
     classDoneApplied:'Class changed. The customer got the confirmation again.',
-    classDoneRefund:'Class changed. Refund due: {a}. Press Confirm refund to send it.',
+    classDoneRefund:'Class changed. Difference to refund: {a}. Refund it in Stripe.',
     classDoneWaiting:'The customer was e-mailed the link to pay {a}. The class changes when it is paid.',
     classDoneNoMail:'The e-mail did not go out. Copy the payment link and send it to the customer.',
     classDoneNoConfirm:'Class changed. The confirmation e-mail did not go out: use Resend voucher.',
@@ -949,7 +863,7 @@ const T = {
     flightNeeded:'Enter the flight number: the new pickup is an airport.',
     whatChanges:'What changes', noNewPrice:'No new price: the customer keeps the price paid.',
     tripNoteDearer:'The trip stays as booked until the customer pays the difference. The site e-mails the payment link; it works for 24 hours.',
-    tripNoteCheaper:'The trip changes when you confirm. The difference shows as Refund due; nothing is sent until you press Confirm refund.',
+    tripNoteCheaper:'The trip changes when you confirm. Refund the difference in Stripe afterwards.',
     tripNoteSame:'The trip changes when you confirm. The customer gets the confirmation again.',
     driverKeepNote:'{name} stays on the trip and gets the new details by e-mail.',
     clashTitle:'{name} has another trip at that time', clashBody:'{ref}, pickup at {time}.',
@@ -972,7 +886,7 @@ const T = {
     tripWaiting:'Trip change', withdrawTripTitle:'Withdraw the trip change?',
     withdrawTripBody:'The payment link stops working and nothing is charged. The trip stays as booked.',
     tripDoneApplied:'Trip changed. The customer got the confirmation again.',
-    tripDoneRefund:'Trip changed. Refund due: {a}. Press Confirm refund to send it.',
+    tripDoneRefund:'Trip changed. Difference to refund: {a}. Refund it in Stripe.',
     tripDoneWaiting:'The customer was e-mailed the link to pay {a}. The trip changes when it is paid.',
     tripDoneNoConfirm:'Trip changed. The confirmation e-mail did not go out: use Resend voucher.',
     tripDoneDriverKept:'{name} got the new details by e-mail.',
@@ -983,7 +897,6 @@ const T = {
     passengerTrip:'Passagier & Fahrt', passengers:'Passagiere', bags:'Gepäck', vehicleClass:'Fahrzeugklasse', flight:'Flug', email:'E-Mail', mobile:'Mobil', payment:'Zahlung', payLink:'Zahlungslink', session:'Session',
     fare:'Fahrpreis', due:'Offen', paid:'Bezahlt', fareNote:'Preis-Snapshot bei Buchung; spätere Regeländerungen ändern ihn nicht.',
     outstandingTitle:'Zahlung ausstehend', outstandingBody:'Keine Kartenzahlung. Zahlungslink senden oder die Checkout-Session abwarten.',
-    refundTitle:'Rückerstattung fällig', refundBody:'Mehr als 24 Stunden vor der Abholung storniert. Dem Kunden wurde die volle Rückerstattung zugesagt. Es wird nichts gesendet, bis Sie bestätigen.',
     refundedTitle:'Rückerstattung ausgezahlt', refundedBody:'Der Kunde wurde per E-Mail informiert, dass die Rückerstattung auf sein Bankkonto ausgezahlt wurde.',
     resendVoucher:'Gutschein erneut senden', editBooking:'Buchung bearbeiten', cancelBooking:'Stornieren', action:'Aktion', complete:'Abgeschlossen', noShow:'No-show', markArrival:'Ankunft markieren', arrived:'Angekommen', arrivalFailed:'Ankunft konnte nicht markiert werden ', driver:'Fahrer', manualNote:'Die Zuweisung erfolgt in V1 manuell — es gibt keine Fahrer-App und keine automatische Vermittlung.', cancel:'Abbrechen',
     cancelTitle:'Diese Buchung stornieren?', cancelBody:'Sie wird als storniert markiert. Unter Storniert bleibt sie sichtbar.',
@@ -1004,7 +917,7 @@ const T = {
     noCoupon:'Keiner', noExtras:'Keine', noFlight:'Keiner', unassigned:'Nicht zugewiesen', dropUnknown:'Nicht gespeichert', minutes:' Min.',
     vehicleAssigned:'Fahrzeug', when:'Wann',
     cardPaid:'Kartenzahlung', cardRefund:'Rückerstattung auf die Karte', bookedSite:'Auf der Website gebucht', emailed:'E-Mail gesendet', dispatcher:'Disponent',
-    saveEdit:'Änderungen speichern', cancelEdit:'Abbrechen', markRefund:'Rückerstatten',
+    saveEdit:'Änderungen speichern', cancelEdit:'Abbrechen',
     customer:'Name', pickup:'Abholung', dropoff:'Ziel', date:'Datum', time:'Uhrzeit', bagsLabel:'Gepäck',
  continue:'Weiter', accept:'Annehmen',
  pendingEditTitle:'Offene Änderung',
@@ -1012,7 +925,6 @@ const T = {
  unpaidNoEditBody:'Stornieren und eine neue Fahrt anlegen.',
  unpaidNewTrip:'Stornieren und neue Fahrt anlegen',
  extraWaiting:'Zusatzzahlung für die Differenz ist offen.',
-    refundClick:'Rückerstatten für die Differenz verwenden.',
     mustFix:'Chauffeur neu zuweisen, bevor diese Änderung gilt.',
     acceptPaid:'Der Kunde hat die Differenz bereits bezahlt. Die Änderung gilt, sobald die Zahlung verbucht ist.',
     acceptPriceChanged:'Der zu zahlende Betrag hat sich seit Ihrer ersten Annahme geändert, daher wurde kein neuer Link erstellt. Lehnen Sie diese Anfrage ab; der Kunde kann erneut fragen.',
@@ -1020,48 +932,24 @@ const T = {
     refuse:'Ablehnen',
     refuseFailed:'Änderung abgelehnt fehlgeschlagen für ',
     flightBanner:'Flugnummer aktualisiert',
-    reviewTitle:'Rückerstattung prüfen', reviewBody:'Innerhalb von 24 Stunden vor der Abholung storniert. Legen Sie den Prozentsatz der Rückerstattung fest.', percentPlaceholder:'0–100',
-    confirmRefund:'Rückerstattung bestätigen', declineRefund:'Rückerstattung ablehnen', declineConfirmTitle:'Diese Rückerstattung ablehnen?', declineConfirmBody:'{ref} bleibt voll belastet — der Kunde erhält nichts zurück.', keepReviewing:'Weiter prüfen',
-    requestedTitle:'Rückerstattung angefragt', requestedBody:'Nach der Fahrt angefragt. Rückerstattung annehmen oder zurückweisen.', acceptRefund:'Rückerstattung annehmen', rejectRefund:'Rückerstattung zurückweisen',
-    rejectConfirmTitle:'Diese Rückerstattung zurückweisen?', rejectConfirmBody:'Der Kunde erfährt, dass für {ref} kein Geld zurückerstattet wird.',
     disputeTitle:'Zahlung angefochten', disputeManage:'Im Stripe-Dashboard bearbeiten.', disputeNeedsResponse:'Antwort nötig', disputeUnderReview:'In Prüfung', disputeWon:'Gewonnen', disputeLost:'Verloren',
-    refundFailedTitle:'Rückerstattung fehlgeschlagen', refundFailedBody:'Stripe hat die Rückerstattung nicht angenommen. Sie können es erneut versuchen.', tryAgain:'Erneut versuchen',
-    dueLegacyBody:'Storniert und bezahlt. Bisher wurde nichts zurückerstattet.',
+    refundInStripe:'In Stripe rückerstatten', openInStripe:'In Stripe öffnen', stripeNewTab:'Stripe öffnet sich in einem neuen Tab. Diese Seite zeigt die Rückerstattung, sobald Stripe sie erfasst hat.', checkTitle:'Rückerstattung prüfen', checkBody:'Storniert, die Zahlung ist erfasst. Sehen die Stornierungsbedingungen eine Rückerstattung vor, erstatten Sie sie in Stripe. Diese Seite zeigt sie, sobald Stripe sie erfasst hat.', failedStripeBody:'Stripe konnte die Rückerstattung nicht senden. Öffnen Sie die Zahlung in Stripe, um es erneut zu versuchen.', noStripePayment:'Diese Buchung hat keine Stripe-Zahlung zum Öffnen.',
+    refundFailedTitle:'Rückerstattung fehlgeschlagen',
     whichPayment:'Welche Zahlung?',
-    allPayments:'Alle Zahlungen',
     payTrip:'Fahrt',
     payExtra:'Aufpreis',
-    payLine:'erstattet {a} · offen {b}',
-    partialTitle:'{a} erstattet. {b} noch offen.',
-    partialBody:'Stripe hat eine Rückerstattung nicht angenommen. Nichts wurde doppelt gesendet.',
-    processingBody:'Eine Rückerstattung wurde gesendet und ist noch nicht verbucht. Drücken Sie «Erneut versuchen».',
-    refundFullLine:'Volle Rückerstattung: {a}',
-    refundAmountLabel:'Rückerstattungsbetrag',
-    unitAria:'Rückerstattung als Prozentsatz oder als Betrag',
-    exactNeedsPayment:'Für einen genauen Betrag wählen Sie eine Zahlung.',
-    errFullOnly:'Mehr als 24 Stunden vorher storniert: Es kann nur die volle Rückerstattung gesendet werden.',
-    errExceeds:'Das ist mehr, als bei dieser Zahlung noch zurückerstattet werden kann.',
-    errInvalid:'Geben Sie einen Prozentsatz von 0 bis 100 oder einen Betrag über 0 ein.',
-    errAlready:'Bei dieser Buchung ist nichts mehr zurückzuerstatten.',
-    errNotPaid:'Diese Buchung hat keine erfasste Zahlung.',
-    errNothing:'Es gibt nichts zu wiederholen. Die Seite zeigt jetzt, was offen ist.',
-    errDecided:'Diese Rückerstattung wartet nicht mehr auf einen Entscheid. Die Seite zeigt jetzt den aktuellen Stand.',
-    errNotPostTrip:'Eine Rückerstattung kann nur nach einer abgeschlossenen Fahrt oder einem No-show zurückgewiesen werden.',
     classLoading:'Preise werden berechnet …', classCurrentTag:'aktuelle Klasse',
     classPaidSoFar:'Bisher bezahlt', classNewTotal:'Neuer Gesamtbetrag',
     classDiffToPay:'Differenz zu bezahlen', classDiffRefund:'Rückerstattung fällig', classDiffNone:'Keine Differenz',
     classNoteDearer:'Die Buchung behält ihre Klasse, bis der Kunde die Differenz bezahlt hat. Die Website sendet ihm den Zahlungslink per E-Mail; er gilt 24 Stunden.',
-    classNoteCheaper:'Die Klasse ändert sich, wenn Sie bestätigen. Die Differenz erscheint als «Rückerstattung fällig»; es wird nichts gesendet, bis Sie «Rückerstattung bestätigen» drücken.',
+    classNoteCheaper:'Die Klasse ändert sich, wenn Sie bestätigen. Erstatten Sie die Differenz danach in Stripe.',
     classNoteSame:'Die Klasse ändert sich, wenn Sie bestätigen. Der Kunde erhält die Bestätigung erneut.',
     classNoteDriver:'Der Fahrer wird von der Fahrt genommen und per E-Mail informiert.',
     classConfirmTitle:'Klasse ändern?', classKeep:'Klasse behalten', classConfirm:'Klasse ändern',
     classWaitingTitle:'Warten auf Zahlung der Differenz',
     classWaitingBody:'{class} · {a} zu bezahlen · Link gültig bis {until}',
-    classCreditBody:'Die Klasse wurde auf eine günstigere geändert. Es wird nichts gesendet, bis Sie bestätigen.',
-    tripCreditBody:'Die Fahrt wurde geändert und kostet jetzt weniger. Es wird nichts gesendet, bis Sie bestätigen.',
-    classCreditLine:'Zurückzuerstattende Differenz: {a}',
     classDoneApplied:'Klasse geändert. Der Kunde hat die Bestätigung erneut erhalten.',
-    classDoneRefund:'Klasse geändert. Rückerstattung fällig: {a}. Drücken Sie «Rückerstattung bestätigen», um sie zu senden.',
+    classDoneRefund:'Klasse geändert. Zu erstattende Differenz: {a}. Erstatten Sie sie in Stripe.',
     classDoneWaiting:'Der Kunde hat den Link erhalten, um {a} zu bezahlen. Die Klasse ändert sich, sobald bezahlt ist.',
     classDoneNoMail:'Die E-Mail wurde nicht gesendet. Kopieren Sie den Zahlungslink und senden Sie ihn dem Kunden.',
     classDoneNoConfirm:'Klasse geändert. Die Bestätigung wurde nicht gesendet: Verwenden Sie «Gutschein erneut senden».',
@@ -1092,7 +980,7 @@ const T = {
     flightNeeded:'Geben Sie die Flugnummer ein: Die neue Abholung ist ein Flughafen.',
     whatChanges:'Was sich ändert', noNewPrice:'Kein neuer Preis: Der Kunde behält den bezahlten Preis.',
     tripNoteDearer:'Die Fahrt bleibt wie gebucht, bis der Kunde die Differenz bezahlt hat. Die Website sendet ihm den Zahlungslink per E-Mail; er gilt 24 Stunden.',
-    tripNoteCheaper:'Die Fahrt ändert sich, wenn Sie bestätigen. Die Differenz erscheint als «Rückerstattung fällig»; es wird nichts gesendet, bis Sie «Rückerstattung bestätigen» drücken.',
+    tripNoteCheaper:'Die Fahrt ändert sich, wenn Sie bestätigen. Erstatten Sie die Differenz danach in Stripe.',
     tripNoteSame:'Die Fahrt ändert sich, wenn Sie bestätigen. Der Kunde erhält die Bestätigung erneut.',
     driverKeepNote:'{name} bleibt auf der Fahrt und erhält die neuen Angaben per E-Mail.',
     clashTitle:'{name} hat zu dieser Zeit eine andere Fahrt', clashBody:'{ref}, Abholung um {time}.',
@@ -1115,7 +1003,7 @@ const T = {
     tripWaiting:'Fahrtänderung', withdrawTripTitle:'Fahrtänderung zurückziehen?',
     withdrawTripBody:'Der Zahlungslink funktioniert nicht mehr und es wird nichts belastet. Die Fahrt bleibt wie gebucht.',
     tripDoneApplied:'Fahrt geändert. Der Kunde hat die Bestätigung erneut erhalten.',
-    tripDoneRefund:'Fahrt geändert. Rückerstattung fällig: {a}. Drücken Sie «Rückerstattung bestätigen», um sie zu senden.',
+    tripDoneRefund:'Fahrt geändert. Zu erstattende Differenz: {a}. Erstatten Sie sie in Stripe.',
     tripDoneWaiting:'Der Kunde hat den Link erhalten, um {a} zu bezahlen. Die Fahrt ändert sich, sobald bezahlt ist.',
     tripDoneNoConfirm:'Fahrt geändert. Die Bestätigung wurde nicht gesendet: Verwenden Sie «Gutschein erneut senden».',
     tripDoneDriverKept:'{name} hat die neuen Angaben per E-Mail erhalten.',
@@ -1134,7 +1022,6 @@ const T = {
     unpaidNoEditBody:'Annuler et créer une nouvelle course.',
     unpaidNewTrip:'Annuler et créer une nouvelle course',
     extraWaiting:'Paiement supplémentaire ouvert pour la différence.',
-    refundClick:'Utiliser Rembourser pour la différence.',
     mustFix:'Réassigner le chauffeur avant d’appliquer ce changement.',
     acceptPaid:'Le client a déjà payé la différence. Le changement s’applique dès que le paiement est enregistré.',
     acceptPriceChanged:'Le montant à payer a changé depuis votre première acceptation, aucun nouveau lien n’a donc été créé. Refusez cette demande ; le client peut redemander.',
@@ -1146,40 +1033,18 @@ const T = {
     cancelBodyUnpaid:'Cette course non payée est supprimée. Elle n’apparaît pas sous Annulé.',
     confirmCancelUnpaid:'Supprimer la réservation', bookingRemoved:'Supprimé ',
     coupon:'Code promo', extras:'Extras', vat:'TVA', included:'Inclus',
-    reviewTitle:'Remboursement à examiner', reviewBody:'Annulé moins de 24 heures avant la prise en charge. Fixez le pourcentage à rembourser.', percentPlaceholder:'0–100',
-    confirmRefund:'Confirmer le remboursement', declineRefund:'Refuser le remboursement', declineConfirmTitle:'Refuser ce remboursement ?', declineConfirmBody:'{ref} reste débité en totalité — le client ne récupère rien.', keepReviewing:'Continuer l’examen',
-    requestedTitle:'Remboursement demandé', requestedBody:'Demandé après la course. Acceptez ou rejetez le remboursement.', acceptRefund:'Accepter le remboursement', rejectRefund:'Rejeter le remboursement',
-    rejectConfirmTitle:'Rejeter ce remboursement ?', rejectConfirmBody:'Le client est informé qu’aucun montant ne sera remboursé pour {ref}.',
     disputeTitle:'Paiement contesté', disputeManage:'À gérer dans le tableau de bord Stripe.', disputeNeedsResponse:'Réponse requise', disputeUnderReview:'En cours d’examen', disputeWon:'Gagné', disputeLost:'Perdu',
-    refundFailedTitle:'Échec du remboursement', refundFailedBody:'Stripe n’a pas accepté le remboursement. Vous pouvez réessayer.', tryAgain:'Réessayer',
-    dueLegacyBody:'Annulée et payée. Rien n’a encore été remboursé.',
+    refundInStripe:'Rembourser dans Stripe', openInStripe:'Ouvrir dans Stripe', stripeNewTab:'Stripe s’ouvre dans un nouvel onglet. Cette page affiche le remboursement dès que Stripe l’enregistre.', checkTitle:'Remboursement à vérifier', checkBody:'Annulée avec un paiement enregistré. Si la politique d’annulation prévoit un remboursement, faites-le dans Stripe. Cette page l’affiche dès que Stripe l’enregistre.', failedStripeBody:'Stripe n’a pas pu envoyer le remboursement. Ouvrez le paiement dans Stripe pour réessayer.', noStripePayment:'Cette réservation n’a aucun paiement Stripe à ouvrir.',
+    refundFailedTitle:'Échec du remboursement',
     whichPayment:'Quel paiement ?',
-    allPayments:'Tous les paiements',
     payTrip:'Trajet',
     payExtra:'Supplément',
-    payLine:'remboursé {a} · reste {b}',
-    partialTitle:'{a} remboursé. {b} encore dû.',
-    partialBody:'Stripe n’a pas accepté un remboursement. Rien n’a été envoyé deux fois.',
-    processingBody:'Un remboursement a été envoyé et n’est pas encore enregistré. Appuyez sur Réessayer.',
-    refundFullLine:'Remboursement intégral : {a}',
-    refundAmountLabel:'Montant du remboursement',
-    unitAria:'Remboursement en pourcentage ou en montant',
-    exactNeedsPayment:'Pour rembourser un montant exact, choisissez un paiement.',
-    errFullOnly:'Annulée plus de 24 heures à l’avance : seul le remboursement intégral peut être envoyé.',
-    errExceeds:'C’est plus que ce qu’il reste à rembourser sur ce paiement.',
-    errInvalid:'Saisissez un pourcentage de 0 à 100 ou un montant supérieur à 0.',
-    errAlready:'Il ne reste rien à rembourser sur cette réservation.',
-    errNotPaid:'Cette réservation n’a aucun paiement capturé.',
-    errNothing:'Il n’y a rien à réessayer. La page montre maintenant ce qui est dû.',
-    errDecided:'Ce remboursement n’attend plus de décision. La page montre maintenant où il en est.',
-    errNotPostTrip:'Un remboursement ne peut être rejeté qu’après une course terminée ou une absence.',
     backToBookings:'Retour aux réservations', bookedBy:'réservé par', moreActions:'Plus d’actions', details:'Détails', history:'Historique', historyEmpty:'Aucun événement.',
     assignment:'Assignation', assign:'Assigner un chauffeur', reassign:'Réassigner', onShift:'En service', noDriver:'Aucun chauffeur assigné', noDriverSub:'Assignez avant l’envoi du rappel de prise en charge',
     passengers:'Passagers', bags:'bagages', vehicleClass:'Classe du véhicule', flight:'Vol', email:'E-mail', mobile:'Mobile', payment:'Paiement', payLink:'Lien de paiement', session:'Session',
     fare:'Tarif', due:'Dû', paid:'Payé', fareNote:'Prix figé au moment de la réservation ; les changements de tarif ultérieurs ne le modifient pas.',
     outstandingTitle:'Paiement en attente', outstandingBody:'Aucune carte encore débitée. Envoyez un lien de paiement ou attendez la fin de la session de paiement.',
     sendPayLink:'Envoyer le lien de paiement', takeCard:'Encaisser par carte', openStripe:'Ouvrir la page de paiement Stripe', copyPayLink:'Copier le lien de paiement', payLinkCopied:'Lien de paiement copié', payLinkSent:'Lien de paiement envoyé à ', payLinkFailed:'Impossible d’envoyer le lien de paiement ', cardFailed:'Échec de la carte ',
-    refundTitle:'Remboursement dû', refundBody:'Annulée plus de 24 heures avant la prise en charge. Le client a été informé d’un remboursement intégral. Rien n’est envoyé avant votre confirmation.',
     refundedTitle:'Remboursement versé', refundedBody:'Le client a reçu un e-mail confirmant que le remboursement a été versé sur son compte bancaire.',
     resendVoucher:'Renvoyer le bon', editBooking:'Modifier la réservation', cancelBooking:'Annuler', noShow:'Absence', driver:'Chauffeur', manualNote:'L’assignation est manuelle en V1 — il n’y a pas d’application chauffeur ni de répartition automatique.', cancel:'Annuler',
     cancelTitle:'Annuler cette réservation ?', cancelBody:'Elle sera marquée comme annulée. Vous la retrouverez sous Annulées.',
@@ -1191,23 +1056,20 @@ const T = {
     noCoupon:'Aucun', noExtras:'Aucun', noFlight:'Aucun', unassigned:'Non assigné', dropUnknown:'Non enregistré', minutes:' min',
     vehicleAssigned:'Véhicule', when:'Quand',
     cardPaid:'Paiement par carte', cardRefund:'Remboursement sur la carte', bookedSite:'Réservé sur le site', emailed:'E-mail envoyé', dispatcher:'Répartiteur',
-    saveEdit:'Enregistrer les modifications', cancelEdit:'Annuler', markRefund:'Rembourser',
+    saveEdit:'Enregistrer les modifications', cancelEdit:'Annuler',
     customer:'Nom', pickup:'Prise en charge', dropoff:'Destination', date:'Date', time:'Heure', bagsLabel:'Bagages',
     classLoading:'Calcul des prix…', classCurrentTag:'classe actuelle',
     classPaidSoFar:'Déjà payé', classNewTotal:'Nouveau total',
     classDiffToPay:'Différence à payer', classDiffRefund:'Remboursement dû', classDiffNone:'Aucune différence',
     classNoteDearer:'La réservation garde sa classe jusqu’à ce que le client paie la différence. Le site lui envoie le lien de paiement par e-mail ; il est valable 24 heures.',
-    classNoteCheaper:'La classe change à votre confirmation. La différence apparaît comme « Remboursement dû » ; rien n’est envoyé avant que vous appuyiez sur « Confirmer le remboursement ».',
+    classNoteCheaper:'La classe change dès votre confirmation. Remboursez ensuite la différence dans Stripe.',
     classNoteSame:'La classe change à votre confirmation. Le client reçoit de nouveau la confirmation.',
     classNoteDriver:'Le chauffeur est retiré de la course et prévenu par e-mail.',
     classConfirmTitle:'Changer la classe ?', classKeep:'Garder la classe', classConfirm:'Changer la classe',
     classWaitingTitle:'En attente du paiement de la différence',
     classWaitingBody:'{class} · {a} à payer · lien valable jusqu’au {until}',
-    classCreditBody:'La classe a été changée pour une moins chère. Rien n’est envoyé avant votre confirmation.',
-    tripCreditBody:'La course a été modifiée et coûte maintenant moins cher. Rien n’est envoyé avant votre confirmation.',
-    classCreditLine:'Différence à rembourser : {a}',
     classDoneApplied:'Classe changée. Le client a reçu de nouveau la confirmation.',
-    classDoneRefund:'Classe changée. Remboursement dû : {a}. Appuyez sur « Confirmer le remboursement » pour l’envoyer.',
+    classDoneRefund:'Classe modifiée. Différence à rembourser : {a}. Remboursez-la dans Stripe.',
     classDoneWaiting:'Le client a reçu par e-mail le lien pour payer {a}. La classe change une fois le paiement reçu.',
     classDoneNoMail:'L’e-mail n’est pas parti. Copiez le lien de paiement et envoyez-le au client.',
     classDoneNoConfirm:'Classe changée. L’e-mail de confirmation n’est pas parti : utilisez « Renvoyer le bon ».',
@@ -1238,7 +1100,7 @@ const T = {
     flightNeeded:'Saisissez le numéro de vol : la nouvelle prise en charge est un aéroport.',
     whatChanges:'Ce qui change', noNewPrice:'Pas de nouveau prix : le client garde le prix payé.',
     tripNoteDearer:'La course reste telle que réservée jusqu’à ce que le client paie la différence. Le site lui envoie le lien de paiement par e-mail ; il est valable 24 heures.',
-    tripNoteCheaper:'La course change à votre confirmation. La différence apparaît comme « Remboursement dû » ; rien n’est envoyé avant que vous appuyiez sur « Confirmer le remboursement ».',
+    tripNoteCheaper:'Le trajet change dès votre confirmation. Remboursez ensuite la différence dans Stripe.',
     tripNoteSame:'La course change à votre confirmation. Le client reçoit de nouveau la confirmation.',
     driverKeepNote:'{name} reste sur la course et reçoit les nouveaux détails par e-mail.',
     clashTitle:'{name} a une autre course à cette heure-là', clashBody:'{ref}, prise en charge à {time}.',
@@ -1261,7 +1123,7 @@ const T = {
     tripWaiting:'Changement de course', withdrawTripTitle:'Retirer le changement de course ?',
     withdrawTripBody:'Le lien de paiement ne fonctionne plus et rien n’est débité. La course reste telle que réservée.',
     tripDoneApplied:'Course changée. Le client a reçu de nouveau la confirmation.',
-    tripDoneRefund:'Course changée. Remboursement dû : {a}. Appuyez sur « Confirmer le remboursement » pour l’envoyer.',
+    tripDoneRefund:'Trajet modifié. Différence à rembourser : {a}. Remboursez-la dans Stripe.',
     tripDoneWaiting:'Le client a reçu par e-mail le lien pour payer {a}. La course change une fois le paiement reçu.',
     tripDoneNoConfirm:'Course changée. L’e-mail de confirmation n’est pas parti : utilisez « Renvoyer le bon ».',
     tripDoneDriverKept:'{name} a reçu les nouveaux détails par e-mail.',
@@ -1280,7 +1142,6 @@ const T = {
     unpaidNoEditBody:'ألغِ وأنشئ رحلة جديدة.',
     unpaidNewTrip:'إلغاء وإنشاء رحلة جديدة',
     extraWaiting:'دفع إضافي مفتوح للفرق.',
-    refundClick:'استخدم استرداد للفرق.',
     mustFix:'أعد تعيين السائق قبل تطبيق هذا التغيير.',
     acceptPaid:'دفع العميل الفرق بالفعل. يُطبَّق التغيير عند تسجيل الدفعة.',
     acceptPriceChanged:'تغيّر المبلغ المطلوب منذ قبولك الأول، لذلك لم يُنشأ رابط جديد. ارفض هذا الطلب؛ ويمكن للعميل أن يطلب مرة أخرى.',
@@ -1292,40 +1153,18 @@ const T = {
     cancelBodyUnpaid:'تُحذف هذه الرحلة غير المدفوعة. لن تبقى ضمن الملغاة.',
     confirmCancelUnpaid:'حذف الحجز', bookingRemoved:'حُذف ',
     coupon:'قسيمة', extras:'إضافات', vat:'ضريبة القيمة المضافة', included:'مشمول',
-    reviewTitle:'مراجعة الاسترداد مطلوبة', reviewBody:'أُلغي خلال 24 ساعة من موعد الاستلام. حدّد نسبة الاسترداد.', percentPlaceholder:'0–100',
-    confirmRefund:'تأكيد الاسترداد', declineRefund:'رفض الاسترداد', declineConfirmTitle:'رفض هذا الاسترداد؟', declineConfirmBody:'يبقى {ref} مدفوعاً بالكامل — لن يسترد العميل شيئاً.', keepReviewing:'متابعة المراجعة',
-    requestedTitle:'طلب استرداد', requestedBody:'طُلب بعد الرحلة. اقبل طلب الاسترداد أو ارفضه.', acceptRefund:'قبول الاسترداد', rejectRefund:'رفض طلب الاسترداد',
-    rejectConfirmTitle:'رفض طلب الاسترداد هذا؟', rejectConfirmBody:'سيُبلَّغ العميل بأنه لن يُعاد أي مبلغ عن {ref}.',
     disputeTitle:'دفعة متنازع عليها', disputeManage:'تُدار من لوحة تحكم Stripe.', disputeNeedsResponse:'بحاجة إلى رد', disputeUnderReview:'قيد المراجعة', disputeWon:'رابح', disputeLost:'خاسر',
-    refundFailedTitle:'فشل الاسترداد', refundFailedBody:'لم تقبل Stripe الاسترداد. يمكنك المحاولة مرة أخرى.', tryAgain:'حاول مرة أخرى',
-    dueLegacyBody:'أُلغي وهو مدفوع. لم يُستردّ شيء بعد.',
+    refundInStripe:'الاسترداد في Stripe', openInStripe:'فتح في Stripe', stripeNewTab:'يُفتح Stripe في علامة تبويب جديدة. تعرض هذه الصفحة الاسترداد بمجرد أن يسجّله Stripe.', checkTitle:'استرداد للمراجعة', checkBody:'أُلغي الحجز وعليه دفعة مسجّلة. إذا كانت سياسة الإلغاء تتيح استردادًا، فنفّذه في Stripe. تعرضه هذه الصفحة بمجرد أن يسجّله Stripe.', failedStripeBody:'تعذّر على Stripe إرسال الاسترداد. افتح الدفعة في Stripe لإعادة المحاولة.', noStripePayment:'لا توجد لهذا الحجز دفعة في Stripe لفتحها.',
+    refundFailedTitle:'فشل الاسترداد',
     whichPayment:'أي دفعة؟',
-    allPayments:'كل الدفعات',
     payTrip:'الرحلة',
     payExtra:'أجرة إضافية',
-    payLine:'مُستردّ {a} · متبقٍّ {b}',
-    partialTitle:'استُردّ {a}. ما زال {b} مستحقًا.',
-    partialBody:'لم تقبل Stripe أحد المبالغ المستردة. لم يُرسَل شيء مرتين.',
-    processingBody:'أُرسل مبلغ مسترد ولم يُسجَّل بعد. اضغط «حاول مرة أخرى».',
-    refundFullLine:'استرداد كامل: {a}',
-    refundAmountLabel:'مبلغ الاسترداد',
-    unitAria:'الاسترداد كنسبة مئوية أو كمبلغ',
-    exactNeedsPayment:'لاسترداد مبلغ محدد، اختر دفعة واحدة.',
-    errFullOnly:'أُلغي قبل أكثر من 24 ساعة: يمكن إرسال الاسترداد الكامل فقط.',
-    errExceeds:'هذا أكبر من المتبقي للاسترداد من هذه الدفعة.',
-    errInvalid:'أدخل نسبة من 0 إلى 100 أو مبلغًا أكبر من 0.',
-    errAlready:'لا يوجد ما يُسترد في هذا الحجز.',
-    errNotPaid:'لا توجد دفعة محصّلة لهذا الحجز.',
-    errNothing:'لا يوجد ما يُعاد. تعرض الصفحة الآن ما هو مستحق.',
-    errDecided:'لم يعد هذا الاسترداد بانتظار قرار. تعرض الصفحة الآن وضعه الحالي.',
-    errNotPostTrip:'لا يمكن رفض الاسترداد إلا بعد رحلة مكتملة أو عدم الحضور.',
     backToBookings:'الرجوع إلى الحجوزات', bookedBy:'تم الحجز بواسطة', moreActions:'المزيد من الإجراءات', details:'التفاصيل', history:'السجل', historyEmpty:'لا أحداث بعد.',
     assignment:'التعيين', assign:'تعيين سائق', reassign:'إعادة التعيين', onShift:'في الدورية', noDriver:'لا يوجد سائق معيّن', noDriverSub:'عيّن سائقاً قبل إرسال تذكير الانطلاق',
     passengers:'الركاب', bags:'حقائب', vehicleClass:'فئة المركبة', flight:'الرحلة الجوية', email:'البريد الإلكتروني', mobile:'الجوال', payment:'الدفع', payLink:'رابط الدفع', session:'الجلسة',
     fare:'الأجرة', due:'مستحق', paid:'مدفوع', fareNote:'السعر مثبّت عند الحجز؛ تغييرات القواعد لاحقاً لا تُغيّره.',
     outstandingTitle:'الدفع معلّق', outstandingBody:'لم تُحصَّل بطاقة بعد. أرسل رابط دفع أو انتظر انتهاء جلسة الدفع.',
     sendPayLink:'إرسال رابط الدفع', takeCard:'تحصيل بطاقة', openStripe:'فتح صفحة الدفع على Stripe', copyPayLink:'نسخ رابط الدفع', payLinkCopied:'تم نسخ رابط الدفع', payLinkSent:'أُرسل رابط الدفع إلى ', payLinkFailed:'تعذّر إرسال رابط الدفع ', cardFailed:'فشلت البطاقة ',
-    refundTitle:'استرداد مستحق', refundBody:'أُلغي قبل موعد الاستلام بأكثر من 24 ساعة. أُبلغ العميل بأنه سيستردّ المبلغ كاملًا. لا يُرسَل شيء قبل تأكيدك.',
     refundedTitle:'تم الاسترداد', refundedBody:'تلقّى العميل بريداً إلكترونياً يؤكد تحويل الاسترداد إلى حسابه المصرفي.',
     resendVoucher:'إعادة إرسال القسيمة', editBooking:'تعديل الحجز', cancelBooking:'إلغاء', noShow:'عدم الحضور', driver:'السائق', manualNote:'التعيين يدوي في الإصدار الأول — لا يوجد تطبيق للسائق ولا توزيع تلقائي.', cancel:'إلغاء',
     cancelTitle:'إلغاء هذا الحجز؟', cancelBody:'سيُوسم بأنه ملغى. ستظل تراه ضمن الملغاة.',
@@ -1337,23 +1176,20 @@ const T = {
     noCoupon:'لا يوجد', noExtras:'لا يوجد', noFlight:'لا يوجد', unassigned:'غير معيّن', dropUnknown:'غير مخزّن', minutes:' دقيقة',
     vehicleAssigned:'المركبة', when:'متى',
     cardPaid:'الدفع بالبطاقة', cardRefund:'استرداد إلى البطاقة', bookedSite:'حُجز عبر الموقع', emailed:'أُرسل البريد الإلكتروني', dispatcher:'المُوزّع',
-    saveEdit:'حفظ التغييرات', cancelEdit:'إلغاء', markRefund:'استرداد',
+    saveEdit:'حفظ التغييرات', cancelEdit:'إلغاء',
     customer:'الاسم', pickup:'مكان الانطلاق', dropoff:'الوجهة', date:'التاريخ', time:'الوقت', bagsLabel:'الحقائب',
     classLoading:'جارٍ حساب الأسعار…', classCurrentTag:'الفئة الحالية',
     classPaidSoFar:'المدفوع حتى الآن', classNewTotal:'الإجمالي الجديد',
     classDiffToPay:'الفرق المطلوب دفعه', classDiffRefund:'استرداد مستحق', classDiffNone:'لا فرق',
     classNoteDearer:'يحتفظ الحجز بفئته حتى يدفع العميل الفرق. يرسل الموقع رابط الدفع بالبريد الإلكتروني؛ وهو صالح لمدة 24 ساعة.',
-    classNoteCheaper:'تتغير الفئة عند تأكيدك. يظهر الفرق كاسترداد مستحق؛ لا يُرسَل شيء حتى تضغط «تأكيد الاسترداد».',
+    classNoteCheaper:'تتغيّر الفئة عند تأكيدك. استرد الفرق بعد ذلك في Stripe.',
     classNoteSame:'تتغير الفئة عند تأكيدك. يتلقى العميل التأكيد مرة أخرى.',
     classNoteDriver:'يُزال السائق من الرحلة ويُبلَّغ بالبريد الإلكتروني.',
     classConfirmTitle:'تغيير الفئة؟', classKeep:'الإبقاء على الفئة', classConfirm:'تغيير الفئة',
     classWaitingTitle:'بانتظار دفع الفرق',
     classWaitingBody:'{class} · {a} للدفع · الرابط صالح حتى {until}',
-    classCreditBody:'غُيّرت الفئة إلى فئة أرخص. لا يُرسَل شيء قبل تأكيدك.',
-    tripCreditBody:'عُدّلت الرحلة وأصبحت أرخص الآن. لا يُرسَل شيء قبل تأكيدك.',
-    classCreditLine:'الفرق المطلوب استرداده: {a}',
     classDoneApplied:'غُيّرت الفئة. تلقّى العميل التأكيد مرة أخرى.',
-    classDoneRefund:'غُيّرت الفئة. استرداد مستحق: {a}. اضغط «تأكيد الاسترداد» لإرساله.',
+    classDoneRefund:'تم تغيير الفئة. الفرق المطلوب استرداده: {a}. نفّذ الاسترداد في Stripe.',
     classDoneWaiting:'أُرسل إلى العميل رابط لدفع {a}. تتغير الفئة عند الدفع.',
     classDoneNoMail:'لم يُرسَل البريد الإلكتروني. انسخ رابط الدفع وأرسله إلى العميل.',
     classDoneNoConfirm:'غُيّرت الفئة. لم يُرسَل بريد التأكيد: استخدم «إعادة إرسال القسيمة».',
@@ -1384,7 +1220,7 @@ const T = {
     flightNeeded:'أدخل رقم الرحلة الجوية: مكان الانطلاق الجديد مطار.',
     whatChanges:'ما الذي يتغيّر', noNewPrice:'لا سعر جديد: يحتفظ العميل بالسعر المدفوع.',
     tripNoteDearer:'تبقى الرحلة كما حُجزت حتى يدفع العميل الفرق. يرسل الموقع رابط الدفع بالبريد الإلكتروني؛ وهو صالح لمدة 24 ساعة.',
-    tripNoteCheaper:'تتغيّر الرحلة عند تأكيدك. يظهر الفرق كاسترداد مستحق؛ لا يُرسَل شيء حتى تضغط «تأكيد الاسترداد».',
+    tripNoteCheaper:'تتغيّر الرحلة عند تأكيدك. استرد الفرق بعد ذلك في Stripe.',
     tripNoteSame:'تتغيّر الرحلة عند تأكيدك. يتلقى العميل التأكيد مرة أخرى.',
     driverKeepNote:'يبقى {name} على الرحلة ويتلقى التفاصيل الجديدة بالبريد الإلكتروني.',
     clashTitle:'لدى {name} رحلة أخرى في ذلك الوقت', clashBody:'{ref}، الانطلاق الساعة {time}.',
@@ -1407,7 +1243,7 @@ const T = {
     tripWaiting:'تغيير الرحلة', withdrawTripTitle:'سحب تغيير الرحلة؟',
     withdrawTripBody:'يتوقف رابط الدفع عن العمل ولا يُخصم أي مبلغ. تبقى الرحلة كما حُجزت.',
     tripDoneApplied:'غُيّرت الرحلة. تلقّى العميل التأكيد مرة أخرى.',
-    tripDoneRefund:'غُيّرت الرحلة. استرداد مستحق: {a}. اضغط «تأكيد الاسترداد» لإرساله.',
+    tripDoneRefund:'تم تغيير الرحلة. الفرق المطلوب استرداده: {a}. نفّذ الاسترداد في Stripe.',
     tripDoneWaiting:'أُرسل إلى العميل رابط لدفع {a}. تتغيّر الرحلة عند الدفع.',
     tripDoneNoConfirm:'غُيّرت الرحلة. لم يُرسَل بريد التأكيد: استخدم «إعادة إرسال القسيمة».',
     tripDoneDriverKept:'تلقّى {name} التفاصيل الجديدة بالبريد الإلكتروني.',
@@ -1416,10 +1252,9 @@ const T = {
 };
 class Component extends DCLogic {
   state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', assignOpen:false, assignError:'', classRows:null, cancelOpen:false, pickDriver:'', toastMsg:'', toastTone:'success', showToast:false, editing:false, edit:{}, historyOpen:false,
-    // 26.1-18 refund review (UI-SPEC §4): percentage starts empty, never 100.
-    percentText: '', percentFor:'', refundBusy:'', requestedFor:'', declineOpen:false, rejectOpen:false,
-    // 20-10: GET …/refund answer, the last partial/failed POST answer, an inline error, the %/CHF switch and the payment choice.
-    refundData:null, refundAnswer:null, refundError:null, refundUnit:'pct', refundPick:'all', refundPickFor:'',
+    // Phase 31 (refunds in Stripe): the booking's Stripe payment links ({ key, rows }), the booking whose
+    // "Which payment?" list is open, and an inline error. The page never sends a refund.
+    stripePays:null, stripeListFor:'', refundError:null,
     // 26.2 P1: the class-change preview (POST …/change/preview) of the booking in Edit, its confirm step, a request in flight.
     classPreview:null, classConfirmOpen:false, classBusy:false, withdrawOpen:false, withdrawBusy:false,
     // 26.2 P6: your choice when the new time clashes with another trip of the assigned driver (D7), per preview.
@@ -1430,11 +1265,11 @@ class Component extends DCLogic {
   // (The assign dialog is gone — 260930-dash-design — so dialogOpen no longer counts.)
   componentDidUpdate() {
     this.publishBar();
-    const overlay = !!(this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen || this.state.classConfirmOpen || this.state.withdrawOpen);
+    const overlay = !!(this.state.cancelOpen || this.state.classConfirmOpen || this.state.withdrawOpen);
     const was = !!this._overlayWas;
     this._overlayWas = overlay;
     if (was !== overlay) { try { document.body.style.overflow = overlay ? 'hidden' : ''; } catch (e) {} }
-    this.syncRefund();
+    this.syncStripe();
   }
   // 260930-dash-design: at phone width the console's top bar lists this page's actions
   // (app/vamos-ops-bar.js); the page's own Actions button is folded there ([data-ops-fold]).
@@ -1456,29 +1291,36 @@ class Component extends DCLogic {
       if (first) { try { first.focus({ preventScroll: true }); } catch (e) {} }
     }, 0);
   };
-  // 20-10: the payment list and the amounts come from GET …/refund. Load it when the booking has a refund
-  // due, processing or failed (and again after every refund answer).
-  syncRefund = () => {
+  // Phase 31 (D-06): the booking's Stripe payment links, loaded when the detail opens (admin, paid) so
+  // Refund in Stripe opens the tab inside the click. The tag stops a refetch; a failed request stores
+  // nothing, so the menu item stays disabled until the detail is opened again (UI-SPEC deviation 1).
+  syncStripe = () => {
     const b = this.getBooking();
     const key = b.bookingId || b.id || '';
     const prof = window.VamosOps && window.VamosOps.profile ? window.VamosOps.profile.get() : {};
-    const status = String(b.refundStatus || 'none');
-    const want = !!key && !!prof && prof.role === 'admin' && !!b.paid && ['pending_ops', 'processing', 'failed'].indexOf(status) !== -1;
-    const tag = want ? key + ':' + status : '';
-    if (tag === this._refundTag) return;
-    this._refundTag = tag;
-    if (want) this.loadRefund(key);
-  };
-  loadRefund = (key) => {
+    const want = !!key && !!prof && prof.role === 'admin' && !!b.paid;
+    const tag = want ? key : '';
+    if (tag === this._stripeTag) return;
+    this._stripeTag = tag;
     const client = window.VamosOpsApi;
-    if (!client || typeof client.request !== 'function' || !key) return;
-    client.request('GET', '/api/staff/bookings/' + encodeURIComponent(key) + '/refund').then((json) => {
-      if (json && json.ok && json.data) this.setState({ refundData: { key, data: json.data } });
-    });
+    if (!want || !client || typeof client.request !== 'function') return;
+    client.request('GET', '/api/staff/bookings/' + encodeURIComponent(key) + '/stripe-payments').then((json) => {
+      if (json && json.ok && Array.isArray(json.data)) this.setState({ stripePays: { key, rows: json.data } });
+    }).catch(() => {});
+  };
+  // Phase 31 (D-14): the payments Refund in Stripe offers, newest first, only server links on the Stripe
+  // Dashboard origin (T-31-39). Fully refunded payments are hidden; when every payment is fully refunded
+  // the newest one is offered so it can still be looked at. null while the links for this booking are not back.
+  stripeTargets = (refundKey) => {
+    const sp = this.state.stripePays;
+    if (!sp || !refundKey || sp.key !== refundKey || !Array.isArray(sp.rows)) return null;
+    const rows = sp.rows.filter((p) => p && typeof p.url === 'string' && p.url.indexOf('https://dashboard.stripe.com/') === 0);
+    const open = rows.filter((p) => Number(p.leftRappen) > 0);
+    return open.length ? open : rows.slice(0, 1);
   };
   componentWillUnmount() {
     if (window.VamosOpsBar && typeof window.VamosOpsBar.clear === 'function') window.VamosOpsBar.clear('detail');
-    try { if (this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen || this.state.classConfirmOpen || this.state.withdrawOpen) document.body.style.overflow = ''; } catch (e) {}
+    try { if (this.state.cancelOpen || this.state.classConfirmOpen || this.state.withdrawOpen) document.body.style.overflow = ''; } catch (e) {}
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._off) this._off();
     clearTimeout(this._retry);
@@ -1489,7 +1331,7 @@ class Component extends DCLogic {
     this.publishBar();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
-    this.syncRefund();
+    this.syncStripe();
   }
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
@@ -1680,85 +1522,33 @@ class Component extends DCLogic {
     }));
     const fareLines = fareBreakdown(booking, t, this.state.lang);
     const cancelled = booking.status === 'cancelled' || booking.status === 'refunded';
-    // 26.1-18 refund review (D-16b, D-24, D-25, D-07). The server re-validates every
-    // decision (withAdmin, percent 0–100, post-trip status); these flags only pick
-    // which controls to show.
+    // Phase 31 (refunds in Stripe, D-01): the dashboard sends no refund. Refund in Stripe opens the booking's
+    // payment in the Stripe Dashboard; these flags only pick what to show. The staff route re-checks withAdmin.
     const profile = window.VamosOps && window.VamosOps.profile ? window.VamosOps.profile.get() : {};
     const role = (profile && profile.role) || '';
     const isAdmin = role === 'admin';
     const refundKey = booking.bookingId || booking.id || '';
     const refundStatus = String(booking.refundStatus || 'none');
-    const postTripStatus = ['completed','partially_completed','no_show','no-show'].indexOf(booking.status) !== -1;
-    // 20-10 refund screen. fullTier = cancelled more than 24 h ahead: the amount is fixed at 100 %, no Decline.
-    // The booking row already says whether an amount is owed, so the tier is known before GET …/refund answers.
-    const rd = this.state.refundData && this.state.refundData.key === refundKey ? this.state.refundData.data : null;
-    const owedBk = Number(booking.refundOwedRappen);
-    // 26.2 P1 credit tier: owed on a trip that still runs = a cheaper class left exactly that much due.
     const refundedBk = Number(booking.refundRappen) || 0;
-    const tripEnded = booking.status === 'cancelled' || booking.status === 'refunded' || booking.status === 'partially_cancelled';
-    const creditTier = rd ? rd.creditTier === true : (refundStatus === 'pending_ops' && !tripEnded && Number.isFinite(owedBk) && owedBk > refundedBk);
-    const fullTier = rd ? rd.fullTier === true : (refundStatus === 'pending_ops' && !creditTier && Number.isFinite(owedBk) && owedBk > 0);
-    const paidAdmin = isAdmin && !!booking.paid;
-    const fullShown = paidAdmin && refundStatus === 'pending_ops' && fullTier;
-    const creditShown = paidAdmin && refundStatus === 'pending_ops' && creditTier;
-    const creditDue = rd ? Number(rd.dueRappen) || 0 : Math.max(0, (Number.isFinite(owedBk) ? owedBk : 0) - refundedBk);
-    // 26.2 P6 D21 (owner, 2026-10-02): a cheaper place, time or party change says the trip changed, not the class.
-    const tripCredit = !!(rd && rd.lastChange === 'trip');
-    const reviewNeeded = paidAdmin && refundStatus === 'pending_ops' && !fullTier && !creditTier;
-    const legacyDue = booking.status === 'cancelled' && !!booking.paid && refundStatus === 'none';
-    const postTripEligible = isAdmin && !!booking.paid && booking.tripPassed === true && refundStatus === 'none' && postTripStatus;
-    const canFullRefund = isAdmin && legacyDue;
-    const percentText = this.state.percentFor === refundKey ? String(this.state.percentText || '') : '';
-    const percentValid = /^\d{1,3}$/.test(percentText) && Number(percentText) <= 100;
-    const refundBusy = this.state.refundBusy || '';
-    // Payments, the choice between them and the %/CHF switch.
-    const payments = rd && Array.isArray(rd.payments) ? rd.payments : [];
-    const multi = payments.length >= 2;
-    const pickRaw = this.state.refundPickFor === refundKey ? String(this.state.refundPick) : 'all';
-    const chosen = multi ? payments.find((p) => String(p.id) === pickRaw) || null : null;
-    const pick = chosen ? String(chosen.id) : 'all';
-    const exactAllowed = !multi || !!chosen;
-    const unit = !fullShown && exactAllowed && this.state.refundUnit === 'chf' ? 'chf' : 'pct';
-    const unitCode = window.VamosLocale && window.VamosLocale.money ? window.VamosLocale.money('', 'CHF').trim() : '';
-    const amountOk = /^\d{1,7}([.,]\d{1,2})?$/.test(percentText);
-    const amountRappen = amountOk ? Math.round(parseFloat(percentText.replace(',', '.')) * 100) : 0;
-    const amountValid = amountOk && amountRappen > 0;
-    // One body, never both percent and amountRappen. An exact amount needs a paymentId when there are two payments
-    // (the list then forces a choice); with one captured payment the server finds it.
-    const refundBody = () => {
-      if (fullShown) return chosen ? { paymentId: chosen.id, percent: 100 } : { percent: 100 };
-      // Credit: exactly what is due — on the chosen payment, or spread by the database over the payments.
-      if (creditShown) return chosen ? { paymentId: chosen.id, amountRappen: Math.min(creditDue, Number(chosen.leftRappen) || 0) } : {};
-      if (unit === 'chf') return chosen ? { paymentId: chosen.id, amountRappen } : { amountRappen };
-      return chosen ? { paymentId: chosen.id, percent: Number(percentText) } : { percent: Number(percentText) };
-    };
-    const sumOf = (key) => payments.reduce((s, p) => s + (Number(p[key]) || 0), 0);
-    const payDetail = (a, b) => fillAmounts(t.payLine, { a: chfText(a), b: chfText(b) });
-    const pickRow = (id, label, description, disabled) => ({
-      label, description, disabled, checked: pick === id,
-      pick: () => { if (!refundBusy) this.setState({ refundPick: id, refundPickFor: refundKey, refundError: null, percentText: id === 'all' && unit === 'chf' ? '' : percentText, percentFor: refundKey }); },
-    });
-    const payRows = multi ? [pickRow('all', t.allPayments + ' · ' + isolate(chfText(sumOf('chargedRappen'))), payDetail(sumOf('refundedRappen'), sumOf('leftRappen')), false)].concat(payments.map((p) =>
-      pickRow(String(p.id), (p.kind === 'extra' ? t.payExtra : t.payTrip) + ' · ' + isolate(eventWhen(p.capturedAt)) + ' · ' + isolate(chfText(p.chargedRappen)), payDetail(p.refundedRappen, p.leftRappen), !(Number(p.leftRappen) > 0)))) : [];
-    const fullAmount = chosen ? chosen.leftRappen : (payments.length ? sumOf('leftRappen') : (Number.isFinite(owedBk) ? owedBk : 0));
-    // Partial / failed / processing: the amounts come from the answer just received, else from GET …/refund.
-    const ans = this.state.refundAnswer && this.state.refundAnswer.key === refundKey ? this.state.refundAnswer : null;
-    const refundFailedShown = isAdmin && !!refundKey && refundStatus !== 'refunded' && (!!ans || refundStatus === 'failed' || refundStatus === 'processing');
-    const figures = ans ? { refunded: ans.refundedRappen, due: ans.dueRappen, unrecorded: ans.parts.some((p) => p && p.state === 'unrecorded') }
-      : (rd ? { refunded: rd.refundedRappen, due: rd.dueRappen, unrecorded: refundStatus === 'processing' } : null);
-    const failTitle = figures ? fillAmounts(t.partialTitle, { a: chfText(figures.refunded), b: chfText(figures.due) }) : t.refundFailedTitle;
-    const failBody = !figures ? t.refundFailedBody : (figures.unrecorded ? t.processingBody : (figures.refunded > 0 ? t.partialBody : t.refundFailedBody));
+    // The Stripe links for this booking: null until GET …/stripe-payments has answered ok (the menu item stays disabled).
+    const stripeLoaded = this.stripeTargets(refundKey) !== null;
+    const targets = this.stripeTargets(refundKey) || [];
+    const stripeRows = targets.map((p) => ({
+      url: p.url, label: p.kind === 'extra' ? t.payExtra : t.payTrip,
+      // UI-SPEC deviation 4: the date and the CHF figure are each isolated, so both read in order in Arabic.
+      detail: isolate(eventWhen(p.capturedAt)) + ' · ' + isolate(chfText(p.chargedRappen)),
+    }));
+    const stripeListShown = isAdmin && targets.length > 1 && this.state.stripeListFor === refundKey;
+    const stripeOneUrl = targets.length === 1 ? targets[0].url : '';
+    // Refund failed (webhook refund.failed): the danger Alert points to Stripe (UI-SPEC deviation 3).
+    const refundFailedShown = isAdmin && !!refundKey && refundStatus === 'failed';
     const refundErr = this.state.refundError && this.state.refundError.key === refundKey ? this.state.refundError.code : '';
     const errByCode = {
-      'full-refund-only': t.errFullOnly, 'refund-exceeds-remaining': t.errExceeds, 'invalid-percent': t.errInvalid, 'invalid-amount': t.errInvalid,
-      'invalid-body': t.errInvalid, 'already-refunded': t.errAlready, 'not-paid': t.errNotPaid, 'nothing-to-retry': t.errNothing,
       // 261004 lock order: a payment settled for this booking in the same instant; nothing was written, press again.
       'payment-changed': t.errPaymentChanged,
-      // 261001-refusal-messages: Decline / Reject refusals from ops_refund_decide.
-      'not-pending': t.errDecided, 'not-open': t.errDecided, 'not-post-trip': t.errNotPostTrip,
+      'no-stripe-payment': t.noStripePayment,
     };
     const refundErrorText = refundErr ? (errByCode[refundErr] || (t.refundFailed + booking.id)) : '';
-    const refundFormShown = (fullShown || reviewNeeded || creditShown) && !refundFailedShown;
     const dispute = booking.dispute && typeof booking.dispute === 'object' ? booking.dispute : null;
     const disputeWord = (status) => {
       const st = String(status || '');
@@ -1767,51 +1557,6 @@ class Component extends DCLogic {
       if (st === 'won') return t.disputeWon;
       if (st === 'lost') return t.disputeLost;
       return st;
-    };
-    const splitRef = (str) => {
-      const at = String(str || '').indexOf('{ref}');
-      return at < 0 ? [String(str || ''), ''] : [str.slice(0, at), str.slice(at + 5)];
-    };
-    const decideParts = splitRef(this.state.rejectOpen ? t.rejectConfirmBody : t.declineConfirmBody);
-    // After any answer: reload the booking list and the picker so "Refund due" and the amounts are never stale.
-    const refreshRefund = () => {
-      if (window.VamosOps) window.VamosOps.bookings.reset();
-      this.loadRefund(refundKey);
-    };
-    const postRefund = (kind, body) => {
-      const client = window.VamosOpsApi;
-      if (!client || typeof client.request !== 'function' || !refundKey) {
-        this.notifyError(t.refundFailed + booking.id);
-        return;
-      }
-      this.setState({ refundBusy: kind, refundError: null });
-      client.request('POST', '/api/staff/bookings/' + encodeURIComponent(refundKey) + '/refund', body).then((json) => {
-        const code = json && json.code;
-        if (json && json.ok) {
-          this.setState({ refundBusy: '', refundAnswer: null, refundError: null, requestedFor: '', percentText: '', percentFor: '', refundUnit: 'pct', refundPick: 'all' });
-        } else if (code === 'refund-partial' || code === 'stripe-failed') {
-          this.setState({ refundBusy: '', refundError: null, refundAnswer: { key: refundKey, refundedRappen: Number(json.refundedRappen) || 0, dueRappen: Number(json.dueRappen) || 0, parts: Array.isArray(json.parts) ? json.parts : [] } });
-        } else {
-          this.setState({ refundBusy: '', refundError: { key: refundKey, code: String(code || 'unknown') }, refundAnswer: code === 'nothing-to-retry' ? null : this.state.refundAnswer });
-        }
-        refreshRefund();
-      });
-    };
-    const postDecision = (kind) => {
-      const client = window.VamosOpsApi;
-      if (!client || typeof client.request !== 'function' || !refundKey) {
-        this.notifyError(t.refundFailed + booking.id);
-        return;
-      }
-      this.setState({ refundBusy: kind, refundError: null });
-      client.request('POST', '/api/staff/bookings/' + encodeURIComponent(refundKey) + '/refund-decision', { decision: kind }).then((json) => {
-        if (json && json.ok) {
-          this.setState({ refundBusy: '', declineOpen: false, rejectOpen: false, requestedFor: '', percentText: '', percentFor: '' });
-        } else {
-          this.setState({ refundBusy: '', declineOpen: false, rejectOpen: false, refundError: { key: refundKey, code: String((json && json.code) || 'unknown') } });
-        }
-        refreshRefund();
-      });
     };
     const durationMin = Number(booking.durationMin) || 0;
     const pickupWhen = [booking.date, booking.time].filter(Boolean).join(' · ');
@@ -1854,9 +1599,9 @@ class Component extends DCLogic {
       !frozen && !booking.arrivedAt ? { value: 'arrival', label: t.markArrival, icon: 'map-pin' } : null,
       !frozen && pickupReached ? { value: 'complete', label: t.complete, icon: 'circle-check' } : null,
       !frozen && pickupReached ? { value: 'noShow', label: t.noShow, icon: 'circle-alert' } : null,
-      // Merge with 20-10: Refund is offered for main's refund panel (due, review, failed) as well as
-      // for an old cancelled row and a post-trip request.
-      refundFormShown || refundFailedShown || canFullRefund || postTripEligible ? { value: 'refund', label: t.markRefund, icon: 'receipt', disabled: !!refundBusy } : null,
+      // Phase 31 (D-01): Refund in Stripe for an admin on a paid booking; disabled until the Stripe links have
+      // arrived (UI-SPEC deviation 1), so the click can open the tab synchronously.
+      isAdmin && !!booking.paid ? { value: 'refund', label: t.refundInStripe, icon: 'external-link', disabled: !stripeLoaded } : null,
       canCancel ? { value: 'cancel', label: booking.paid ? t.confirmCancel : t.confirmCancelUnpaid, icon: 'x', tone: 'danger' } : null,
     ].filter(Boolean);
     const viewing = !this.state.editing;
@@ -2109,63 +1854,22 @@ class Component extends DCLogic {
       tHistory: t.history, tHistoryEmpty: t.historyEmpty, historyRows, historyEmpty: historyRows.length === 0, historyHas: historyRows.length > 0,
       historyOpen: !!this.state.historyOpen, historyClosed: !this.state.historyOpen, toggleHistory: this.toggleHistory,
       isPending: !booking.paid && !cancelled, isCancelled: booking.status === 'cancelled', isRefunded: booking.status === 'refunded' || refundStatus === 'refunded',
-      showRefundDue: !refundFailedShown && ((booking.status === 'cancelled' && ((refundStatus === 'pending_ops' && fullTier) || legacyDue))
-        || (refundStatus === 'pending_ops' && creditTier && !creditShown)),
-      creditShown, creditLine: fillAmounts(t.classCreditLine, { a: chfText(creditDue) }), tClassCreditBody: tripCredit ? t.tripCreditBody : t.classCreditBody,
-      canFullRefund, postTripEligible, reviewNeeded,
-      refundFormShown, reviewShown: reviewNeeded, decidedShown: reviewNeeded, declineShown: reviewNeeded, fullShown,
-      pickerShown: multi, payRows, fullLine: fillAmounts(t.refundFullLine, { a: chfText(fullAmount) }),
-      unitSwitchShown: reviewNeeded && exactAllowed, exactHintShown: reviewNeeded && !exactAllowed,
-      unitItems: [{ value: 'pct', label: '%' }, { value: 'chf', label: unitCode }], unitValue: unit, unitLabel: unit === 'pct' ? '%' : unitCode,
-      inputMax: unit === 'pct' ? '100' : '', inputStep: unit === 'pct' ? '1' : '0.01', inputMode: unit === 'pct' ? 'numeric' : 'decimal',
-      inputPlaceholder: unit === 'pct' ? t.percentPlaceholder : '0.00',
+      // Phase 31 (S-04, Q2 = A): "Refund to check" until Stripe records a refund, or until the pickup time has passed.
+      showRefundDue: !refundFailedShown && booking.status === 'cancelled' && !!booking.paid && refundStatus !== 'refunded' && !(refundedBk > 0) && booking.tripPassed !== true,
+      stripeListShown, stripeRows, stripeOneUrl, tOpenInStripe: t.openInStripe, tStripeNewTab: t.stripeNewTab,
+      tCheckTitle: t.checkTitle, tCheckBody: t.checkBody, tFailedStripeBody: t.failedStripeBody,
       refundErrorShown: !!refundErrorText, refundErrorText,
-      tWhichPayment: t.whichPayment, tUnitAria: t.unitAria, tExactNeedsPayment: t.exactNeedsPayment, tRefundAmountLabel: t.refundAmountLabel,
-      setUnit: (v) => { if (!refundBusy) this.setState({ refundUnit: v === 'chf' ? 'chf' : 'pct', percentText: '', percentFor: refundKey, refundError: null }); },
-      requestedShown: postTripEligible && this.state.requestedFor === refundKey,
+      tWhichPayment: t.whichPayment,
       refundFailedShown, hasDispute: !!dispute,
       disputeLine: dispute ? [disputeWord(dispute.status), t.disputeManage].filter(Boolean).join(' · ') : '',
-      percentText, refundBusy: !!refundBusy,
-      confirmDisabled: fullShown || creditShown ? !!refundBusy : (!(unit === 'chf' ? amountValid : percentValid) || !!refundBusy),
-      confirmBusy: refundBusy === 'percent' ? 'true' : 'false',
-      acceptBusy: refundBusy === 'post-trip' ? 'true' : 'false',
-      decideBusy: refundBusy === 'decline' || refundBusy === 'reject' ? 'true' : 'false',
-      declineOpen: !!this.state.declineOpen, rejectOpen: !!this.state.rejectOpen,
-      decidePre: decideParts[0], decideRef: booking.id, decidePost: decideParts[1],
-      tReviewTitle: t.reviewTitle, tReviewBody: t.reviewBody, tPercentPlaceholder: t.percentPlaceholder,
-      tConfirmRefund: t.confirmRefund, tDeclineRefund: t.declineRefund, tDeclineConfirmTitle: t.declineConfirmTitle, tKeepReviewing: t.keepReviewing,
-      tRequestedTitle: t.requestedTitle, tRequestedBody: t.requestedBody, tAcceptRefund: t.acceptRefund, tRejectRefund: t.rejectRefund,
-      tRejectConfirmTitle: t.rejectConfirmTitle, tDisputeTitle: t.disputeTitle,
-      tRefundFailedTitle: failTitle, tRefundFailedBody: failBody, tTryAgain: t.tryAgain,
-      setPercent: (e) => {
-        const raw = e && e.target ? e.target.value : e;
-        this.setState({ percentText: String(raw == null ? '' : raw).trim(), percentFor: refundKey, refundError: null });
-      },
-      // D-24: 0 % means nothing back, which is a decline — send it through the decline dialog.
-      // D-24: 0 % means nothing back, which is a decline — send it through the decline dialog (decided tier only).
-      confirmPercent: () => {
-        if (refundBusy) return;
-        if (fullShown || creditShown) { postRefund('percent', refundBody()); return; }
-        if (unit === 'chf' ? !amountValid : !percentValid) return;
-        if (unit === 'pct' && Number(percentText) === 0) { this.setState({ declineOpen: true, rejectOpen: false }); return; }
-        postRefund('percent', refundBody());
-      },
-      openDecline: () => { if (!refundBusy) this.setState({ declineOpen: true, rejectOpen: false }); },
-      openReject: () => { if (!refundBusy) this.setState({ rejectOpen: true, declineOpen: false }); },
-      closeDecide: () => { if (!refundBusy) this.setState({ declineOpen: false, rejectOpen: false }); },
-      confirmDecline: () => { if (!refundBusy) postDecision('decline'); },
-      confirmReject: () => { if (!refundBusy) postDecision('reject'); },
-      openRequested: () => this.setState({ requestedFor: refundKey }),
-      acceptPostTrip: () => { if (!refundBusy) postRefund('post-trip', { postTrip: true }); },
-      // Try again asks the server to finish what is still open; it never sends a new amount.
-      retryRefund: () => { if (!refundBusy) postRefund('retry', { retry: true }); },
-      tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody, tRefundTitle: t.refundTitle, tRefundBody: creditTier ? (tripCredit ? t.tripCreditBody : t.classCreditBody) : (fullTier ? t.refundBody : t.dueLegacyBody),
+      tDisputeTitle: t.disputeTitle, tRefundFailedTitle: t.refundFailedTitle,
+      tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody,
       tRefundedTitle: t.refundedTitle, tRefundedBody: t.refundedBody,
       tSendPayLink: t.sendPayLink, tTakeCard: t.takeCard, tOpenStripe: t.openStripe, tCopyPayLink: t.copyPayLink, hasExtraPay: !!booking.pendingEditExtraSessionId,
       tResendVoucher: t.resendVoucher, tEditBooking: t.editBooking, tCancelBooking: t.cancelBooking,
       tComplete: t.complete, tNoShow: t.noShow, tMarkArrival: t.markArrival, tAction: t.action,
       canMarkArrival: !frozen && !booking.arrivedAt,
-      tSaveEdit: t.saveEdit, tContinue: t.continue, tAccept: t.accept, tRefuse: t.refuse, tCancelEdit: t.cancelEdit, tMarkRefund: t.markRefund,
+      tSaveEdit: t.saveEdit, tContinue: t.continue, tAccept: t.accept, tRefuse: t.refuse, tCancelEdit: t.cancelEdit,
       tCustomer: t.customer, tPickup: t.pickup, tDropoff: t.dropoff, tDate: t.date, tTime: t.time, tBagsLabel: t.bagsLabel,
       tPendingEditTitle: t.pendingEditTitle, tUnpaidNoEditTitle: t.unpaidNoEditTitle, tUnpaidNoEditBody: t.unpaidNoEditBody, tUnpaidNewTrip: t.unpaidNewTrip,
       editing: !!this.state.editing, viewing,
@@ -2265,8 +1969,8 @@ class Component extends DCLogic {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
             if (outcome === 'extra_required') this.notify(t.extraWaiting);
-            // 26.2 P1 / refunds by hand: a cheaper change is Refund due; nothing went to Stripe.
-            else if (outcome === 'refund_due') this.notify(t.refundClick);
+            // 26.2 P1 / Phase 31: a cheaper change leaves a difference to refund; you refund it in Stripe.
+            else if (outcome === 'refund_due') this.notify(fillAmounts(t.tripDoneRefund, { a: chfText(Math.abs(Number(json.data && json.data.differenceRappen) || 0)) }));
             return;
           }
           if (code === 'must-fix' || code === 'capacity') this.notifyError(t.mustFix);
@@ -2359,7 +2063,6 @@ class Component extends DCLogic {
           }
         });
       },
-      markRefund: () => { if (!refundBusy) postRefund('full', {}); },
       canCancel,
       canComplete: !frozen,
       canNoShow: !frozen,
@@ -2381,13 +2084,13 @@ class Component extends DCLogic {
         if (v === 'withdraw') { if (pendingClassWait) this.setState({ withdrawOpen: true }); return; }
         if (v === 'noShow') { vals.markNoShow(); return; }
         if (v === 'refund') {
-          if (refundBusy) return;
-          // 20-10 (main): a refund due, a review or a failed refund has its panel on this page — the
-          // menu takes the admin there; nothing is sent until he presses the panel's own button.
-          if (refundFormShown || refundFailedShown) { this.goRefund(); return; }
-          // An old cancelled row (refund_status none) keeps main's one-press full refund.
-          if (canFullRefund) { vals.markRefund(); return; }
-          if (postTripEligible) { vals.openRequested(); this.goRefund(); }
+          // Phase 31 (D-06): one payment opens Stripe in a new tab inside this click (no async step: popup
+          // blockers allow it); several show "Which payment?"; none says so. Nothing is sent from the page.
+          const targets = this.stripeTargets(refundKey);
+          if (!targets) return;
+          if (targets.length === 1) { try { window.open(targets[0].url, '_blank', 'noopener'); } catch (e) {} return; }
+          if (targets.length > 1) { this.setState({ stripeListFor: refundKey, refundError: null }); this.goRefund(); return; }
+          this.setState({ refundError: { key: refundKey, code: 'no-stripe-payment' } });
           return;
         }
         if (v === 'cancel') { if (canCancel) vals.openCancel(); return; }

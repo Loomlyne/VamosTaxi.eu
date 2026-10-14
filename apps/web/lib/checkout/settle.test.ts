@@ -2,7 +2,10 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 
 const sqlCalls: Array<{ text: string; values: unknown[] }> = [];
-const retrieved: { session: unknown } = { session: null };
+const retrieved: { session: unknown; charge: unknown } = { session: null, charge: null };
+// Phase 31-05: what public.stripe_charge_refunded_record answers in the real-deps test below.
+const chargeRefundRow: { row: Record<string, unknown> | null } = { row: null };
+const refundMails: unknown[][] = [];
 
 vi.mock("../db/identity", () => ({
   asSystem: async (_env: unknown, fn: (sql: unknown) => Promise<unknown>) => {
@@ -10,6 +13,9 @@ vi.mock("../db/identity", () => ({
       const text = strings.join("?");
       sqlCalls.push({ text, values });
       if (text.includes("stripe_event_begin")) return Promise.resolve([{ should_process: true, reason: "ok" }]);
+      if (text.includes("stripe_charge_refunded_record")) {
+        return Promise.resolve(chargeRefundRow.row ? [chargeRefundRow.row] : []);
+      }
       if (text.includes("checkout_payment_settle")) {
         return Promise.resolve([
           {
@@ -40,8 +46,17 @@ vi.mock("./stripe", async (importOriginal) => {
     ...actual,
     stripeFromEnv: () => ({}),
     retrieveCheckoutSession: async () => retrieved.session,
+    retrieveCharge: async () => retrieved.charge,
+    findSessionIdForPaymentIntent: async () => "cs_test_1",
   };
 });
+
+vi.mock("./refund-mail", () => ({
+  mailCustomerRefund: async (...args: unknown[]) => {
+    refundMails.push(args);
+  },
+  deliverRefundMailByClaim: async () => undefined,
+}));
 import {
   applyHandleResult,
   captureAllowed,
@@ -1697,5 +1712,50 @@ describe("261005 U15: an expired checkout page with no payment row", () => {
     const d = noRow(expiredMain({ status: "complete" } as Partial<Stripe.Checkout.Session>));
     expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true });
     expect(d.eventSettle).not.toHaveBeenCalled();
+  });
+});
+
+describe("Phase 31-05: the production deps hand the recorded booking to the customer refund mail", () => {
+  const refunded = message({ eventId: "evt_ch_31", type: "charge.refunded", objectId: "ch_test_1" });
+  const env = {} as CloudflareEnv;
+
+  function reset(row: Record<string, unknown> | null) {
+    sqlCalls.length = 0;
+    refundMails.length = 0;
+    chargeRefundRow.row = row;
+    retrieved.charge = chargeFixture();
+  }
+
+  it("'recorded' with a booking_id mails that booking with the Stripe refund's own id and amount", async () => {
+    reset({ booking_id: "b1", refund_id: 9, outcome: "recorded" });
+    expect(await handleStripeMessage(env, refunded)).toEqual({ ack: true });
+    expect(sqlCalls.some((c) => c.text.includes("stripe_charge_refunded_record"))).toBe(true);
+    expect(refundMails).toEqual([[env, { bookingId: "b1", stripeRefundId: "re_dash_1", refundRappen: 6 }]]);
+  });
+
+  it("'already' sends nothing", async () => {
+    reset({ booking_id: "b1", refund_id: 9, outcome: "already" });
+    expect(await handleStripeMessage(env, refunded)).toEqual({ ack: true });
+    expect(refundMails).toEqual([]);
+  });
+
+  it("no booking_id on the row (or no row) gives bookingId null: nothing is mailed", async () => {
+    reset({ booking_id: null, refund_id: null, outcome: "recorded" });
+    expect(await handleStripeMessage(env, refunded)).toEqual({ ack: true });
+    reset(null);
+    expect(await handleStripeMessage(env, refunded)).toEqual({ ack: true });
+    expect(refundMails).toEqual([]);
+  });
+
+  it("source: recordChargeRefund returns the row's booking_id, the mail dep is bound, the duplicate path is unchanged", () => {
+    const src = readFileSync(new URL("./settle.ts", import.meta.url), "utf8");
+    expect(src).toContain("bookingId: rows[0]?.booking_id ? String(rows[0].booking_id) : null");
+    expect(src).toContain("mailCustomerRefund: (input) => mailCustomerRefund(env, input)");
+    expect(src).toContain('import { mailCustomerRefund } from "./refund-mail";');
+    // D-03: the app-made duplicate refund keeps its own recorder and never reaches the mail.
+    expect(src).toContain("const refund = await createRefund(stripe, {");
+    expect(src).toContain("select public.checkout_duplicate_refund_record(");
+    const dup = src.slice(src.indexOf("recordDuplicateRefund: async"), src.indexOf("alertPaidAfterCancel:"));
+    expect(dup).not.toContain("mailCustomerRefund");
   });
 });

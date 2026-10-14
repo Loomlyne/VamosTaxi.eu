@@ -1,0 +1,42 @@
+{
+ "at": "2026-10-13T19:16:45.039Z",
+ "base": "http://localhost:4720",
+ "results": [
+  {
+   "id": "C8",
+   "title": "1440 de/fr/ar coverage: cancel sheet (a), Refund row (d)",
+   "status": "PASS",
+   "evidence": "cancel sheet: de 0 []; fr 0 []; ar 0 []"
+  },
+  {
+   "id": "C3",
+   "title": "1440 en booking-detail (d): Refund row",
+   "status": "PASS",
+   "evidence": "url /booking-detail?ref=VT-99-31304; row \"REFUND Refund follows the cancellation policy\""
+  },
+  {
+   "id": "C4",
+   "title": "390 ar booking-detail (d): Refund row",
+   "status": "PASS",
+   "evidence": "row \"المبلغ المسترد الاسترداد وفق سياسة الإلغاء\"; scrollWidth 390/390"
+  },
+  {
+   "id": "C7",
+   "title": "768 en booking-detail (d): Refund row",
+   "status": "PASS",
+   "evidence": "row \"REFUND Refund follows the cancellation policy\"; scrollWidth 768/768"
+  },
+  {
+   "id": "C8b",
+   "title": "C8 second half: Refund row (d) coverage de/fr/ar",
+   "status": "PASS",
+   "evidence": "refund row: de 0 \"RÜCKERSTATTUNG Rückerstattung gemäss Stornierungsbedingungen\"; fr 0 \"REMBOURSEMENT Remboursement selon la politique d’annulation\"; ar 0 \"المبلغ المسترد الاسترداد وفق سياسة الإلغاء\""
+  },
+  {
+   "id": "C5",
+   "title": "no page text of C1-C4, C6-C8 contains Stripe",
+   "status": "PASS",
+   "evidence": "pages read C1,C2,C6,C8-sheet-de,C8-sheet-fr,C8-sheet-ar,C3,C4,C7,C8-row-de,C8-row-fr,C8-row-ar; containing Stripe: []"
+  }
+ ]
+}

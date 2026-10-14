@@ -60,6 +60,8 @@ STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 # Required. Stripe publishable key. Not a secret; on live it comes from wrangler.jsonc `vars`.
 STRIPE_PUBLISHABLE_KEY=
+# Optional. Stripe account the dashboard REFUND links open (Phase 31). Lab: the sandbox account.
+STRIPE_ACCOUNT_ID=acct_1UIZmqHcNp9GZYjz
 # Optional. "on" adds TWINT to the hosted Checkout page; anything else is card only.
 STRIPE_CHECKOUT_TWINT=
 

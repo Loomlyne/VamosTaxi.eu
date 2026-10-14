@@ -11,12 +11,16 @@ import { asCustomer, asGuest, asSystem, type VamosClaims } from "../db/identity"
 import { loadCancelChangePages, loadPaidCancelMail } from "../db/system-reads";
 import { notifyCancellation } from "./notify-lifecycle";
 
+/**
+ * A paid cancel's result. Phase 31 D-04: no refund amount. The customer sees one policy line and the
+ * owner refunds in Stripe, so the answer carries the refund status only (the captured amount still decides
+ * the mail's refund line inside finishPaidCancel).
+ */
 export type PaidCancelOk = {
   ok: true;
   bookingId: string;
   refundMode: string;
   refundStatus: string;
-  refundRappen: number;
   payoutCountry?: string | null;
   availableOn?: string | null;
 };
@@ -182,6 +186,7 @@ export async function finishPaidCancel(env: CloudflareEnv, row: CancelledRow): P
   const bookingId = String(row.booking_id);
   const refundMode = String(row.refund_mode ?? "");
   const rawRappen = Number(row.refund_rappen ?? 0);
+  // Used only to pick the mail's refund line; never answered (Phase 31 D-04).
   const refundRappen = Number.isFinite(rawRappen) && rawRappen > 0 ? rawRappen : 0;
   const fullDue = refundMode === "auto_full" && refundRappen > 0;
   const refundLine = fullDue ? "full_captured" : refundMode === "pending_ops" ? "pending_ops" : "none";
@@ -193,7 +198,6 @@ export async function finishPaidCancel(env: CloudflareEnv, row: CancelledRow): P
     bookingId,
     refundMode,
     refundStatus: fullDue || refundMode === "pending_ops" ? "pending_ops" : "none",
-    refundRappen: fullDue ? refundRappen : 0,
   };
 }
 

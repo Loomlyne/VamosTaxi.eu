@@ -3635,11 +3635,28 @@ export type Database = {
         }
         Returns: number
       }
+      notification_claim_refund: {
+        Args: {
+          p_booking_id: string
+          p_stripe_refund_id: string
+          p_template_version: string
+        }
+        Returns: number
+      }
       notification_confirmation_missing: {
         Args: { p_older_than: string }
         Returns: {
           booking_id: string
           locale: string
+        }[]
+      }
+      notification_refund_read: {
+        Args: { p_claim_id: number }
+        Returns: {
+          booking_id: string
+          locale: string
+          refund_rappen: number
+          stripe_refund_id: string
         }[]
       }
       notification_settle: {
@@ -3960,6 +3977,24 @@ export type Database = {
           p_user_agent?: string
         }
         Returns: undefined
+      }
+      refund_check_read: {
+        Args: { p_refunds: Json }
+        Returns: {
+          booking_reference: string
+          booking_refund_status: string
+          booking_refunded_rappen: number
+          booking_rows_sum_rappen: number
+          payment_found: boolean
+          payment_intent_id: string
+          payment_status: string
+          refund_mail_claimed: boolean
+          site_reason: string
+          site_refund_booking_id: string
+          site_refund_rappen: number
+          site_reversed: boolean
+          stripe_refund_id: string
+        }[]
       }
       reminder_24h_candidates: {
         Args: { p_from: string; p_to: string }
