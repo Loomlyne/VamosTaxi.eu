@@ -109,6 +109,15 @@ export function PATCH(request: Request, context: { params: Promise<{ id: string 
       const published = await setReviewPublished(id, body.published);
       if (!published.ok) return jsonErr(published.key, actionStatus(published));
       const { env } = getCloudflareContext();
+      // Phase 32 (D-09, verifier W-2): the language job detects published rows only, so a review created
+      // hidden gets its job when it goes live, not at the 03:00 sweep. A known language makes it a no-op.
+      if (body.published) {
+        try {
+          await sendTranslateJob(env, { v: 1, kind: "review", reviewId: id });
+        } catch {
+          /* sendTranslateJob logs its own reason code */
+        }
+      }
       return jsonOk(await loadReviews(env, claims));
     }
 
@@ -121,7 +130,7 @@ export function PATCH(request: Request, context: { params: Promise<{ id: string 
     const updated = await updateReview(id, merged);
     if (!updated.ok) return jsonErr(updated.key, actionStatus(updated));
     // Phase 32 (D-09): new text, new language job (updateReview cleared the old language). A move, a
-    // publish switch or another field edit sends nothing. A failed send never changes this answer.
+    // publish switch (handled above) or another field edit sends nothing. A failed send never changes this answer.
     if (textChanged) {
       try {
         await sendTranslateJob(env, { v: 1, kind: "review", reviewId: id });

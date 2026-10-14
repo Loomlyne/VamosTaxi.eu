@@ -1,9 +1,10 @@
 // apps/web/lib/ops/reviews-language-enqueue.test.ts
 //
 // Phase 32 plan 08 (D-09): a review he creates, or whose text he edits, on the dashboard gets a
-// language job ({ v:1, kind:"review", reviewId }) so the home translate button can appear. A move, a
-// publish switch or any other field edit sends nothing. A failed enqueue never changes the staff
-// answer. Database-free: the route's collaborators are mocked.
+// language job ({ v:1, kind:"review", reviewId }) so the home translate button can appear. Switching a
+// review to published sends the same job (the job only detects published rows, so a review created hidden
+// would otherwise wait for the 03:00 sweep; verifier W-2). A move, an unpublish or any other field edit
+// sends nothing. A failed enqueue never changes the staff answer. Database-free: the route's collaborators are mocked.
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -109,7 +110,18 @@ describe("staff review create/edit enqueues language detection", () => {
     expect(sendTranslateJob).not.toHaveBeenCalled();
   });
 
-  it("a move, a publish switch or another field edit enqueues nothing", async () => {
+  it("switching a review to published enqueues once; a refused switch enqueues nothing", async () => {
+    const res = await patch({ published: true });
+    expect(res.status).toBe(200);
+    expect(sendTranslateJob).toHaveBeenCalledTimes(1);
+    expect(sendTranslateJob).toHaveBeenCalledWith(ENV, { v: 1, kind: "review", reviewId: ROW.id });
+    sendTranslateJob.mockClear();
+    actions.setReviewPublished.mockResolvedValue({ ok: false, key: "reviews-error" });
+    await patch({ published: true });
+    expect(sendTranslateJob).not.toHaveBeenCalled();
+  });
+
+  it("a move, an unpublish or another field edit enqueues nothing", async () => {
     await patch({ move: "up" });
     await patch({ published: false });
     await patch({ rating: 5 });
@@ -130,6 +142,8 @@ describe("staff review create/edit enqueues language detection", () => {
     sendTranslateJob.mockRejectedValue(new Error("queue down"));
     const b = await post({ authorName: "Bea", body: "Sehr pünktlich.", rating: 5 });
     const c = await patch({ body: "Neuer Text." });
+    const d = await patch({ published: true });
+    expect(d.status).toBe(200);
     expect(a.status).toBe(201);
     expect(b.status).toBe(201);
     expect(c.status).toBe(200);

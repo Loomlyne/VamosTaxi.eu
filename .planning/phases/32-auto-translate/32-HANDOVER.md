@@ -171,8 +171,9 @@ Task 2 results, 2026-10-14, head fb13271e (merged with origin/main 8ef7e82d), on
   in the marker above).
 - Translation on the live Workers AI binding, the 60 s customer-message path, and the 03:00 sweep
   on live: only after deploy (section 2, step 6).
-- `app/pages/sitemap.dc.html` lines 147-148 still list the dashboard `/pages` and `/legal` rows
-  (32-04 note); needs his word whether to drop them.
+- Booking notes (verifier W-1): enqueued only by the 03:00 sweep, not at booking create, and
+  `booking_legs.note` is not covered. No screen shows notes (UI-SPEC default 10), so a note waits up to
+  24 h; a producer at booking create belongs with the screen, when he signs one.
 
 ### Failed, then fixed (nothing open from these)
 
@@ -180,6 +181,9 @@ Task 2 results, 2026-10-14, head fb13271e (merged with origin/main 8ef7e82d), on
 - 2026-10-14, before 04:56: 3 unit reds from the deleted edit spec's leftover references; fixed `29a66a2e`.
 - 2026-10-14, before 05:13: the browser run found that pending and failed customer messages with no
   detected language showed no note; fixed `20ca2fba` + `c92bfe20`, then the full run passed.
+- Verifier W-2 (12:40): a review created hidden and published later got no language job until the 03:00
+  sweep; the publish switch now sends the ids-only review job (test first, red then green).
+- The public sitemap's dashboard `/pages` and `/legal` rows were dropped in `8959fe1e` (32-03 fix).
 - Incident: the first 32-12 agent died at about 05:50 (API error) holding the one-stack lock
   `~/.vamos-scratch/stack.lock` and lab p32 from 05:00 until the orchestrator released both at
   12:13; the controller was told. The Task 2 script holds the lock only for its database part, with

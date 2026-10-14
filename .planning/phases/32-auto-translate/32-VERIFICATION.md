@@ -80,7 +80,7 @@ No TBD/FIXME/XXX/TODO or placeholder text in added lines. No vendor/model name o
 ### Warnings (not blockers)
 
 - **W-1 Booking notes are enqueued only by the 03:00 sweep.** No producer at booking create (`sendTranslateJob` callers: contact, ticket-inbound, staff reviews, sweep). RESEARCH line 192 planned "booking create"; no plan carried it. `booking_legs.note` is not covered. No screen reads note translations (D-12), so nothing visible today; a note waits up to 24 h.
-- **W-2 A review created hidden and published later is not enqueued.** `reviews/[id]/route.ts:108-112` (publish switch) sends no job, and `jobs.ts` `reviewJob` skips unpublished rows, so its Translate button appears only after the next 03:00 sweep.
+- **W-2 A review created hidden and published later is not enqueued.** `reviews/[id]/route.ts:108-112` (publish switch) sends no job, and `jobs.ts` `reviewJob` skips unpublished rows, so its Translate button appears only after the next 03:00 sweep. **Fixed after verification:** the publish switch now sends the review job (`reviews-language-enqueue.test.ts`, red then green).
 - Info: `32-HANDOVER.md` section 6 still says `sitemap.dc.html` lists `/pages` and `/legal`; the rows were dropped in 8959fe1e.
 
 ### Human Verification Required
