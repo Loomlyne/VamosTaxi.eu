@@ -10,7 +10,10 @@
 // Decision 2026-10-13 item 13 (signed 2026-10-14; supersedes Phase 18 D-13): Publish keeps the
 // draft's quote_lock_minutes ("Price stays valid for" on Pricing › Distance rules) on the live
 // book and on the new settings_versions row; QUOTE_LOCK_MINUTES (1440 = 24 hours) only when the
-// draft has none. checkout_window_minutes stays copied from the current settings row.
+// draft has none. Decision 2026-10-13 item 17 (D1): Publish also writes it as
+// checkout_window_minutes, so the payment window mirrors "Price stays valid for" and never ends a
+// hold early. Existing quotes keep their deadlines: both clocks are baked at quote / Pay time from
+// the quote's own settings_version_id, and settings_versions is append-only.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { asStaff } from "@/lib/db/identity";
@@ -174,7 +177,7 @@ export async function POST(
             sv.night_window_end,
             sv.night_window_tz,
             coalesce(${lockMinutes}, sv.quote_lock_minutes),
-            sv.checkout_window_minutes,
+            coalesce(${lockMinutes}, sv.checkout_window_minutes),
             sv.cancellation_tiers,
             sv.policy_doc_slug,
             sv.policy_doc_version,
