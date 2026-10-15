@@ -245,24 +245,24 @@ describe("price-valid hours: PUT kind rule, ruleKind quote_lock (decision 2026-1
   });
 
   it("whole hours land on the draft as minutes; the live book stays; the answer carries the hours", async () => {
-    const res = await put({ kind: "rule", ruleKind: "quote_lock", quoteLockHours: 48 });
+    const res = await put({ kind: "rule", ruleKind: "quote_lock", quoteLockHours: 18 });
 
     expect(res.status).toBe(200);
     const json = (await res.json()) as { ok: boolean; data: { quoteLockHours: string } };
     expect(json.ok).toBe(true);
-    expect(json.data.quoteLockHours).toBe("48");
+    expect(json.data.quoteLockHours).toBe("18");
     expect(book(19)?.status).toBe("draft");
-    expect(book(19)?.lock).toBe(2880);
+    expect(book(19)?.lock).toBe(1080);
     expect(book(18)?.lock).toBeNull();
   });
 
   it("a digit string is accepted (the dashboard field is text)", async () => {
-    const res = await put({ kind: "rule", ruleKind: "quote_lock", quoteLockHours: "36" });
+    const res = await put({ kind: "rule", ruleKind: "quote_lock", quoteLockHours: "6" });
     expect(res.status).toBe(200);
-    expect(book(19)?.lock).toBe(2160);
+    expect(book(19)?.lock).toBe(360);
   });
 
-  it.each([0, -1, "", "x", 1.5, "1.5", null, 35791395, true])(
+  it.each([0, -1, "", "x", 1.5, "1.5", null, 25, "25", 48, 35791394, 35791395, true])(
     "refuses %j with 400, forks no draft and changes nothing",
     async (hours) => {
       const res = await put({ kind: "rule", ruleKind: "quote_lock", quoteLockHours: hours });
@@ -273,10 +273,16 @@ describe("price-valid hours: PUT kind rule, ruleKind quote_lock (decision 2026-1
     },
   );
 
-  it("the largest value the integer column holds is accepted", async () => {
-    const res = await put({ kind: "rule", ruleKind: "quote_lock", quoteLockHours: 35791394 });
+  it("24 hours, the signed maximum (owner 2026-10-15), is accepted as 1440 minutes", async () => {
+    const res = await put({ kind: "rule", ruleKind: "quote_lock", quoteLockHours: 24 });
     expect(res.status).toBe(200);
-    expect(book(19)?.lock).toBe(35791394 * 60);
+    expect(book(19)?.lock).toBe(1440);
+  });
+
+  it("1 hour, the minimum, is still accepted", async () => {
+    const res = await put({ kind: "rule", ruleKind: "quote_lock", quoteLockHours: "1" });
+    expect(res.status).toBe(200);
+    expect(book(19)?.lock).toBe(60);
   });
 
   it("an existing draft is written, not forked again", async () => {
@@ -290,7 +296,7 @@ describe("price-valid hours: PUT kind rule, ruleKind quote_lock (decision 2026-1
   it.each(["waiting", "free_wait", "service_area", "city_pair", "lock", "night", ""])(
     "ruleKind %j is refused with 400",
     async (ruleKind) => {
-      const res = await put({ kind: "rule", ruleKind, quoteLockHours: 48 });
+      const res = await put({ kind: "rule", ruleKind, quoteLockHours: 12 });
       expect(res.status).toBe(400);
       expect(db.versions.map((v) => v.id)).toEqual([18]);
     },

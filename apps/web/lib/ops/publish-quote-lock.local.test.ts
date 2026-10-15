@@ -6,6 +6,8 @@
 // Decision 2026-10-13 item 17 (D1, quick 261015-6om): Publish also mirrors those minutes into the new row's
 // checkout_window_minutes (the payment window), and a snapshot baked before Publish keeps both deadlines;
 // create_quote_snapshot on the old settings row still gives the old window.
+// Quick 261015-6om Task 3 (b), signed by the owner 2026-10-15: the field takes 1 to 24 hours, so the PUT
+// refuses 25 and the test publishes 12 hours (720 minutes), a window that differs from the lab's 1440.
 //
 // The real rate-book PUT and Publish route handlers on a real local database, through the real Worker
 // client (asStaff: login `vamos_edge`, role vamos_staff, `fetch_types: false`, prepared statements). Only
@@ -174,35 +176,35 @@ describe.skipIf(!PORT)("price-valid hours: lock save path and Publish keeping th
     await su?.end({ timeout: 5 });
   });
 
-  it("saves, refuses, publishes 2880, then publishes the 1440 default", { timeout: 120_000 }, async () => {
+  it("saves, refuses, publishes 720, then publishes the 1440 default", { timeout: 120_000 }, async () => {
     // (a) whole hours land on the draft as minutes; the answer carries the hours; the live book stays.
     const { draftId, liveId } = await freshDraft();
     const liveBefore = await lockOf(liveId);
-    const saved = await put({ kind: "rule", ruleKind: "quote_lock", quoteLockHours: 48, versionId: draftId });
+    const saved = await put({ kind: "rule", ruleKind: "quote_lock", quoteLockHours: 12, versionId: draftId });
     expect(saved.status).toBe(200);
     expect(saved.json.ok).toBe(true);
-    expect(saved.json.data?.quoteLockHours).toBe("48");
-    expect(await lockOf(draftId)).toBe(2880);
+    expect(saved.json.data?.quoteLockHours).toBe("12");
+    expect(await lockOf(draftId)).toBe(720);
     expect(await lockOf(liveId)).toBe(liveBefore);
 
-    // (b) a value that is not whole hours ≥ 1 is refused and changes nothing.
-    for (const hours of [0, -1, "x", 1.5]) {
+    // (b) a value that is not whole hours from 1 to 24 is refused and changes nothing.
+    for (const hours of [0, -1, "x", 1.5, 25, "48"]) {
       const bad = await put({ kind: "rule", ruleKind: "quote_lock", quoteLockHours: hours, versionId: draftId });
       expect(bad.status, String(hours)).toBe(400);
       expect(bad.json.code).toBe("invalid");
-      expect(await lockOf(draftId)).toBe(2880);
+      expect(await lockOf(draftId)).toBe(720);
     }
 
     // (c) any other rule kind is refused (the Rules list is gone).
     const waiting = await put({ kind: "rule", ruleKind: "waiting", quoteLockHours: 72, versionId: draftId });
     expect(waiting.status).toBe(400);
-    expect(await lockOf(draftId)).toBe(2880);
+    expect(await lockOf(draftId)).toBe(720);
 
     // (f) another kind carrying quoteLockHours no longer writes the minutes (the old generic pre-block
     // ran before every kind's branch; a route PUT without Mapbox ends 400 after that point, writing nothing).
     const other = await put({ kind: "route", quoteLockHours: 99, versionId: draftId });
     expect(other.status).toBe(400);
-    expect(await lockOf(draftId)).toBe(2880);
+    expect(await lockOf(draftId)).toBe(720);
 
     // (d0) item 17: the current settings row and a snapshot baked on it, before Publish.
     const oldRow = (await su<{ id: string; w: number | null }[]>`
@@ -211,35 +213,35 @@ describe.skipIf(!PORT)("price-valid hours: lock save path and Publish keeping th
     const oldSv = oldRow.id;
     const oldWindow = oldRow.w;
     expect(oldWindow).not.toBeNull();
-    expect(oldWindow).not.toBe(2880); // 1440 on the lab seed: the two windows must differ to prove anything
+    expect(oldWindow).not.toBe(720); // 1440 on the lab seed: the two windows must differ to prove anything
     const pre = await snapshot(oldSv, "pre");
     const preClocks = await clocksOf(pre);
 
     // (d) Publish keeps the draft's minutes on the live book and on the new settings_versions row, and
     // (item 17) mirrors them into checkout_window_minutes.
     expect(await publish(draftId)).toMatchObject({ ok: true, data: { id: draftId, status: "live" } });
-    expect(await lockOf(draftId)).toBe(2880);
-    expect(await settingsLockOf(draftId)).toBe(2880);
-    expect(await settingsWindowOf(draftId)).toBe(2880);
+    expect(await lockOf(draftId)).toBe(720);
+    expect(await settingsLockOf(draftId)).toBe(720);
+    expect(await settingsWindowOf(draftId)).toBe(720);
     const newest = await su<{ m: number; w: number }[]>`
       select quote_lock_minutes as m, checkout_window_minutes as w from public.settings_versions
        order by effective_from desc, id desc limit 1`;
-    expect(newest[0]?.m).toBe(2880);
-    expect(newest[0]?.w).toBe(2880);
+    expect(newest[0]?.m).toBe(720);
+    expect(newest[0]?.w).toBe(720);
 
     // (d1) nothing already quoted moves: the earlier snapshot's two deadlines are exactly as before.
     expect(await clocksOf(pre)).toEqual(preClocks);
 
     // (d2) the clocks read the quote's own settings row: the old id still gives the old window, the new
-    // fare-publish row gives 2880 minutes.
+    // fare-publish row gives 720 minutes.
     const newSv = (await su<{ id: string }[]>`
       select id::text as id from public.settings_versions where slug = ${`fare-publish-${draftId}`}`)[0]!.id;
     expect(await windowIs(await snapshot(oldSv, "old"), oldWindow!)).toBe(true);
-    expect(await windowIs(await snapshot(newSv, "new"), 2880)).toBe(true);
+    expect(await windowIs(await snapshot(newSv, "new"), 720)).toBe(true);
 
     // (e) a draft with no minutes publishes the 24-hour default on both.
     const second = await freshDraft();
-    expect(await lockOf(second.draftId)).toBe(2880); // the fork copies the live book's minutes
+    expect(await lockOf(second.draftId)).toBe(720); // the fork copies the live book's minutes
     await su`update public.rate_versions set quote_lock_minutes = null where id = ${second.draftId} and status = 'draft'`;
     expect(await lockOf(second.draftId)).toBeNull();
     expect(await publish(second.draftId)).toMatchObject({ ok: true, data: { id: second.draftId, status: "live" } });
