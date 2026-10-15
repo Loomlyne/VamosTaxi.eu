@@ -3,6 +3,9 @@
 // Decision 2026-10-13 item 13 (signed 2026-10-14; supersedes Phase 18 D-13): Pricing › Distance rules
 // "Price stays valid for [24] hours" edits the draft's rate_versions.quote_lock_minutes, and Publish keeps
 // it on the live book and on the new settings_versions row (1440 = 24 hours when the draft has none).
+// Decision 2026-10-13 item 17 (D1, quick 261015-6om): Publish also mirrors those minutes into the new row's
+// checkout_window_minutes (the payment window), and a snapshot baked before Publish keeps both deadlines;
+// create_quote_snapshot on the old settings row still gives the old window.
 //
 // The real rate-book PUT and Publish route handlers on a real local database, through the real Worker
 // client (asStaff: login `vamos_edge`, role vamos_staff, `fetch_types: false`, prepared statements). Only
@@ -12,8 +15,9 @@
 // Skipped unless VAMOS_LOCAL_DB_PORT names a DISPOSABLE local stack (the test lab, seeded with
 // seed-live-like.sql); refuses without the throwaway marker role. Committed rows: one staff user and two
 // published price books (a live or retired book can never be removed; the lab is destroyed after the job;
-// the last one published here holds the 24-hour default). A draft this test made and did not publish is
-// deleted in afterAll. Synthetic values only; no amount is written.
+// the last one published here holds the 24-hour default) and unpriced price_snapshots rows tagged
+// `quote-engine@hold-<tag>-…` (append-only; the lab is disposable). A draft this test made and did not
+// publish is deleted in afterAll. Synthetic values only; no amount is written.
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { workerSql } from "../../../../packages/db/test/support/worker-client";
 import type { VamosClaims } from "../db/identity";
@@ -80,6 +84,52 @@ describe.skipIf(!PORT)("price-valid hours: lock save path and Publish keeping th
     const rows = await su<{ m: number | null }[]>`
       select quote_lock_minutes as m from public.settings_versions where slug = ${`fare-publish-${id}`}`;
     return rows[0]?.m ?? null;
+  }
+
+  async function settingsWindowOf(id: number): Promise<number | null> {
+    const rows = await su<{ m: number | null }[]>`
+      select checkout_window_minutes as m from public.settings_versions where slug = ${`fare-publish-${id}`}`;
+    return rows[0]?.m ?? null;
+  }
+
+  /** Item 17: one unpriced snapshot through the real write door (owner; G10 left no grantee). Returns its id. */
+  async function snapshot(settingsId: string, label: string): Promise<string> {
+    const rows = await su<{ id: string }[]>`
+      select public.create_quote_snapshot(
+        p_quote_id => gen_random_uuid(),
+        p_vehicle_class_id => (select id from public.vehicle_classes order by id limit 1),
+        p_rate_version_id => (select id from public.rate_versions where status = 'live' order by id desc limit 1),
+        p_settings_version_id => ${settingsId}::int8,
+        p_engine_version => ${`quote-engine@hold-${tag}-${label}`}::text,
+        p_lock_exp => now() + interval '45 minutes',
+        p_pax => 1::smallint,
+        p_bags => 0::smallint,
+        p_lines => '[]'::jsonb,
+        p_policy => jsonb_build_object(
+          'cancellation_tiers', '[]'::jsonb, 'free_cancel_hours', 24, 'airport_waiting_minutes', 60,
+          'city_waiting_minutes', 15, 'settings_version_id', ${settingsId}::int8,
+          'modification_deadline_hours', 24, 'min_advance_minutes', 180, 'policy_doc', 'hold'),
+        p_shown_alternatives => '[]'::jsonb,
+        p_legs => jsonb_build_array(jsonb_build_object(
+          'leg_seq', 1, 'distance_km', null, 'duration_min', null, 'leg_subtotal_rappen', null, 'booking_leg_id', null))
+      )::text as id`;
+    return rows[0]!.id;
+  }
+
+  async function clocksOf(snapshotId: string): Promise<{ e: string; l: string }> {
+    const rows = await su<{ e: string; l: string }[]>`
+      select expires_at::text as e, quote_lock_expires_at::text as l
+        from public.price_snapshots where id = ${snapshotId}::int8`;
+    return rows[0]!;
+  }
+
+  /** expires_at within ±1 minute of now() + minutes, compared in SQL (no JS clock). */
+  async function windowIs(snapshotId: string, minutes: number): Promise<boolean> {
+    const rows = await su<{ ok: boolean }[]>`
+      select expires_at between now() + make_interval(mins => ${minutes}::int - 1)
+                            and now() + make_interval(mins => ${minutes}::int + 1) as ok
+        from public.price_snapshots where id = ${snapshotId}::int8`;
+    return rows[0]?.ok === true;
   }
 
   async function freshDraft(): Promise<{ draftId: number; liveId: string }> {
@@ -154,14 +204,38 @@ describe.skipIf(!PORT)("price-valid hours: lock save path and Publish keeping th
     expect(other.status).toBe(400);
     expect(await lockOf(draftId)).toBe(2880);
 
-    // (d) Publish keeps the draft's minutes on the live book and on the new settings_versions row.
+    // (d0) item 17: the current settings row and a snapshot baked on it, before Publish.
+    const oldRow = (await su<{ id: string; w: number | null }[]>`
+      select id::text as id, checkout_window_minutes as w from public.settings_versions
+       where effective_from <= now() order by effective_from desc, id desc limit 1`)[0]!;
+    const oldSv = oldRow.id;
+    const oldWindow = oldRow.w;
+    expect(oldWindow).not.toBeNull();
+    expect(oldWindow).not.toBe(2880); // 1440 on the lab seed: the two windows must differ to prove anything
+    const pre = await snapshot(oldSv, "pre");
+    const preClocks = await clocksOf(pre);
+
+    // (d) Publish keeps the draft's minutes on the live book and on the new settings_versions row, and
+    // (item 17) mirrors them into checkout_window_minutes.
     expect(await publish(draftId)).toMatchObject({ ok: true, data: { id: draftId, status: "live" } });
     expect(await lockOf(draftId)).toBe(2880);
     expect(await settingsLockOf(draftId)).toBe(2880);
-    const newest = await su<{ m: number }[]>`
-      select quote_lock_minutes as m from public.settings_versions
+    expect(await settingsWindowOf(draftId)).toBe(2880);
+    const newest = await su<{ m: number; w: number }[]>`
+      select quote_lock_minutes as m, checkout_window_minutes as w from public.settings_versions
        order by effective_from desc, id desc limit 1`;
     expect(newest[0]?.m).toBe(2880);
+    expect(newest[0]?.w).toBe(2880);
+
+    // (d1) nothing already quoted moves: the earlier snapshot's two deadlines are exactly as before.
+    expect(await clocksOf(pre)).toEqual(preClocks);
+
+    // (d2) the clocks read the quote's own settings row: the old id still gives the old window, the new
+    // fare-publish row gives 2880 minutes.
+    const newSv = (await su<{ id: string }[]>`
+      select id::text as id from public.settings_versions where slug = ${`fare-publish-${draftId}`}`)[0]!.id;
+    expect(await windowIs(await snapshot(oldSv, "old"), oldWindow!)).toBe(true);
+    expect(await windowIs(await snapshot(newSv, "new"), 2880)).toBe(true);
 
     // (e) a draft with no minutes publishes the 24-hour default on both.
     const second = await freshDraft();
@@ -171,5 +245,6 @@ describe.skipIf(!PORT)("price-valid hours: lock save path and Publish keeping th
     expect(await publish(second.draftId)).toMatchObject({ ok: true, data: { id: second.draftId, status: "live" } });
     expect(await lockOf(second.draftId)).toBe(1440);
     expect(await settingsLockOf(second.draftId)).toBe(1440);
+    expect(await settingsWindowOf(second.draftId)).toBe(1440);
   });
 });
