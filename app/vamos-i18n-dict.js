@@ -1098,6 +1098,7 @@
       'hours': { de: 'Stunden', fr: 'heures', ar: 'ساعة' },
       'How long a price you show a customer stays the same.': { de: 'Wie lange ein Preis, den du einem Kunden zeigst, gleich bleibt.', fr: 'Combien de temps un prix montré à un client reste le même.', ar: 'المدة التي يبقى فيها السعر الذي تعرضه على العميل كما هو.' },
       'Enter whole hours, 1 or more.': { de: 'Gib ganze Stunden ein, 1 oder mehr.', fr: 'Saisissez des heures entières, 1 ou plus.', ar: 'أدخل عددًا صحيحًا من الساعات، 1 أو أكثر.' },
+      'Use 24 hours or less.': { de: 'Gib 24 Stunden oder weniger ein.', fr: 'Saisissez 24 heures ou moins.', ar: 'أدخل 24 ساعة أو أقل.' },
       'Saved in the draft.': { de: 'Im Entwurf gespeichert.', fr: 'Enregistré dans le brouillon.', ar: 'تم الحفظ في المسودة.' },
       'Draft — not public until Publish': { de: 'Entwurf — nicht öffentlich bis Veröffentlichen', fr: 'Brouillon — pas public tant que non publié', ar: 'مسودة — ليست عامة حتى النشر' },
       'Fix this': { de: 'Dies beheben', fr: 'Corriger', ar: 'أصلح هذا' },

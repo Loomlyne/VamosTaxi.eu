@@ -368,6 +368,8 @@
 
 </x-dc>
 <script type="text/x-dc" data-dc-script>
+/* "Price stays valid for" takes 24 hours at most (owner, 2026-10-15; the rate-book PUT refuses more). */
+const LOCK_MAX_HOURS = 24;
 const RATE_ICON = { Economy:'car-front', Business:'car', First:'star', Van:'bus' };
 function classSlugOf(name) {
   return String(name || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -521,7 +523,7 @@ const T = {
       network:'Publish did not flip — the request did not reach the server.',
       unknown:'Publish did not flip — the server did not accept this draft.',
     },
-    lockLabel:'Price stays valid for', lockSuffix:'hours', lockHint:'How long a price you show a customer stays the same.', saveLock:'Save', lockError:'Enter whole hours, 1 or more.', lockSaveError:'Could not save. Try again.', lockSaved:'Saved in the draft.',
+    lockLabel:'Price stays valid for', lockSuffix:'hours', lockHint:'How long a price you show a customer stays the same.', saveLock:'Save', lockError:'Enter whole hours, 1 or more.', lockMaxError:'Use 24 hours or less.', lockSaveError:'Could not save. Try again.', lockSaved:'Saved in the draft.',
     vatLabel:'VAT', vatSuffix:'%', vatError:'VAT must be 0 or more.', saveVat:'Save VAT', draftMark:'Draft — not public until Publish', fixThis:'Fix this',
     liveBook:'Live book',
     when:'When', pax:'Passengers', coupon:'Coupon',
@@ -609,7 +611,7 @@ const T = {
       network:'Veröffentlichen hat nicht umgestellt — die Anfrage hat den Server nicht erreicht.',
       unknown:'Veröffentlichen hat nicht umgestellt — der Server hat diesen Entwurf nicht angenommen.',
     },
-    lockLabel:'Preis gilt für', lockSuffix:'Stunden', lockHint:'Wie lange ein Preis, den du einem Kunden zeigst, gleich bleibt.', saveLock:'Speichern', lockError:'Gib ganze Stunden ein, 1 oder mehr.', lockSaveError:'Speichern nicht möglich. Bitte erneut versuchen.', lockSaved:'Im Entwurf gespeichert.',
+    lockLabel:'Preis gilt für', lockSuffix:'Stunden', lockHint:'Wie lange ein Preis, den du einem Kunden zeigst, gleich bleibt.', saveLock:'Speichern', lockError:'Gib ganze Stunden ein, 1 oder mehr.', lockMaxError:'Gib 24 Stunden oder weniger ein.', lockSaveError:'Speichern nicht möglich. Bitte erneut versuchen.', lockSaved:'Im Entwurf gespeichert.',
     vatLabel:'MwSt.', vatSuffix:'%', vatError:'Die MwSt. muss 0 oder mehr sein.', saveVat:'MwSt. speichern', draftMark:'Entwurf — nicht öffentlich bis Veröffentlichen', fixThis:'Dies beheben',
     when:'Wann', pax:'Passagiere', coupon:'Gutschein',
     testNote:'Test-unbezahlt nutzt diesen Entwurf. Es belastet keine Karte und sendet keine Mail.',
@@ -698,7 +700,7 @@ const T = {
       network:'La publication n’a pas basculé — la requête n’a pas atteint le serveur.',
       unknown:'La publication n’a pas basculé — le serveur n’a pas accepté ce brouillon.',
     },
-    lockLabel:'Le prix reste valable', lockSuffix:'heures', lockHint:'Combien de temps un prix montré à un client reste le même.', saveLock:'Enregistrer', lockError:'Saisissez des heures entières, 1 ou plus.', lockSaveError:'Enregistrement impossible. Réessayez.', lockSaved:'Enregistré dans le brouillon.',
+    lockLabel:'Le prix reste valable', lockSuffix:'heures', lockHint:'Combien de temps un prix montré à un client reste le même.', saveLock:'Enregistrer', lockError:'Saisissez des heures entières, 1 ou plus.', lockMaxError:'Saisissez 24 heures ou moins.', lockSaveError:'Enregistrement impossible. Réessayez.', lockSaved:'Enregistré dans le brouillon.',
     vatLabel:'TVA', vatSuffix:'%', vatError:'La TVA doit être 0 ou plus.', saveVat:'Enregistrer la TVA', draftMark:'Brouillon — pas public tant que non publié', fixThis:'Corriger',
     when:'Quand', pax:'Passagers', coupon:'Code',
     testNote:'L’impayé test utilise ce brouillon. Il ne débite aucune carte et n’envoie aucun mail.',
@@ -787,7 +789,7 @@ const T = {
       network:'لم ينقلب النشر — لم يصل الطلب إلى الخادم.',
       unknown:'لم ينقلب النشر — لم يقبل الخادم هذه المسودة.',
     },
-    lockLabel:'يبقى السعر صالحًا لمدة', lockSuffix:'ساعة', lockHint:'المدة التي يبقى فيها السعر الذي تعرضه على العميل كما هو.', saveLock:'حفظ', lockError:'أدخل عددًا صحيحًا من الساعات، 1 أو أكثر.', lockSaveError:'تعذّر الحفظ. حاول مرة أخرى.', lockSaved:'تم الحفظ في المسودة.',
+    lockLabel:'يبقى السعر صالحًا لمدة', lockSuffix:'ساعة', lockHint:'المدة التي يبقى فيها السعر الذي تعرضه على العميل كما هو.', saveLock:'حفظ', lockError:'أدخل عددًا صحيحًا من الساعات، 1 أو أكثر.', lockMaxError:'أدخل 24 ساعة أو أقل.', lockSaveError:'تعذّر الحفظ. حاول مرة أخرى.', lockSaved:'تم الحفظ في المسودة.',
     vatLabel:'ضريبة القيمة المضافة', vatSuffix:'%', vatError:'يجب أن تكون الضريبة 0 أو أكثر.', saveVat:'حفظ الضريبة', draftMark:'مسودة — ليست عامة حتى النشر', fixThis:'أصلح هذا',
     when:'متى', pax:'المسافرون', coupon:'قسيمة',
     testNote:'غير المدفوع للاختبار يستخدم هذه المسودة. لا يخصم بطاقة ولا يرسل بريدًا.',
@@ -1024,25 +1026,33 @@ class Component extends DCLogic {
       }, () => this.setState({ vatError: true }));
     }
   };
-  /** Whole hours, 1 or more, else null (the PUT refuses anything else with 400 invalid). */
+  /** Whole hours from 1 to LOCK_MAX_HOURS, else null (the PUT refuses anything else with 400 invalid). */
   lockHoursValue(text) {
     const raw = String(text == null ? '' : text).trim();
-    if (!/^\d+$/.test(raw)) return null;
+    return raw !== '' && this.lockHoursError(raw) === '' ? Number(raw) : null;
+  }
+  /** Why a typed value is refused: '' (fine or empty), 'invalid' (not whole hours, 1 or more) or 'max'
+      (above 24 hours, the cap the owner signed 2026-10-15; lib/ops/quote-lock-hours.ts on the server). */
+  lockHoursError(text) {
+    const raw = String(text == null ? '' : text).trim();
+    if (raw === '') return '';
+    if (!/^\d+$/.test(raw)) return 'invalid';
     const n = Number(raw);
-    return Number.isSafeInteger(n) && n >= 1 ? n : null;
+    if (n < 1) return 'invalid';
+    return n > LOCK_MAX_HOURS ? 'max' : '';
   }
   setLockHours = (v) => {
     const raw = v && typeof v === 'object' && v.target ? v.target.value : v;
     const text = raw == null ? '' : String(raw);
-    // An empty box only turns Save off; a typed value that is not whole hours (0, 1.5, abc) says why.
-    const bad = text.trim() !== '' && this.lockHoursValue(text) === null;
-    this.setState({ lockHours: text, lockError: bad ? 'invalid' : '', lockOk: false });
+    // An empty box only turns Save off; a typed value that is not whole hours (0, 1.5, abc) or is above
+    // 24 hours says why.
+    this.setState({ lockHours: text, lockError: this.lockHoursError(text), lockOk: false });
   };
   /** Pricing › Distance rules "Price stays valid for": PUT rate-book {kind:"rule", ruleKind:"quote_lock"} writes the
       draft's quote_lock_minutes (the server forks the live book into a draft when none exists); Publish keeps it. */
   saveLock = () => {
     const n = this.lockHoursValue(this.state.lockHours);
-    if (n === null) { this.setState({ lockError: 'invalid', lockOk: false }); return; }
+    if (n === null) { this.setState({ lockError: this.lockHoursError(this.state.lockHours) || 'invalid', lockOk: false }); return; }
     if (String(n) === this.state.lockSavedHours || this.state.lockBusy) return;
     const ops = window.VamosOps;
     if (!ops || typeof ops.saveDraftQuoteLock !== 'function') { this.setState({ lockError: 'save' }); return; }
@@ -1667,7 +1677,7 @@ class Component extends DCLogic {
       lockHours: this.state.lockHours,
       setLockHours: this.setLockHours,
       saveLock: this.saveLock,
-      lockErrorText: this.state.lockError === 'invalid' ? t.lockError : this.state.lockError === 'save' ? t.lockSaveError : '',
+      lockErrorText: this.state.lockError === 'invalid' ? t.lockError : this.state.lockError === 'max' ? t.lockMaxError : this.state.lockError === 'save' ? t.lockSaveError : '',
       lockErrFlag: this.state.lockError ? '1' : '0',
       lockOkDisplay: this.state.lockOk ? 'block' : 'none',
       lockSaveVariant: lockDirty ? 'primary' : 'ghost',

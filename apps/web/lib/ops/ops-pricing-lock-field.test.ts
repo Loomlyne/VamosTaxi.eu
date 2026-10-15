@@ -267,7 +267,7 @@ describe("Price stays valid for: logic", () => {
     await flush();
     p.comp.state = { ...p.comp.state, draftId: null };
     const before = p.reads.filter((r) => r === "GET /api/staff/rate-versions").length;
-    p.comp.setLockHours("30");
+    p.comp.setLockHours("18");
     p.comp.saveLock();
     await flush();
     expect(p.reads.filter((r) => r === "GET /api/staff/rate-versions").length).toBe(before + 1);
@@ -279,7 +279,7 @@ describe("Price stays valid for: logic", () => {
     await flush();
     p.comp.state = { ...p.comp.state, draftId: "v-draft" };
     const before = p.reads.length;
-    p.comp.setLockHours("30");
+    p.comp.setLockHours("18");
     p.comp.saveLock();
     await flush();
     expect(p.reads.length).toBe(before);
