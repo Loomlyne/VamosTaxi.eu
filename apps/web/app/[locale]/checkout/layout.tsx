@@ -37,12 +37,12 @@ export default async function CheckoutLayout({
   const env = workerEnv();
 
   let freeCancelHours: number | null = null;
-  let checkoutWindowMinutes: number | null = null;
+  let priceHoldMinutes: number | null = null;
   if (env) {
     try {
       const policy = policyHours(await loadSettingsVersion(env, new Date().toISOString()));
       freeCancelHours = policy.freeCancelHours;
-      checkoutWindowMinutes = policy.checkoutWindowMinutes;
+      priceHoldMinutes = policy.priceHoldMinutes;
     } catch {
       // TBC pills stay TBC (D-24). Never invent hours.
     }
@@ -65,7 +65,7 @@ export default async function CheckoutLayout({
       value={{
         locale,
         freeCancelHours,
-        checkoutWindowMinutes,
+        priceHoldMinutes,
         turnstileSiteKey: env?.TURNSTILE_SITE_KEY ?? process.env.TURNSTILE_SITE_KEY,
         twintOn: env ? checkoutPaymentMethodTypes(env).includes("twint") : false,
         guestAccountsOn: guestOn,

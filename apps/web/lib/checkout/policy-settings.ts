@@ -12,16 +12,23 @@ function asInt(value: unknown): number | null {
 
 export type CheckoutPolicy = {
   freeCancelHours: number | null;
+  /** Payment window: POST /api/checkout/intent gates payment_window_closed on it. */
   checkoutWindowMinutes: number | null;
+  /**
+   * The "Price stays valid for" minutes Publish stamps on the settings row as quote_lock_minutes
+   * (decision item 17). Display only: the server clocks decide.
+   */
+  priceHoldMinutes: number | null;
 };
 
 export function policyHours(doc: unknown): CheckoutPolicy {
   if (doc === null || typeof doc !== "object") {
-    return { freeCancelHours: null, checkoutWindowMinutes: null };
+    return { freeCancelHours: null, checkoutWindowMinutes: null, priceHoldMinutes: null };
   }
   const rec = doc as Record<string, unknown>;
   return {
     freeCancelHours: asInt(rec.free_cancel_hours),
     checkoutWindowMinutes: asInt(rec.checkout_window_minutes),
+    priceHoldMinutes: asInt(rec.quote_lock_minutes),
   };
 }
