@@ -113,6 +113,17 @@
         de: 'Bevorstehend ($1)', fr: 'À venir ($1)', ar: 'القادمة ($1)' },
       { re: /^Past \((\d+)\)$/,
         de: 'Vergangen ($1)', fr: 'Passés ($1)', ar: 'السابقة ($1)' },
+      // Checkout hold line (quick 261015-6om, decision 2026-10-13 item 17, signed 2026-10-15), the same
+      // wording as checkout.checkoutWindowHours in the Next messages. Narrow counts first: Arabic one, two,
+      // 3-10 (ساعات), then 11 and up (ساعة).
+      { re: /^This price is held for 1 hour\.$/,
+        de: 'Dieser Preis gilt 1 Stunde.', fr: 'Ce prix est maintenu 1 heure.', ar: 'يُثبَّت هذا السعر لمدة ساعة واحدة.' },
+      { re: /^This price is held for 2 hours\.$/,
+        de: 'Dieser Preis gilt 2 Stunden.', fr: 'Ce prix est maintenu 2 heures.', ar: 'يُثبَّت هذا السعر لمدة ساعتين.' },
+      { re: /^This price is held for ([3-9]|10) hours\.$/,
+        de: 'Dieser Preis gilt $1 Stunden.', fr: 'Ce prix est maintenu $1 heures.', ar: 'يُثبَّت هذا السعر لمدة $1 ساعات.' },
+      { re: /^This price is held for (\d+) hours\.$/,
+        de: 'Dieser Preis gilt $1 Stunden.', fr: 'Ce prix est maintenu $1 heures.', ar: 'يُثبَّت هذا السعر لمدة $1 ساعة.' },
       { re: /^In (\d+) hours$/,
         de: 'In $1 Stunden', fr: 'Dans $1 heures', ar: 'بعد $1 ساعة' },
       { re: /^In (\d+) days$/,
@@ -772,6 +783,9 @@
       'Return': { de: 'Hin und zurück', fr: 'Aller-retour', ar: 'ذهاب وعودة' },
       'Fixed price, all taxes and tolls included. Free cancellation up to 24 h before pickup.': { de: 'Fixpreis, alle Steuern und Maut inbegriffen. Kostenlose Stornierung bis 24 h vor der Abholung.', fr: 'Prix fixe, toutes taxes et péages compris. Annulation gratuite jusqu’à 24 h avant la prise en charge.', ar: 'سعر ثابت يشمل الضرائب والرسوم. والإلغاء مجاني حتى 24 ساعة قبل الاستقبال.' },
       'Pay and confirm': { de: 'Bezahlen und bestätigen', fr: 'Payer et confirmer', ar: 'الدفع والتأكيد' },
+      // checkout.dc.html hold line: the two text nodes around the hours pill (the pill stays English, ADR-011).
+      'This price is held for': { de: 'Dieser Preis gilt', fr: 'Ce prix est maintenu', ar: 'يُثبَّت هذا السعر لمدة' },
+      'hours.': { de: 'Stunden.', fr: 'heures.', ar: 'ساعة.' },
       'Confirm booking': { de: 'Buchung bestätigen', fr: 'Confirmer la réservation', ar: 'تأكيد الحجز' },
       'By continuing you accept the terms and the cancellation policy.': { de: 'Mit dem Fortfahren akzeptieren Sie die AGB und die Stornierungsbedingungen.', fr: 'En continuant, vous acceptez les conditions et la politique d’annulation.', ar: 'بالمتابعة فإنك تقبل الشروط وسياسة الإلغاء.' },
       'Need something unusual — a bus, a wedding, an overnight? Call dispatch on +41 79 626 70 82.': { de: 'Etwas Aussergewöhnliches — ein Bus, eine Hochzeit, eine Nachtfahrt? Rufen Sie die Disposition an: +41 79 626 70 82.', fr: 'Un besoin inhabituel — un bus, un mariage, une nuit ? Appelez le dispatch au +41 79 626 70 82.', ar: 'تحتاج شيئًا غير معتاد — حافلة أو حفل زفاف أو رحلة ليلية؟ اتصل بقسم التشغيل على ‎+41 79 626 70 82‎.' },

@@ -124,6 +124,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <div style="margin-top:20px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" onClick="{{ pay }}" hint-size="100%,54px">{{ tPayLabel }}</x-import>
 </div>
+<p data-co-hold-note="1" style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted);margin:16px 0 0">{{ tHoldPre }}<span class="vt-dir-keep" data-vt-no-i18n="1"><span data-tok>price-valid hours</span></span>{{ tHoldPost }}</p>
 <p style="display:flex;gap:8px;align-items:flex-start;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted);margin:16px 0 0">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n15 }}" color="var(--vt-success)" hint-size="15px,15px"></x-import>{{ tTerms }}
 </p>
@@ -175,6 +176,7 @@ const T = {
     yourTransfer:'Your transfer', oneWay:'One way', return_:'Return',
     priceNote:'Fixed price, all taxes and tolls included. Free cancellation up to 24 h before pickup.',
     payLabel:'Pay and confirm', payLabelCash:'Confirm booking',
+    holdPre:'This price is held for ', holdPost:' hours.',
     terms:'By continuing you accept the terms and the cancellation policy.',
     callDispatch:'Need something unusual — a bus, a wedding, an overnight? Call dispatch on +41 79 626 70 82.',
     lineTransfer:'Transfer, ', lineTransferClass:' class', lineAirportFee:'Airport pickup fee', lineChildSeat:'Child seat × 1',
@@ -198,6 +200,7 @@ const T = {
     yourTransfer:'Ihr Transfer', oneWay:'Einfache Fahrt', return_:'Rückfahrt',
     priceNote:'Festpreis, alle Steuern und Gebühren inklusive. Kostenlose Stornierung bis 24 Std. vor Abholung.',
     payLabel:'Zahlen und bestätigen', payLabelCash:'Buchung bestätigen',
+    holdPre:'Dieser Preis gilt ', holdPost:' Stunden.',
     terms:'Mit dem Fortfahren akzeptieren Sie die AGB und die Stornobedingungen.',
     callDispatch:'Etwas Ausgefallenes — ein Bus, eine Hochzeit, eine Übernachtung? Rufen Sie den Dispatch unter +41 79 626 70 82 an.',
     lineTransfer:'Transfer, ', lineTransferClass:'-Klasse', lineAirportFee:'Flughafen-Abholgebühr', lineChildSeat:'Kindersitz × 1',
@@ -287,6 +290,8 @@ class Component extends DCLogic {
       ],
       lines, total: 'CHF 000.00', tPriceNote: t.priceNote,
       tPayLabel: this.state.pay === 'cash' ? t.payLabelCash : t.payLabel, pay: this.pay,
+      // Item 17 (D2, signed 2026-10-15): the hold line. The mock reads no settings row, so the hours are a TBC pill.
+      tHoldPre: t.holdPre, tHoldPost: t.holdPost,
       tTerms: t.terms, tCallDispatch: t.callDispatch,
     };
   }
