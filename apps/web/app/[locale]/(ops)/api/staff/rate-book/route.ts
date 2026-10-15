@@ -46,6 +46,7 @@ import {
 } from "@/lib/ops/rappen";
 import { MANUAL_PREDICATE } from "@/lib/pricing/types";
 import { QUOTE_LOCK_MINUTES } from "@/lib/quote/lock";
+import { quoteLockMinutesFromWholeHours } from "@/lib/ops/quote-lock-hours";
 import { jsonErr, jsonOk, withAdmin, withStaff } from "@/lib/ops/staff-json";
 import { asVehicleClassUuid, planVehicleClassWrite } from "@/lib/ops/vehicle-class-write";
 import {
@@ -96,31 +97,10 @@ function moneyFromRappen(rappen: number | null): { CHF: string } {
   return { CHF: chf };
 }
 
-/** rate_versions.quote_lock_minutes is an int4; no business maximum is set here (none was decided). */
-const INT4_MAX = 2147483647;
-
-/**
- * Decision 2026-10-13 item 13 (signed 2026-10-14): the "Price stays valid for" field sends whole
- * hours. Returns the minutes to store, or null when the value is not a whole number of hours ≥ 1
- * or the minutes would not fit the integer column. Accepts a number or a digit string.
- */
-function quoteLockMinutesFromWholeHours(hours: unknown): number | null {
-  let n: number;
-  if (typeof hours === "number") {
-    n = hours;
-  } else if (typeof hours === "string" && /^\d+$/.test(hours.trim())) {
-    n = Number(hours.trim());
-  } else {
-    return null;
-  }
-  if (!Number.isSafeInteger(n) || n < 1) return null;
-  const minutes = n * 60;
-  return minutes <= INT4_MAX ? minutes : null;
-}
-
 /**
  * Kind `rule` is a book setting on the draft rate_versions row (decision 2026-10-13 item 13):
- * `vat` (vat_rate_bps) or `quote_lock` (quote_lock_minutes, whole hours ≥ 1). Any other ruleKind
+ * `vat` (vat_rate_bps) or `quote_lock` (quote_lock_minutes, whole hours 1 to 24; the 24-hour cap was
+ * signed by the owner on 2026-10-15, see lib/ops/quote-lock-hours.ts). Any other ruleKind
  * (waiting, free_wait, service area, city pair, lock, …) and any refused value is null → 400.
  */
 function parseRuleSetting(
