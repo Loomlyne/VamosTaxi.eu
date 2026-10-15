@@ -472,7 +472,7 @@
     "requote": "Get a new quote",
     "freeCancelHours": "Cancel free of charge up to {hours} hours before pickup.",
     "checkoutWindow": "Pay within {minutes} minutes to keep this price.",
-    "checkoutWindowHours": "This price is held for {hours} hours.",
+    "checkoutWindowHours": "{hours, plural, one {This price is held for {hours} hour.} other {This price is held for {hours} hours.}}",
     "livePriceChangedLocked": "The live price changed. You still pay this locked price until the {hours} hours end.",
     "billingIndividual": "Individual",
     "billingCompany": "Company",

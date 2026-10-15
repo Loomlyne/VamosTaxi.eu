@@ -20,6 +20,7 @@ import { useCheckoutFlow } from "../CheckoutPage";
 import { useCheckoutForm } from "../CheckoutForm";
 import { TripDistance } from "./TripDistance";
 import { vatPercentLabel } from "@/lib/checkout/vat";
+import { checkoutWindowHours } from "@/lib/checkout/steps";
 
 const DESKTOP_QUERY = "(min-width: 1081px)";
 
@@ -148,6 +149,8 @@ function usePay(variant: "bar" | "rail") {
   const f = useCheckoutForm();
   const settings = useCheckoutSettings();
   const state = f.paying ? "loading" : f.payDisabled ? "disabled" : f.payError ? "error" : "idle";
+  // Item 17 (D2): the hours the Pricing box set, from the current settings row; no line when unknown.
+  const holdHours = checkoutWindowHours(settings.priceHoldMinutes);
 
   const challenge = f.challenge ? (
     <div className="vt-co__challenge-block" data-co-page-challenge>
@@ -169,6 +172,7 @@ function usePay(variant: "bar" | "rail") {
       f.totalView.total && f.displayAmount(100).currency !== "CHF"
         ? t("chargeIn", { currency: `${t("chargeCurrencyName")} (CHF)` })
         : null,
+    holdNote: holdHours == null ? null : t("checkoutWindowHours", { hours: holdHours }),
     loadingLabel: t("openingPayment"),
     error: f.payError,
     liveMessage: f.liveMessage,

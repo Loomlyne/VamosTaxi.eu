@@ -472,7 +472,7 @@
     "requote": "عرض جديد",
     "freeCancelHours": "إلغاء مجاني حتى {hours} ساعة قبل الاستلام.",
     "checkoutWindow": "ادفع خلال {minutes} دقيقة للاحتفاظ بهذا السعر.",
-    "checkoutWindowHours": "يُثبَّت هذا السعر لمدة {hours} ساعة.",
+    "checkoutWindowHours": "{hours, plural, zero {يُثبَّت هذا السعر لمدة {hours} ساعة.} one {يُثبَّت هذا السعر لمدة ساعة واحدة.} two {يُثبَّت هذا السعر لمدة ساعتين.} few {يُثبَّت هذا السعر لمدة {hours} ساعات.} many {يُثبَّت هذا السعر لمدة {hours} ساعة.} other {يُثبَّت هذا السعر لمدة {hours} ساعة.}}",
     "livePriceChangedLocked": "تغيّر السعر الحالي. ستدفع هذا السعر المقفول حتى تنتهي مهلة {hours} ساعة.",
     "billingIndividual": "فرد",
     "billingCompany": "شركة",
