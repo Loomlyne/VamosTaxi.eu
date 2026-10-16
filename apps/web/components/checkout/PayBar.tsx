@@ -33,6 +33,12 @@ export type PayBarProps = {
    * display figure and the page says what the charge is.
    */
   chargeNote?: string | null;
+  /**
+   * Decision 2026-10-13 item 17 (D2, signed 2026-10-15): "This price is held for {hours} hours.", the
+   * Pricing "Price stays valid for" hours from the current settings row. Display only: the server clocks
+   * (quote lock and payment window) decide. Null when the minutes are unknown or not whole hours.
+   */
+  holdNote?: string | null;
   /** Turnstile sits directly above PAY when a challenge shows. */
   challenge?: ReactNode;
   onPay?: () => void;
@@ -58,6 +64,7 @@ export function PayBar({
   liveMessage = "",
   reassurance,
   chargeNote,
+  holdNote,
   challenge,
   onPay,
   onTotal,
@@ -128,6 +135,11 @@ export function PayBar({
       {chargeNote ? (
         <p className="vt-copay__reassure" data-co-charge-note>
           {chargeNote}
+        </p>
+      ) : null}
+      {holdNote ? (
+        <p className="vt-copay__reassure" data-co-hold-note>
+          {holdNote}
         </p>
       ) : null}
       {reassurance ? <p className="vt-copay__reassure">{reassurance}</p> : null}

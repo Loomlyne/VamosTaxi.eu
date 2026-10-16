@@ -101,3 +101,43 @@ describe("switching language keeps the right Arabic count form (real vamos-local
     expect(t(key, lang)).toBe(want);
   });
 });
+
+// Quick 261015-6om (decision 2026-10-13 item 17, line signed 2026-10-15): the checkout hold line. The Next app
+// says it through an ICU plural; the DC mock and any page that builds the sentence get the same forms here
+// (Arabic per CLDR: one, two, 3-10, 11 and up), and the mock's two fragments around its TBC pill translate.
+describe("the checkout hold line, every form (real vamos-locale.js)", () => {
+  it.each([
+    ["This price is held for 48 hours.", "de", "Dieser Preis gilt 48 Stunden."],
+    ["This price is held for 48 hours.", "fr", "Ce prix est maintenu 48 heures."],
+    ["This price is held for 48 hours.", "ar", "يُثبَّت هذا السعر لمدة 48 ساعة."],
+    ["This price is held for 1 hour.", "de", "Dieser Preis gilt 1 Stunde."],
+    ["This price is held for 1 hour.", "fr", "Ce prix est maintenu 1 heure."],
+    ["This price is held for 1 hour.", "ar", "يُثبَّت هذا السعر لمدة ساعة واحدة."],
+    ["This price is held for 2 hours.", "de", "Dieser Preis gilt 2 Stunden."],
+    ["This price is held for 2 hours.", "ar", "يُثبَّت هذا السعر لمدة ساعتين."],
+    ["This price is held for 3 hours.", "ar", "يُثبَّت هذا السعر لمدة 3 ساعات."],
+    ["This price is held for 10 hours.", "ar", "يُثبَّت هذا السعر لمدة 10 ساعات."],
+    ["This price is held for 11 hours.", "ar", "يُثبَّت هذا السعر لمدة 11 ساعة."],
+    ["This price is held for 24 hours.", "ar", "يُثبَّت هذا السعر لمدة 24 ساعة."],
+    ["This price is held for 24 hours.", "fr", "Ce prix est maintenu 24 heures."],
+    // A page already shown in another language
+    ["Dieser Preis gilt 7 Stunden.", "ar", "يُثبَّت هذا السعر لمدة 7 ساعات."],
+    ["Dieser Preis gilt 12 Stunden.", "ar", "يُثبَّت هذا السعر لمدة 12 ساعة."],
+    ["Dieser Preis gilt 1 Stunde.", "fr", "Ce prix est maintenu 1 heure."],
+    ["يُثبَّت هذا السعر لمدة 12 ساعة.", "en", "This price is held for 12 hours."],
+    ["يُثبَّت هذا السعر لمدة ساعة واحدة.", "en", "This price is held for 1 hour."],
+    ["يُثبَّت هذا السعر لمدة ساعتين.", "de", "Dieser Preis gilt 2 Stunden."],
+    ["Ce prix est maintenu 5 heures.", "de", "Dieser Preis gilt 5 Stunden."],
+    // checkout.dc.html: the two text nodes around the hours pill
+    ["This price is held for", "de", "Dieser Preis gilt"],
+    ["This price is held for", "fr", "Ce prix est maintenu"],
+    ["This price is held for", "ar", "يُثبَّت هذا السعر لمدة"],
+    ["hours.", "de", "Stunden."],
+    ["hours.", "fr", "heures."],
+    ["hours.", "ar", "ساعة."],
+    ["Dieser Preis gilt", "ar", "يُثبَّت هذا السعر لمدة"],
+    ["Stunden.", "fr", "heures."],
+  ])("%s → %s reads %s", (key, lang, want) => {
+    expect(t(key, lang)).toBe(want);
+  });
+});

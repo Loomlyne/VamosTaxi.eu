@@ -174,7 +174,7 @@ describe("Publish-as-flip public_chf (D-18)", () => {
     expect(publish).not.toMatch(/forkLiveRateVersion/);
   });
 
-  it("decision 2026-10-13 item 13: Publish keeps the draft's quote_lock_minutes, 1440 only when it has none", () => {
+  it("decision 2026-10-13 items 13 and 17: Publish keeps the draft's quote_lock_minutes (1440 only when it has none) and mirrors it into checkout_window_minutes", () => {
     const publish = webSource(PUBLISH_ROUTE);
     expect(publish).toMatch(
       /const lockMinutes = asNullableInt\(row\.quote_lock_minutes\) \?\? QUOTE_LOCK_MINUTES;/,
@@ -182,6 +182,8 @@ describe("Publish-as-flip public_chf (D-18)", () => {
     expect(publish).toMatch(/quote_lock_minutes = \$\{lockMinutes\}/);
     expect(publish).not.toMatch(/quote_lock_minutes = \$\{QUOTE_LOCK_MINUTES\}/);
     expect(publish).toMatch(/coalesce\(\$\{lockMinutes\}, sv\.quote_lock_minutes\)/);
-    expect(publish).toMatch(/sv\.checkout_window_minutes/);
+    // Item 17 (D1): the payment window mirrors "Price stays valid for", never copied from the old row.
+    expect(publish).toMatch(/coalesce\(\$\{lockMinutes\}, sv\.checkout_window_minutes\)/);
+    expect(publish).not.toMatch(/^\s*sv\.checkout_window_minutes,\s*$/m);
   });
 });

@@ -49,11 +49,14 @@ describe("rate-book overlay Save is draft (D-01 D-04 D-18 D-20)", () => {
     expect(src).toMatch(/if \(err instanceof CouponInputError\) return jsonErr\(err\.key, 400\)/);
   });
 
-  it("quote lock: whole hours to minutes, one writer, draft only (decision 2026-10-13 item 13)", () => {
+  it("quote lock: whole hours to minutes, one writer, draft only (decision 2026-10-13 item 13; 24 h cap signed 2026-10-15)", () => {
     const src = webSource(ROUTE);
-    expect(src).toMatch(/function quoteLockMinutesFromWholeHours/);
-    expect(src).toMatch(/const minutes = n \* 60;/);
-    expect(src).toMatch(/minutes <= INT4_MAX/);
+    expect(src).toMatch(/import \{ quoteLockMinutesFromWholeHours \} from "@\/lib\/ops\/quote-lock-hours";/);
+    const helper = webSource("lib/ops/quote-lock-hours.ts");
+    expect(helper).toMatch(/export function quoteLockMinutesFromWholeHours/);
+    expect(helper).toMatch(/const minutes = n \* 60;/);
+    expect(helper).toMatch(/export const QUOTE_LOCK_MAX_MINUTES = 1440;/);
+    expect(helper).toMatch(/return quoteLockMinutesWithinCap\(minutes\) \? minutes : null;/);
     expect(src.match(/set quote_lock_minutes = /g)?.length).toBe(1);
     expect(src).toMatch(
       /set quote_lock_minutes = \$\{setting\.minutes\}\s+where id = \$\{versionId\} and status = 'draft'/,

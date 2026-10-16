@@ -7,6 +7,8 @@
 // The whole script block of OpsPricing.dc.html runs against a stub DCLogic and a stub VamosOps (as in
 // ops-dc-class-lifecycle.test.ts), and vamos-ops-data.js runs in a vm with a recording API client.
 // No DOM, no network, no live data.
+// Quick 261015-6om Task 3 (b), signed by the owner 2026-10-15: the field takes 24 hours at most and says
+// "Use 24 hours or less." above that, through the same error line as the whole-hours check.
 
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -25,6 +27,14 @@ const SRC = readFileSync(CANONICAL, "utf8");
 type Json = Record<string, any>;
 type Lang = "en" | "de" | "fr" | "ar";
 const LANGS: Lang[] = ["en", "de", "fr", "ar"];
+
+/** The cap's instruction line (owner 2026-10-15), and its dict entry in the other three. */
+const MAX_LINE: Record<Lang, string> = {
+  en: "Use 24 hours or less.",
+  de: "Gib 24 Stunden oder weniger ein.",
+  fr: "Saisissez 24 heures ou moins.",
+  ar: "أدخل 24 ساعة أو أقل.",
+};
 
 /** The copy the owner signed (SIGNED.md, render-bands.mjs LOCK), verbatim. */
 const SIGNED: Record<Lang, { lockLabel: string; lockSuffix: string; lockHint: string; saveLock: string }> = {
@@ -136,11 +146,12 @@ describe("Price stays valid for: markup and copy", () => {
     it(`${lang}: signed strings verbatim, error and saved lines present`, () => {
       const { T } = page({ lang });
       for (const [k, v] of Object.entries(SIGNED[lang])) expect(T[lang][k], `${lang}.${k}`).toBe(v);
+      expect(T[lang].lockMaxError, `${lang}.lockMaxError`).toBe(MAX_LINE[lang]);
       for (const k of ["lockError", "lockSaveError", "lockSaved"]) {
         expect(typeof T[lang][k]).toBe("string");
         expect(String(T[lang][k] ?? "").length, `${lang}.${k}`).toBeGreaterThan(3);
       }
-      if (lang !== "en") for (const k of ["lockError", "lockSaveError", "lockSaved"]) expect(T[lang][k]).not.toBe(T.en[k]);
+      if (lang !== "en") for (const k of ["lockError", "lockMaxError", "lockSaveError", "lockSaved"]) expect(T[lang][k]).not.toBe(T.en[k]);
       if (lang === "de") for (const k of Object.keys(T.de)) if (typeof T.de[k] === "string") expect(T.de[k], `de.${k}`).not.toContain("ß");
     });
   }
@@ -174,7 +185,7 @@ describe("Price stays valid for: logic", () => {
     const p = page();
     p.comp.loadVat();
     await flush();
-    p.comp.setLockHours({ target: { value: "48" } });
+    p.comp.setLockHours({ target: { value: "12" } });
     expect(p.vals().lockSaveVariant).toBe("primary");
     expect(p.vals().lockSaveOff).toBe(false);
     for (const bad of ["0", "1.5", "abc", "-1", "00"]) {
@@ -193,26 +204,60 @@ describe("Price stays valid for: logic", () => {
     expect(p.vals().lockErrorText).toBe("");
   });
 
-  it("Save sends 48 once; on ok the saved value becomes the answer's and Save goes back to ghost", async () => {
-    const p = page({ saveAnswers: [{ ok: true, data: { quoteLockHours: "48" } }] });
+  it("above 24 hours says \"Use 24 hours or less.\" and keeps Save off; 24 and 1 are fine", async () => {
+    const p = page({ book: { vatRateBps: 81, quoteLockHours: "12" } });
     p.comp.loadVat();
     await flush();
-    p.comp.setLockHours("48");
+    for (const over of ["25", "48", "100", "0025", "999999"]) {
+      p.comp.setLockHours(over);
+      const v = p.vals();
+      expect(v.lockErrorText, over).toBe(MAX_LINE.en);
+      expect(v.lockErrorText, over).toBe(p.T.en.lockMaxError);
+      expect(v.lockErrFlag, over).toBe("1");
+      expect(v.lockSaveOff, over).toBe(true);
+      expect(v.lockSaveVariant, over).toBe("ghost");
+    }
+    for (const ok of ["24", "1"]) {
+      p.comp.setLockHours(ok);
+      const v = p.vals();
+      expect(v.lockErrorText, ok).toBe("");
+      expect(v.lockErrFlag, ok).toBe("0");
+      expect(v.lockSaveOff, ok).toBe(false);
+      expect(v.lockSaveVariant, ok).toBe("primary");
+    }
+  });
+
+  it("Save with a value above 24 sends nothing and shows the cap line", async () => {
+    const p = page();
+    p.comp.loadVat();
+    await flush();
+    p.comp.state = { ...p.comp.state, lockHours: "36", lockError: "" };
+    p.comp.saveLock();
+    await flush();
+    expect(p.saves).toEqual([]);
+    expect(p.vals().lockErrorText).toBe(p.T.en.lockMaxError);
+  });
+
+  it("Save sends 12 once; on ok the saved value becomes the answer's and Save goes back to ghost", async () => {
+    const p = page({ saveAnswers: [{ ok: true, data: { quoteLockHours: "12" } }] });
+    p.comp.loadVat();
+    await flush();
+    p.comp.setLockHours("12");
     p.comp.saveLock();
     expect(p.vals().lockSaveOff).toBe(true); // busy: no second PUT
     p.comp.saveLock();
     await flush();
-    expect(p.saves).toEqual([48]);
+    expect(p.saves).toEqual([12]);
     const v = p.vals();
-    expect(v.lockHours).toBe("48");
-    expect(p.comp.state.lockSavedHours).toBe("48");
+    expect(v.lockHours).toBe("12");
+    expect(p.comp.state.lockSavedHours).toBe("12");
     expect(v.lockSaveVariant).toBe("ghost");
     expect(v.lockSaveOff).toBe(true);
     expect(v.lockOkDisplay).toBe("block");
     expect(v.tLockSaved).toBe(p.T.en.lockSaved);
     expect(v.lockErrorText).toBe("");
     // Typing again hides the saved line.
-    p.comp.setLockHours("36");
+    p.comp.setLockHours("6");
     expect(p.vals().lockOkDisplay).toBe("none");
   });
 
@@ -222,7 +267,7 @@ describe("Price stays valid for: logic", () => {
     await flush();
     p.comp.state = { ...p.comp.state, draftId: null };
     const before = p.reads.filter((r) => r === "GET /api/staff/rate-versions").length;
-    p.comp.setLockHours("30");
+    p.comp.setLockHours("18");
     p.comp.saveLock();
     await flush();
     expect(p.reads.filter((r) => r === "GET /api/staff/rate-versions").length).toBe(before + 1);
@@ -234,7 +279,7 @@ describe("Price stays valid for: logic", () => {
     await flush();
     p.comp.state = { ...p.comp.state, draftId: "v-draft" };
     const before = p.reads.length;
-    p.comp.setLockHours("30");
+    p.comp.setLockHours("18");
     p.comp.saveLock();
     await flush();
     expect(p.reads.length).toBe(before);
@@ -245,12 +290,12 @@ describe("Price stays valid for: logic", () => {
       const p = page({ saveAnswers: [answer] });
       p.comp.loadVat();
       await flush();
-      p.comp.setLockHours("48");
+      p.comp.setLockHours("12");
       p.comp.saveLock();
       await flush();
       const v = p.vals();
-      expect(p.saves).toEqual([48]);
-      expect(v.lockHours).toBe("48");
+      expect(p.saves).toEqual([12]);
+      expect(v.lockHours).toBe("12");
       expect(p.comp.state.lockSavedHours).toBe("24");
       expect(v.lockSaveVariant).toBe("primary");
       expect(v.lockSaveOff).toBe(false);
@@ -264,6 +309,8 @@ describe("Price stays valid for: logic", () => {
     p.comp.loadVat();
     await flush();
     p.comp.setLockHours("0");
+    p.comp.saveLock();
+    p.comp.setLockHours("25");
     p.comp.saveLock();
     p.comp.setLockHours("24");
     p.comp.saveLock();
@@ -283,8 +330,21 @@ describe("Price stays valid for: logic", () => {
       expect(v.tLockHint).toBe(SIGNED[lang].lockHint);
       expect(v.tSaveLock).toBe(SIGNED[lang].saveLock);
       expect(v.lockErrorText).toBe(p.T[lang].lockError);
+      p.comp.setLockHours("25");
+      expect(p.vals().lockErrorText).toBe(MAX_LINE[lang]);
     });
   }
+
+  it("the dict carries the cap line next to the whole-hours line, in de/fr/ar as the screen says it", () => {
+    const dict = readFileSync(join(repoRoot, "app/vamos-i18n-dict.js"), "utf8");
+    const whole = dict.indexOf("'Enter whole hours, 1 or more.'");
+    const cap = dict.indexOf("'Use 24 hours or less.'");
+    expect(whole).toBeGreaterThan(0);
+    expect(cap).toBeGreaterThan(whole);
+    expect(dict.slice(whole, cap).split("\n").length).toBe(2);
+    const line = dict.slice(cap, dict.indexOf("\n", cap));
+    expect(line).toBe(`'Use 24 hours or less.': { de: '${MAX_LINE.de}', fr: '${MAX_LINE.fr}', ar: '${MAX_LINE.ar}' },`);
+  });
 });
 
 describe("km bands, region % and the Rules list are gone from the dashboard", () => {

@@ -5,7 +5,8 @@ import { createContext, useContext, type ReactNode } from "react";
 export type CheckoutSettings = {
   locale: string;
   freeCancelHours: number | null;
-  checkoutWindowMinutes: number | null;
+  /** Hours shown on checkout for the price hold; display only, the server clocks decide. */
+  priceHoldMinutes: number | null;
   turnstileSiteKey: string | undefined;
   /**
    * J8 (W3-08): the Stripe page offers TWINT only while `STRIPE_CHECKOUT_TWINT` is "on" (server flag,
