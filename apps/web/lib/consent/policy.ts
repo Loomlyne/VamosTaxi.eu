@@ -6,5 +6,6 @@
 // display date: each legal page shows its own "Last updated" day from app/vamos-legal-updated.js
 // (owner, 2026-10-05), and nothing there reads or follows this constant.
 // 2026-10-13: moved with the GA4 wording (adopted with this bump, .planning/decisions/2026-10-11-ga4-wording.md).
+// 2026-10-17: tracking before consent, wording adopted 2026-10-16 (.planning/decisions/2026-10-16-google-advanced-consent-wording.md)
 
-export const CONSENT_POLICY_VERSION = "2026-10-13";
+export const CONSENT_POLICY_VERSION = "2026-10-17";

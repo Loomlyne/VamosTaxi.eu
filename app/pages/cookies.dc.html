@@ -145,11 +145,11 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </nav>
 <p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Legal</p>
 <h1 style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Cookie policy</h1>
-<p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Four categories, one of which you cannot switch off because the booking would stop working. The other three are off until you say otherwise.</p>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Four categories, one of which you cannot switch off because the booking would stop working. The other three are off until you say otherwise, except the page views Meta and Google receive from everyone.</p>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)" data-vt-no-i18n="1">{{ updatedLabel }}</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1.0</span></div>
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Consent model</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">Opt-in by category</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Consent model</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">Opt-in by category; page views for everyone</span></div>
 <button data-lg-noprint="1" type="button" onClick="{{ openCookiePrefs }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;max-width:100%;padding:8px 20px;text-align:center;line-height:1.3;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);cursor:pointer">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="settings" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>Change your choices</button>
 </div>
@@ -195,7 +195,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <section id="what">
 <h2><span data-lg-n="1">01</span>What we mean by cookies</h2>
 <p>Small files a site stores in your browser, plus the equivalents — local storage and pixels. We group them by what they are for, not by the technology.</p>
-<p>Nothing except the strictly necessary category is set before you choose. If you never choose, nothing else is ever set.</p>
+<p>Before you choose, only strictly necessary cookies and Meta's two page-view cookies are set, and Google's tag sends signals without cookies. Every other cookie waits for your choice.</p>
 </section>
 
 <section id="choice">
@@ -250,7 +250,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h2><span data-lg-n="1">05</span>Analytics</h2>
 <p>Which step of a booking people give up on. Aggregated, and never used to make a decision about you.</p>
 <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table data-ct="1">
-<caption>Analytics — off until you allow them</caption>
+<caption>Analytics — no cookies until you allow them</caption>
 <thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Provider</th><th scope="col">Duration</th></tr></thead>
 <tbody>
 <tr><td data-l="Name">No cookie</td><td data-l="Purpose">Counts visits and measures where a booking is abandoned</td><td data-l="Provider">Cloudflare Web Analytics (cookieless)</td><td data-l="Duration">Nothing is stored in your browser</td></tr>
@@ -266,6 +266,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <caption>Marketing</caption>
 <tbody>
 <tr data-cookies-row="1"><td colspan="4" data-vt-no-i18n="1" style="font-family:var(--vt-font-body)"><sc-for list="{{ rowSegs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code class="vt-dir-keep" style="font-family:var(--vt-font-mono);font-size:.92em;background:none">{{ g.t }}</code></sc-if></sc-for></td></tr>
+<tr data-cookies-row="1" data-cookies-google-tag="1"><td colspan="4" data-vt-no-i18n="1" style="font-family:var(--vt-font-body)"><sc-for list="{{ googleTagSegs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code class="vt-dir-keep" style="font-family:var(--vt-font-mono);font-size:.92em;background:none">{{ g.t }}</code></sc-if></sc-for></td></tr>
 <tr data-cookies-row="1" data-cookies-google="1"><td colspan="4" data-vt-no-i18n="1" style="font-family:var(--vt-font-body)"><sc-for list="{{ googleSegs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code class="vt-dir-keep" style="font-family:var(--vt-font-mono);font-size:.92em;background:none">{{ g.t }}</code></sc-if></sc-for></td></tr>
 <sc-if value="{{ gtmShown }}" hint-placeholder-val="{{ false }}"><tr data-cookies-row="1" data-cookies-gtm="1"><td colspan="4" data-vt-no-i18n="1" style="font-family:var(--vt-font-body)"><sc-for list="{{ gtmSegs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code class="vt-dir-keep" style="font-family:var(--vt-font-mono);font-size:.92em;background:none">{{ g.t }}</code></sc-if></sc-for></td></tr></sc-if>
 </tbody>
@@ -387,6 +388,7 @@ class Component extends DCLogic {
       n14: 14, n16: 16, n18: 18,
       updatedLabel: window.VamosLegalUpdated ? window.VamosLegalUpdated.label('cookies', this.state.lang) : '',
       rowSegs: this.segs('cookiesRow'),
+      googleTagSegs: this.segs('googleTagRow'),
       googleSegs: this.segs('googleRow'),
       gtmShown: !!(window.VamosMetaTexts && window.VamosMetaTexts.gtmShown),
       gtmSegs: this.segs('gtmRow'),
@@ -394,7 +396,7 @@ class Component extends DCLogic {
       tocOpen: this.state.tocOpen ? '1' : null,
       toggleToc: this.toggleToc, openCookiePrefs: this.openCookiePrefs,
       proseRef: this.proseRef, tocRef: this.tocRef,
-      stateLabel: c ? ('Saved' + when) : 'Nothing chosen yet — only strictly necessary cookies are set',
+      stateLabel: c ? ('Saved' + when) : 'Nothing chosen yet — strictly necessary cookies and Meta\'s page-view cookies are set',
       toneFunctional: f ? 'success' : 'neutral',
       toneAnalytics: an ? 'success' : 'neutral',
       toneMarketing: m ? 'success' : 'neutral',

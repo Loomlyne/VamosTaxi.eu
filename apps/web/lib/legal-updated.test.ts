@@ -40,13 +40,13 @@ describe("legal pages Last updated: each page its own day", () => {
     expect(src).not.toMatch(/var LEGAL_UPDATED\b|var CONSENT_UPDATED\b|consentLabel|consentIso/);
   });
 
-  it("the dates the owner chose on 2026-10-05: four pages changed that day, cookies on 2026-10-04", () => {
+  it("each page's own day: cookies and privacy 2026-10-17 (tracking before consent), the rest 2026-10-05", () => {
     // A page's text change moves that page's date and this line together.
     expect(parseLegalUpdated(src)).toEqual({
       cancellation: "2026-10-05",
-      cookies: "2026-10-04",
+      cookies: "2026-10-17",
       imprint: "2026-10-05",
-      privacy: "2026-10-05",
+      privacy: "2026-10-17",
       terms: "2026-10-05",
     });
   });
@@ -63,7 +63,7 @@ describe("legal pages Last updated: each page its own day", () => {
       }
     }
     // Two pages with two days print two different dates, so one page cannot borrow another's.
-    expect(helper.label("cookies", "en")).not.toBe(helper.label("privacy", "en"));
+    expect(helper.label("cookies", "en")).not.toBe(helper.label("imprint", "en"));
     expect(helper.label("cookies", "ar")).not.toBe(helper.label("terms", "ar"));
     // A page with no date prints none.
     expect(helper.iso("nonexistent")).toBe("");
