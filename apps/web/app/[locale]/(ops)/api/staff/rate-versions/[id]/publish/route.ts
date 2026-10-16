@@ -24,6 +24,7 @@ import { classifyPricingFailure, pruneExtraLabels } from "@/lib/ops/rate-book";
 import { baseRateVersionLabel } from "@/lib/ops/rate-version-label";
 import { jsonErr, jsonOk, withAdmin } from "@/lib/ops/staff-json";
 import { QUOTE_LOCK_MINUTES } from "@/lib/quote/lock";
+import { quoteLockMinutesWithinCap } from "@/lib/ops/quote-lock-hours";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,17 @@ function codeOf(err: unknown): string | undefined {
   if (typeof err !== "object" || err === null || !("code" in err)) return undefined;
   const code = (err as { code: unknown }).code;
   return typeof code === "string" ? code : undefined;
+}
+
+/**
+ * The draft's "Price stays valid for" is outside 1–24 hours (owner cap, 2026-10-15). The PUT already
+ * refuses such values; this catches a draft written another way (hand SQL, an older draft) before
+ * Publish writes anything. Answered as 409 `lock-over-cap`.
+ */
+class LockOverCap extends Error {
+  constructor() {
+    super("lock-over-cap");
+  }
 }
 
 function jsonFail(code: string, status: number, gaps: CompletenessGap[]): Response {
@@ -115,6 +127,9 @@ export async function POST(
         }
         const vatBps = asNullableInt(row.vat_rate_bps);
         const lockMinutes = asNullableInt(row.quote_lock_minutes) ?? QUOTE_LOCK_MINUTES;
+        // Quick 261015-6om (PR #85 review, Low 1): Publish re-applies the 24-hour cap, before any write,
+        // so a draft holding more can never become the live book's or the settings row's clocks.
+        if (!quoteLockMinutesWithinCap(lockMinutes)) throw new LockOverCap();
         // 26.2 audit: `${JSON.stringify(x)}::jsonb` is the double-encoding form. The Worker's
         // client runs with `fetch_types: false` and prepared statements, so Postgres describes
         // the parameter as jsonb and the driver serialises the text a second time — the row
@@ -197,6 +212,7 @@ export async function POST(
         return null;
       });
     } catch (err) {
+      if (err instanceof LockOverCap) return jsonFail("lock-over-cap", 409, []);
       const sql = codeOf(err);
       const classified = classifyPricingFailure(err);
       const named =

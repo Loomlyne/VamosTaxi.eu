@@ -248,5 +248,17 @@ describe.skipIf(!PORT)("price-valid hours: lock save path and Publish keeping th
     expect(await lockOf(second.draftId)).toBe(1440);
     expect(await settingsLockOf(second.draftId)).toBe(1440);
     expect(await settingsWindowOf(second.draftId)).toBe(1440);
+
+    // (g) PR #85 review, Low 1: a draft above the 24-hour cap (written past the PUT, by hand) is refused
+    // by Publish with lock-over-cap, and nothing moves: the draft stays a draft, the live book and the
+    // settings rows are as before.
+    const third = await freshDraft();
+    await su`update public.rate_versions set quote_lock_minutes = 1441 where id = ${third.draftId} and status = 'draft'`;
+    const settingsBefore = (await su<{ n: string }[]>`select count(*)::text as n from public.settings_versions`)[0]!.n;
+    expect(await publish(third.draftId)).toMatchObject({ ok: false, code: "lock-over-cap" });
+    expect((await su<{ s: string }[]>`select status::text as s from public.rate_versions where id = ${third.draftId}`)[0]?.s).toBe("draft");
+    expect((await su<{ s: string }[]>`select status::text as s from public.rate_versions where id = ${second.draftId}`)[0]?.s).toBe("live");
+    expect((await su<{ n: string }[]>`select count(*)::text as n from public.settings_versions`)[0]!.n).toBe(settingsBefore);
+    expect(await settingsLockOf(third.draftId)).toBeNull();
   });
 });
