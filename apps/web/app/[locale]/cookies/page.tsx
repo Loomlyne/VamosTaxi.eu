@@ -150,6 +150,12 @@ export default async function CookiesPage({
               code: (chunks) => <code className="vt-dir-keep">{chunks}</code>,
             })}
           </p>
+          {/* Owner text, .planning/decisions/2026-10-16-google-advanced-consent-wording.md A4 */}
+          <p>
+            {tCookies.rich("google-tag-row", {
+              b: (chunks) => <strong>{chunks}</strong>,
+            })}
+          </p>
           <p>
             {tCookies.rich("google-row", {
               b: (chunks) => <strong>{chunks}</strong>,

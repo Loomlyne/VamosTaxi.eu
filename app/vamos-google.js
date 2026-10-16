@@ -6,15 +6,20 @@
    Runs on the mock pages AND the Next pages (it asks the server itself, it does not need the mock consent
    runtime). Loaded from the cookie banner (mock) and from the locale layout (Next).
 
-   Before the visitor accepts Analytics or Marketing nothing leaves the browser: the only thing done is a local
-   `gtag('consent','default', denied)` (no request). Google's script is added to the page after ALL of these
-   are true, checked in the browser:
+   Consent Mode v2 ADVANCED since 2026-10-16 (owner decision .planning/decisions/2026-10-16-tracking-before-consent.md,
+   adopted wording 2026-10-16-google-advanced-consent-wording.md). On every listed page, for every visitor:
+   `gtag('consent','default', denied)` first, then Google's script, ads_data_redaction on, url_passthrough never set.
+   While denied Google sets no cookie and gets cookieless pings. The Ads and GA4 configs and the one GA4 page_view
+   go out once, after GET /api/consent/state has answered (so an accepted visitor is counted once, with its
+   cookies), or denied after 1.5 s / an unreachable server. While denied: the GA4 events of the fixed list, and for a
+   paid booking a conversion and a purchase with the amount and CHF only, never the booking reference.
+   Granting needs ALL of these, checked in the browser:
      1. GOOGLE_ON    the owner's Google wording is live (apps/web/lib/google/flag.ts holds the same value).
      2. The address is on the list below (a path list; the query and hash never decide, and are never sent).
      3. GET /api/consent/state says Marketing or Analytics is on under the current consent version: the server,
         never the browser cache and never a consent event alone. Asked on every page load, so "already
         accepted" and "accepted a moment ago" are the same path.
-   Then, each config only under its own choice:
+   Then, each purpose granted only under its own choice:
      Marketing on  -> the Google Ads config; ad_storage and ad_user_data granted; ad_personalization stays
                       denied (remarketing wording not adopted).
      Analytics on  -> the GA4 config (ANALYTICS_ON); analytics_storage granted; one page_view; cookies kept
@@ -56,9 +61,9 @@
   var ANALYTICS_ON = true;
   /* Google Tag Manager, same value as GTM_OPEN in apps/web/lib/google/flag.ts. Wording adopted 2026-10-13
      (.planning/decisions/2026-10-13-gtm-wording.md). Only with Analytics AND Marketing on.
-     OFF since 2026-10-15: the agency container holds its own Google Ads and GA4 tags (duplicates) that the owner
-     cannot edit. Turn back on only when the container is clean (.planning/decisions/2026-10-15-gtm-off.md). */
-  var GTM_ON = false;
+     Off 2026-10-15 (duplicate tags), ON again 2026-10-16: the controller read the live container's published tags
+     as empty (.planning/decisions/2026-10-16-tracking-before-consent.md). */
+  var GTM_ON = true;
 
   var TAG_ID = 'AW-368142830';
   var SEND_TO = 'AW-368142830/liI8CIe79pUdEO7Txa8B';
@@ -72,6 +77,7 @@
   var GA_SEEN_PREFIX = 'vamosGaPurchase:';
   var MAX_QUEUED = 3;
   var MAX_EVENTS = 5;
+  var CONFIG_WAIT_MS = 1500;
 
   var scriptAdded = false;
   var adsOn = false;
@@ -83,6 +89,7 @@
   var answered = false;
   var withdrawSeq = 0;
   var defaulted = false;
+  var configured = false; /* the Ads and GA4 configs (and the one page_view) went out, granted or denied */
   var queued = [];
   var events = [];
   var lastSent = {};
@@ -269,9 +276,37 @@
     } catch (e) { /* ignore */ }
   }
 
+  /* Denied (default 1, adopted 2026-10-16): a cookieless ping with the amount and CHF only, never the reference.
+     The once-only key is still written, so a reload sends nothing more. */
+  function sendDeniedConversion(item) {
+    try {
+      if (!firstTime(SEEN_PREFIX, item.transactionId)) return;
+      window.gtag('event', 'conversion', { send_to: SEND_TO, value: item.value, currency: 'CHF' });
+    } catch (e) { /* ignore */ }
+  }
+
+  function sendDeniedPurchase(item) {
+    try {
+      if (!firstTime(GA_SEEN_PREFIX, item.transactionId)) return;
+      var p = pageFields();
+      window.gtag('event', 'purchase', {
+        send_to: GA_ID,
+        value: item.value,
+        currency: 'CHF',
+        page_location: p.location,
+        page_referrer: p.referrer,
+        page_title: p.title,
+      });
+    } catch (e) { /* ignore */ }
+  }
+
   function sendPaid(item) {
     if (adsOn && !adsRevoked) sendConversion(item);
-    if (gaOn && !gaRevoked) sendPurchase(item);
+    else sendDeniedConversion(item);
+    if (ANALYTICS_ON) {
+      if (gaOn && !gaRevoked) sendPurchase(item);
+      else sendDeniedPurchase(item);
+    }
   }
 
   function flushQueued() {
@@ -315,20 +350,19 @@
     for (var i = 0; i < list.length; i++) sendEvent(list[i]);
   }
 
-  /* Before the server has answered the event waits (at most five); after it answered without Analytics, or
-     after a withdraw, it is dropped. */
+  /* Before the configs went out the event waits (at most five); after that it goes out at once, with cookies
+     when Analytics is granted, as a cookieless ping when it is not (default 2, adopted 2026-10-16). */
   function track(name, params) {
     try {
-      if (!GOOGLE_ON || !ANALYTICS_ON || gaRevoked) return false;
+      if (!GOOGLE_ON || !ANALYTICS_ON) return false;
       var ev = gaEvent(name, params);
       if (ev === null) return false;
       if (!allowed(location.href)) return false;
-      if (answered && !gaOn) return false;
       var stamp = ev.ga + ':' + ev.word;
       var now = new Date().getTime();
       if (lastSent[stamp] && now - lastSent[stamp] < 1500) return false;
       lastSent[stamp] = now;
-      if (gaOn) { sendEvent(ev); return true; }
+      if (configured) { sendEvent(ev); return true; }
       if (events.length < MAX_EVENTS) events.push(ev);
       return true;
     } catch (e) { return false; }
@@ -378,40 +412,57 @@
     } catch (e) { /* no container is never an error for the visitor */ }
   }
 
+  /* Google's script, once per page, right after the denied default: for every visitor on a listed page. */
+  function loadScript() {
+    if (scriptAdded) return;
+    ensureGtag();
+    setDefault();
+    scriptAdded = true;
+    addScript(GOOGLE_HOST + '/gtag/js?id=' + TAG_ID);
+    window.gtag('js', new Date());
+    window.gtag('set', 'ads_data_redaction', true);
+  }
+
+  /* The two configs and the one GA4 page_view, once per page, under whatever consent is current: granted after
+     an Accept the server confirmed, denied otherwise (cookieless). */
+  function configure() {
+    if (configured || !scriptAdded) return;
+    if (!allowed(location.href)) return;
+    try {
+      configured = true;
+      var p = pageFields();
+      window.gtag('config', TAG_ID, { send_page_view: false, page_location: p.location, page_referrer: p.referrer });
+      if (ANALYTICS_ON) {
+        window.gtag('config', GA_ID, {
+          send_page_view: false,
+          page_location: p.location,
+          page_referrer: p.referrer,
+          page_title: p.title,
+          cookie_expires: GA_COOKIE_SECONDS,
+          allow_google_signals: false,
+          allow_ad_personalization_signals: false,
+        });
+        window.gtag('event', 'page_view', { send_to: GA_ID, page_location: p.location, page_referrer: p.referrer, page_title: p.title });
+      }
+      flushQueued();
+      flushEvents();
+    } catch (e) { /* no tag is never an error for the visitor */ }
+  }
+
+  /* The server said yes: grant each purpose under its own choice (never one withdrawn on this page), then the
+     configs if they have not gone out yet. */
   function bootGoogle(marketing, analytics) {
-    if (!allowed(location.href)) return; /* re-checked right before the script is added */
+    if (!allowed(location.href)) return; /* re-checked right before granting */
     var addAds = marketing && !adsOn && !adsRevoked;
     var addGa = analytics && ANALYTICS_ON && !gaOn && !gaRevoked;
     try {
+      loadScript();
       if (addAds || addGa) {
-        ensureGtag();
-        setDefault();
-        if (!scriptAdded) {
-          scriptAdded = true;
-          addScript(GOOGLE_HOST + '/gtag/js?id=' + (addAds ? TAG_ID : GA_ID));
-          window.gtag('js', new Date());
-          window.gtag('set', 'ads_data_redaction', true);
-        }
         if (addAds) adsOn = true;
         if (addGa) gaOn = true;
         window.gtag('consent', 'update', consentNow());
-        var p = pageFields();
-        if (addAds) {
-          window.gtag('config', TAG_ID, { send_page_view: false, page_location: p.location, page_referrer: p.referrer });
-        }
-        if (addGa) {
-          window.gtag('config', GA_ID, {
-            send_page_view: false,
-            page_location: p.location,
-            page_referrer: p.referrer,
-            page_title: p.title,
-            cookie_expires: GA_COOKIE_SECONDS,
-            allow_google_signals: false,
-            allow_ad_personalization_signals: false,
-          });
-          window.gtag('event', 'page_view', { send_to: GA_ID, page_location: p.location, page_referrer: p.referrer, page_title: p.title });
-        }
       }
+      configure();
       bootTagManager();
       flushQueued();
       flushEvents();
@@ -420,7 +471,6 @@
 
   function check() {
     if (!GOOGLE_ON) return;
-    if (adsRevoked && (gaRevoked || !ANALYTICS_ON)) return;
     var seq = withdrawSeq;
     var mayStart = allowed(location.href);
     try {
@@ -428,15 +478,15 @@
         return res.json();
       }).then(function (r) {
         if (seq !== withdrawSeq) return; /* a withdraw happened while we asked */
-        if (!r || r.ok !== true) return; /* server unreachable: do nothing */
+        if (!r || r.ok !== true) { configure(); return; } /* server unreachable: denied */
         answered = true;
         var chosen = r.chosen === true && r.choice;
         var marketing = !!(chosen && r.choice.marketing === true);
         var analytics = !!(chosen && r.choice.analytics === true);
         withdraw(!marketing, !analytics, true);
         if ((marketing || analytics) && mayStart) bootGoogle(marketing, analytics);
-        else { queued = []; events = []; }
-      }, function () { /* ignore */ });
+        else configure(); /* denied: cookieless */
+      }, function () { configure(); });
     } catch (e) { /* ignore */ }
   }
 
@@ -445,7 +495,6 @@
   function conversion(info) {
     try {
       if (!GOOGLE_ON) return false;
-      if (adsRevoked && (gaRevoked || !ANALYTICS_ON)) return false;
       if (!info || typeof info !== 'object') return false;
       var value = info.value;
       var id = info.transactionId;
@@ -453,7 +502,7 @@
       if (typeof id !== 'string' || !/^VT-[0-9]{2}-[0-9]{4,5}$/.test(id)) return false;
       if (!allowed(location.href)) return false;
       var item = { value: Math.round(value * 100) / 100, transactionId: id };
-      if ((adsOn || gaOn) && typeof window.gtag === 'function') { sendPaid(item); return true; }
+      if (configured && typeof window.gtag === 'function') { sendPaid(item); return true; }
       if (queued.length < MAX_QUEUED) queued.push(item);
       return true;
     } catch (e) { return false; }
@@ -462,7 +511,8 @@
   function start() {
     if (!GOOGLE_ON) return;
     if (!allowed(location.href)) return;
-    setDefault();
+    loadScript(); /* advanced: the denied default, then the script, for every visitor */
+    setTimeout(configure, CONFIG_WAIT_MS); /* the server is slow: the configs go out denied */
     /* A saved choice (either runtime) or a withdraw: what was turned off stops now; the server answers what
        may start, not the event. */
     window.addEventListener('vamos:consent', function (e) {

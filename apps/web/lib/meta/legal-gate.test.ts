@@ -117,7 +117,7 @@ describe("meta legal gate", () => {
     }
   });
 
-  it("policy version is the consent version: set once, and 2026-10-13 until the owner moves it", () => {
+  it("policy version is the consent version: set once, and 2026-10-17 until the owner moves it", () => {
     const assignment = /CONSENT_POLICY_VERSION\s*=(?!=)\s*(["'])([^"']+)\1/g;
     const found: string[] = [];
     for (const rel of walk("")) {
@@ -135,7 +135,7 @@ describe("meta legal gate", () => {
     // and that never moves this version. A new version asks every visitor for consent again, so
     // change this line only with the owner's word.
     // 2026-10-13: the GA4 wording (owner adopted 2026-10-11 with this bump).
-    expect(version).toBe("2026-10-13");
+    expect(version).toBe("2026-10-17");
   }, 30_000);
 
   it("Meta strings only where allowed (Phase 28 per-needle allow map, Phase 29 server Purchase)", () => {

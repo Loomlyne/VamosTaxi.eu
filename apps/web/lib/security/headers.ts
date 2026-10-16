@@ -51,8 +51,15 @@ const GOOGLE_IMG = [
  * gtag.js and Tag Manager's gtm.js both come from www.googletagmanager.com, already listed above.
  */
 const GA4_HOSTS = ["https://*.google-analytics.com", "https://*.analytics.google.com"];
-const GOOGLE_IMG_ALL = [...GOOGLE_IMG, GA4_HOSTS[0]!];
-const GOOGLE_CONNECT = [...GOOGLE_IMG, "https://ad.doubleclick.net", ...GA4_HOSTS];
+/**
+ * Consent Mode advanced (2026-10-16): gtag.js runs for every visitor on the listed pages, before consent, and its
+ * cookieless pings use the same hosts. The GA4 section of Google's CSP guide (updated 2026-09-18) also lists
+ * `*.google.com`, `*.g.doubleclick.net` and `*.google.<TLD>` for connect-src and img-src; they are added here, the
+ * country domains one by one as above.
+ */
+const GA4_GUIDE_HOSTS = ["https://*.google.com", "https://*.g.doubleclick.net", ...GOOGLE_TLDS.map((t) => `https://*.google.${t}`)];
+const GOOGLE_IMG_ALL = [...GOOGLE_IMG, GA4_HOSTS[0]!, ...GA4_GUIDE_HOSTS];
+const GOOGLE_CONNECT = [...GOOGLE_IMG, "https://ad.doubleclick.net", ...GA4_HOSTS, ...GA4_GUIDE_HOSTS];
 const GOOGLE_FRAME = ["https://www.googletagmanager.com"];
 
 const withHosts = (on: boolean, hosts: readonly string[]): string => (on ? ` ${hosts.join(" ")}` : "");

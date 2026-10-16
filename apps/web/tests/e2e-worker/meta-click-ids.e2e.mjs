@@ -9,7 +9,7 @@ import {
 ensureFixture({ guestSwitch: true });
 const TOKEN = "e2e-turnstile-token";
 const CO = "/checkout?from=Zurich%20Airport&to=Zurich%20HB&when=2099-01-01T10%3A00&pax=2&bags=1&class=business";
-const VERSION = sql("select '2026-10-13'"); // CONSENT_POLICY_VERSION (lib/consent/policy.ts)
+const VERSION = sql("select '2026-10-17'"); // CONSENT_POLICY_VERSION (lib/consent/policy.ts)
 const FBP = "fb.1.1727771234567.1234567890";
 const FBC = "fb.1.1727771234567.IwAR0abc_DEF-123";
 

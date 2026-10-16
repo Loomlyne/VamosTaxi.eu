@@ -7,18 +7,23 @@
    else goes to Meta: no other event, no user data in init, no noscript image. The booking steps
    (vehicle chosen, go to payment, paid) go from our server, never from this file.
 
-   A page view may be counted only when ALL of these are true, checked in the browser:
-     1. GATE_OPEN    the owner's three legal texts are live (apps/web/lib/meta/legal-gate.ts).
+   Since 2026-10-16 (owner decision .planning/decisions/2026-10-16-tracking-before-consent.md, adopted wording
+   2026-10-16-google-advanced-consent-wording.md, B1/B2/M1) init + ONE PageView go out for EVERY visitor on a
+   listed page, before any choice and also after a refusal; Meta sets _fbp (and _fbc after an advert click) for
+   this. A page view needs ALL of these, checked in the browser:
+     1. GATE_OPEN    the owner's legal texts are live (apps/web/lib/meta/legal-gate.ts).
      2. SWITCHES_OFF the owner reported both Events Manager switches off
                      (.planning/decisions/2026-10-01-meta-events-manager-switches.md).
         Both constants are pinned by a test to the TypeScript flags. Phase 28 plan 28-07 sets them.
      3. The address is on the allow-list below (D-01..D-03) and the referrer is clean.
-     4. GET /api/consent/state says marketing is on under the current consent version — the server,
-        never the browser cache and never the 'vamos:consent' event alone (D-04).
+   The three events (ViewContent, Lead, Contact) additionally need GET /api/consent/state to say marketing is on
+   under the current consent version — the server, never the browser cache and never the 'vamos:consent' event
+   alone (D-04). Before that answer they wait (five at most); without Marketing they are dropped.
 
-   Withdrawing (Necessary only, or Marketing off) on a page where the pixel runs revokes Meta's
-   consent at once, never allows it again on that page, and deletes the cookies _fbp / _fbc (every
-   domain form) and Meta's two local storage keys. Our code never writes a value into those cookies.
+   Withdrawing (Necessary only, or Marketing off) on a page where Marketing was on revokes Meta's consent at once
+   and never sends an event again on that page. M1: our code no longer deletes _fbp / _fbc on a refusal (Meta sets
+   them again on the next page); they are deleted only while the legal gate is closed. Our code never writes a
+   value into those cookies.
 
    Load it in <helmet> AFTER vamos-consent.js (the cookie banner does):
      <script src="../vamos-consent.js"></script>
@@ -43,6 +48,7 @@
   var CACHE_KEY = 'vamosCookieConsent';
 
   var loaded = false;
+  var marketingOn = false; /* the server confirmed Marketing on this page: the three events may go */
   var revokedHere = false;
   var withdrawSeq = 0;
   var queued = []; /* events asked for before the pixel booted; sent right after the PageView, dropped on withdraw */
@@ -186,16 +192,17 @@
     }
   }
 
+  /* Marketing off: no event again on this page. The page view already sent stays; the cookies stay (M1). */
   function withdraw() {
     withdrawSeq += 1;
     queued = [];
     try {
-      if (loaded && window.fbq) {
+      if (marketingOn && loaded && window.fbq) {
         window.fbq('consent', 'revoke');
         revokedHere = true;
       }
-    } catch (e) { /* the cookies below are still removed */ }
-    clearMeta();
+    } catch (e) { /* ignore */ }
+    marketingOn = false;
   }
 
   /* ---- the three browser events: a fixed list, a fixed word each, never a number, an address or text ---- */
@@ -242,7 +249,7 @@
       if (lastSent[stamp] && now - lastSent[stamp] < 1500) return false;
       lastSent[stamp] = now;
       var item = { name: name, params: p };
-      if (loaded && window.fbq) { sendNow(item); return true; }
+      if (marketingOn && loaded && window.fbq) { sendNow(item); return true; }
       if (queued.length < MAX_QUEUED) queued.push(item);
       return true;
     } catch (e) { return false; }
@@ -293,7 +300,6 @@
       window.fbq('set', 'autoConfig', false); /* and globally */
       window.fbq('init', PIXEL_ID); /* the id only: no user data, ever */
       window.fbq('track', 'PageView');
-      flushQueued();
       var s = document.createElement('script');
       s.async = true;
       s.src = SRC;
@@ -301,22 +307,21 @@
     } catch (e) { /* no pixel is never an error for the visitor */ }
   }
 
+  /* The server decides the three events only; the page view went out already. */
   function check() {
     if (!GATE_OPEN || !SWITCHES_OFF) { clearMeta(); return; }
     if (revokedHere) return;
     var consent = window.VamosConsent;
     if (!consent || typeof consent.state !== 'function') return;
-    /* Pages that are not on the allow-list never start the pixel, but they still remove what Meta left in
-       this browser when the server says marketing is not on (CR-01 b). */
-    var mayStart = allowed(location.href, document.referrer);
     var seq = withdrawSeq;
     try {
       consent.state().then(function (r) {
         if (seq !== withdrawSeq) return; /* a withdraw happened while we asked */
-        if (!r || r.ok !== true) return; /* server unreachable: do nothing */
-        if (r.chosen === true && r.choice && r.choice.marketing === true) { if (mayStart) bootPixel(); }
-        else withdraw(); /* revokes Meta's consent when the pixel already runs here, and deletes what it left */
-      }, function () { /* ignore */ });
+        if (!r || r.ok !== true) { queued = []; return; } /* server unreachable: no event */
+        if (r.chosen === true && r.choice && r.choice.marketing === true) {
+          if (loaded && !revokedHere) { marketingOn = true; flushQueued(); }
+        } else withdraw();
+      }, function () { queued = []; });
     } catch (e) { /* ignore */ }
   }
 
@@ -358,6 +363,9 @@
     revoked: function () { return revokedHere; },
     pending: function () { return queued.length; },
   };
+
+  /* The page view: every visitor on a listed page, before any choice (2026-10-16). */
+  if (GATE_OPEN && SWITCHES_OFF) bootPixel();
 
   /* Wait for the consent runtime, 5 s at most (same poll as the cookie banner). */
   var tries = 0;
