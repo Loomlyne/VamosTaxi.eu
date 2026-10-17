@@ -42,6 +42,28 @@ export function injectBaseInto(html, href) {
   return `${parts.before}\n<base href="${href}">${parts.inner}${parts.after}`;
 }
 
+/**
+ * The consent, Meta and Google loaders, straight after <base> (owner order 2026-10-17: the page view must not
+ * wait). From <helmet> they only start once React, Babel and the CookieBanner component have loaded (about
+ * 2.5 s); from <head> they run while the page parses. Each file returns early when its global already exists, so
+ * the CookieBanner helmet loading them again later is a no-op. Only pages that mount CookieBanner get them.
+ */
+export const TRACKING_HEAD =
+  '<script src="/app/vamos-consent.js"></script>' +
+  '<script src="/app/vamos-meta.js"></script>' +
+  '<script src="/app/vamos-google.js"></script>';
+
+export function injectTrackingInto(html) {
+  if (!/<dc-import\s+name="CookieBanner"/.test(html)) return html;
+  const parts = splitHead(html);
+  if (parts.inner.includes(TRACKING_HEAD)) return html;
+  const withoutComments = parts.inner.replace(/<!--[\s\S]*?-->/g, "");
+  const base = withoutComments.match(/<base\s+href="[^"]*">/i);
+  if (!base) throw new Error("sync-dc-mock: tracking needs <base> first");
+  const at = parts.inner.indexOf(base[0]) + base[0].length;
+  return `${parts.before}${parts.inner.slice(0, at)}\n${TRACKING_HEAD}${parts.inner.slice(at)}${parts.after}`;
+}
+
 export function assertHeadBase(html, href, label) {
   const { inner } = splitHead(html);
   const found = realBaseHref(inner);

@@ -17,7 +17,7 @@ import {
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { assertHeadBase, injectBaseInto } from "./dc-page-base.mjs";
+import { assertHeadBase, injectBaseInto, injectTrackingInto } from "./dc-page-base.mjs";
 import { pruneMissing } from "./sync-prune.mjs";
 import { stripTree } from "./strip-public-comments.mjs";
 
@@ -138,8 +138,9 @@ for (const name of [
 }
 
 function injectBase(file, href) {
-  const html = injectBaseInto(readFileSync(file, "utf8"), href);
+  let html = injectBaseInto(readFileSync(file, "utf8"), href);
   assertHeadBase(html, href, file);
+  if (href !== "/app/ops/") html = injectTrackingInto(html);
   writeFileSync(file, html);
 }
 

@@ -13,6 +13,7 @@
 // OFF since 2026-10-15: the agency container holds duplicate Google Ads and GA4 tags the owner cannot edit; turn
 // back on only when the container is clean (.planning/decisions/2026-10-15-gtm-off.md). ON again 2026-10-16: the
 // controller read the live container's published tags as empty (.planning/decisions/2026-10-16-tracking-before-consent.md).
+// OFF again 2026-10-17: the owner removed the empty container ("remove the off one, keep the active one").
 // While off, its adopted texts are not rendered. When on, it loads only with Analytics AND Marketing on. A test pins
 // each pair.
 //
@@ -23,7 +24,7 @@
 
 export const GOOGLE_TAG_OPEN = true as const;
 export const GA4_OPEN = true as const;
-export const GTM_OPEN = true as const;
+export const GTM_OPEN = false as const;
 
 /** Public ids from the agency and the owner: not secrets. */
 export const GOOGLE_TAG_ID = "AW-368142830";
