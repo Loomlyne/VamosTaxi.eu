@@ -242,6 +242,7 @@ class Component extends DCLogic {
   warm = null;     // the banner's own check, solved as soon as the banner shows
   warmBroken = false;
   warmTried = false;
+  warmInteractive = false;
   preToken = null; // its answer, used once by the next save
   waiting = null;  // a save that pressed before the answer came
   opener = null;
@@ -393,7 +394,9 @@ class Component extends DCLogic {
         this.preToken = null;
         if (kind !== 'expired') this.warmBroken = true; // Turnstile refreshes an expired answer by itself
         if (this.waiting) { this.waiting = null; this.fail('check'); }
-      }
+      },
+      // Cloudflare asks the visitor to tick the box: the 8 s limit waits while it is on screen.
+      { onInteractive: (on) => { this.warmInteractive = on; } }
     );
     if (this.warm) this.warm.execute();
   }
@@ -415,10 +418,12 @@ class Component extends DCLogic {
       if (where === 'banner' && this.warm && !this.warmBroken) {
         this.waiting = go;
         // Never wait for ever: no answer in 8 s shows the usual check error, and the next press asks afresh.
-        this._waitTimer = setTimeout(() => {
+        const giveUp = () => {
           if (this.waiting !== go) return;
+          if (this.warmInteractive) { this._waitTimer = setTimeout(giveUp, 8000); return; }
           this.waiting = null; this.warmBroken = true; this.fail('check');
-        }, 8000);
+        };
+        this._waitTimer = setTimeout(giveUp, 8000);
         return;
       }
       this.destroyWarm(); // the background check broke: ask the old way, in the same box
