@@ -215,6 +215,46 @@
     } catch (e) { /* nothing to clear is not an error */ }
   }
 
+  /* Owner 2026-10-17 ("remove the off one, keep the active one"; filter approved in the question form):
+     Google's served config for the Ads tag AW-368142830 still links the agency's old GA4 G-JW17PMTRE9, which the
+     owner cannot reach (his Google login has no Ads account). Its hits are dropped here and its cookie is
+     cleared. Only a /g/collect request whose tid is exactly that id: G-K5MZME44P6 and the Ads tag are untouched.
+     This file runs from <head> before gtag.js, so the wrap is in place before the first hit. */
+  var DEAD_GA4_COOKIE = '_ga_JW17PMTRE9';
+  function deadHit(u) {
+    try {
+      var s = String(u && typeof u === 'object' && typeof u.url === 'string' ? u.url : u);
+      return s.indexOf('/g/collect') !== -1 && /[?&]tid=G-JW17PMTRE9(&|$)/.test(s);
+    } catch (e) { return false; }
+  }
+  function clearDeadGa4() {
+    try { if (String(document.cookie || '').indexOf(DEAD_GA4_COOKIE + '=') === -1) return; } catch (e) { return; }
+    clearCookies([DEAD_GA4_COOKIE], []);
+  }
+  (function () {
+    if (!GOOGLE_ON) return;
+    try {
+      var f = window.fetch;
+      if (typeof f === 'function') {
+        window.fetch = function (input) {
+          if (deadHit(input)) return Promise.resolve(new Response(null, { status: 204 }));
+          return f.apply(this, arguments);
+        };
+      }
+      var nav = window.navigator;
+      var beacon = nav && nav.sendBeacon;
+      if (typeof beacon === 'function') {
+        nav.sendBeacon = function (url) {
+          if (deadHit(url)) return true;
+          return beacon.apply(nav, arguments);
+        };
+      }
+    } catch (e) { /* no wrap: the hit goes, nothing else breaks */ }
+    clearDeadGa4();
+    setTimeout(clearDeadGa4, 4000);
+    window.addEventListener('vamos:consent', function () { setTimeout(clearDeadGa4, 3000); });
+  })();
+
   /* ads: Marketing is off; analytics: Analytics is off. Where Tag Manager has run, either stops both.
      fromServer: the server's own answer, which must not cancel another answer still on its way. */
   function withdraw(ads, analytics, fromServer) {
