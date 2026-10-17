@@ -1,5 +1,7 @@
-// Phase 28, review 2 item 1: the React banner (checkout, confirmation, pay link) clears Meta's
-// browser state when the server says no choice is recorded, as the mock loader does.
+// Phase 28, review 2 item 1: the React banner (checkout, confirmation, pay link) cleared Meta's
+// browser state when the server said no choice is recorded. M1 (adopted 2026-10-16,
+// .planning/decisions/2026-10-16-google-advanced-consent-wording.md) replaced that: Meta's page view and its
+// cookies are for every visitor, so the banner deletes nothing for any server answer.
 //
 // The real CookieBanner is rendered with react-dom/server; its effects are captured (the server render
 // never runs them) and run by hand against a stubbed fetch, document and window.
@@ -67,20 +69,22 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("CookieBanner and Meta's browser state (review 2 item 1)", () => {
-  it("no choice recorded (chosen: false): _fbp, _fbc and both storage keys are cleared", async () => {
-    stubBrowser(replying({ chosen: false, policyVersion: "2026-10-13" }));
+  it("no choice recorded (chosen: false): deletes nothing (M1)", async () => {
+    stubBrowser(replying({ chosen: false, policyVersion: "2026-10-17" }));
     await mount();
-    expect(clearedFbp()).toBe(true);
-    expect(cookieWrites.some((w) => w.startsWith("_fbc=; Max-Age=0; path=/; domain=.vamostaxi.site"))).toBe(true);
-    expect(removedKeys.sort()).toEqual(["aemSource", "multiFbc"]);
+    expect(clearedFbp()).toBe(false);
+    expect(cookieWrites).toEqual([]);
+    expect(removedKeys).toEqual([]);
   });
 
-  it("a saved choice with Marketing off clears", async () => {
+  it("a saved choice with Marketing off deletes nothing (M1)", async () => {
     stubBrowser(
-      replying({ chosen: true, policyVersion: "2026-10-13", choice: { functional: true, analytics: false, marketing: false } }),
+      replying({ chosen: true, policyVersion: "2026-10-17", choice: { functional: true, analytics: false, marketing: false } }),
     );
     await mount();
-    expect(clearedFbp()).toBe(true);
+    expect(clearedFbp()).toBe(false);
+    expect(cookieWrites).toEqual([]);
+    expect(removedKeys).toEqual([]);
   });
 
   it("a saved choice with Marketing on deletes nothing", async () => {

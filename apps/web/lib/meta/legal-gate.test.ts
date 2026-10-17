@@ -286,7 +286,8 @@ describe("meta legal gate", () => {
       }
     }
     for (const [rel, cls, hook, keys] of [
-      ["app/[locale]/cookies/page.tsx", "vt-legal-blank--row", "cookies", ["meta-row", "google-row", "gtm-row"]],
+      // google-tag-row: the cookies-page "Google tag" row, adopted 2026-10-16 (wording A4), before the Google row.
+      ["app/[locale]/cookies/page.tsx", "vt-legal-blank--row", "cookies", ["meta-row", "google-tag-row", "google-row", "gtm-row"]],
       ["app/[locale]/privacy/page.tsx", "vt-legal-blank", "privacy", ["meta-privacy-line", "google-privacy-line", "ga-privacy-line", "gtm-privacy-line"]],
     ] as const) {
       const body = slotBody(source(rel), cls, hook);

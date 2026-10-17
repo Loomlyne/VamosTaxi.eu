@@ -2,7 +2,13 @@
 // adopted as written 2026-10-13 (.planning/decisions/2026-10-13-gtm-wording.md).
 // The GA4 / Ads blocks run the loader with the container forced off so each config is seen alone; the Tag Manager
 // block runs the file exactly as committed (gtm: "committed").
-// The loader runs in a vm with fakes: no network, nothing reaches Google.
+// Consent Mode ADVANCED since 2026-10-16 (.planning/decisions/2026-10-16-tracking-before-consent.md, wording
+// 2026-10-16-google-advanced-consent-wording.md): gtag.js loads for every visitor on a listed page right after the
+// denied default; the configs and the one GA4 page_view go out once, granted after an Accept the server confirmed,
+// denied (cookieless) otherwise or after 1.5 s. While denied the GA4 events and, for a paid booking, a conversion and
+// a purchase go out with the amount and CHF only, never the booking reference. Our code still never writes a cookie.
+// Tag Manager is OFF again since 2026-10-17 (GTM_ON / GTM_OPEN / GTM_SHOWN false).
+// The loader runs in a vm with fakes: no network, nothing reaches Google; setTimeout is captured (h.elapse()).
 // Google strings are built from parts where the needle scan in legal-gate.test.ts would otherwise read them.
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -78,6 +84,7 @@ function load(o: Opts = {}) {
   const appended: { src?: string; async?: boolean }[] = [];
   const store: Record<string, string> = { ...(o.storage ?? {}) };
   const fetchCalls: string[] = [];
+  const timers: { fn: () => void; ms: number }[] = [];
   const win: Record<string, unknown> = {};
   win.addEventListener = (n: string, fn: (e: unknown) => void) => {
     (listeners[n] = listeners[n] || []).push(fn);
@@ -126,6 +133,10 @@ function load(o: Opts = {}) {
     isFinite,
     String,
     Object,
+    setTimeout: (fn: () => void, ms: number) => {
+      timers.push({ fn, ms });
+      return timers.length;
+    },
     fetch: (url: string) => {
       fetchCalls.push(url);
       const s = o.state ?? ACCEPTED;
@@ -142,6 +153,12 @@ function load(o: Opts = {}) {
     store,
     fetchCalls,
     listeners,
+    timers,
+    /** The 1.5 s wait ran out: run every timer the loader set. */
+    async elapse() {
+      for (const t of timers.splice(0)) t.fn();
+      for (let j = 0; j < 12; j++) await Promise.resolve();
+    },
     queue: () => win.VamosGoogleQueue as { push: (i: unknown) => unknown },
     g: () => win.VamosGoogle as {
       allowed: (h: string) => boolean;
@@ -196,7 +213,7 @@ const views = (h: H) => h.events().filter((c) => c[1] === "page_view");
 const PAGE = (path: string) => ({ page_location: `https://vamostaxi.site${path}`, page_referrer: "", page_title: path });
 
 describe("flags", () => {
-  it("Google and GA4 are open and Tag Manager is off (2026-10-15) in the committed state; each TypeScript flag equals the loader's", () => {
+  it("Google and GA4 are open and Tag Manager is off (2026-10-15, on 2026-10-16, off again 2026-10-17) in the committed state; each TypeScript flag equals the loader's", () => {
     expect(GOOGLE_TAG_OPEN).toBe(true);
     expect(googleTagAllowed()).toBe(true);
     expect(GA4_OPEN).toBe(true);
@@ -263,14 +280,42 @@ describe("flag closed: the loader does nothing at all", () => {
 });
 
 describe("boot: each config only under its own choice", () => {
-  it("before the server answers: only the local denied default, no script", async () => {
+  it("before the server answers: the denied default first, then the script (Ads id), js and redaction; no config, no event, no cookie write", async () => {
     let release: (s: State) => void = () => {};
     const h = load({ open: true, state: () => new Promise<State>((r) => (release = r)) });
     await h.settle();
-    expect(h.calls()).toEqual([["consent", "default", DENIED]]);
-    expect(h.appended).toHaveLength(0);
+    const calls = h.calls() as unknown[][];
+    expect(kinds(h)).toEqual(["consent", "js", "set"]);
+    expect(calls[0]).toEqual(["consent", "default", DENIED]);
+    expect(calls[2]).toEqual(["set", "ads_data_redaction", true]);
+    expect(JSON.stringify(calls)).not.toContain("url_passthrough");
+    expect(h.appended).toEqual([{ src: SCRIPT, async: true }]);
+    expect(configs(h)).toHaveLength(0);
+    expect(h.events()).toHaveLength(0);
+    expect(updates(h)).toHaveLength(0);
+    expect(h.cookieWrites).toHaveLength(0);
     release(ACCEPTED);
     await h.settle();
+    expect(h.appended).toHaveLength(1); // the same script, not a second one
+    expect(updates(h)).toEqual([BOTH]);
+    expect(configs(h).map((c) => c[1])).toEqual([TAG, GA]);
+  });
+
+  it("the server is slow: after 1.5 s the configs and the one page_view go out denied; a later Accept grants without a second page_view", async () => {
+    let release: (s: State) => void = () => {};
+    const h = load({ open: true, state: () => new Promise<State>((r) => (release = r)) });
+    await h.settle();
+    expect(h.timers.map((t) => t.ms)).toEqual([1500]);
+    await h.elapse();
+    expect(configs(h).map((c) => c[1])).toEqual([TAG, GA]);
+    expect(views(h)).toHaveLength(1);
+    expect(updates(h)).toHaveLength(0); // still the denied default: cookieless
+    expect(h.cookieWrites).toHaveLength(0);
+    release(ACCEPTED);
+    await h.settle();
+    expect(updates(h)).toEqual([BOTH]);
+    expect(configs(h)).toHaveLength(2);
+    expect(views(h)).toHaveLength(1);
     expect(h.appended).toHaveLength(1);
   });
 
@@ -318,12 +363,13 @@ describe("boot: each config only under its own choice", () => {
     expect(h.cookieWrites).toHaveLength(0); // we never touch Google's cookies while the tags run
   });
 
-  it("Analytics only: the script by the GA4 id, every ad signal denied, no Ads config, the Ads cookies deleted, _ga kept", async () => {
+  it("Analytics only: one script (the Ads id), every ad signal denied, both configs (Ads cookieless), one page_view, the Ads cookies deleted, _ga kept", async () => {
     const h = load({ open: true, state: ANALYTICS_ONLY });
     await h.settle();
-    expect(h.appended).toEqual([{ src: GA_SCRIPT, async: true }]);
+    expect(h.appended).toEqual([{ src: SCRIPT, async: true }]);
+    expect(h.appended.some((a) => a.src === GA_SCRIPT)).toBe(false);
     expect(updates(h)).toEqual([ANALYTICS]);
-    expect(configs(h).map((c) => c[1])).toEqual([GA]);
+    expect(configs(h).map((c) => c[1])).toEqual([TAG, GA]);
     expect(views(h)).toHaveLength(1);
     expect(deleted(h, "_gcl_au")).toBe(true);
     expect(deleted(h, "_gac_UA1")).toBe(true);
@@ -332,22 +378,26 @@ describe("boot: each config only under its own choice", () => {
     expect(h.g().loaded()).toBe(true);
   });
 
-  it("Marketing only: the Ads config, analytics_storage denied, no GA4 config and no page_view, _ga deleted, _gcl kept", async () => {
+  it("Marketing only: analytics_storage denied, both configs (GA4 cookieless), one cookieless page_view, _ga deleted, _gcl kept", async () => {
     const h = load({ open: true, state: MARKETING_ONLY });
     await h.settle();
     expect(h.appended).toEqual([{ src: SCRIPT, async: true }]);
     expect(updates(h)).toEqual([ADS]);
-    expect(configs(h).map((c) => c[1])).toEqual([TAG]);
-    expect(views(h)).toHaveLength(0);
+    expect(configs(h).map((c) => c[1])).toEqual([TAG, GA]);
+    expect(views(h)).toHaveLength(1);
+    expect(h.g().analyticsLoaded()).toBe(false);
     expect(deleted(h, "_ga")).toBe(true);
     expect(deleted(h, "_ga_ABC123")).toBe(true);
     expect(deleted(h, "_gcl_au")).toBe(false);
   });
 
-  it("GA4 closed (ANALYTICS_ON false): Analytics only loads nothing; both on loads the Ads tag alone", async () => {
+  it("GA4 closed (ANALYTICS_ON false): Analytics only grants nothing, the Ads config goes out denied; both on grants the Ads tag alone; never a GA4 config", async () => {
     const a = load({ open: true, analytics: false, state: ANALYTICS_ONLY });
     await a.settle();
-    expect(a.appended).toHaveLength(0);
+    expect(a.appended).toEqual([{ src: SCRIPT, async: true }]);
+    expect(configs(a).map((c) => c[1])).toEqual([TAG]);
+    expect(updates(a)).toEqual([]);
+    expect(views(a)).toHaveLength(0);
     const b = load({ open: true, analytics: false });
     await b.settle();
     expect(configs(b).map((c) => c[1])).toEqual([TAG]);
@@ -358,28 +408,34 @@ describe("boot: each config only under its own choice", () => {
   it.each([
     ["neither", { ok: true, chosen: true, choice: { marketing: false, analytics: false } } as State],
     ["not chosen", NOT_CHOSEN],
-  ])("%s: no script, consent denied, every Google cookie deleted", async (_n, state) => {
+  ])("%s: the script, consent stays denied, both configs and one page_view cookieless, every Google cookie deleted", async (_n, state) => {
     const h = load({ open: true, state });
     await h.settle();
-    expect(h.appended).toHaveLength(0);
-    expect(configs(h)).toHaveLength(0);
-    expect(h.calls().at(-1)).toEqual(["consent", "update", DENIED]);
+    expect(h.appended).toEqual([{ src: SCRIPT, async: true }]);
+    expect(updates(h)).toEqual([DENIED]); // never a granted signal
+    expect(configs(h).map((c) => c[1])).toEqual([TAG, GA]);
+    expect(views(h)).toHaveLength(1);
+    expect(h.g().analyticsLoaded()).toBe(false);
     for (const n of ["_gcl_au", "_gcl_aw", "_ga", "_ga_ABC123", "_gac_UA1"]) expect(deleted(h, n), n).toBe(true);
     expect(h.cookieWrites.every((w) => w.includes("Max-Age=0"))).toBe(true);
     expect(h.cookieWrites.some((w) => w.startsWith("other="))).toBe(false);
   });
 
-  it("server unreachable: no script, no deletes", async () => {
+  it("server unreachable: the configs go out denied at once, nothing granted, no deletes", async () => {
     const h = load({ open: true, state: { ok: false } });
     await h.settle();
-    expect(h.appended).toHaveLength(0);
+    expect(h.appended).toEqual([{ src: SCRIPT, async: true }]);
+    expect(configs(h).map((c) => c[1])).toEqual([TAG, GA]);
+    expect(updates(h)).toHaveLength(0);
     expect(h.cookieWrites).toHaveLength(0);
   });
 
-  it("a state request that rejects does nothing", async () => {
+  it("a state request that rejects: the same as unreachable, denied configs, nothing granted, no deletes", async () => {
     const h = load({ open: true, state: () => Promise.reject(new Error("net")) });
     await h.settle();
-    expect(h.appended).toHaveLength(0);
+    expect(h.appended).toEqual([{ src: SCRIPT, async: true }]);
+    expect(configs(h).map((c) => c[1])).toEqual([TAG, GA]);
+    expect(updates(h)).toHaveLength(0);
     expect(h.cookieWrites).toHaveLength(0);
   });
 
@@ -399,19 +455,22 @@ describe("boot: each config only under its own choice", () => {
     expect(h.win.dataLayer).toBeUndefined();
   });
 
-  it("a consent event alone does not boot: the server is asked again and only its answer decides", async () => {
+  it("a consent event alone grants nothing: the server is asked again and only its answer decides", async () => {
     let answer: State = NOT_CHOSEN;
     const h = load({ open: true, state: () => Promise.resolve(answer) });
     await h.settle();
-    expect(h.appended).toHaveLength(0);
+    expect(h.appended).toHaveLength(1); // advanced: the script runs for every visitor
+    const granted = () => updates(h).some((u) => JSON.stringify(u).includes("granted"));
+    expect(granted()).toBe(false);
     h.fire("vamos:consent", { detail: { marketing: true, analytics: true } });
     await h.settle();
     expect(h.fetchCalls).toHaveLength(2);
-    expect(h.appended).toHaveLength(0); // the server still says no
+    expect(granted()).toBe(false); // the server still says no
     answer = ACCEPTED;
     h.fire("vamos:consent-recorded", {});
     await h.settle();
     expect(h.fetchCalls).toHaveLength(3);
+    expect(updates(h).at(-1)).toEqual(BOTH);
     expect(h.appended).toHaveLength(1);
   });
 
@@ -427,18 +486,19 @@ describe("boot: each config only under its own choice", () => {
   });
 });
 
-describe("upgrade: a later choice adds the other config to the script already there", () => {
-  it("Analytics, then Marketing: the Ads config joins, no second script, no second js, no second page_view", async () => {
+describe("upgrade: a later choice grants the other purpose on the configs already there", () => {
+  it("Analytics, then Marketing: the ad signals are granted, no second script, no second js, no second config or page_view", async () => {
     let answer: State = ANALYTICS_ONLY;
     const h = load({ open: true, state: () => Promise.resolve(answer) });
     await h.settle();
-    expect(configs(h).map((c) => c[1])).toEqual([GA]);
+    expect(configs(h).map((c) => c[1])).toEqual([TAG, GA]);
+    expect(updates(h)).toEqual([ANALYTICS]);
     answer = ACCEPTED;
     h.fire("vamos:consent", { detail: { marketing: true, analytics: true } });
     await h.settle();
-    expect(h.appended).toEqual([{ src: GA_SCRIPT, async: true }]);
+    expect(h.appended).toEqual([{ src: SCRIPT, async: true }]);
     expect(h.calls().filter((c) => Array.isArray(c) && c[0] === "js")).toHaveLength(1);
-    expect(configs(h).map((c) => c[1])).toEqual([GA, TAG]);
+    expect(configs(h).map((c) => c[1])).toEqual([TAG, GA]);
     expect(updates(h).at(-1)).toEqual(BOTH);
     expect(views(h)).toHaveLength(1);
   });
@@ -452,14 +512,17 @@ describe("upgrade: a later choice adds the other config to the script already th
     await h.settle();
     answers[1]!(ACCEPTED);
     await h.settle();
-    expect(configs(h).map((c) => c[1])).toEqual([GA, TAG]);
+    expect(configs(h).map((c) => c[1])).toEqual([TAG, GA]);
+    expect(updates(h)).toEqual([ANALYTICS, BOTH]);
+    expect(h.g().loaded()).toBe(true);
+    expect(h.g().revoked()).toBe(false);
   });
 
-  it("Marketing, then Analytics: the GA4 config and its page_view join, no second script", async () => {
+  it("Marketing, then Analytics: analytics_storage is granted, no second script, no second config or page_view", async () => {
     let answer: State = MARKETING_ONLY;
     const h = load({ open: true, state: () => Promise.resolve(answer) });
     await h.settle();
-    expect(views(h)).toHaveLength(0);
+    expect(views(h)).toHaveLength(1); // the cookieless one
     answer = ACCEPTED;
     h.fire("vamos:consent-recorded", {});
     await h.settle();
@@ -467,6 +530,7 @@ describe("upgrade: a later choice adds the other config to the script already th
     expect(configs(h).map((c) => c[1])).toEqual([TAG, GA]);
     expect(updates(h).at(-1)).toEqual(BOTH);
     expect(views(h)).toHaveLength(1);
+    expect(h.g().analyticsLoaded()).toBe(true);
   });
 });
 
@@ -492,10 +556,14 @@ describe("withdraw", () => {
     await h.settle();
     expect(configs(h).map((c) => c[1])).toEqual([TAG, GA]);
     expect(updates(h).at(-1)).toEqual(ADS);
-    expect(h.g().track("Lead")).toBe(false);
+    // Advanced (default 2, wording A2): after the withdraw GA4 still gets signals, without cookies.
+    expect(h.g().track("Lead")).toBe(true);
+    expect(h.events().filter((c) => c[1] === "generate_lead")).toHaveLength(1);
     expect(h.g().conversion({ value: 10, transactionId: REF })).toBe(true); // the Ads conversion still goes
-    expect(conv(h)).toHaveLength(1);
-    expect(purchases(h)).toHaveLength(0);
+    expect(conv(h)).toEqual([["event", "conversion", { send_to: SEND, value: 10, currency: "CHF", transaction_id: REF }]]);
+    // The GA4 purchase only as a cookieless ping: the amount and CHF, never the reference.
+    expect(purchases(h)).toEqual([["event", "purchase", { send_to: GA, value: 10, currency: "CHF", ...PAGE("/about") }]]);
+    expect(updates(h).at(-1)).toEqual(ADS);
   });
 
   it("Marketing off after both: ad signals denied, the Ads cookies deleted, GA4 keeps counting", async () => {
@@ -512,7 +580,7 @@ describe("withdraw", () => {
     expect(h.events().filter((c) => c[1] === "generate_lead")).toHaveLength(1);
   });
 
-  it("both off after boot: everything denied, every cookie deleted, nothing boots again", async () => {
+  it("both off after boot: everything denied, every cookie deleted, never granted again; later sends only cookieless, no reference", async () => {
     const h = load({ open: true });
     await h.settle();
     h.fire("vamos:consent", { detail: { marketing: false, analytics: false } });
@@ -523,8 +591,13 @@ describe("withdraw", () => {
     h.fire("vamos:consent", { detail: { marketing: true, analytics: true } });
     await h.settle();
     expect(h.appended).toHaveLength(1);
-    expect(h.g().conversion({ value: 10, transactionId: REF })).toBe(false);
-    expect(h.g().track("Lead")).toBe(false);
+    expect(updates(h).at(-1)).toEqual(DENIED); // the server's yes does not grant again on this page
+    expect(h.g().conversion({ value: 10, transactionId: REF })).toBe(true);
+    expect(conv(h)).toEqual([["event", "conversion", { send_to: SEND, value: 10, currency: "CHF" }]]);
+    expect(purchases(h)).toEqual([["event", "purchase", { send_to: GA, value: 10, currency: "CHF", ...PAGE("/about") }]]);
+    expect(h.g().track("Lead")).toBe(true);
+    expect(JSON.stringify(h.events().filter((c) => c[1] !== "page_view"))).not.toContain(REF);
+    expect(updates(h).at(-1)).toEqual(DENIED);
   });
 
   it("another tab turns a choice off (storage event): that choice is withdrawn here; other keys do nothing", async () => {
@@ -600,15 +673,29 @@ describe("GA4 events: Meta's buttons and booking steps, a fixed list, nothing el
     expect(kinds(h).slice(-2)).toEqual(["event:page_view", "event:begin_checkout"]);
   });
 
-  it("Marketing only: a waiting event is dropped, a later one refused", async () => {
+  it("the server is slow: a waiting event goes out as a cookieless ping when the 1.5 s wait runs out", async () => {
+    const h = load({ open: true, state: () => new Promise<State>(() => {}) });
+    expect(h.g().track("Lead")).toBe(true);
+    expect(h.g().pendingEvents()).toBe(1);
+    await h.elapse();
+    expect(h.g().pendingEvents()).toBe(0);
+    expect(kinds(h).slice(-2)).toEqual(["event:page_view", "event:generate_lead"]);
+    expect(updates(h)).toHaveLength(0);
+  });
+
+  // Default 2 (adopted 2026-10-16): GA4 events waiting for the server's first answer go out as cookieless pings.
+  // Fixed 2026-10-17: the server's answer no longer empties the waiting events (withdraw fromServer keeps them).
+  it("Marketing only (Analytics denied): an event waiting for the answer and a later one both go out as cookieless pings (default 2)", async () => {
     let release: (s: State) => void = () => {};
     const h = load({ open: true, state: () => new Promise<State>((r) => (release = r)) });
     h.g().track("Lead");
     release(MARKETING_ONLY);
     await h.settle();
     expect(h.g().pendingEvents()).toBe(0);
-    expect(h.g().track("AddPaymentInfo")).toBe(false);
-    expect(h.events().filter((c) => c[1] !== "conversion")).toHaveLength(0);
+    expect(h.g().track("AddPaymentInfo")).toBe(true);
+    expect(h.events().filter((c) => c[1] === "add_payment_info")).toHaveLength(1);
+    expect(updates(h).at(-1)).toEqual(ADS); // analytics_storage denied: cookieless
+    expect(h.events().filter((c) => c[1] === "generate_lead")).toHaveLength(1);
   });
 
   it("contact links: the delegated click sends the kind only; other links nothing", async () => {
@@ -629,6 +716,9 @@ describe("purchase (GA4) and conversion (Ads)", () => {
   const info = { value: 99.79, transactionId: REF };
   const CONV = ["event", "conversion", { send_to: SEND, value: 99.79, currency: "CHF", transaction_id: REF }];
   const PURCHASE = ["event", "purchase", { send_to: GA, value: 99.79, currency: "CHF", transaction_id: REF, ...PAGE("/confirmation/:ref") }];
+  // While denied (default 1, adopted 2026-10-16): the amount and CHF only, never the booking reference.
+  const DENIED_CONV = ["event", "conversion", { send_to: SEND, value: 99.79, currency: "CHF" }];
+  const DENIED_PURCHASE = ["event", "purchase", { send_to: GA, value: 99.79, currency: "CHF", ...PAGE("/confirmation/:ref") }];
   const confirmation = `https://vamostaxi.site/confirmation/${REF}`;
 
   it("both on: the Ads conversion and the GA4 purchase, once each, with the amount, CHF and the real reference", async () => {
@@ -639,20 +729,36 @@ describe("purchase (GA4) and conversion (Ads)", () => {
     expect(purchases(h)).toEqual([PURCHASE]);
   });
 
-  it("Analytics only: the purchase, no conversion", async () => {
+  it("Analytics only: the purchase with the reference; the Ads conversion only cookieless, the amount and CHF, no reference (default 1)", async () => {
     const h = load({ open: true, href: confirmation, state: ANALYTICS_ONLY });
     await h.settle();
     expect(h.g().conversion(info)).toBe(true);
     expect(purchases(h)).toEqual([PURCHASE]);
-    expect(conv(h)).toHaveLength(0);
+    expect(conv(h)).toEqual([DENIED_CONV]);
   });
 
-  it("Marketing only: the conversion, no purchase", async () => {
+  it("Marketing only: the conversion with the reference; the GA4 purchase only cookieless, the amount and CHF, no reference (default 1)", async () => {
     const h = load({ open: true, href: confirmation, state: MARKETING_ONLY });
     await h.settle();
     h.g().conversion(info);
     expect(conv(h)).toEqual([CONV]);
-    expect(purchases(h)).toHaveLength(0);
+    expect(purchases(h)).toEqual([DENIED_PURCHASE]);
+  });
+
+  it.each([
+    ["neither", { ok: true, chosen: true, choice: { marketing: false, analytics: false } } as State],
+    ["not chosen", NOT_CHOSEN],
+    ["server unreachable", { ok: false } as State],
+  ])("%s, asked for after the answer: a cookieless conversion and purchase, the amount and CHF only, once", async (_n, state) => {
+    const h = load({ open: true, href: confirmation, state });
+    await h.settle();
+    expect(h.g().conversion(info)).toBe(true);
+    expect(conv(h)).toEqual([DENIED_CONV]);
+    expect(purchases(h)).toEqual([DENIED_PURCHASE]);
+    expect(JSON.stringify(h.calls())).not.toContain(REF);
+    h.g().conversion(info);
+    expect(conv(h)).toHaveLength(1);
+    expect(purchases(h)).toHaveLength(1);
   });
 
   it("purchase once only: a second call, a reload, a second tab send nothing more (each key written before the send)", async () => {
@@ -671,14 +777,24 @@ describe("purchase (GA4) and conversion (Ads)", () => {
     expect(conv(reload)).toHaveLength(0);
   });
 
-  it("the purchase key and the conversion key are separate: Analytics first does not stop the conversion on a later visit", async () => {
+  it("the purchase key and the conversion key are separate: a browser that sent only the purchase still sends the conversion later", async () => {
+    const b = load({ open: true, href: confirmation, storage: { [`vamosGaPurchase:${REF}`]: "1" } });
+    await b.settle();
+    b.g().conversion(info);
+    expect(conv(b)).toEqual([CONV]);
+    expect(purchases(b)).toHaveLength(0);
+  });
+
+  it("a cookieless send writes its once-only key too: Analytics first, then both on later, sends nothing more (one booking, counted once per tool)", async () => {
     const a = load({ open: true, href: confirmation, state: ANALYTICS_ONLY });
     await a.settle();
     a.g().conversion(info);
+    expect(conv(a)).toEqual([DENIED_CONV]);
+    expect(Object.keys(a.store).sort()).toEqual([`vamosGaPurchase:${REF}`, `vamosGoogleConv:${REF}`]);
     const b = load({ open: true, href: confirmation, storage: a.store });
     await b.settle();
     b.g().conversion(info);
-    expect(conv(b)).toHaveLength(1);
+    expect(conv(b)).toHaveLength(0);
     expect(purchases(b)).toHaveLength(0);
   });
 
@@ -730,7 +846,21 @@ describe("purchase (GA4) and conversion (Ads)", () => {
     expect(purchases(h)).toHaveLength(0);
   });
 
-  it("neither on: the waiting item is dropped and a later Accept does not replay it", async () => {
+  it("the server is slow: the waiting item goes out cookieless when the 1.5 s wait runs out, and a later Accept does not replay it", async () => {
+    let release: (s: State) => void = () => {};
+    const h = load({ open: true, href: confirmation, queue: [info], state: () => new Promise<State>((r) => (release = r)) });
+    await h.elapse();
+    expect(conv(h)).toEqual([DENIED_CONV]);
+    expect(purchases(h)).toEqual([DENIED_PURCHASE]);
+    release(ACCEPTED);
+    await h.settle();
+    expect(conv(h)).toHaveLength(1);
+    expect(purchases(h)).toHaveLength(1);
+  });
+
+  // Default 1 (adopted 2026-10-16): a paid booking while Google is denied sends a cookieless conversion and purchase
+  // (amount and CHF only). Fixed 2026-10-17: the server's first answer no longer empties the waiting conversion.
+  it("neither on: the waiting item goes out once, cookieless, no reference (default 1); a later Accept does not replay it", async () => {
     let answer: State = { ok: true, chosen: true, choice: { marketing: false, analytics: false } };
     const h = load({ open: true, href: confirmation, state: () => Promise.resolve(answer) });
     h.g().conversion(info);
@@ -739,16 +869,20 @@ describe("purchase (GA4) and conversion (Ads)", () => {
     answer = ACCEPTED;
     h.fire("vamos:consent-recorded", {});
     await h.settle();
-    expect(conv(h)).toHaveLength(0);
-    expect(purchases(h)).toHaveLength(0);
+    expect(JSON.stringify(h.calls())).not.toContain(REF);
+    expect(conv(h)).toEqual([DENIED_CONV]);
+    expect(purchases(h)).toEqual([DENIED_PURCHASE]);
   });
 
-  it("pre-load queue: neither on drops it, no script", async () => {
+  // Same fix as the test above: the pre-load queue survives the server's first answer and goes out cookieless.
+  it("pre-load queue, not chosen: the script loads and the item goes out once, cookieless, no reference (default 1)", async () => {
     const h = load({ open: true, href: confirmation, queue: [info], state: NOT_CHOSEN });
     await h.settle();
-    expect(conv(h)).toHaveLength(0);
-    expect(purchases(h)).toHaveLength(0);
-    expect(h.appended).toHaveLength(0);
+    expect(h.appended).toEqual([{ src: SCRIPT, async: true }]);
+    expect(updates(h).every((u) => !JSON.stringify(u).includes("granted"))).toBe(true);
+    expect(JSON.stringify(h.calls())).not.toContain(REF);
+    expect(conv(h)).toEqual([DENIED_CONV]);
+    expect(purchases(h)).toEqual([DENIED_PURCHASE]);
   });
 
   it.each([
@@ -782,7 +916,7 @@ describe("purchase (GA4) and conversion (Ads)", () => {
   });
 });
 
-describe("Google Tag Manager (code path forced on; committed state is off since 2026-10-15)", () => {
+describe("Google Tag Manager (code path forced on; committed state off again since 2026-10-17)", () => {
   it("committed state: GTM_ON false, both choices on load no container script and no noscript frame", async () => {
     expect(rawSrc).toMatch(/var GTM_ON = false;/);
     const h = load({ open: true, gtm: "committed", state: () => Promise.resolve(ACCEPTED) });
@@ -854,7 +988,7 @@ describe("Google Tag Manager (code path forced on; committed state is off since 
   it.each([
     ["Analytics off", { marketing: true, analytics: false }],
     ["Marketing off", { marketing: false, analytics: true }],
-  ])("%s after it ran: everything denied, every Google cookie deleted, never again on this page", async (_n, detail) => {
+  ])("%s after it ran: everything denied, every Google cookie deleted, never granted or loaded again on this page", async (_n, detail) => {
     let answer: State = ACCEPTED;
     const h = load({ open: true, gtm: true, state: () => Promise.resolve(answer) });
     await h.settle();
@@ -870,8 +1004,16 @@ describe("Google Tag Manager (code path forced on; committed state is off since 
     await h.settle();
     expect(h.appended.filter((a) => a.src === GTM_SCRIPT)).toHaveLength(1);
     expect(h.calls().filter((c) => !Array.isArray(c))).toHaveLength(1);
-    expect(h.g().track("Lead")).toBe(false);
-    expect(h.g().conversion({ value: 10, transactionId: REF })).toBe(false);
+    expect(updates(h).at(-1)).toEqual(DENIED);
+    // Advanced (wording A1/A2: "only signals without cookies are sent" after a withdraw): events and the paid booking
+    // still go out, under the denied state, without the reference.
+    const before = h.events().length;
+    expect(h.g().track("Lead")).toBe(true);
+    expect(h.g().conversion({ value: 10, transactionId: REF })).toBe(true);
+    const after = h.events().slice(before);
+    expect(after.map((c) => c[1])).toEqual(["generate_lead", "conversion", "purchase"]);
+    expect(JSON.stringify(after)).not.toContain(REF);
+    expect(updates(h).at(-1)).toEqual(DENIED);
   });
 
   it("an address off the list: no container even with both on", async () => {
@@ -880,13 +1022,17 @@ describe("Google Tag Manager (code path forced on; committed state is off since 
     expect(h.appended).toHaveLength(0);
   });
 
-  it("no request to Google's host before consent, and never a noscript frame", async () => {
+  it("before consent only gtag.js (advanced), never the container; the container only after both are confirmed; never a noscript frame", async () => {
     let release: (s: State) => void = () => {};
     const h = load({ open: true, gtm: true, state: () => new Promise<State>((r) => (release = r)) });
     await h.settle();
-    expect(h.appended).toHaveLength(0);
+    expect(h.appended.map((a) => a.src)).toEqual([SCRIPT]);
+    await h.elapse(); // the 1.5 s wait runs out: denied configs, still no container
+    expect(h.appended.map((a) => a.src)).toEqual([SCRIPT]);
+    expect(h.g().tagManagerLoaded()).toBe(false);
     release(ACCEPTED);
     await h.settle();
+    expect(h.appended.map((a) => a.src)).toEqual([SCRIPT, GTM_SCRIPT]);
     expect(rawSrc.toLowerCase()).not.toContain("<noscript");
     expect(rawSrc).not.toContain("ns.html");
     expect(rawSrc).not.toContain("iframe");
@@ -940,9 +1086,17 @@ describe("source pins", () => {
     expect(rawSrc).toContain("allow_google_signals: false");
     expect(rawSrc).toContain("allow_ad_personalization_signals: false");
   });
-  it("the literal events are the conversion, the purchase and the GA4 page_view; every other GA4 event comes from the fixed list", () => {
+  it("the literal events are the conversion, the purchase (each granted and denied) and the GA4 page_view; every other GA4 event comes from the fixed list", () => {
     const events = [...rawSrc.matchAll(/gtag\('event',\s*'([^']+)'/g)].map((m) => m[1]);
-    expect(events.sort()).toEqual(["conversion", "page_view", "purchase"]);
+    expect(events.sort()).toEqual(["conversion", "conversion", "page_view", "purchase", "purchase"]);
+    // The denied pair (default 1): never the booking reference.
+    for (const fn of ["sendDeniedConversion", "sendDeniedPurchase"]) {
+      const at = rawSrc.indexOf(`function ${fn}(`);
+      expect(at, fn).toBeGreaterThan(-1);
+      const body = rawSrc.slice(at, rawSrc.indexOf("\n  }\n", at));
+      expect(body, fn).not.toContain("transaction_id");
+      expect(body, fn).toContain("currency: 'CHF'");
+    }
     expect(rawSrc).toMatch(/gtag\('event', 'page_view', \{ send_to: GA_ID,/);
     const list = [...rawSrc.matchAll(/ga: '([a-z_]+)'/g)].map((m) => m[1]);
     expect(list).toEqual(["view_item", "generate_lead", "contact", "begin_checkout", "add_payment_info"]);
@@ -1009,9 +1163,17 @@ describe("policy (Content-Security-Policy)", () => {
     expect(dir("img-src").split(" ")).not.toContain(GA_B);
     expect(dir("script-src")).not.toContain("analytics");
     expect(dir("frame-src")).not.toContain("analytics");
-    // The only wildcards added are GA4's two, leftmost; Mapbox keeps its own.
-    expect(google.split("*").length - plain.split("*").length).toBe(3);
-    expect(google.match(/https:\/\/\*\.[a-z.-]+/g)!.filter((h) => !h.includes("mapbox")).sort()).toEqual([GA_B, GA_A, GA_A].sort());
+    // Advanced mode (2026-10-16): the cookieless pings use the same hosts, and Google's CSP guide (GA4 section) also
+    // lists *.google.com, *.g.doubleclick.net and *.google.<TLD> for connect-src and img-src. The only wildcards
+    // added are GA4's two plus that guide list (the six country domains of GOOGLE_TLDS), leftmost, in connect-src and
+    // img-src only; Mapbox keeps its own.
+    const GUIDE = ["https://*.google.com", "https://*.g.doubleclick.net", ...["ch", "de", "fr", "ae", "at", "it"].map((t) => `https://*.google.${t}`)];
+    for (const d of ["connect-src", "img-src"]) expect(dir(d).split(" "), d).toEqual(expect.arrayContaining(GUIDE));
+    for (const d of ["script-src", "frame-src", "default-src"]) expect(dir(d).includes("*.google"), d).toBe(false);
+    expect(google.split("*").length - plain.split("*").length).toBe(3 + 2 * GUIDE.length);
+    expect(google.match(/https:\/\/\*\.[a-z.-]+/g)!.filter((h) => !h.includes("mapbox")).sort()).toEqual(
+      [GA_B, GA_A, GA_A, ...GUIDE, ...GUIDE].sort(),
+    );
   });
   it("the Next policy list never names Google", () => {
     const all = SECURITY_HEADER_PAIRS.map(([, v]) => v).join("\n");
