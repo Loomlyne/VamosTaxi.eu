@@ -221,8 +221,12 @@
     if (!ads && !analytics) return;
     if (!fromServer) withdrawSeq += 1;
     if (gtmOn) { ads = true; analytics = true; gtmRevoked = true; }
-    if (ads && analytics) queued = [];
-    if (analytics) events = [];
+    /* The server's first answer keeps what waits: configure() sends it cookieless (decision defaults 1 and 2,
+       2026-10-16). Only the visitor's own withdraw on this page forgets it. */
+    if (!fromServer) {
+      if (ads && analytics) queued = [];
+      if (analytics) events = [];
+    }
     var changed = (ads && adsOn && !adsRevoked) || (analytics && gaOn && !gaRevoked);
     if (ads && adsOn) adsRevoked = true;
     if (analytics && gaOn) gaRevoked = true;
@@ -492,7 +496,7 @@
   }
 
   /* The conversion. Asked for while the tag is still starting it waits (at most three); after a withdraw of
-     both choices, or when neither is on, it is dropped and a later Accept does not replay it. */
+     both choices, or when neither is on, it goes out cookieless (amount and CHF only) and a later Accept does not replay it. */
   function conversion(info) {
     try {
       if (!GOOGLE_ON) return false;

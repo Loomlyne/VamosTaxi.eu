@@ -683,11 +683,8 @@ describe("GA4 events: Meta's buttons and booking steps, a fixed list, nothing el
     expect(updates(h)).toHaveLength(0);
   });
 
-  // REAL BUG (left failing on purpose, see the commit): default 2 (adopted 2026-10-16) says GA4 button and step events
-  // go out as cookieless pings while Analytics is denied, and the loader's own header says the same. A server answer
-  // without Analytics runs withdraw(), which empties the waiting events (app/vamos-google.js:225, reached from :487)
-  // before configure() flushes them; an event asked for after the answer does go out. Same visitor, same press:
-  // sent or lost depending on whether the press came before or after the answer.
+  // Default 2 (adopted 2026-10-16): GA4 events waiting for the server's first answer go out as cookieless pings.
+  // Fixed 2026-10-17: the server's answer no longer empties the waiting events (withdraw fromServer keeps them).
   it("Marketing only (Analytics denied): an event waiting for the answer and a later one both go out as cookieless pings (default 2)", async () => {
     let release: (s: State) => void = () => {};
     const h = load({ open: true, state: () => new Promise<State>((r) => (release = r)) });
@@ -861,12 +858,8 @@ describe("purchase (GA4) and conversion (Ads)", () => {
     expect(purchases(h)).toHaveLength(1);
   });
 
-  // REAL BUG (left failing on purpose, see the commit): default 1 (adopted 2026-10-16) says a paid booking while
-  // Google is denied sends a cookieless conversion and purchase (amount and CHF only), and the loader's own header
-  // says the same. A server answer with neither choice runs withdraw(true, true, true), which empties the waiting
-  // conversion (app/vamos-google.js:224, reached from :487) before configure() flushes it. The same booking asked for
-  // after the answer, or after the 1.5 s wait, is sent. The confirmation page pushes it early (pre-load queue), so a
-  // refusing visitor's paid booking is usually lost.
+  // Default 1 (adopted 2026-10-16): a paid booking while Google is denied sends a cookieless conversion and purchase
+  // (amount and CHF only). Fixed 2026-10-17: the server's first answer no longer empties the waiting conversion.
   it("neither on: the waiting item goes out once, cookieless, no reference (default 1); a later Accept does not replay it", async () => {
     let answer: State = { ok: true, chosen: true, choice: { marketing: false, analytics: false } };
     const h = load({ open: true, href: confirmation, state: () => Promise.resolve(answer) });
@@ -881,7 +874,7 @@ describe("purchase (GA4) and conversion (Ads)", () => {
     expect(purchases(h)).toEqual([DENIED_PURCHASE]);
   });
 
-  // REAL BUG, same cause as the test above (app/vamos-google.js:224 via :487).
+  // Same fix as the test above: the pre-load queue survives the server's first answer and goes out cookieless.
   it("pre-load queue, not chosen: the script loads and the item goes out once, cookieless, no reference (default 1)", async () => {
     const h = load({ open: true, href: confirmation, queue: [info], state: NOT_CHOSEN });
     await h.settle();
