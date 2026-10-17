@@ -400,6 +400,7 @@ class Component extends DCLogic {
   destroyWarm() {
     if (this.warm) { try { this.warm.remove(); } catch (e) { /* widget already gone */ } this.warm = null; }
     this.preToken = null; this.waiting = null;
+    if (this._waitTimer) { clearTimeout(this._waitTimer); this._waitTimer = null; }
   }
 
   // One request at a time. `doSave(token)` is the one POST; Necessary only never asks for a token.
@@ -411,7 +412,15 @@ class Component extends DCLogic {
       if (!needsToken) { this.finish(doSave(undefined), cats); return; }
       const go = (token) => this.finish(doSave(token), cats);
       if (this.preToken) { const t = this.preToken; this.preToken = null; go(t); return; }
-      if (this.warm && !this.warmBroken) { this.waiting = go; return; }
+      if (where === 'banner' && this.warm && !this.warmBroken) {
+        this.waiting = go;
+        // Never wait for ever: no answer in 8 s shows the usual check error, and the next press asks afresh.
+        this._waitTimer = setTimeout(() => {
+          if (this.waiting !== go) return;
+          this.waiting = null; this.warmBroken = true; this.fail('check');
+        }, 8000);
+        return;
+      }
       this.destroyWarm(); // the background check broke: ask the old way, in the same box
       const box = where === 'sheet' ? this.tsSheetRef.current : this.tsBannerRef.current;
       this.ts = window.VamosConsent.turnstile(
@@ -465,6 +474,8 @@ class Component extends DCLogic {
     if (this.state.mode === 'prefs') return;
     const a = document.activeElement;
     this.opener = this.state.mode === 'banner' ? 'banner' : (a && a !== document.body ? a : null);
+    // The sheet replaces the banner and its box: the background check goes with it, the sheet asks per press.
+    this.destroyWarm(); this.warmTried = false; this.warmBroken = false;
     this.setState({ mode: 'prefs', alert: null }, () => {
       const el = this.dialogRef.current; if (el) el.focus();
     });
