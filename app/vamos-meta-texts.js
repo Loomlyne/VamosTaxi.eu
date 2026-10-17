@@ -105,8 +105,8 @@
   /* The four Tag Manager texts are shown only while Tag Manager loads. Same value as GTM_ON in
      app/vamos-google.js and GTM_OPEN in apps/web/lib/google/flag.ts (a test pins all three). Off 2026-10-15
      (.planning/decisions/2026-10-15-gtm-off.md); on again 2026-10-16, container verified empty by the controller
-     (.planning/decisions/2026-10-16-tracking-before-consent.md). */
-  var GTM_SHOWN = true;
+     (.planning/decisions/2026-10-16-tracking-before-consent.md); off again 2026-10-17 (owner removed it). */
+  var GTM_SHOWN = false;
   var GTM_KEYS = { gtmBanner: 1, gtmRow: 1, gtmPrivacyLine: 1, gtmProcessor: 1 };
 
   /** Returns the segment array of one owner text for a language, falling back to English. Tag Manager texts are empty while GTM_SHOWN is false. */

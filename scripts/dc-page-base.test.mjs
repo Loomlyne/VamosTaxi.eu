@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { assertHeadBase, injectBaseInto } from "./dc-page-base.mjs";
+import { assertHeadBase, injectBaseInto, injectTrackingInto, TRACKING_HEAD } from "./dc-page-base.mjs";
 
 const POISON = `<!DOCTYPE html>
 <html>
@@ -47,4 +47,15 @@ test("wrong head base throws", () => {
 
 test("missing head throws instead of shipping", () => {
   assert.throws(() => injectBaseInto("<html><body></body></html>", "/app/pages/"), /missing <head>/);
+});
+
+test("tracking loaders go straight after <base>, once, only on CookieBanner pages", () => {
+  const page = `<html><head>\n<base href="/app/pages/">\n<meta charset="utf-8">\n</head><body><dc-import name="CookieBanner" hint-size="0,0"></dc-import></body></html>`;
+  const out = injectTrackingInto(page);
+  assert.ok(out.includes(`<base href="/app/pages/">\n${TRACKING_HEAD}`));
+  assert.equal(injectTrackingInto(out), out);
+  const head = out.slice(0, out.indexOf("</head>"));
+  assert.ok(head.indexOf("vamos-consent.js") < head.indexOf("vamos-meta.js"));
+  const noBanner = page.replace("CookieBanner", "SiteFooter");
+  assert.equal(injectTrackingInto(noBanner), noBanner);
 });

@@ -62,8 +62,9 @@
   /* Google Tag Manager, same value as GTM_OPEN in apps/web/lib/google/flag.ts. Wording adopted 2026-10-13
      (.planning/decisions/2026-10-13-gtm-wording.md). Only with Analytics AND Marketing on.
      Off 2026-10-15 (duplicate tags), ON again 2026-10-16: the controller read the live container's published tags
-     as empty (.planning/decisions/2026-10-16-tracking-before-consent.md). */
-  var GTM_ON = true;
+     as empty (.planning/decisions/2026-10-16-tracking-before-consent.md). OFF again 2026-10-17 (owner: the empty
+     container is the "off" Google tag; keep G-K5MZME44P6). */
+  var GTM_ON = false;
 
   var TAG_ID = 'AW-368142830';
   var SEND_TO = 'AW-368142830/liI8CIe79pUdEO7Txa8B';
