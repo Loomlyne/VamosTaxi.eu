@@ -1,4 +1,8 @@
 // Phase 28 plan 02. vm harness for app/vamos-meta.js, the mock runtime's Meta page-view loader.
+// Since 2026-10-16 (.planning/decisions/2026-10-16-tracking-before-consent.md, wording B1/B2/M1 in
+// 2026-10-16-google-advanced-consent-wording.md): init + ONE PageView for every visitor on a listed page, before any
+// choice and after a refusal; the three events (ViewContent, Lead, Contact) still need the server's Marketing; a
+// refusal or withdraw no longer deletes _fbp / _fbc (M1); they are deleted only while the legal gate is closed.
 // The harness never depends on the committed flag values: it rewrites the two literals in the source
 // text (closed cases get false, open cases get true). The committed values are pinned in
 // legal-gate.test.ts. Meta strings are built from parts: the Phase 26 needle scan reads apps/web/lib.
@@ -194,34 +198,64 @@ describe("app/vamos-meta.js: flags open", () => {
     expect(h.cookieWrites).toHaveLength(0); // we never touch the cookies while the pixel runs
   });
 
-  it.each([
-    ["marketing off", { ok: true, chosen: true, choice: { marketing: false } } as State],
-    ["not chosen", { ok: true, chosen: false, choice: null } as State],
-  ])("%s: no script, cookies deleted", async (_n, state) => {
-    const h = load({ open: true, state });
+  it("before any answer: init with the id only and one PageView, the script once; no other event, no cookie write, no revoke", async () => {
+    const h = load({ open: true, state: () => new Promise<State>(() => {}) });
+    expect(h.api().track("Lead")).toBe(true); // waits for the server's Marketing
+    expect(h.api().track("Contact", { content_category: "phone" })).toBe(true);
+    expect(h.api().track("ViewContent", { content_name: "transfer" })).toBe(true);
     await h.settle();
-    expect(h.appended).toHaveLength(0);
-    expect(h.cookieWrites.some((w) => w.startsWith("_fbp=; Max-Age=0"))).toBe(true);
-    expect(h.cookieWrites.some((w) => w.startsWith("_fbc=; Max-Age=0"))).toBe(true);
-  });
-
-  it("server unreachable: no script, no deletes", async () => {
-    const h = load({ open: true, state: { ok: false } });
-    await h.settle();
-    expect(h.appended).toHaveLength(0);
+    expect(h.calls()).toEqual([
+      ["set", "autoConfig", false, PIXEL],
+      ["set", "autoConfig", false],
+      ["init", PIXEL],
+      ["track", "PageView"],
+    ]);
+    expect(h.appended).toHaveLength(1);
+    expect(h.api().pending()).toBe(3);
     expect(h.cookieWrites).toHaveLength(0);
   });
 
-  it("a state() that rejects does nothing", async () => {
-    const h = load({ open: true, state: () => Promise.reject(new Error("net")) });
+  it.each([
+    ["marketing off", { ok: true, chosen: true, choice: { marketing: false } } as State],
+    ["not chosen", { ok: true, chosen: false, choice: null } as State],
+  ])("%s: the page view still goes (script once, one PageView), no other event, cookies and storage kept (M1)", async (_n, state) => {
+    const h = load({ open: true, state });
+    h.api().track("Lead");
     await h.settle();
-    expect(h.appended).toHaveLength(0);
+    expect(h.appended).toHaveLength(1);
+    expect(h.calls().filter((c) => c[0] === "track")).toEqual([["track", "PageView"]]);
+    expect(h.api().pending()).toBe(0);
+    expect(h.cookieWrites).toHaveLength(0);
+    expect(h.store.multiFbc).toBe("x");
+    expect(h.store.aemSource).toBe("y");
   });
 
-  it("the consent runtime never appears within 5 s: nothing happens", async () => {
+  it("server unreachable: the page view only, the waiting event dropped, no deletes", async () => {
+    const h = load({ open: true, state: { ok: false } });
+    h.api().track("Lead");
+    await h.settle();
+    expect(h.appended).toHaveLength(1);
+    expect(h.calls().filter((c) => c[0] === "track")).toEqual([["track", "PageView"]]);
+    expect(h.api().pending()).toBe(0);
+    expect(h.cookieWrites).toHaveLength(0);
+  });
+
+  it("a state() that rejects: the page view only, the waiting event dropped", async () => {
+    const h = load({ open: true, state: () => Promise.reject(new Error("net")) });
+    h.api().track("Lead");
+    await h.settle();
+    expect(h.appended).toHaveLength(1);
+    expect(h.calls().filter((c) => c[0] === "track")).toEqual([["track", "PageView"]]);
+    expect(h.api().pending()).toBe(0);
+  });
+
+  it("the consent runtime never appears within 5 s: the page view only, no event, no deletes", async () => {
     const h = load({ open: true, consentAfterTicks: null });
+    h.api().track("Lead");
     await h.settle(130);
-    expect(h.appended).toHaveLength(0);
+    expect(h.appended).toHaveLength(1);
+    expect(h.calls().filter((c) => c[0] === "track")).toEqual([["track", "PageView"]]);
+    expect(h.stateCalls).toHaveLength(0);
     expect(h.cookieWrites).toHaveLength(0);
   });
 
@@ -248,7 +282,7 @@ describe("app/vamos-meta.js: flags open", () => {
     ["denied path", { href: "https://vamostaxi.site/manage-booking" }],
     ["denied referrer", { href: "https://vamostaxi.site/about", referrer: "https://vamostaxi.site/confirmation/VT-26-07331" }],
     ["dashboard host", { href: "https://dashboard.vamostaxi.site/about" }],
-  ])("CR-01 b, %s: marketing off or not chosen still deletes the Meta cookies and storage", async (_n, extra) => {
+  ])("M1 (replaces CR-01 b), %s: marketing off or not chosen deletes nothing and starts nothing", async (_n, extra) => {
     for (const state of [
       { ok: true, chosen: true, choice: { marketing: false } } as State,
       { ok: true, chosen: false, choice: null } as State,
@@ -256,10 +290,10 @@ describe("app/vamos-meta.js: flags open", () => {
       const h = load({ open: true, state, ...extra });
       await h.settle();
       expect(h.appended).toHaveLength(0);
-      expect(h.cookieWrites.some((w) => w.startsWith("_fbp=; Max-Age=0"))).toBe(true);
-      expect(h.cookieWrites.some((w) => w.startsWith("_fbc=; Max-Age=0"))).toBe(true);
-      expect(h.store.multiFbc).toBeUndefined();
-      expect(h.store.aemSource).toBeUndefined();
+      expect(h.win[FBQ]).toBeUndefined();
+      expect(h.cookieWrites).toHaveLength(0);
+      expect(h.store.multiFbc).toBe("x");
+      expect(h.store.aemSource).toBe("y");
     }
   });
 
@@ -276,37 +310,38 @@ describe("app/vamos-meta.js: flags open", () => {
     expect(h.api().loaded()).toBe(false);
   });
 
-  it("a consent event alone does not boot: state() is asked again and only its answer decides", async () => {
+  it("a consent event alone does not open the three events: state() is asked again and only its answer decides", async () => {
     let answer: State = { ok: true, chosen: false, choice: null };
     const h = load({ open: true, state: () => Promise.resolve(answer) });
     await h.settle();
-    expect(h.appended).toHaveLength(0);
+    expect(h.appended).toHaveLength(1); // the page view runs for every visitor
     // The event says marketing, the server still says no.
     h.change({ method: "accept_all", marketing: true });
     await h.settle();
     expect(h.stateCalls).toHaveLength(2);
-    expect(h.appended).toHaveLength(0);
-    // Now the server agrees.
+    h.api().track("Lead");
+    await h.settle();
+    expect(h.calls().filter((c) => c[1] === "Lead")).toHaveLength(0);
+    // Now the server agrees: the waiting event goes out, once; no second script, no second PageView.
     answer = ACCEPTED;
     h.change({ method: "accept_all", marketing: true });
     await h.settle();
     expect(h.stateCalls).toHaveLength(3);
+    expect(h.calls().filter((c) => c[1] === "Lead")).toHaveLength(1);
+    expect(h.calls().filter((c) => c[1] === "PageView")).toHaveLength(1);
     expect(h.appended).toHaveLength(1);
   });
 
-  it("withdraw after boot: revoke recorded, revoked() true, no later boot or allow, cookies and storage deleted", async () => {
+  it("withdraw after Marketing was on: revoke recorded, revoked() true, no later boot or allow, cookies and storage kept (M1)", async () => {
     const h = load({ open: true });
     await h.settle();
     h.change({ method: "reject_all", marketing: false });
     await h.settle();
     expect(h.calls().at(-1)).toEqual(["consent", "revoke"]);
     expect(h.api().revoked()).toBe(true);
-    for (const name of ["_fbp", "_fbc", "_fbleid"]) {
-      expect(h.cookieWrites).toContain(`${name}=; Max-Age=0; path=/`);
-      expect(h.cookieWrites).toContain(`${name}=; Max-Age=0; path=/; domain=.vamostaxi.site`);
-    }
-    expect(h.store.multiFbc).toBeUndefined();
-    expect(h.store.aemSource).toBeUndefined();
+    expect(h.cookieWrites).toHaveLength(0);
+    expect(h.store.multiFbc).toBe("x");
+    expect(h.store.aemSource).toBe("y");
     const before = h.calls().length;
     h.change({ method: "accept_all", marketing: true });
     await h.settle();
@@ -314,14 +349,19 @@ describe("app/vamos-meta.js: flags open", () => {
     expect(h.appended).toHaveLength(1);
   });
 
-  it("withdraw while state() is still in flight: the late answer does not boot", async () => {
+  it("withdraw while state() is still in flight: the late answer does not open the events", async () => {
     let release: (s: State) => void = () => {};
     const h = load({ open: true, state: () => new Promise<State>((r) => (release = r)) });
+    h.api().track("Lead");
     await h.settle(2);
     h.change({ method: "reject_all", marketing: false });
+    expect(h.api().pending()).toBe(0); // the waiting event is dropped
     release(ACCEPTED);
     await h.settle();
-    expect(h.appended).toHaveLength(0);
+    expect(h.appended).toHaveLength(1); // the page view from before
+    h.api().track("Contact", { content_category: "phone" });
+    await h.settle();
+    expect(h.calls().filter((c) => c[0] === "track")).toEqual([["track", "PageView"]]);
   });
 
   it("storage event for the consent cache with marketing off (another tab) takes the withdraw path", async () => {
@@ -351,7 +391,7 @@ describe("app/vamos-meta.js: flags open", () => {
     expect(h.calls().filter((c) => c[0] === "consent").length).toBe(n + 1);
   });
 
-  it("review 2 item 2: page restored from the back-forward cache, pixel already loaded, server says Marketing is not on: consent revoked and everything deleted", async () => {
+  it("review 2 item 2: page restored from the back-forward cache, pixel already loaded, server says Marketing is not on: consent revoked, cookies kept (M1)", async () => {
     let answer: State = ACCEPTED;
     const h = load({ open: true, state: () => Promise.resolve(answer), cached: { marketing: true } /* stale cache says yes */ });
     await h.settle();
@@ -366,10 +406,9 @@ describe("app/vamos-meta.js: flags open", () => {
     await h.settle();
     expect(h.calls().at(-1)).toEqual(["consent", "revoke"]);
     expect(h.api().revoked()).toBe(true);
-    expect(h.cookieWrites.some((w) => w.startsWith("_fbp=; Max-Age=0"))).toBe(true);
-    expect(h.cookieWrites.some((w) => w.startsWith("_fbc=; Max-Age=0"))).toBe(true);
-    expect(h.store.multiFbc).toBeUndefined();
-    expect(h.store.aemSource).toBeUndefined();
+    expect(h.cookieWrites).toHaveLength(0);
+    expect(h.store.multiFbc).toBe("x");
+    expect(h.store.aemSource).toBe("y");
     // And it never counts again on this page, even if the server later says yes.
     answer = ACCEPTED;
     h.fire("pageshow", { persisted: true });
@@ -545,13 +584,16 @@ describe("app/vamos-meta.js: ViewContent, Lead and Contact (owner events, 2026-1
     expect(h.win[FBQ]).toBeUndefined();
   });
 
-  it("marketing off: the queue is dropped and nothing is ever sent", async () => {
+  it("marketing off: the queue is dropped and no event is ever sent; only the page view went out", async () => {
     const h = load({ open: true, state: { ok: true, chosen: true, choice: { marketing: false } } });
     h.api().track("Lead");
     await h.settle();
     expect(h.api().pending()).toBe(0);
-    expect(h.appended).toHaveLength(0);
-    expect(h.win[FBQ]).toBeUndefined();
+    expect(h.appended).toHaveLength(1);
+    expect(h.calls().filter((c) => c[0] === "track")).toEqual([PIX]);
+    h.api().track("Contact", { content_category: "email" });
+    await h.settle();
+    expect(h.calls().filter((c) => c[0] === "track")).toEqual([PIX]);
   });
 
   it("after a withdraw nothing is sent any more", async () => {

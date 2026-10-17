@@ -40,14 +40,21 @@ describe("clearMetaBrowserState (CR-01 a)", () => {
   });
 });
 
-describe("the React banner calls it (CR-01 a)", () => {
-  it("after a successful save with Marketing off", () => {
+// M1 (adopted 2026-10-16, .planning/decisions/2026-10-16-google-advanced-consent-wording.md): Meta's page view and
+// its cookies _fbp / _fbc are for every visitor now, so the React banner no longer deletes them on a refusal; the
+// helpers above stay as they are (the mock loader still deletes while the legal gate is closed).
+describe("the React banner no longer calls it (M1 replaces CR-01 a)", () => {
+  it("not after a successful save with Marketing off", () => {
     const at = banner.indexOf("if (result.ok) {");
+    expect(at).toBeGreaterThan(-1);
     const block = banner.slice(at, banner.indexOf("return;", at));
-    expect(block).toContain("if (!chosen.marketing) clearMetaBrowserState();");
+    expect(block).not.toContain("clearMetaBrowserState");
+    expect(block).toContain("M1 (2026-10-16)");
   });
-  it("and on load for every answer the server gives where Marketing is not on (behaviour: components/consent/banner-meta-clear.test.ts)", () => {
-    expect(banner).toContain("clearMetaUnlessMarketingOn(j);");
+  it("and not on load for any server answer (behaviour: components/consent/banner-meta-clear.test.ts)", () => {
+    expect(banner).not.toContain("clearMetaUnlessMarketingOn(");
+    expect(banner).not.toContain("clearMetaBrowserState(");
+    expect(banner).not.toContain("@/lib/meta/clear-browser-state");
   });
 });
 
