@@ -305,7 +305,8 @@ describe("boot: each config only under its own choice", () => {
     let release: (s: State) => void = () => {};
     const h = load({ open: true, state: () => new Promise<State>((r) => (release = r)) });
     await h.settle();
-    expect(h.timers.map((t) => t.ms)).toEqual([1500]);
+    // 4000: the dead G-JW17PMTRE9 cookie sweep (2026-10-17); 1500: the wait for the server's answer.
+    expect(h.timers.map((t) => t.ms)).toEqual([4000, 1500]);
     await h.elapse();
     expect(configs(h).map((c) => c[1])).toEqual([TAG, GA]);
     expect(views(h)).toHaveLength(1);
