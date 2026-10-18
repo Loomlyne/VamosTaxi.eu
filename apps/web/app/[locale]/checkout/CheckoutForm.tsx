@@ -47,7 +47,6 @@ import { buildTripQuery, normaliseFlight, parseTripQuery, type Trip } from "@/li
 import { finishPathFrom } from "@/lib/auth/finish-path";
 import { useCheckoutFlow } from "./CheckoutPage";
 import { useCheckoutSettings } from "./CheckoutSettings";
-import { googleStep } from "@/lib/google/steps";
 
 
 export type ExtraItem = { code: string; amountRappen: number; names: ExtraNames };
@@ -899,7 +898,6 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
         const json = (await res.json()) as { ok?: boolean; url?: string; code?: string };
         if (json.ok === true && isStripeCheckoutUrl(json.url)) {
           // GA4 (wording 2026-10-11): going to payment, the name only (Meta's AddPaymentInfo goes from the server).
-          googleStep("AddPaymentInfo");
           window.location.assign(json.url);
           return;
         }

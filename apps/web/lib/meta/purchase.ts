@@ -42,6 +42,8 @@ export type MetaPurchaseDeps = {
    */
   referenceAllowed?: () => boolean;
   token: () => string | null;
+  /** The pixel id (META_PIXEL_ID). Missing: skipped as no_token, nothing leaves the site. */
+  pixelId: () => string | null;
   testEventCode: () => string | null;
   claim: (
     bookingId: string,
@@ -110,12 +112,13 @@ async function runMetaPurchase(input: MetaPurchaseInput, deps: MetaPurchaseDeps)
   };
   try {
     const token = deps.token();
+    const pixelId = deps.pixelId();
     const test = metaTestEventToSend(input.livemode, deps.testEventCode());
     // A live payment is a real event. Only a Stripe test-mode payment is stored as a test event.
     const testEvent = !input.livemode;
     const workerSkip: WorkerSkip = !deps.measurementAllowed()
       ? "gate_closed"
-      : !token
+      : !token || !pixelId
         ? "no_token"
         : test.skip
           ? "no_test_code"
@@ -162,12 +165,13 @@ async function runMetaPurchase(input: MetaPurchaseInput, deps: MetaPurchaseDeps)
         : null;
 
     let outcome: PostOutcome;
-    if (!event || !token || !claim.eventId) {
+    if (!event || !token || !pixelId || !claim.eventId) {
       outcome = { state: "failed", http: null, code: null, subcode: null };
     } else {
       outcome = await postPurchase(deps.fetch, {
         event,
         token,
+        pixelId,
         testEventCode: test.sendCode,
       });
     }
@@ -214,6 +218,7 @@ export function metaPurchaseDepsFromEnv(env: CloudflareEnv, emit: Emit): MetaPur
     measurementAllowed: metaMeasurementAllowed,
     referenceAllowed: metaEventsAllowed,
     token: () => env.META_CAPI_ACCESS_TOKEN || null,
+    pixelId: () => env.META_PIXEL_ID || null,
     testEventCode: () => env.META_TEST_EVENT_CODE || null,
     claim: async (bookingId, paymentId, policyVersion, testEvent, refundRequired, workerSkip) => {
       const rows = await asSystem(env, async (sql) => {

@@ -43,15 +43,12 @@ export function injectBaseInto(html, href) {
 }
 
 /**
- * The consent, Meta and Google loaders, straight after <base> (owner order 2026-10-17: the page view must not
- * wait). From <helmet> they only start once React, Babel and the CookieBanner component have loaded (about
- * 2.5 s); from <head> they run while the page parses. Each file returns early when its global already exists, so
- * the CookieBanner helmet loading them again later is a no-op. Only pages that mount CookieBanner get them.
+ * The consent runtime, straight after <base>, so it runs while the page parses rather than once React, Babel and
+ * the CookieBanner component have loaded. The file returns early when its global already exists, so the
+ * CookieBanner helmet loading it again later is a no-op. Only pages that mount CookieBanner get it.
+ * 2026-10-18: the Meta and Google loaders that used to sit here were removed with every tag.
  */
-export const TRACKING_HEAD =
-  '<script src="/app/vamos-consent.js"></script>' +
-  '<script src="/app/vamos-meta.js"></script>' +
-  '<script src="/app/vamos-google.js"></script>';
+export const TRACKING_HEAD = '<script src="/app/vamos-consent.js"></script>';
 
 export function injectTrackingInto(html) {
   if (!/<dc-import\s+name="CookieBanner"/.test(html)) return html;

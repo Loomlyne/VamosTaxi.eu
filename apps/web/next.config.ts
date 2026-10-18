@@ -5,8 +5,7 @@ import { join } from "node:path";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
-import { SECURITY_HEADER_PAIRS, contentSecurityPolicy } from "./lib/security/headers";
-import { googleTagAllowed } from "./lib/google/flag";
+import { SECURITY_HEADER_PAIRS } from "./lib/security/headers";
 import { parseLegalUpdated } from "./lib/legal-updated-dates";
 import { resolveEngineVersion } from "./lib/version";
 
@@ -117,23 +116,8 @@ const nextConfig: NextConfig = {
       key,
       value,
     }));
-    // 2026-10-09 (Google tag): the one-page checkout and the booking confirmation are Next pages, so their
-    // policy is set here, per address, and only while the Google flag is open. Same key as the catch-all row,
-    // listed after it: Next lets the last matching row win. Pay links (/checkout/pay/...) are not listed.
-    const googlePages = googleTagAllowed()
-      ? [
-          "/checkout",
-          "/:locale(de|fr|ar)/checkout",
-          "/confirmation/:ref",
-          "/:locale(de|fr|ar)/confirmation/:ref",
-        ].map((source) => ({
-          source,
-          headers: [{ key: "Content-Security-Policy", value: contentSecurityPolicy({ metaPixel: false, googleTag: true }) }],
-        }))
-      : [];
     return [
       { source: "/:path*", headers: securityHeaders },
-      ...googlePages,
       { source: "/dev/:path*", headers: noindex },
       { source: "/:locale/dev/:path*", headers: noindex },
       { source: "/review", headers: noindex },

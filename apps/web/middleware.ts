@@ -33,8 +33,6 @@ import { AUTH_SESSION_COOKIE_RE, LEGACY_AUTH_COOKIE_RE } from "./lib/supabase/co
 import { reviewTokenRedirect } from "./lib/reviews/review-cookie";
 import { applySeoToHtml, iconHeadTags, isSeoLang, seoPageFor, seoRoute, type SeoLang } from "./lib/seo/head";
 import { applySecurityHeaders } from "./lib/security/headers";
-import { metaMeasurementAllowed } from "./lib/meta/legal-gate";
-import { metaPixelCspFor } from "./lib/meta/pixel-csp";
 import {
   createSupabaseMiddlewareClient,
   updateSession,
@@ -687,12 +685,6 @@ export default async function middleware(request: NextRequest) {
       }
       const html = await serveDcHtml(request, mock);
       const served = applyStagingNoindex(request, await updateSession(request, await withSeoHead(html, seo)));
-      // Phase 28: Meta's hosts only on the clean pages, only while both flags are on. By address, never by visitor.
-      const metaCsp = metaPixelCspFor(
-        new URL(`${request.nextUrl.pathname}${request.nextUrl.search}`, `https://${hostnameOf(request)}`),
-        metaMeasurementAllowed(),
-      );
-      if (metaCsp) served.headers.set("Content-Security-Policy", metaCsp);
       const page = applyPublicCacheHeaders(request, served);
       // After the cache headers on purpose: a minted cookie turns the page private, no-store.
       await appendVisitorCookie(request, page);

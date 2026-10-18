@@ -30,6 +30,7 @@ function make(over: Partial<MetaPurchaseDeps> = {}) {
   const deps: MetaPurchaseDeps = {
     measurementAllowed: () => true,
     token: () => TOKEN,
+    pixelId: () => "1234567890",
     testEventCode: () => null,
     claim: vi.fn(async () => sendRow),
     finish: vi.fn(async () => {}),

@@ -20,6 +20,7 @@ vi.mock("@opennextjs/cloudflare", () => ({
   getCloudflareContext: () => ({
     env: {
       ["META_CAPI_" + "ACCESS_TOKEN"]: "fake-token",
+      META_PIXEL_ID: "1234567890",
       META_TEST_EVENT_CODE: state.testCode,
       STRIPE_PUBLISHABLE_KEY: state.live ? "pk_live_x" : "pk_test_x",
       QUOTE_RATE_LIMITER: { limit: async () => ({ success: !state.limited }) },

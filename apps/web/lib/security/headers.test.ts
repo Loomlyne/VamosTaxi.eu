@@ -70,34 +70,15 @@ describe("security headers (D-32…D-38)", () => {
     expect(csp).not.toMatch(/maps\.googleapis\.com/);
   });
 
-  it("the Next policy is the pre-Phase-28 string byte for byte and names no Meta host", () => {
+  it("the policy is one fixed string and names no advertising or analytics vendor host", () => {
     const csp = headerMap().get("Content-Security-Policy");
     expect(csp).toBe(
       "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com; frame-src challenges.cloudflare.com; connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com; img-src 'self' data: blob: https://*.mapbox.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
     );
-    expect(csp).toBe(contentSecurityPolicy({ metaPixel: false }));
-    expect(SECURITY_HEADER_PAIRS.map(([, v]) => v).join("\n")).not.toMatch(/facebook|instagram/i);
+    expect(csp).toBe(contentSecurityPolicy());
+    expect(SECURITY_HEADER_PAIRS.map(([, v]) => v).join("\n")).not.toMatch(/facebook|instagram|googletagmanager|google-analytics|doubleclick/i);
   });
 
-  it("the Meta policy adds the script host, the beacon host and the fallback frame, nothing else", () => {
-    const plain = contentSecurityPolicy({ metaPixel: false });
-    const meta = contentSecurityPolicy({ metaPixel: true });
-    const script = "https://connect." + "facebook" + ".net";
-    const beacon = "https://www." + "facebook" + ".com";
-    expect(meta).toMatch(new RegExp(`script-src [^;]*${script.replace(/\./g, "\\.")}`));
-    expect(meta).toMatch(new RegExp(`img-src [^;]*${beacon.replace(/\./g, "\\.")}`));
-    expect(meta).toMatch(new RegExp(`connect-src [^;]*${beacon.replace(/\./g, "\\.")}`));
-    expect(meta).toMatch(new RegExp(`frame-src challenges\\.cloudflare\\.com ${beacon.replace(/\./g, "\\.")}`));
-    // connect-src does NOT gain the script host (Meta's telemetry stays blocked).
-    expect(meta.match(/connect-src [^;]*/)![0]).not.toContain(script);
-    expect(meta).not.toMatch(/instagram|conversionsapigateway/);
-    // Removing the four additions gives back the plain policy exactly.
-    const stripped = meta
-      .replace(` ${script}`, "")
-      .split(` ${beacon}`)
-      .join("");
-    expect(stripped).toBe(plain);
-  });
 
   it("keeps /dev noindex rows", () => {
     const src = readConfig();

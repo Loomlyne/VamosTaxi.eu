@@ -1963,8 +1963,6 @@ class Component extends DCLogic {
     const prefix = (s.lang === 'de' || s.lang === 'fr' || s.lang === 'ar') ? '/' + s.lang : '';
     this.setState({ errs: r.errs });
     /* Meta ViewContent: the price button was pressed with a valid trip. One fixed word, never the trip. */
-    try { if (window.VamosMeta && window.VamosMeta.track) window.VamosMeta.track('ViewContent', { content_name: 'transfer' }); } catch (e) { /* never blocks the visitor */ }
-    try { if (window.VamosGoogle && window.VamosGoogle.track) window.VamosGoogle.track('ViewContent', { content_name: 'transfer' }); } catch (e) { /* never blocks the visitor */ }
     location.assign(prefix + '/checkout?' + p.toString());
   }
   submitBox = () => {
