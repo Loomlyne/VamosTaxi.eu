@@ -3742,7 +3742,10 @@ export type Database = {
           reason: string
         }[]
       }
-      meta_purchase_clear_ids: { Args: { p_booking_id: string }; Returns: undefined }
+      meta_purchase_clear_ids: {
+        Args: { p_booking_id: string }
+        Returns: undefined
+      }
       meta_purchase_finish: {
         Args: {
           p_booking_id: string
@@ -3990,10 +3993,7 @@ export type Database = {
         Args: { p_id: string; p_reason: string }
         Returns: string
       }
-      ops_vehicle_class_missing: {
-        Args: { p_id: string }
-        Returns: string
-      }
+      ops_vehicle_class_missing: { Args: { p_id: string }; Returns: string }
       ops_vehicle_class_set_status: {
         Args: { p_id: string; p_reason: string; p_to: string }
         Returns: string
