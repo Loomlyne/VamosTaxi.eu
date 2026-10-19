@@ -66,14 +66,14 @@ describe("security headers (D-32…D-38)", () => {
     const csp = headerMap().get("Content-Security-Policy") ?? "";
     expect(csp).not.toMatch(/stripe\.com/);
     expect(csp).not.toMatch(/link\.com/);
-    expect(csp).toMatch(/frame-src challenges\.cloudflare\.com;/);
+    expect(csp).toMatch(/frame-src challenges\.cloudflare\.com https:\/\/www\.googletagmanager\.com;/);
     expect(csp).not.toMatch(/maps\.googleapis\.com/);
   });
 
   it("the policy is one fixed string", () => {
     const csp = headerMap().get("Content-Security-Policy");
     expect(csp).toBe(
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com; frame-src challenges.cloudflare.com; connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com; img-src 'self' data: blob: https://*.mapbox.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com https://www.googletagmanager.com https://connect.facebook.net; frame-src challenges.cloudflare.com https://www.googletagmanager.com; connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://www.facebook.com https://connect.facebook.net; img-src 'self' data: blob: https://*.mapbox.com https://www.googletagmanager.com https://*.google-analytics.com https://www.facebook.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
     );
     expect(csp).toBe(contentSecurityPolicy());
   });

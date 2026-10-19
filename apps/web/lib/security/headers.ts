@@ -14,8 +14,8 @@
 // visitor allows Analytics (lib/consent/web-analytics.ts); Cloudflare's
 // automatic injection must stay off, or this allowance lets it run unasked.
 //
-// No advertising or analytics vendor host is listed here. A host is added with the tag that needs it,
-// never before.
+// Owner's tags (2026-10-19): Google Tag Manager GTM-KPKGT4VH, Google tag G-K5MZME44P6, Meta Pixel
+// 1595596972063765. Their hosts are listed below and nowhere else.
 //
 // Referrer-Policy is strict-origin: a move from a checkout, confirmation or pay-link address to another
 // page of ours tells that page only https://vamostaxi.site/, never the previous address. Cross-site
@@ -26,10 +26,10 @@
 export function contentSecurityPolicy(): string {
   return [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com",
-    "frame-src challenges.cloudflare.com",
-    "connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com",
-    "img-src 'self' data: blob: https://*.mapbox.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com https://www.googletagmanager.com https://connect.facebook.net",
+    "frame-src challenges.cloudflare.com https://www.googletagmanager.com",
+    "connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://www.facebook.com https://connect.facebook.net",
+    "img-src 'self' data: blob: https://*.mapbox.com https://www.googletagmanager.com https://*.google-analytics.com https://www.facebook.com",
     "worker-src 'self' blob:",
     "style-src 'self' 'unsafe-inline'",
     "object-src 'none'",

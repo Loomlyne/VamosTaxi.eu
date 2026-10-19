@@ -50,6 +50,47 @@ export function injectBaseInto(html, href) {
  */
 export const TRACKING_HEAD = '<script src="/app/vamos-consent.js"></script>';
 
+/** Owner's tags (2026-10-19), verbatim: Google Tag Manager, Google tag (GA4), Meta Pixel. Head of every public page. */
+export const TAGS_HEAD = `<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KPKGT4VH');</script>
+<!-- End Google Tag Manager -->
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-K5MZME44P6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-K5MZME44P6');
+</script>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1595596972063765');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1595596972063765&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->`;
+
+/** Google Tag Manager (noscript), straight after <body>. */
+export const TAGS_BODY = `<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KPKGT4VH"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->`;
+
 export function injectTrackingInto(html) {
   if (!/<dc-import\s+name="CookieBanner"/.test(html)) return html;
   const parts = splitHead(html);
@@ -59,6 +100,18 @@ export function injectTrackingInto(html) {
   if (!base) throw new Error("sync-dc-mock: tracking needs <base> first");
   const at = parts.inner.indexOf(base[0]) + base[0].length;
   return `${parts.before}${parts.inner.slice(0, at)}\n${TRACKING_HEAD}${parts.inner.slice(at)}${parts.after}`;
+}
+
+/** Owner's tags on a public page (one that mounts CookieBanner): head block right after <head>, GTM noscript after <body>. */
+export function injectTagsInto(html) {
+  if (!/<dc-import\s+name="CookieBanner"/.test(html)) return html;
+  if (html.includes("GTM-KPKGT4VH")) return html;
+  const parts = splitHead(html);
+  let out = `${parts.before}\n${TAGS_HEAD}${parts.inner}${parts.after}`;
+  const body = out.match(/<body\b[^>]*>/i);
+  if (!body || body.index == null) throw new Error("sync-dc-mock: tags need <body>");
+  const at = body.index + body[0].length;
+  return `${out.slice(0, at)}\n${TAGS_BODY}${out.slice(at)}`;
 }
 
 export function assertHeadBase(html, href, label) {

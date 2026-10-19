@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { assertHeadBase, injectBaseInto, injectTrackingInto, TRACKING_HEAD } from "./dc-page-base.mjs";
+import { assertHeadBase, injectBaseInto, injectTagsInto, injectTrackingInto, TAGS_BODY, TAGS_HEAD, TRACKING_HEAD } from "./dc-page-base.mjs";
 
 const POISON = `<!DOCTYPE html>
 <html>
@@ -57,4 +57,14 @@ test("tracking loaders go straight after <base>, once, only on CookieBanner page
   const head = out.slice(0, out.indexOf("</head>"));
   const noBanner = page.replace("CookieBanner", "SiteFooter");
   assert.equal(injectTrackingInto(noBanner), noBanner);
+});
+
+test("owner tags: head block after <head>, GTM noscript after <body>, once, only on CookieBanner pages", () => {
+  const page = `<html><head>\n<base href="/app/pages/">\n</head><body class="x"><dc-import name="CookieBanner" hint-size="0,0"></dc-import></body></html>`;
+  const out = injectTagsInto(page);
+  assert.ok(out.startsWith(`<html><head>\n${TAGS_HEAD}`));
+  assert.ok(out.includes(`<body class="x">\n${TAGS_BODY}`));
+  assert.equal(injectTagsInto(out), out);
+  const noBanner = page.replace("CookieBanner", "SiteFooter");
+  assert.equal(injectTagsInto(noBanner), noBanner);
 });

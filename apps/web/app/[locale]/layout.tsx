@@ -10,6 +10,7 @@ import { SEO_SITE_URL } from "@/lib/seo/head";
 import { CookieBanner } from "@/components/consent/CookieBanner";
 import { SiteFooter, SiteHeader, SiteShell } from "@/components/shell";
 import { Providers } from "./providers";
+import { SiteTagsBody, SiteTagsHead } from "@/components/tags/SiteTags";
 import { clientMessages } from "@/lib/i18n/client-messages";
 import { checkoutPaymentMethodTypes } from "@/lib/checkout/payment-methods";
 import "../globals.css";
@@ -94,7 +95,13 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} dir={dir}>
+      {showBanner ? (
+        <head>
+          <SiteTagsHead />
+        </head>
+      ) : null}
       <body>
+        {showBanner ? <SiteTagsBody /> : null}
         <Providers locale={locale} messages={clientMessages(messages)}>
           {/* CLAUDE.md: "`SiteHeader` and `SiteFooter` are mandatory on every public
               page — old ones and any new one. Never hand-roll a header or footer."
