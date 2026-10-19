@@ -95,9 +95,14 @@ function stripDcCopies(dir) {
 }
 
 // The copy never deletes, so first drop what vanished from the source: a removed file must not
-// keep shipping from the gitignored copy. `app/` is not mirrored: its .html pages are generated
-// from the .dc.html sources below and have no source counterpart.
+// keep shipping from the gitignored copy. Under `app/` the only files without a source counterpart
+// are the .html twins generated below from a .dc.html page that still exists; a twin of a deleted
+// page goes too. 2026-10-19: the deleted tag loaders app/vamos-google.js and app/vamos-meta.js kept
+// shipping from a developer's gitignored copy for one deploy because `app/` was not pruned.
+const generatedTwin = (p) =>
+  p.endsWith(".html") && !p.endsWith(".dc.html") && existsSync(resolve(repo, "app", p.replace(/\.html$/, ".dc.html")));
 const pruned = [
+  ...pruneMissing(resolve(repo, "app"), resolve(pub, "app"), generatedTwin).map((p) => `app/${p}`),
   ...pruneMissing(resolve(repo, "design-system"), resolve(pub, "_ds", uuid)).map((p) => `_ds/${p}`),
   ...pruneMissing(resolve(repo, "assets"), resolve(pub, "assets")).map((p) => `assets/${p}`),
 ];
