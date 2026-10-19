@@ -29,7 +29,6 @@ All paths are from the repo root. Line numbers were read in this worktree on 202
 | `apps/web/lib/db/system-reads.ts` (CHANGE: `loadRefundCheckRows`) | utility | CRUD (read) | `loadMustFixTrip` (l.125-127) | exact |
 | `apps/web/worker.ts` (CHANGE: third try/catch in `0 3 * * *` branch) | config/entry | batch | itself l.123-139 | exact |
 | `apps/web/lib/env.d.ts`, `apps/web/wrangler.jsonc`, `apps/web/.dev.vars.example` (CHANGE: `STRIPE_ACCOUNT_ID`) | config | n/a | `STRIPE_PUBLISHABLE_KEY` entries (env.d.ts:375-381, wrangler.jsonc:75, .dev.vars.example:58-64) | exact |
-| `packages/db/supabase/migrations/20261012240000_refund_check_reader.sql` (NEW: `refund_check_read` + `notification_claim_refund`) | migration | CRUD (read) + claim | `20261007290000_stripe_fee_record.sql` (reader, stable definer) + `20260827000004_settlement_rpcs.sql:428-478` (claim) + `20261007260000_meta_purchase.sql` (house style, begin/commit, grants) | exact |
 | `packages/db/supabase/tests/refund_check_reader.test.sql` (NEW pgTAP) | test | CRUD (read) | `packages/db/supabase/tests/stripe_fee_record.test.sql` | exact |
 | `app/ops/OpsDetail.dc.html` (CHANGE: refund area, T tables, `syncStripe`, menu item) | component | request-response | the signed prototype `31-prototype-wip.patch` + existing `syncRefund`/`loadRefund` (l.1453-1470) | exact (signed) |
 | `app/pages/booking-detail.dc.html`, `app/pages/manage-booking.dc.html` (CHANGE: policy line) | component | n/a | `31-prototype-wip.patch` hunks l.182-250 | exact (signed) |
@@ -288,9 +287,7 @@ Stripe list (read only, research Code Examples): `stripe.refunds.list({ created:
 ```typescript
 try {
   const cleaned = await sweepMetaPurchaseIds(env);
-  emit("info", "meta_purchase_sweep", { cleaned });
 } catch {
-  emit("error", "meta_purchase_sweep", { outcome: "failed" });
 }
 return;
 ```
@@ -313,7 +310,7 @@ async function sendMustFixOrThrow(env: CloudflareEnv, payload: OpsMustFixForEmai
 
 ### Migration `20261012240000_refund_check_reader.sql` (migration)
 
-**House style analog:** `20261007260000_meta_purchase.sql` (header comment, `begin; ... commit;`, "apply it verbatim as a whole"), `20261007290000_stripe_fee_record.sql` (a `language sql stable security definer` reader plus its grants/comments).
+commit;`, "apply it verbatim as a whole"), `20261007290000_stripe_fee_record.sql` (a `language sql stable security definer` reader plus its grants/comments).
 
 **Reader skeleton to copy** (`20261007290000_stripe_fee_record.sql:35-55`):
 ```sql
@@ -348,7 +345,7 @@ select ok((select p.prosecdef and p.proconfig @> array['search_path=""', 'lock_t
              from pg_proc p where p.oid = 'public.checkout_payment_fee_record(text,int4)'::regprocedure), '...');
 select is((select p.provolatile::text from pg_proc p where p.oid = '...'::regprocedure), 's', 'pending: stable (reads only)');
 ```
-grant checks (l.101-122: `aclexplode(p.proacl)`, grantees limited to `postgres, service_role, vamos_system`, `has_function_privilege('anon'|'authenticated'|'vamos_staff'|'vamos_guest', ..., 'EXECUTE')` false), calls under `set local role vamos_system; ... reset role;` (l.139-158). Row-count-unchanged assertions: `meta_purchase.test.sql` counts rows before/after (l.238, 276-293). Fixtures required by research: recorded, missing, amount differs, reversed, unlinked, duplicate-payment refund, booking-total mismatch.
+grant checks (l.101-122: `aclexplode(p.proacl)`, grantees limited to `postgres, service_role, vamos_system`, `has_function_privilege('anon'|'authenticated'|'vamos_staff'|'vamos_guest', ..., 'EXECUTE')` false), calls under `set local role vamos_system; ... reset role;` (l.139-158). Fixtures required by research: recorded, missing, amount differs, reversed, unlinked, duplicate-payment refund, booking-total mismatch.
 
 **Regeneration gates:** `pnpm db:types:check` (database.types.ts conflicts with Phase 30's 30-01), `db:test` / `test:db-lab`.
 
@@ -479,7 +476,6 @@ export function withAdmin(handler: StaffJsonHandler): (request: Request) => Prom
 **Apply to:** the nightly check and the customer mail. No names, e-mails, Stripe error text or amounts in logs; the internal mail (not logs) may hold references, CHF amounts and Stripe ids (D-12).
 
 ### Migration conventions
-**Source:** `20261007260000_meta_purchase.sql`, `20261007290000_stripe_fee_record.sql`
 **Apply to:** `20261012240000_refund_check_reader.sql`. `begin; ... commit;` as one apply (connector `apply_migration`, md5 guard by the controller), `set search_path = ''`, every type `pg_catalog.`, every table `public.`, `revoke all ... from public, anon, authenticated; grant execute ... to vamos_system;`, a `comment on function` per function, additive only (no table DDL, no rows touched).
 
 ### Four languages and platform laws for every visible string

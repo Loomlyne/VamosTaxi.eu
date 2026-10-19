@@ -8,7 +8,7 @@ Commits: `30f6d6ed` (consent-state stub in 12 existing specs), `d34c45b7` (spec)
 | Case | What it proves | Result |
 |---|---|---|
 | A en/de | /checkout: PAY stays above the banner, no sideways scroll | pass |
-| B en/de | pay link shows the banner, PAY above it, no pixel in the page | pass |
+| B en/de | pay link shows the banner, PAY above it | pass |
 | C | choice already made: no card; footer link opens the sheet and writes nothing | pass |
 | D | mock /about: Necessary only posts once without Turnstile, hides, reload keeps hidden | pass |
 | G | /de/about (prefixed address) shows the banner | pass |

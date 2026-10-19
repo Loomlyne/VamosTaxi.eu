@@ -40,7 +40,7 @@ customer page. The Next banner is rebuilt to look exactly like it.
 | D-13 | Marketing row in the sheet: description and meta line replaced by §2 verbatim. |
 | D-14 | Cookies page Meta row = §2; privacy page Meta line = §3. Bold exactly as the decision file. |
 | D-15 | Kicker "Cookies", title "You choose what we measure", button labels, the other three sheet rows: unchanged. |
-| D-16 | Never reword, shorten, re-translate or add to §1–§3. Arabic RTL, `_fbp` / `_fbc` stay LTR. |
+| D-16 | Never reword, shorten, re-translate or add to §1–§3.
 | D-17 | Cookies and privacy "Last updated" show the ship day (Zurich), the same day as `CONSENT_POLICY_VERSION`. |
 | D-21 / D-22 | Our own banner stays (option A); vanilla-cookieconsent is **not** adopted. The mock banner posts to `/api/consent` and learns "already chosen" from the server reader; `reset-password.dc.html` gets the banner; on Next the banner is held back by a condition, not a missing mount. |
 | UI-D1 = CONTEXT D-16a (owner, 2026-09-30) | Cookies page: the "Reset my choice" button and the line "Resetting clears the record and brings the banner back…" are removed. Lena changes her mind with "Change preferences" or "Necessary only"; each change is a new record. |
@@ -83,7 +83,7 @@ choice, clicking "Cookie preferences" in the footer opens the sheet with the sav
 | Preset | not applicable |
 | Component library | Vamos design system only. Mock: `VamosTaxiDesignSystem_245af1.Button`, `.Switch`, `.Alert`, `.Icon`. Next: `@/components/core` `Button`, `Icon`; `@/components/forms` `Switch`, `TurnstileWidget`; `@/components/feedback` `Alert`. |
 | Icon library | Vendored Lucide through `Icon`. Only glyph used: `x` (sheet close, existing). Alert keeps its built-in glyph. No new icon. |
-| Font | Poppins (`--vt-font-body`) for all body and controls; Qurova (`--vt-font-display`) for the two existing headings only. `--vt-font-mono` for `_fbp` / `_fbc` only. |
+| Font | Poppins (`--vt-font-body`) for all body and controls; Qurova (`--vt-font-display`) for the two existing headings only.
 
 **Compose, do not restyle.** Next port copies the mock's rules into `CookieBanner.css` under the
 existing `vt-ck-*` classes / `data-ck-*` attributes. Do not use the generic `Dialog` for the sheet
@@ -170,7 +170,7 @@ four:
 
 Weights: 400 and 600 only for anything new. **Locked exception:** the existing weight 500 on "Manage preferences" (`--vt-weight-medium`) stays as shipped (D-04); new code may not use 500. Bold in §2 (**Meta**) and §3 (**Meta Platforms Ireland Ltd. Advert
 measurement, only with your consent.** and its three translations) is `<strong>` at 600, nothing else
-bold. `_fbp` and `_fbc`: `<code class="vt-dir-keep">`, `font-family:var(--vt-font-mono)`,
+bold.
 `font-size:.92em`, colour inherited, no background, no border, no padding.
 
 Alert title uses the Alert's own style; do not override it.
@@ -229,7 +229,7 @@ Rules:
 - "Your current choice" panel: badges and "Saved on {date}" read the server choice (the same source as
   D-10), not only `localStorage`. No new copy.
 - Section 06 table: the single `none / … / none / not used` row becomes one row, one cell,
-  `colspan="4"`, holding §2 verbatim (bold **Meta**, `_fbp` / `_fbc` as code). Below 620px the cell
+Below 620px the cell
   loses its `data-l` label (the row is one block; do not print "Name" in front of §2).
 - Section 06 lead paragraph "Nothing in this category is running today. It is here because…" is
   **removed**, and the caption "Marketing — off, and currently unused" becomes **"Marketing"**
@@ -322,7 +322,7 @@ not a deletion; no confirmation dialog). The Next `errorCopy` fallback to the mi
 `quote.error.rate_limited` key goes; rate limiting shows the save-failed line.
 
 Arabic: `dir="rtl"` from the runtime; banner card sits bottom-right at ≥640px through
-`inset-inline-start`; `_fbp` / `_fbc` in `.vt-dir-keep`; the ContactFab (inline-end) and the card
+`inset-inline-start`; the ContactFab (inline-end) and the card
 (inline-start) never meet.
 
 ---
@@ -341,7 +341,7 @@ Arabic: `dir="rtl"` from the runtime; banner card sits bottom-right at ≥640px 
 
 | ID | Page | Question | Default if he agrees |
 |----|------|----------|----------------------|
-| PS-1 | vamostaxi.site/cookies, section 06 Marketing | Remove the lead "Nothing in this category is running today. It is here because…" and shorten the table caption to "Marketing", because they contradict your Meta row? Example: Lena reads "nothing is running" right above "Cookies `_fbp` and `_fbc`. Set only after you accept." | Remove both; no new sentence. |
+| PS-1 | vamostaxi.site/cookies, section 06 Marketing | Remove the lead "Nothing in this category is running today. Set only after you accept." | Remove both; no new sentence. |
 | PS-2 | vamostaxi.site/cookies, section 03 table | The row named `vamos:cookie-prefs` ("Records which categories you allowed…, until you change it") names something we do not store. Replace it with the two real items, `vamosCookieConsent` (this browser) and `consent_subject` (1 year), with wording you approve? Example: Marco looks for `vamos:cookie-prefs` in his browser and finds nothing. | Owner supplies or approves the wording; nothing written by the agent. |
 
 ---

@@ -4,7 +4,6 @@ plan: 04
 subsystem: web
 tags: [consent, cookie-banner, turnstile, middleware]
 requires: [27-01]
-requirements: [META-04]
 key-files:
   created:
     - apps/web/lib/consent/mock-mounts.test.ts

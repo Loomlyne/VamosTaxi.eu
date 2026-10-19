@@ -46,7 +46,7 @@ Earlier the same day: the Stripe fee record (`f1cc8726`, 00:02, Worker `b15beb82
 
 **Held:** migration `20261007320000` (revokes anon and authenticated EXECUTE on eight functions). Apply after the 16:29 Worker has run about a day and the owner's 4242 payment, one voucher quote and one cookie-banner choice pass. Next free migration number: `20261007330000`.
 
-**Open for the owner** (board, "Waiting for the owner"): Cloudflare Always Use HTTPS; add an authenticator (Settings, Security); city waiting 30 minutes and Publish; a chauffeur for Business and one for Van luxury; GitHub Billing; one 4242 payment; the Meta test event code and the Events Manager Test events check; read /terms 08 and the FAQ flight line on a phone; sign in and look at the dashboard board, calendar, one booking and Money in.
+**Open for the owner** (board, "Waiting for the owner"): Cloudflare Always Use HTTPS; add an authenticator (Settings, Security); city waiting 30 minutes and Publish; a chauffeur for Business and one for Van luxury; GitHub Billing; one 4242 payment; read /terms 08 and the FAQ flight line on a phone; sign in and look at the dashboard board, calendar, one booking and Money in.
 
 **Open jobs (controller):** sign-up safety (S5 Turnstile on sign-up and forgot-password, no name in the mail before the address is confirmed; the owner answered 2026-10-05, S9 stays as it is: `.planning/decisions/2026-10-05-signup-safety.md`); a later dashboard job (not-staff 403 blank screen, "You were signed out" message, keep the page when a write fails on a dead session, dashboard shows CHF 000 while loading or on failure, U7); quote and consent on their own nologin role; the signed quote lock still names two version ids; U15 webhook-first order leaves the return row unprocessed; live-key refusals for `rk_live_` (after the owner's refund-by-hand test); signed P4 parts B and C (U17).
 
@@ -55,7 +55,7 @@ Earlier the same day: the Stripe fee record (`f1cc8726`, 00:02, Worker `b15beb82
 ### GSD routing after the 2026-10-05 bookkeeping
 
 - `roadmap.analyze`: 42 phases, 352 plans, 353 summaries; current phase and next phase none; `roadmap_complete` is false only for 26.2.
-- `progress`: 29 and 26.1 read "Needs Review" because their VERIFICATION.md say `human_needed` (29: the Meta test event code, still the owner's). Not a gap in the work.
+- `progress`: 26.1 reads "Needs Review" because its VERIFICATION.md says `human_needed`. Not a gap in the work.
 - No agent starts 11-12 (owner's Publish), 17 (closed), 19 (closed by the owner), 21 to 25 (replaced), 4.3 (replaced). The ROADMAP marks each.
 
 ### Open questions for the controller
@@ -66,8 +66,7 @@ None. The owner's S5 and S9 answers are recorded (2026-10-05).
 
 Stripe live key, Search Console and the vamostaxi.eu cutover stay the owner's word. The agent never clicks
 Publish on the price book and does not raise it. No `supabase db push`; never restore onto or wipe
-`yaumjzvylngfjhtuffqs` (real paid bookings). No `sk_live_`. Meta: no Purchase event until the legal gate is open;
-the pixel loads only after a marketing Accept, and no Purchase is sent today because the test event code is missing.
+`yaumjzvylngfjhtuffqs` (real paid bookings). No `sk_live_`.
 Only the control session commits on main, applies live migrations and deploys.
 
 ### Quick Tasks Completed
@@ -100,9 +99,6 @@ the controller (the Claude desktop session "Vamos Taxi controller", named on the
 - Phase 19 added: V1 production close-out leftover live gates and 10k booking surge (2026-09-18). Parked. Hard gate in ROADMAP. Current stays 17 leftover live close.
 - Phase 20 added: Security audit fix-up (2026-09-19). Does not begin Phase 19. Owner SQL. No `.eu`. No `sk_live_`.
 - Phases 21–25 added: v1.2 Payment (2026-09-22). PAY-08…PAY-18. Leftovers 16/17/19/20 unchanged.
-- v1.3 started (2026-09-23): Meta measurement. Do not `phases.clear`.
-- Phases 26–29 approved (2026-09-23): v1.3 Meta measurement. META-01…META-14. Next is discuss-phase 26.
-- Phase 26 lock shipped (2026-09-24) on `gsd/phase-26-legal-gate`. Empty slots. Flag is the literal false. Policy version stays `2026-09-12`. Not merged. Pixel stays off until the owner pastes the four-language lines.
 - Phase 26.3 discuss signed (2026-09-29): renamed Booking flow rebuild; Stripe hosted page, one checkout, URL handover, generic extras, pickup instant, test bookings deleted by owner script. Starts before 26.2.
 - Phase 26.3 inserted (2026-09-28): Booking flow simplification. Sketch 001 Variant A approved by the owner (two screens, home price strip on tablet/desktop, one checkout page). Placed before 27 by owner choice so the pixel measures the new funnel. Depends on 26.1 and 26.2 merging first. Next is discuss-phase 26.3.
 - Phase closure (owner, 2026-09-29, `.planning/PHASE-CLOSURE-2026-09-29.md`): 16 complete; 17 closed, feature removed; 21 to 25 and 4.3 replaced by 26.1/26.3; 05-19 dropped; 11-12 owner-held; 19, 20 and 26.2 rewritten and signed.
@@ -115,7 +111,6 @@ the controller (the Claude desktop session "Vamos Taxi controller", named on the
 - Phase 27 shipped 2026-10-01 (`ce55cd75`); Phase 27.1 finish your account inserted and shipped 2026-10-01 (`96a17ab7`).
 - GSD bookkeeping B10 (2026-10-01): summaries for every finished, superseded or owner-held plan; ROADMAP rows for 5.1, 5.2, 6.1, 26.0, 26.2, 26.4.2, 26.5, 27.1; closed and replaced phases marked. Open plans keep no SUMMARY.
 - Phase 20 complete 2026-10-02 (batches A, B1, C1, C2, refunds by hand, e-mail change fix, leftovers; live proof and the owner's 4242 payment passed).
-- Phase 28 shipped 2026-10-03 20:00 (`da25c7d5`); Phase 29 shipped 2026-10-04 15:57 (`54599783`), lock-order fix 16:27 (`41ba7b7d`). Owner-held: the Meta test event code and the Events Manager Test events check.
 - 2026-10-05: the owner's repo investigation (`.planning/audits/2026-10-05-repo-investigation.md`); repo made private; the six fix jobs are live (table above). They have no phase of their own: their hand-overs are the quick folders `261005-*`.
 - GSD bookkeeping 2026-10-05: ROADMAP rows for 28 and 29, this file, quick 260819-279 and 260819-vjz closed as superseded, the control board's waiting table.
 

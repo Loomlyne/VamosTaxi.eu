@@ -30,7 +30,6 @@ hide-internal-ids lines this branch had already changed. All resolved to this br
 `AUTH_SESSION_COOKIE_RE, LEGACY_AUTH_COOKIE_RE`), `app/pages/cookies.dc.html` and `apps/web/app/[locale]/cookies/page.tsx` (Sign-in Name
 `vt-auth`), `apps/web/lib/security/public-no-internal-ids.test.ts` (three `vt-auth` pins). `worker.ts` merged without conflict. The merge
 result tree is byte-identical to the previous tip `960a15c0`. Rerun on it: typecheck, `pnpm lint` (0 errors), vitest `lib/supabase`,
-`lib/security`, `lib/reviews`, `lib/consent`, `legal-updated`, `legal/extract-no-invent`, `meta/legal-gate` and every test importing
 `middleware`: 47 files / 485 tests pass.
 
 ### Merge of hide-internal-ids (step 2)

@@ -62,8 +62,6 @@ Every function the script flagged was then read by hand. No dynamic SQL, and no 
 | Function | Order before | Order after | Note |
 |---|---|---|---|
 | `checkout_payment_settle` | payment → booking | same | the order everyone follows; later it writes only its own payment |
-| `meta_purchase_claim` | payment (KEY SHARE) → booking | same | 270000 |
-| `meta_purchase_sweep` | payment (KEY SHARE, skip locked) → booking (skip locked) | same | 270000 |
 | `checkout_duplicate_refund_record` | payment → booking | same | |
 | `stripe_charge_refunded_record` | payment → booking | same | |
 | `stripe_dispute_upsert` | payment → booking (KEY SHARE through `booking_disputes`) | same | |
@@ -103,8 +101,8 @@ On `6a3ad2e0` (code unchanged since `8a584727`; `6bbf0058` after it adds only `.
 | `pnpm run check:numbers` | pass |
 | Worker callers' unit tests: `lib/ops` refund, refund-by-hand, edit-request (4 files), booking-change (6 files), booking-trip-change, staff-cancel-by-hand, staff-hosted-pay, trip-change-migration-grants; `lib/checkout` settle, settle-errors, return-settle; `lib/lifecycle/paid-cancel`; `lib/account/bookings` | pass: 21 files, 381 tests |
 | `scripts/test-lab/lab.sh up refundlock` (native), then `supabase db reset` from zero | pass: 138 migrations, 280000 last |
-| Full pgTAP from zero (`lab.sh pgtap refundlock`) | pass: 104 files, 2895 tests. `refund_lock_order` 38/38, `settle_safety`, `meta_purchase_lock_order`, `refunds_by_hand`, `ops_refund`, `refund_review`, `booking_edit_requests`, `class_change_reprice`, `trip_change_reprice` all ok |
-| Local, packages/db (`VAMOS_LOCAL_DB_PORT=45222`, clean reset, files one after another): `refund-lock-order` 7, `meta-purchase-lock-order` 4, `meta-purchase` 6, `class-change-reprice` 3 | pass: 4 files, 20 tests |
+| Full pgTAP from zero (`lab.sh pgtap refundlock`) | pass: 104 files, 2895 tests. `refund_lock_order` 38/38, `settle_safety`, `refunds_by_hand`, `ops_refund`, `refund_review`, `booking_edit_requests`, `class_change_reprice`, `trip_change_reprice` all ok |
+| Local, packages/db (`VAMOS_LOCAL_DB_PORT=45222`, clean reset, files one after another): `refund-lock-order` 7, `class-change-reprice` 3 | pass: 2 files, 10 tests |
 | Local, apps/web: `refund-by-hand`, `settle-safety`, `booking-change`, `trip-change`, `trip-change-patch`, `customer-request-staff-pages`, `customer-request-staff-waiting` | pass: 7 files, 13 tests |
 | Bodies copied word for word | each of the nine latest bodies, re-applied unchanged with `create or replace` on the from-zero stack: `pg_get_functiondef` md5 identical |
 | Mutation: the nine old bodies put back on the same stack (md5 equal to the "before" column) | pgTAP guard fails 23 of 38. Local: (a) plan gets `40P01` (deadlock, settle's booking lock waited about 1.3 s); (b) Accept gets `40P01`; (c) plan locks the new payment under the booking lock and plans both; (c) extra settle locks the recorded payment under the booking lock and answers already settled. Then 280000 re-applied: everything passes again, md5 equal to the "after" column |
@@ -145,7 +143,7 @@ select p.oid::regprocedure::text as fn, md5(pg_get_functiondef(p.oid)) as md5, p
    and p.proname in ('ops_refund_plan', 'ops_refund_intent_sent', 'ops_refund_record', 'record_booking_refund',
                      'booking_edit_request_accept', 'booking_edit_refund_record', 'booking_staff_change',
                      'booking_staff_trip_change', 'checkout_extra_payment_settle',
-                     'checkout_payment_settle', 'meta_purchase_claim', 'meta_purchase_sweep')
+                     'checkout_payment_settle')
  order by 1;
 ```
 
@@ -161,8 +159,6 @@ select p.oid::regprocedure::text as fn, md5(pg_get_functiondef(p.oid)) as md5, p
 | `ops_refund_record(uuid,bigint,text,uuid,rappen,text,rappen)` | `f9096cdef92344bb0ab458d16f990a07` | `96433b6710b3d78aaac39f02cf87ad58` |
 | `record_booking_refund(uuid,text,text,timestamp with time zone,rappen)` | `90d2167f2e0b6b5fd25f4ab38a522a53` | `b43032b9d9e0f1d03a928a90a5d8e29d` |
 | `checkout_payment_settle(text,text,text,text,text,numeric,text,timestamp with time zone,bigint,text)` | `71a0d647a1945a9add59ae46a72c88c8` | unchanged |
-| `meta_purchase_claim(uuid,bigint,text,boolean,boolean,text)` | `1a0f083820584d211cb5d94209a4a526` | unchanged |
-| `meta_purchase_sweep()` | `bef84d2c312d07f1ef5ef79b2e404824` | unchanged |
 
 `proconfig` for each of the nine: `{search_path=""}`, before and after.
 

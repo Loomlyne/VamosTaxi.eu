@@ -12,25 +12,6 @@ The design phase is finished. Every screen already exists as a working `.dc.html
 brand system is vendored, and the build plan is written. This project is the production
 build of that package — not a redesign of it.
 
-## Current Milestone: v1.3 Meta measurement
-
-**Goal:** After Accept, customer pages send Meta one PageView, and a paid booking sends one Purchase from the Stripe webhook, in the CHF Stripe charged.
-
-**Target features:**
-- Pixel `1595596972063765` loads only after Accept
-- Public pages with no token in the URL, plus signed-in account and bookings
-- Never ops, never a pay link, never manage-booking
-- Browser event is PageView only
-- Purchase fires once from the Stripe webhook, with `_fbp` and `_fbc` attached
-- No email, phone, name, route, flight number, or booking reference in the payload
-- Unpriced `CHF 000` sends nothing
-- Accept and Dismiss stay. Accept means Meta on. Dismiss means Meta off. Banner asks on every customer page until they choose. No new switches
-- A later Dismiss stops future events. Accepting after payment does not backfill a Purchase
-- Banner, cookies, and privacy lines in en/de/fr/ar come from the owner. Do not draft them. The pixel stays unloaded until those lines are in
-- Conversions API token via `wrangler secret put`. Staging uses a Meta test event code
-
-**Frozen:** v1.2 Payment (Phases 21–25 planned, not current). v1.1 leftovers (16 MX, 17 chauffeur, 19 close-out, 20 security) stay on disk. Quote/class rebuild and fare Publish are not this milestone.
-
 ## Milestone v1.2 Payment (planned, not current)
 
 **Goal:** From a locked quote, a customer pays on `vamostaxi.site` in Stripe TEST and the
@@ -107,13 +88,6 @@ Everything here is a hypothesis until it ships and takes a real booking.
 - [ ] Ops console runs the day: live board, booking detail, assignment, manual phone booking
 - [ ] Legal pages ship with real numbers where the owner has supplied them and labelled TBC pills where not
 
-**v1.3 Meta measurement (active now)**
-- [ ] After Accept, allowed customer pages load pixel `1595596972063765` and send PageView only
-- [ ] A paid booking sends one Purchase from the Stripe webhook, charged CHF, with `_fbp` and `_fbc`
-- [ ] Accept means Meta on. Dismiss means Meta off. The choice is logged server-side. A later Dismiss stops future events
-- [ ] Ops, pay-link, and manage-booking URLs never load the pixel
-- [ ] The pixel stays unloaded until the owner supplies banner, cookies, and privacy lines in en/de/fr/ar
-
 **v1.2 Payment (frozen — planned, not current)**
 - [ ] Traveller pays a locked quote on `vamostaxi.site` in Stripe TEST (card, Apple Pay, Google Pay, TWINT, Link) and the webhook confirms the booking
 - [ ] Thank-you page waits on the webhook, not on `confirm()` alone
@@ -146,10 +120,6 @@ Everything here is a hypothesis until it ships and takes a real booking.
 - **Phone-typed tickets / auto-tags** — out of v1.1; statuses only
 - **Live `vamostaxi.eu` DNS** — still Phase 11; inbound MX is staging `vamostaxi.site` only
 - **Live Stripe account / `sk_live_`** — not v1.2; test mode until an explicit later cutover (secrets only)
-- **Meta middle-funnel events** — quote seen, checkout started, and pay step are not sent. PageView + one Purchase only
-- **Hashed email or phone to Meta** — not v1.3. Match the ad click with `_fbp` and `_fbc` only
-- **Browser Purchase on the thank-you page** — refresh would double-count. The webhook is the only Purchase
-- **Meta on ops, pay-link, or manage-booking** — those URLs can carry a token. PageView would send it to Meta
 - **Calendar invite (.ics) on confirmation** — out of v1.2
 - **Quote/class rebuild and owner fare Publish** — out of v1.2; unpriced class stays `CHF 000`
 - **Live flight tracking on the ops board** — flight data ships at autofill + delay-aware depth only
@@ -231,9 +201,6 @@ and every amount on screen reads `CHF 000`.
 | Language is a route segment, currency is client state | The `VamosLocale` DOM-walking runtime cannot render correct language server-side; see `.planning/ADR-001-i18n-ssr.md`. The mandated contract survives behind a shim | — Pending |
 | No account is created speculatively | Phase 1 creates each external service when it first needs it; a duplicate is caught by the sign-up flow itself rather than by inspection | — Pending |
 | `apps/web` lands in `Loomlyne/VamosTaxi.eu` | Rather than a separate `vamos-platform` repo; the app sits next to the mocks it is ported from | — Pending |
-| v1.3 Meta is PageView + one webhook Purchase | Ad click is not consent. Browser Purchase double-counts. Middle steps and hashed email/phone wait | — Active |
-| Accept means Meta on; Dismiss means off | Two buttons, every customer page until a choice. No category switches. Marketing was stored false | — Active |
-| Pixel stays unloaded until owner legal lines | Do not invent banner, cookies, or privacy copy. Four languages. TBC is not a licence to load `fbevents.js` | — Active |
 | v1.2 Payment stays planned, not current | Phases 21–25 remain on disk. Phase 21 is not executing while v1.3 is defined | — Active |
 
 ## Evolution
@@ -254,5 +221,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-24 — phase 26 lock shipped on the branch, not live. Pixel stays off.*
 *Last updated: 2026-09-22 — milestone v1.2 Payment started*

@@ -44,7 +44,7 @@ request from the owner, and before every ship, read all of this yourself:
 - Never close a pull request, delete a branch or drop a stash. A folder is removed only after proof: clean, and its tip on GitHub as a branch or an `archive/*` tag. The stash command is used only in its list and show forms.
 - A tool refusal names the bad field: fix the call, never route around it.
 - A fact about live data comes from the live row, never from code. Times come from the clock.
-- Browser tests are the owner's. Secrets stay in his terminal; never read or print `META_CAPI_ACCESS_TOKEN`. Commands he runs are numbered steps; never put a runnable deploy command in a code block for him.
+- Browser tests are the owner's. Secrets stay in his terminal; Commands he runs are numbered steps; never put a runnable deploy command in a code block for him.
 - The dashboard gateway Worker `vamos-dashboard` is deployed only with his explicit yes for that ship. After a deploy that touches checkout: his 4242 payment first, then you read `booking_payments` by status.
 - One product per session. Jev (TypeSafe) is available through plugin `typesafe`: advisory only, real calls only, never simulated.
 
@@ -54,7 +54,7 @@ Read on 2026-10-01 15:54 (+04) by the old control session:
 - Building: P6 place and time change (26.2 session, folder `vamos-wt/phase-26.2`, migration `20261007150000`); "Finish your account" 27.1 (`claude/project-thread-vc27aw`, migration `20261007170000`, plan 01 waits for the owner); "Build confirmation redesign" (`claude/project-thread-wmr715`). Neither of the last two has received the hand-over rules: two messages to them expired.
 - Waiting: Phase 28 and 29 (Meta's setup file still showed automatic matching on); extras B and C after P6; stricter check scripts (u13) last; dead car code only on the owner's word.
 - GitHub run 36856406309 on `f8a2f635` (six e2e jobs) was still running; read its times and failing specs and put them on the board. Left open: eleven serial spec files hide later tests after a first failure; the known red set.
-- Owner tests owed: class change with a 4242 payment of a difference; plate on his driver and one assignment; e-mail change with two addresses; `/ar/contact` on his phone; imprint notice wording in French and Arabic; the screenshot decisions from 26.0; Meta Events Manager switches on pixel `1595596972063765`.
+- Owner tests owed: class change with a 4242 payment of a difference; plate on his driver and one assignment; e-mail change with two addresses; `/ar/contact` on his phone; imprint notice wording in French and Arabic; the screenshot decisions from 26.0;
 - Booking VT-26-0749 is unpaid and pending (abandoned Stripe page, Stripe itself not read).
 - Clean clone and gate script used by the old session lived in its scratch folder and are gone when it closes: build your own.
 

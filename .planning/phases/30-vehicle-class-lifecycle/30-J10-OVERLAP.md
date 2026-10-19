@@ -176,7 +176,6 @@ Shared but not expected to be touched: `packages/emails/src/messages/*.json`, `a
 - `packages/db/supabase/seed.sql`
 - `packages/db/supabase/tests/amount_state_verify.test.sql`
 - `packages/db/supabase/tests/booking_edit_requests.test.sql`
-- `packages/db/supabase/tests/booking_meta_click_ids.test.sql`
 - `packages/db/supabase/tests/cancellation_refund_d02.test.sql`
 - `packages/db/supabase/tests/checkout_rpc.test.sql`
 - `packages/db/supabase/tests/class_change_reprice.test.sql`
@@ -184,7 +183,6 @@ Shared but not expected to be touched: `packages/emails/src/messages/*.json`, `a
 - `packages/db/supabase/tests/guest_resume_quote.test.sql`
 - `packages/db/supabase/tests/late_paylink_settle.test.sql`
 - `packages/db/supabase/tests/manage_token_purpose.test.sql`
-- `packages/db/supabase/tests/meta_purchase_lock_order.test.sql`
 - `packages/db/supabase/tests/ops_refund.test.sql`
 - `packages/db/supabase/tests/pay_link_hold.test.sql`
 - `packages/db/supabase/tests/purge_agreement_records.test.sql`

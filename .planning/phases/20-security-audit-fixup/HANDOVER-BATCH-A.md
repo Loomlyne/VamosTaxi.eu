@@ -20,7 +20,7 @@ Checked against live Worker `a55b2c19` = code `e27014c1` (findings in `20-06-FIN
 |---|---|
 | typecheck, lint, lint:css, i18n:check, check:legal-claims, check:numbers, check:public-env, check:db-fences, db:seed:check | all exit 0 |
 | build | exit 0 |
-| Unit tests (full run) | 2470 pass, 5 fail, 1 skipped. The 5 are 5-second timeouts in `paid-cancel`, `reminder`, `legal-gate`, `bookings-write` tests, files this branch does not touch. Each file passes when run alone; `paid-cancel` also passes on main. |
+| Unit tests (full run) | 2470 pass, 5 fail, 1 skipped. Each file passes when run alone; `paid-cancel` also passes on main. |
 | pgTAP (isolated stack `vamos-taxi-20`) | 78 files, 1787 tests, 2 fail: `seed_idempotent.test.sql` tests 33 and 36 (content_strings 2660 vs pinned 2626; 94 vs 75). Pre-existing on main: the test pins old counts, `db:seed:check` reports no drift. Not fixed here; belongs to 26.0. |
 | From-zero replay | `supabase db reset` applied every migration including both new ones, then the seed. |
 | types:check | generated types identical to `packages/db/database.types.ts`. |

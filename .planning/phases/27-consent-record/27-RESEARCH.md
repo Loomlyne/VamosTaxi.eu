@@ -10,9 +10,9 @@ This phase adds no library and no new layout. It (1) adds one SECURITY DEFINER r
 
 The key design fact: every public mock page reaches the browser through `serveDcHtml` in `apps/web/middleware.ts:111`, and the nine `MARKETING_CACHE_PATHS` get `Cache-Control: public, s-maxage=300, stale-while-revalidate=3600` (`middleware.ts:449-456`). Anything per visitor baked into that HTML can be served to another visitor by any shared cache. So the page must learn its consent state from a separate, uncached request. The recommendation is a new `GET /api/consent/state` (route handlers under `/api` are outside the middleware matcher, `middleware.ts:726`). The same endpoint serves the Next banner, which removes the need for an identity wrapper in the layout, a pattern the db-fence checker is built to catch.
 
-Several existing tests pin Phase 26 behaviour that this phase changes on purpose: `legal-gate.test.ts` (version `2026-09-12`, `marketing: false`, `PendingSlot` slots, banner title), `banner-contract.test.ts` (two buttons, `isHome ? banner : null`), `record.test.ts` (all categories false, signup writer), `live-no-tbc.test.ts` (`.vt-ck-meta:has([data-tok])`), `tests/unit/auth/signup-consent.test.ts`, and the auth e2e check `1b`, which expects at least one `consent_log` row after sign-up. Each must be rewritten in the same plan that changes the behaviour, never deleted blindly.
+Each must be rewritten in the same plan that changes the behaviour, never deleted blindly.
 
-**Primary recommendation:** Build one migration `20261002100000_consent_choice_reader.sql` holding `public.consent_choice(p_policy_version text, p_as_of timestamptz default null)`. It takes the subject from the GUC, returns one row or none, has no arrays, and grants EXECUTE to `anon` only. Build one `no-store` `GET /api/consent/state` over it, called by a new shared mock runtime `app/vamos-consent.js` and by the rebuilt Next `CookieBanner.tsx`. Keep the owner texts out of the shared dictionary: put them in a new `app/vamos-meta-texts.js` and in new next-intl keys, and prove both byte-for-byte against the decision file.
+**Primary recommendation:** Build one migration `20261002100000_consent_choice_reader.sql` holding `public.consent_choice(p_policy_version text, p_as_of timestamptz default null)`. It takes the subject from the GUC, returns one row or none, has no arrays, and grants EXECUTE to `anon` only. Build one `no-store` `GET /api/consent/state` over it, called by a new shared mock runtime `app/vamos-consent.js` and by the rebuilt Next `CookieBanner.tsx`.
 
 ## User Constraints (from CONTEXT.md)
 
@@ -73,7 +73,6 @@ Several existing tests pin Phase 26 behaviour that this phase changes on purpose
 - **D-15:** The banner title "You choose what we measure", kicker, button labels and the other
   three preference rows stay as they are.
 - **D-16:** Never reword, shorten, re-translate or add a sentence to §1–§3. Arabic in RTL with
-  `_fbp`/`_fbc` kept LTR (`.vt-dir-keep`).
 - **D-16a (owner, 2026-09-30, UI-SPEC Q-1):** remove "Reset my choice" and the line "Resetting clears the record and brings the banner back…" from /cookies. Lena changes her mind with "Change preferences" / "Necessary only"; each change is a new record.
 
 #### Banner code: keep our own banner (owner, 2026-09-30)
@@ -90,10 +89,6 @@ Several existing tests pin Phase 26 behaviour that this phase changes on purpose
   `/checkout`, `/confirmation`, the pay link, `error.tsx`, `not-found.tsx` — it may be a condition
   to change, not a mount to add). `reset-password.dc.html` gets the banner. `bind.ts` takes the
   categories from the choice; new policy version; owner texts verbatim; sign-up write removed.
-- **D-23:** Pixel (Phase 28, recorded so the consent design holds): the pixel is never in HTML for
-  a person without an Accept under the current version, and never on the pay link,
-  manage-booking, ops/dashboard or any URL carrying a booking reference. Cached marketing HTML
-  carries no pixel and no per-visitor state.
 
 #### Policy version
 - **D-17:** `CONSENT_POLICY_VERSION` becomes the Zurich date of the day the texts ship (Phase 26
@@ -112,8 +107,6 @@ Several existing tests pin Phase 26 behaviour that this phase changes on purpose
   paid time.
 
 #### Carried forward
-- Nothing to Meta before Accept; `META_LEGAL_GATE_OPEN` stays `false` in this phase.
-- The pixel never loads on a pay link (Phase 28 enforces; 27 adds nothing that loads it).
 - Accept keeps its Turnstile check (`action: consent`), Necessary only does not (existing route).
 - No `sk_live_`, no `vamostaxi.eu`, no invented legal copy, no invented CHF, no hashed e-mail or
   phone, no browser Purchase, no middle events. Quote, pay and confirmation logic unchanged
@@ -128,7 +121,6 @@ Several existing tests pin Phase 26 behaviour that this phase changes on purpose
   measured body padding.
 
 ### Deferred Ideas (OUT OF SCOPE)
-- Pixel, `_fbp`/`_fbc`, Events Manager confirmation flag, opening `META_LEGAL_GATE_OPEN` — Phase 28.
 - Server Purchase from the settle queue — Phase 29.
 
 </user_constraints>
@@ -138,9 +130,9 @@ Several existing tests pin Phase 26 behaviour that this phase changes on purpose
 
 | ID | Description | Research Support |
 |----|-------------|------------------|
-| META-03 | Accept logs Meta on. Dismiss logs Meta off. The latest `consent_log` row wins. No new switches. | §Route changes (category mapping), §Reader SQL (latest row under current version, `id desc` tie-break), pgTAP cases R1–R8, vitest route cases |
-| META-04 | The banner asks on every customer page until they choose, including a pay link. Ops has no banner. The pixel still never loads on a pay link. | §How the page learns state (GET `/api/consent/state`), §SiteShell change, mock mounts on sign-in/account/bookings/reset-password, SiteShell render test for `/checkout/pay/x`, legal-gate "no fbevents" pin kept |
-| META-05 | A later Dismiss stops future PageView and future Purchase. Accepting after payment does not backfill a Purchase. | §Reader `p_as_of` (D-20); pgTAP cases R5–R7 with explicit `recorded_at` fixtures |
+Dismiss logs Meta off. The latest `consent_log` row wins. No new switches. | §Route changes (category mapping), §Reader SQL (latest row under current version, `id desc` tie-break), pgTAP cases R1–R8, vitest route cases |
+Ops has no banner.
+Accepting after payment does not backfill a Purchase. | §Reader `p_as_of` (D-20); pgTAP cases R5–R7 with explicit `recorded_at` fixtures |
 </phase_requirements>
 
 ## Project Constraints (from CLAUDE.md)
@@ -150,7 +142,7 @@ Directives the planner must verify each plan against. Sources: `./CLAUDE.md`, `.
 - **Design system only.** Compose from `VamosTaxiDesignSystem_245af1.*` (mock) and `@/components/*` (Next). No invented colour, font, radius or shadow.
 - **Law 01, no glow.** Keep `--vt-shadow-accent:none` and `.vt-input--focus{box-shadow:none}` in every `.dc.html` helmet.
 - **Law 02, no tinted yellow.** The mock banner has two live breaks: `[data-ck-link]:hover{color:var(--vt-yellow-700)}` (line 55) and `[data-tok]::after{…var(--vt-yellow-700)}` (line 48). UI-SPEC requires fixing both.
-- **Law 03, four languages in the same pass.** Every new visible string needs en, de, fr and ar, including `aria-label`, `title` and `alt`. `VamosLocale.coverage(root)` must return empty. Arabic RTL uses logical properties; `_fbp`/`_fbc` go in `.vt-dir-keep`.
+- **Law 03, four languages in the same pass.** Every new visible string needs en, de, fr and ar, including `aria-label`, `title` and `alt`. `VamosLocale.coverage(root)` must return empty. Arabic RTL uses logical properties;
 - **Law 04.** No `data-tok` pill on a live page (owner rule 2026-09-30, `live-no-tbc.test.ts`). Never invent a CHF amount.
 - **Responsive.** Check at 1440, 1024, 768 and 390. Nothing scrolls sideways at 390. Touch targets are at least 44px.
 - **Lenis.** Never construct a second instance. Put `data-lenis-prevent` on the sheet's scrolling list (`[data-ck-cats]` already scrolls with `overflow:auto`).
@@ -272,7 +264,6 @@ apps/web/i18n/messages/{en,de,fr,ar}.json                                  new k
 apps/web/lib/auth/signup-consent.ts + api/auth/callback/route.ts           remove cookie-row write (D-01)
 apps/web/middleware.ts                                                     inject Turnstile site-key meta for every DC page
 app/vamos-consent.js                                                       NEW  shared mock runtime (state GET, post, event)
-app/vamos-meta-texts.js                                                    NEW  §1–§3 per language, segment form
 app/home/CookieBanner.dc.html, app/pages/CookieBanner.dc.html              server write, states, copy, Law fixes
 app/pages/{sign-in,account,bookings,reset-password}.dc.html                add <dc-import name="CookieBanner" hint-size="0,0">
 app/pages/cookies.dc.html, privacy.dc.html                                 §2/§3, Reset removed, date, server-read panel
@@ -362,11 +353,11 @@ Rules:
   - Refusal is never slowed, which keeps withdrawal as easy as giving consent.
   - The `record.test.ts:86-103` pin ("settings_change does not") must be rewritten deliberately to "verify iff marketing will be true".
 - Keep CSRF (`csrfForbidden`), the rate limit before the write, `Cache-Control: private, no-store`, and minting the cookie on success only.
-- `bind.ts`: take `categories` in `RecordConsentInput`. Delete the `policyVersion` override; its only other user, the signup writer, goes away. Every row then carries `CONSENT_POLICY_VERSION`, and the legal-gate pin can say so.
+- `bind.ts`: take `categories` in `RecordConsentInput`. Delete the `policyVersion` override; its only other user, the signup writer, goes away.
 
 ### Pattern 4: How the mock learns state (Q1). Recommendation: the no-store GET
 - New `app/vamos-consent.js` exposes `window.VamosConsent = { state(): Promise, save(method, cats, token?, key?): Promise, onChange(fn), cached() }`. It is loaded in the helmet of both `CookieBanner.dc.html` files and of `cookies.dc.html`. `sync-dc-mock-to-public.mjs` copies all of `app/` (line 89), so a new `app/*.js` needs no sync change [VERIFIED].
-- Banner initial `mode` becomes `'unknown'` (renders nothing) until `state()` resolves. That satisfies UI-SPEC "no banner paint before the answer". On a network error or 5xx, **show the banner** (default state). Asking again is harmless: Meta stays off without a known Accept, and META-04 prefers asking. Record this as a planner decision (Open Question 3).
+- Banner initial `mode` becomes `'unknown'` (renders nothing) until `state()` resolves. That satisfies UI-SPEC "no banner paint before the answer". On a network error or 5xx, **show the banner** (default state). Record this as a planner decision (Open Question 3).
 - Keep `localStorage.vamosCookieConsent` as a display cache written with `{v: policyVersion, …}`. It never decides whether the banner shows; the GET does.
 - The cookies page drops its 700ms `localStorage` poll (`cookies.dc.html:304`) and subscribes to `VamosConsent.onChange` plus an initial `state()`.
 - Middleware: widen the Turnstile meta injection from `/contact` only (`middleware.ts:115-118`) to every DC page. The key is public and identical for every visitor, so cached HTML stays per-visitor free. `contact.dc.html` reads the same meta name, so the two do not conflict.
@@ -378,7 +369,7 @@ Rules:
 - `SiteShell.tsx:64`: change `{isHome ? banner : null}` to `{banner}`. The early return at `:55` already excludes ops, dashboard and `/dev`. `isHome` stays for the header only. Covered by construction: `/checkout/*` (nested `checkout/layout.tsx` keeps the shell, per CONTEXT findings), `/confirmation/*`, `/checkout/pay/[token]`, `/review` (Next, `middleware.ts:381` noindex; not in D-07 but a customer page, so the banner showing there is consistent), `error.tsx` and `not-found.tsx`. Both render inside the locale layout (`error.tsx:10-18`, `not-found.tsx:6-12`). A layout-level failure falls to Next's default UI, with no banner, as documented in `error.tsx`.
 - `SiteFooter.tsx:18,248-254,287`: `CookiePrefsListener` today **silently POSTs `settings_change` with all categories false** whenever "Cookie preferences" is clicked on a Next page. Under "latest row wins" that switches Meta off without the visitor choosing. It must become "open the sheet" (D-10). The same applies to `CookieSettingsChangeButton` on the Next cookies page (`cookies/page.tsx:157`).
 - **Copy sharing (Q4).** The two builds cannot share a runtime file: Next reads `i18n/messages/*.json` through `lib/content/messages.ts` (JSON by default, `CONTENT_SOURCE` absent from `wrangler.jsonc`), and the mock reads `vamos-i18n-dict.js` and page JS. Share the **source of truth** instead: both are byte-compared in a vitest against `.planning/archive/tracking-v1/decisions/2026-09-30-meta-wording.md` §1–§3.
-  - Mock: `app/vamos-meta-texts.js` holds `{ banner:{en,de,fr,ar}, cookiesRow:{…}, privacyLine:{…} }`. Each value is a segment array, e.g. `[{b:'Meta'},' (Meta Platforms Ireland Ltd). Cookies ',{code:'_fbp'},' and ',{code:'_fbc'},'. Set only…']`. Render inside a `data-vt-no-i18n` wrapper and re-render on `VamosLocale.onChange`.
+Each value is a segment array, e.g. `[{b:'Meta'},' (Meta Platforms Ireland Ltd). Set only…']`. Render inside a `data-vt-no-i18n` wrapper and re-render on `VamosLocale.onChange`.
   - Next: `cookies.meta-banner`, `cookies.meta-row` and `legal.meta-privacy-line` use `<b>…</b>` and `<code>…</code>` tags through `t.rich`. The cookies and privacy Next pages use namespaces `cookies` and `legal` (`cookies/page.tsx:51-53`, `privacy/page.tsx:48`). The `privacy` namespace has 0 keys.
   - The test converts `<b>`, `**`, `{b:…}`, `<code>`, backticks and `{code:…}` into one canonical form and compares all four languages for each of the three texts.
 - Strings the Next sheet needs that are missing from the messages (checked in en.json): "Your choice is stored in this browser until you change it.", the row meta lines ("Vamos Taxi · Stripe · Supabase · Cloudflare", "session / refresh as issued by Supabase Auth", "until you change language or clear recent places", "Cloudflare Web Analytics (cookieless) · Sentry", "not used"), and "save failed". Port their de, fr and ar from `app/vamos-i18n-dict.js`; do not translate anew. Present already: `accept-all`, `necessary-only`, `manage-preferences`, `save-choices`, `you-choose-what-we-measure`, `choose-your-categories`, `always-on`, the three row descriptions, `common.cookie-preferences`, `common.cookie-policy`, `common.form-challenge-failed`. [VERIFIED by key scan]
@@ -389,7 +380,7 @@ Rules:
   - Privacy "Last updated" today reads `LEGAL_UPDATED` in `app/vamos-legal-updated.js:6`, a single constant shared with terms, cancellation and imprint (owner decision 14). The cookies page has a **hard-coded** "1 September 2026" (`cookies.dc.html:142`), and the file header says "The cookie policy keeps its own date". D-17 and Phase 26 D-15 require cookies date = privacy date = version. See Open Question 1.
   - Recommended mechanics: add `var CONSENT_UPDATED = 'YYYY-MM-DD'` and `VamosLegalUpdated.consentLabel(lang)` to `app/vamos-legal-updated.js`. `cookies.dc.html` renders it. A new vitest asserts `CONSENT_UPDATED === CONSENT_POLICY_VERSION` and, at ship, `LEGAL_UPDATED === CONSENT_POLICY_VERSION`. The label format follows the existing `Intl.DateTimeFormat` pattern, so de, fr and ar come for free; no dict entries for a date string.
 - Tests that pin the old state and must be rewritten in the same plan:
-  - `legal-gate.test.ts`: "necessary-cookies-only remains" (:81-94) → banner title `you-choose-what-we-measure`; "policy version unchanged" (:96-108) → pins the new date and still exactly one assignment; "marketing stays false" (:157-165) → D-05/D-18 pins (categories from the choice, no `marketing: false` literal as a constant, version is the constant with no override); "slots exist" (:167-199) and "no sentence" (:200-217) → owner texts present, no `PendingSlot` Meta labels. Keep "no fbevents.js" and "flag off" unchanged; they are the "nothing to Meta" proof.
+they are the "nothing to Meta" proof.
   - `banner-contract.test.ts`: all of it (Accept/Dismiss only, no switches, no "Manage preferences", `isHome ? banner : null`) → the new contract: three controls, sheet with four switches, banner on every non-ops shell route.
   - `record.test.ts`: "always records … marketing false" (:53-59) → the mapping table; Turnstile block (:86-103) → rule "iff marketing"; "signup consent row" (:135-166) → an inverse pin that `signup-consent.ts` no longer imports `recordConsent` and the callback does not write `consent_log`.
   - `live-no-tbc.test.ts:35-38` pins `.vt-ck-meta:has([data-tok]){display:none}`, which UI-SPEC deletes. Replace it with "the banner has no `.vt-ck-meta` and no `PendingSlot`". This is a control-session test from main: say so in the hand-over.
@@ -587,23 +578,16 @@ below for the record.
 ### Phase Requirements → Test Map
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| META-03 | Accept → row all categories true; Necessary only → all false; Save choices → exactly the switches; invalid booleans → 400 | unit (route handler with mocked `asAnon`, `verifyTurnstile`) | `pnpm --filter web exec vitest run tests/unit/consent/route.test.ts` | Wave 0 (new) |
-| META-03 | Turnstile verified iff the row will have marketing=true; Necessary only never verifies | unit + source pin | same file + `lib/consent/record.test.ts` | record.test.ts exists (rewrite) |
-| META-03 | Latest row under the current version wins; tie by id; older version ignored (D-03b); other subject invisible | pgTAP | `bash scripts/local-stack-27.sh test` (`consent_choice_reader.test.sql`) | Wave 0 (new) |
-| META-03 | Reader grants: anon EXECUTE only, definer, `search_path=''`, no table SELECT for anon | pgTAP | same | Wave 0 |
-| META-03 | Reader through the Worker client (`fetch_types:false`) returns booleans and a timestamp, no arrays | local vitest | `VAMOS_LOCAL_DB_PORT=59322 pnpm --filter @vamos/db exec vitest run test/local/consent-reader.test.ts` | Wave 0 (new) |
-| META-03 | Sign-up confirm writes no `consent_log` row (D-01) | unit + worker e2e | `pnpm --filter web exec vitest run tests/unit/auth/signup-consent.test.ts`; e2e check 1b (`=== 0`) | exists (rewrite) |
-| META-03 | Footer "Cookie preferences" only opens the sheet (no write), both builds | source pin | `pnpm --filter web exec vitest run components/consent/banner-contract.test.ts` | exists (rewrite) |
-| META-04 | GET `/api/consent/state`: no cookie → chosen false with no DB call; row → chosen true; `private, no-store`; no UUID in body; never sets a cookie | unit | `pnpm --filter web exec vitest run tests/unit/consent/state-route.test.ts` | Wave 0 (new) |
-| META-04 | SiteShell renders the banner on `/checkout/details`, `/confirmation/X`, `/checkout/pay/abc`, a 404 path; not on `/ops`, dashboard host, `/dev` | unit (react-dom/server, mocked `usePathname`) | `pnpm --filter web exec vitest run components/consent/banner-hosts.test.ts` | Wave 0 (new) |
-| META-04 | Mock mounts: every page in D-07 (incl. sign-in, account, bookings, reset-password) has `dc-import name="CookieBanner"` | source pin | `pnpm --filter web exec vitest run lib/consent/mock-mounts.test.ts` | Wave 0 (new) |
-| META-04 | Cached marketing HTML carries no per-visitor state (serveDcHtml injects only the site key) | source pin on middleware | `pnpm --filter web exec vitest run lib/consent/mock-mounts.test.ts` | Wave 0 |
-| META-04 | Nothing to Meta: no fbevents, pixel id or graph.facebook anywhere; gate false | source pin | `pnpm --filter web exec vitest run lib/meta/legal-gate.test.ts` ("no fbevents.js", "flag off" kept) | exists |
-| META-04 | Banner visible above PAY at 390×844 on `/checkout/details` and the pay link (en, de) | Playwright, local only | `pnpm --filter web exec playwright test tests/integration/consent-banner-27.spec.ts` | Wave 0 (new) |
-| META-05 | Accept t1, Necessary only t3: as of now → off; as of t2 → on (a later Dismiss stops only future events) | pgTAP | `consent_choice_reader.test.sql` R3, R5 | Wave 0 |
-| META-05 | Necessary only t1, paid t2, Accept t3: as of t2 → off (no backfill) | pgTAP | R6 | Wave 0 |
+Necessary only → all false; Save choices → exactly the switches; invalid booleans → 400 | unit (route handler with mocked `asAnon`, `verifyTurnstile`) | `pnpm --filter web exec vitest run tests/unit/consent/route.test.ts` | Wave 0 (new) |
+Necessary only never verifies | unit + source pin | same file + `lib/consent/record.test.ts` | record.test.ts exists (rewrite) |
+tie by id; older version ignored (D-03b); other subject invisible | pgTAP | `bash scripts/local-stack-27.sh test` (`consent_choice_reader.test.sql`) | Wave 0 (new) |
+e2e check 1b (`=== 0`) | exists (rewrite) |
+row → chosen true; `private, no-store`; no UUID in body; never sets a cookie | unit | `pnpm --filter web exec vitest run tests/unit/consent/state-route.test.ts` | Wave 0 (new) |
+not on `/ops`, dashboard host, `/dev` | unit (react-dom/server, mocked `usePathname`) | `pnpm --filter web exec vitest run components/consent/banner-hosts.test.ts` | Wave 0 (new) |
+sign-in, account, bookings, reset-password) has `dc-import name="CookieBanner"` | source pin | `pnpm --filter web exec vitest run lib/consent/mock-mounts.test.ts` | Wave 0 (new) |
+as of t2 → on (a later Dismiss stops only future events) | pgTAP | `consent_choice_reader.test.sql` R3, R5 | Wave 0 |
 | D-11..D-16 | §1–§3 byte-equal to the decision file in en, de, fr and ar, in the mock source and the Next messages | unit | `pnpm --filter web exec vitest run lib/consent/owner-texts.test.ts` | Wave 0 (new) |
-| D-17 | Version = cookies date = privacy date; exactly one assignment | unit | `pnpm --filter web exec vitest run lib/meta/legal-gate.test.ts lib/legal-updated.test.ts` | exists (rewrite and extend) |
+| D-17 | Version = cookies date = privacy date;
 
 ### Sampling Rate
 - **Per task commit:** the quick run command (under 30 s).
@@ -650,7 +634,7 @@ below for the record.
 | V6 Cryptography | no | No new crypto (UUID from `crypto.randomUUID`) |
 | V11 Business logic / anti-automation | yes | Turnstile when marketing=true; rate limit per IP and per subject |
 | V13 API | yes | CSRF origin check on POST; GET is safe and `no-store` |
-| V14 Config | yes | No secret added; site key is public; `META_LEGAL_GATE_OPEN` stays false |
+| V14 Config | yes | No secret added; site key is public;
 
 ### Known Threat Patterns
 | Pattern | STRIDE | Standard Mitigation |
@@ -666,7 +650,7 @@ below for the record.
 
 ## Shared-File Strategy (Q10)
 
-- **`app/vamos-i18n-dict.js`** (shared, 2185 lines): add only the two plain UI strings (save failed, check failed with the four translations from UI-SPEC). Insert them next to the existing cookie-banner entries, not at the file end, where every session appends. Owner texts never go here; they go in new `app/vamos-meta-texts.js`, which has no conflict risk. Delete unused strings ("Reset my choice", the old banner body) only in a final task, after re-grepping `app/` and `apps/web/`, by exact line. Skipping the deletion is acceptable: unused entries are harmless.
+- **`app/vamos-i18n-dict.js`** (shared, 2185 lines): add only the two plain UI strings (save failed, check failed with the four translations from UI-SPEC). Insert them next to the existing cookie-banner entries, not at the file end, where every session appends. Owner texts never go here; Delete unused strings ("Reset my choice", the old banner body) only in a final task, after re-grepping `app/` and `apps/web/`, by exact line. Skipping the deletion is acceptable: unused entries are harmless.
 - **`apps/web/i18n/messages/{en,de,fr,ar}.json`**: the namespaces are alphabetically sorted [VERIFIED for `cookies`]. Insert each new key at its sorted position. Never reformat the file.
 - **`packages/db/supabase/seed.sql`**: never hand-merge. After every merge of main, run `pnpm db:seed:gen`, then set the `seed_idempotent.test.sql` counts from the new header.
 - **`cookies.dc.html`, `privacy.dc.html`, `CookieBanner.dc.html`**: make small, local edits. Merge `origin/main` into the branch right before hand-over. Main wins conflicts except on the owner texts and the D-16a removal.
@@ -678,7 +662,6 @@ below for the record.
 - `apps/web/middleware.ts` (DC_PAGES :32-51, MARKETING_CACHE_PATHS :54-64, serveDcHtml :111-132, applyPublicCacheHeaders :423-458, matcher :726)
 - `apps/web/app/api/consent/route.ts`; `apps/web/lib/consent/{bind,cookie,ip,policy}.ts`; `record.test.ts`, `cookie.test.ts`
 - `apps/web/app/[locale]/layout.tsx`, `components/shell/SiteShell.tsx`, `SiteFooter.tsx`, `components/consent/CookieBanner.tsx`, `banner-contract.test.ts`
-- `apps/web/lib/meta/legal-gate.ts` and `.test.ts`, `lib/live-no-tbc.test.ts`, `lib/legal-updated.test.ts`, `lib/legal-text-hygiene.test.ts`, `app/vamos-legal-updated.js`
 - `apps/web/lib/auth/signup-consent.ts`, `app/api/auth/callback/route.ts`, `tests/unit/auth/signup-consent.test.ts`, `tests/e2e-worker/auth-worker.e2e.mjs`, `run.sh`
 - `packages/db/src/identity.ts` (PG_ROLE, client options), `apps/web/lib/db/identity.ts` (NOCACHE binding), `packages/db/src/pg-types.ts`
 - `packages/db/supabase/migrations/20260823000018_consent_log.sql`, `…019_append_only.sql`, `…020_rls_enable.sql`, `20260930200000_reminder_24h_read.sql`

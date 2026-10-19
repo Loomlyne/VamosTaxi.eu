@@ -50,15 +50,12 @@ export function injectBaseInto(html, href) {
  */
 export const TRACKING_HEAD = '<script src="/app/vamos-consent.js"></script>';
 
-/** Owner's tags (2026-10-19), verbatim: Google Tag Manager, Google tag (GA4), Meta Pixel. Head of every public page. */
-export const TAGS_HEAD = `<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+/** Owner's tags (2026-10-19), verbatim except the vendors' marker comments (served pages carry no HTML comments): Google Tag Manager, Google tag (GA4), Meta Pixel. Head of every public page. */
+export const TAGS_HEAD = `<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-KPKGT4VH');</script>
-<!-- End Google Tag Manager -->
-<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-K5MZME44P6"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
@@ -67,7 +64,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
   gtag('config', 'G-K5MZME44P6');
 </script>
-<!-- Meta Pixel Code -->
 <script>
 !function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -83,13 +79,12 @@ fbq('track', 'PageView');
 <noscript><img height="1" width="1" style="display:none"
 src="https://www.facebook.com/tr?id=1595596972063765&ev=PageView&noscript=1"
 /></noscript>
-<!-- End Meta Pixel Code -->`;
+`;
 
 /** Google Tag Manager (noscript), straight after <body>. */
-export const TAGS_BODY = `<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KPKGT4VH"
+export const TAGS_BODY = `<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KPKGT4VH"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->`;
+`;
 
 export function injectTrackingInto(html) {
   if (!/<dc-import\s+name="CookieBanner"/.test(html)) return html;

@@ -16,7 +16,6 @@ key-files:
     - packages/db/test/local/consent-reader.test.ts
   modified:
     - packages/db/database.types.ts
-requirements: [META-03, META-05]
 completed: 2026-09-30
 ---
 

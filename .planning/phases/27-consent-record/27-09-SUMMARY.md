@@ -16,7 +16,6 @@ key-files:
     - apps/web/lib/legal-updated.test.ts
   created:
     - apps/web/lib/consent/legal-pages-27.test.ts
-requirements: [META-03, META-04]
 completed: 2026-09-30
 ---
 

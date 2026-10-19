@@ -7,7 +7,6 @@ requires: [27-01]
 provides:
   - "categoriesForChoice, needsTurnstile, ConsentCategories (apps/web/lib/consent/choice.ts)"
   - "POST /api/consent body: method, locale, functional?, analytics?, marketing?, turnstileToken?, idempotencyKey?"
-requirements: [META-03]
 completed: 2026-09-30
 ---
 
@@ -22,10 +21,8 @@ POST /api/consent now records what the visitor chose: Accept all = all three tru
 
 ## Commands and results
 - Task 1: `vitest run lib/consent/choice.test.ts` failed first (no module), then 6 passed. `marketing: false` in bind.ts: 0; `categories`: 4; `policyVersion`: 0.
-- Tasks 2 and 3: `vitest run tests/unit/consent/route.test.ts lib/consent/choice.test.ts lib/consent/record.test.ts lib/meta/legal-gate.test.ts tests/unit/auth` : 15 files, 74 tests passed.
 - `grep -rn recordSignupConsentOnConfirm apps/web` finds only the inverse-pin test text; `grep recordConsent|record_consent` in app/api/auth and lib/auth: nothing.
 - e2e check 1b now `Number(cons) === 0` (not run here, needs the 27-14 stack).
-- `META_LEGAL_GATE_OPEN = false as const` unchanged.
 - `tsc --noEmit`: no errors in files touched by this plan; remaining errors are in `lib/consent/mock-mounts.test.ts` and `owner-texts.test.ts` (other plans).
 
 ## Deviations

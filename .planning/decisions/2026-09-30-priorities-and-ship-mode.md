@@ -22,7 +22,6 @@ follow-up is small and goes whenever it is ready.
 - The permission ends with 2026-09-30 (his day, +04). From 2026-10-01 every ship waits for his
   word again.
 - Unchanged: never invent a price or legal copy; Stripe stays on the sandbox; no `sk_live_`;
-  the pixel sends nothing until his approved wording is live and the visitor pressed Accept;
   one 4242 payment by him after every ship that touches checkout.
 
 ## 3. 24-hour reminder

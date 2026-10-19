@@ -48,20 +48,6 @@ PaymentIntent-only rewrite); no `sk_live_`; no `.eu`; no invented CHF (unpriced 
 stays `CHF 000`); SQL apply and `wrangler secret put` are owner-gated; do not execute
 or complete Phases 16/17/19/20; no `.ics`; charge always CHF; four languages same pass.
 
-## v1.3 Meta measurement
-
-**Current milestone:** v1.3 Meta measurement. Ads only. It does not change quote, pay,
-or confirmation. After Accept, and only after the owner pastes banner, cookies, and
-privacy lines in en/de/fr/ar, allowed customer pages load pixel `1595596972063765`
-and send PageView. A paid booking sends one Purchase from the settle queue, in the
-CHF Stripe charged. v1.2 Payment (Phases 21–25) stays planned, not current — those
-phase contracts are unchanged. Frozen leftovers 16/17/19/20 stay on disk.
-
-**v1.3 must-nots (every phase):** no `sk_live_`; no `vamostaxi.eu`; no invented legal
-copy; no invented CHF; no hashed email or phone; no browser Purchase; no middle
-events (quote seen, checkout started, pay step). Do not change quote, pay, or
-confirmation. Do not execute or complete Phases 16/17/19/20 or 21–25.
-
 **State update, 2026-10-01 (bookkeeping B10; the owner's decisions are in `.planning/PHASE-CLOSURE-2026-09-29.md`):**
 16 is complete. 17 is closed (feature removed). 21 to 25 are replaced by 26.1 and 26.3 and are never built.
 20 was re-opened by the owner as the 2026-10 security check and is open now. 19 is deferred with an open
@@ -104,7 +90,6 @@ the word "Phase", so GSD reads each line as one phase.
 - [x] **Phase 18: OPS Pricing source of truth** - `/pricing` is the only fare book; public offers follow Publish (completed 2026-09-15)
 - [x] **Phase 19: 10,000-booking surge proof on the 26.3 checkout** - CLOSED by the owner (2026-09-30, confirmed 2026-10-01 23:59): no surge test, not a launch item (`decisions/2026-10-01-phase19-and-26.2-units-closed.md`)
 - [x] **Phase 20: Security check of the changed app (2026-10)** - Check, serious fixes, owner decisions and refunds by hand are live (20-06, 07, 08, 10, 12); every fix re-probed on live and hosted functions/grants compared with the migration files in 20-09; owner's 4242 payment VT-26-0750 passed (completed 2026-10-02)
-- [x] **Phase 26: Legal gate** - Pixel and Purchase stay off until owner banner, cookies, and privacy lines exist in en/de/fr/ar; new policy version; flag stays off (completed 2026-09-23)
 - [x] **Phase 26.0: Main green (INSERTED)** - Honest test and gate set, Linux e2e job, /dev test-only, imprint en+de notice (shipped 2026-10-01, 6ec73c52, Worker c2127d38; the remaining reds are lane B on the board)
 - [x] **Phase 26.1: Payment and pricing integrity (INSERTED)** - A paid session always confirms; refunds, disputes and DLQ reach the DB; the owner fare formula with 26 cantons; pay-link lock and race; refund rules; three classes; admin sign-in options (shipped 2026-09-28, cff97a0e; 26.1-28 superseded)
 - [ ] **Phase 26.2: Codebase audit, bug fix and simplify** - OPEN for its found rows only. Live: hand-overs 1 and 2, P1 class change, P4 extras A and D, chauffeurs by class, P6 paid-trip edit (2026-10-02 02:58), the audit fixes of hand-over 3 (2026-10-03 02:27, `eec7951f`: voucher at PAY, VAT 8.1 % label, booking reference five digits); stricter check scripts u13, hand-over 4, on main 2026-10-03 18:03 (`590bd978`, no deploy). Left: the smaller rows listed in hand-over 3. The units that never ran (01, 02, 04-08 rest, 11, close-out 12) are closed by the owner 2026-10-01 23:59
@@ -113,10 +98,8 @@ the word "Phase", so GSD reads each line as one phase.
 - [x] **Phase 26.4.1: Laptop booking bar (INSERTED)** - Wide bar at the bottom of the laptop hero (shipped 2026-09-30, 0f58ab6d)
 - [x] **Phase 26.4.2: Owner booking feedback (INSERTED)** - One-page phone booking, flight before From, class cards with photos (shipped 2026-09-30, 37ba5b62, plus repairs)
 - [x] **Phase 26.5: Checkout guest, sign in or create account (INSERTED)** - Account choice before Stripe; unpaid bookings hidden; paid-only reminder; pay-press limit (shipped 2026-09-30, 9a5263cd, Worker 2d5906ce)
-- [x] **Phase 27: Consent record** - Accept logs Meta on; Dismiss logs Meta off; existing banner until a choice, including a pay link (shipped 2026-10-01, ce55cd75, Worker c45d2782; Meta still off)
+- [x] **Phase 27: Consent record** - Accept and Dismiss are logged; existing banner until a choice, including a pay link (shipped 2026-10-01, ce55cd75, Worker c45d2782)
 - [x] **Phase 27.1: Finish your account (INSERTED)** - A sign-in-link account finishes (names, optional mobile, the account tick) before it can pay or open a booking (shipped 2026-10-01, 96a17ab7, Worker 6eb1d700)
-- [x] **Phase 28: Pixel PageView** (archived 2026-10-19, tracking removed) - SHIPPED 2026-10-03 20:00 (+04): main da25c7d5, Worker d937114f, migration 20261007240000 live 19:58; plans 28-01 to 28-07 all with a SUMMARY. Owner-held: his Events Manager Test events check (UAT steps in HANDOVER.md)
-- [x] **Phase 29: Webhook Purchase** (archived 2026-10-19, tracking removed) - SHIPPED 2026-10-04 15:57 (+04): main 54599783, Worker b9e15a18, migration 20261007260000 live 15:55; lock-order fix 16:27 (41ba7b7d, migration 20261007270000, no deploy); plans 29-01 to 29-07 all with a SUMMARY. Owner-held: the Meta test event code (not set, so a test-mode payment records no_test_code and nothing is sent)
 
 ## Phase Details
 
@@ -839,40 +822,6 @@ read. Left: 20-09, the live proof (the owner's 4242 payment and refund by hand, 
 the leftovers). Also tracked outside this phase: B3 live-key refusals, G23 after B7, G8/G9 after P6.
 **UI hint**: no new screens.
 
-### Phase 26: Legal gate
-
-**Goal**: The pixel and the Purchase call stay off until the owner pastes the banner,
-cookies, and privacy lines in en, de, fr, and ar. A new consent policy version means
-an old Accept does not turn Meta on. No drafted sentences. The flag stays off.
-**Depends on**: none in v1.3. Does not start Phases 16/17/19/20 or 21–25.
-**Requirements**: META-01, META-02
-**Success Criteria** (what must be TRUE):
-
-  1. While any of banner, cookies, or privacy lines is missing in en, de, fr, or ar, the legal flag is off and neither the pixel nor the Purchase call can run.
-  2. A new consent policy version is required. An Accept stored under the old version, when marketing was stored off, does not turn Meta on.
-  3. This phase writes no banner, cookies, or privacy sentences. The flag stays off.
-  4. Must-nots: no `sk_live_`, no `vamostaxi.eu`, no invented legal copy, no invented CHF, no hashed email or phone, no browser Purchase, no middle events (quote seen, checkout started, pay step). Do not load `fbevents.js`. Do not change quote, pay, or confirmation.
-
-**Plans:** 2/2 plans complete
-
-Plans:
-
-**Wave 0**
-
-- [x] 26-01-PLAN.md — Wave 0 fail-closed flag and the seven source pins
-
-**Wave 1** *(blocked on Wave 0 completion)*
-
-- [x] 26-02-PLAN.md — Empty Meta TBC slots on the banner, cookies page, and privacy page
-
-**Cross-cutting constraints:**
-
-- The measurement flag stays false and is not derived from copy, env, or a pill scan.
-- No legal sentence is placed in a slot, a dictionary, or a test assertion message.
-- CONSENT_POLICY_VERSION stays 2026-09-12.
-
-**UI hint**: no
-
 ### Phase 26.0: Main green (INSERTED) (SHIPPED 2026-10-01)
 
 **Goal**: The test and gate set is honest again: a throwaway-stack guard, `/dev` off in production, database
@@ -895,7 +844,7 @@ from the owner's formula and the dashboard's own numbers. Absorbs the matching p
 Phase 22 (webhook wait, paid session always confirms) and Phase 25 (Stripe secret
 alignment). Source: `docs/audit/2026-vamos-audit.md` Phase A; decisions D-01…D-25 in
 `26.1-CONTEXT.md` (signed 2026-09-27).
-**Depends on**: Phase 26. Before 26.2 and 27. Does not start Phases 16/17/19/20 or 21–25. Does not load the pixel.
+**Depends on**: Phase 26. Before 26.2 and 27. Does not start Phases 16/17/19/20 or 21–25.
 **Requirements**: INT-01, INT-02, INT-03, INT-04, INT-05, INT-06, INT-07, INT-08, INT-09
 **Success Criteria** (what must be TRUE):
 
@@ -907,7 +856,7 @@ alignment). Source: `docs/audit/2026-vamos-audit.md` Phase A; decisions D-01…D
   6. Refunds: cancelled > 24 h before pickup → automatic full refund; < 24 h → admin approves and sets the percentage; after the trip → admin accepts or rejects.
   7. The classes are Economy, Business, Van luxury (Saden → Economy, V-Class → Business, First dropped). Dashboard delete is a hard delete when nothing references the row, otherwise hidden with a reason; `mahaha` goes.
   8. Only the admin signs in. In account settings the admin can add a passkey, add TOTP, or switch password ↔ magic link, each working end to end; once a factor is enrolled, aal2 is required. Changing password or email requires signing in again. Leaked-password protection is on (owner toggle).
-  9. Must-nots: Stripe sandbox `acct_1UIZmqHcNp9GZYjz` only, no `sk_live_`, no `vamostaxi.eu`, no invented CHF or legal copy, no pixel. The agent never writes to live Supabase `yaumjzvylngfjhtuffqs` (migrations are handed to the owner as SQL) and never makes Stripe dashboard changes or `wrangler secret put`. Four languages and the design laws hold on every touched surface.
+  9. Must-nots: Stripe sandbox `acct_1UIZmqHcNp9GZYjz` only, no `sk_live_`, no `vamostaxi.eu`, no invented CHF or legal copy. The agent never writes to live Supabase `yaumjzvylngfjhtuffqs` (migrations are handed to the owner as SQL) and never makes Stripe dashboard changes or `wrangler secret put`. Four languages and the design laws hold on every touched surface.
 
 **Plans**: 32 plans, 18 waves
 
@@ -1094,26 +1043,22 @@ Rollback tag `backup/main-before-26.5-e09f90cb`.
 
 ### Phase 27: Consent record
 
-**Goal**: Accept logs Meta on. Dismiss logs Meta off. The latest `consent_log` row
+**Goal**: Accept and Dismiss are logged. The latest `consent_log` row
 wins. The existing Accept/Dismiss banner shows on customer pages until a choice,
-including a pay link. Ops has no banner. A later Dismiss stops future events.
-**Depends on**: Phase 26
-**Requirements**: META-03, META-04, META-05
+including a pay link. Ops has no banner. 
 **Success Criteria** (what must be TRUE):
 
-  1. Accept writes a `consent_log` row with Meta on. Dismiss writes Meta off. The latest row wins. No new switches.
+  1. Accept and Dismiss each write a `consent_log` row. The latest row wins. No new switches.
   2. The existing Accept/Dismiss banner shows on every customer page until they choose, including a pay link. Ops has no banner. No new layout.
-  3. A later Dismiss stops future PageView and future Purchase. Accepting after payment does not backfill a Purchase.
-  4. The pixel still never loads on a pay link.
-  5. Must-nots: no `sk_live_`, no `vamostaxi.eu`, no invented legal copy, no invented CHF, no hashed email or phone, no browser Purchase, no middle events (quote seen, checkout started, pay step). Do not change quote, pay, or confirmation.
+  3. Must-nots: no `sk_live_`, no `vamostaxi.eu`, no invented legal copy, no invented CHF. Do not change quote, pay, or confirmation.
 
 **State**: Shipped 2026-10-01 03:02 (+04). Main `ce55cd75`, Worker `c45d2782`. Migrations `20261002100000` and
 `110000` applied and read back before the deploy. Cookie choice saved on the server, banner on every customer
-page, sign-up tick box. The Meta gate stays closed (pixel off). Rollback tag `backup/main-before-27-a8948162`.
+page, sign-up tick box. Rollback tag `backup/main-before-27-a8948162`.
 **Left (owner)**: banner in a private window; one sign-up with the tick.
 
 **Plans**: 18/18, all with a SUMMARY
-**UI hint**: yes — existing Accept/Dismiss banner shows on customer pages until a choice, including a pay link. No new switches. No new layout. Ops has no banner. Pixel still never loads on a pay link.
+**UI hint**: yes — existing Accept/Dismiss banner shows on customer pages until a choice, including a pay link. No new switches. No new layout. Ops has no banner.
 
 ### Phase 27.1: Finish your account (INSERTED) (SHIPPED 2026-10-01)
 
@@ -1128,94 +1073,12 @@ reach the dashboard customer list; /checkout and /booking-detail are not gated.
 
 **Plans:** 1/1 (`27.1-01-SUMMARY.md`)
 
-### Phase 28: Pixel PageView (archived 2026-10-19, tracking removed)
-
-**Goal**: After Accept and the legal flag, pixel `1595596972063765` sends PageView
-only on public pages with no token, plus signed-in account and bookings. Click ids
-are saved on the unpaid booking. No new screen.
-**Depends on**: Phase 27
-**Requirements**: META-06, META-07, META-08, META-09
-**Success Criteria** (what must be TRUE):
-
-  1. After Accept and META-01, pixel `1595596972063765` sends PageView only on public pages with no token, plus signed-in account and bookings.
-  2. Ops, a pay link, manage-booking, and any URL with a booking reference never contain the script. A person who dismissed does not get a cached page that contains it.
-  3. No advanced matching and no noscript image. The pixel does not load until the owner confirms in Events Manager that automatic matching and automatic button clicks are off.
-  4. `_fbp` and `_fbc` are saved on the unpaid booking after the pixel sets them. Not in Stripe. A paid booking cannot be updated to backfill them.
-  5. Must-nots: no `sk_live_`, no `vamostaxi.eu`, no invented legal copy, no invented CHF, no hashed email or phone, no browser Purchase, no middle events (quote seen, checkout started, pay step). PageView only. Flag stays off until the owner lines are in. Do not change quote, pay, or confirmation.
-
-**State**: Shipped 2026-10-03 20:00 (+04). Main `da25c7d5`, Worker `d937114f`. Migration `20261007240000`
-(booking_meta_click_ids) applied verbatim at 19:58 (live `20261003155826`) before the deploy. Reviews: FIX FIRST, then
-SHIP-WITH-NOTES (branch `fix/phase-28-review-2` `5c9f1078`). The loader runs on allow-listed pages after a marketing
-Accept and sends one PageView with `autoConfig` off; Pay saves `_fbp` and `_fbc` on the pending booking;
-Referrer-Policy strict-origin. The owner turned both Events Manager switches off on 2026-10-03 (Meta's setup file no
-longer opts in to automatic matching, re-read 12:03:53 UTC; inferred events stay off through the code). Live: the Meta
-policy on /, /about, /de/about, /privacy, /sign-in and /cookies; the plain policy on /sign-in?returnTo, /manage-booking,
-/checkout and the dashboard; no pixel string in any HTML; a fresh headless profile without Accept makes no request to a
-Meta host and sets no `_fb` cookie. The owner's payment VT-26-0752 (2026-10-03 21:19) saved `meta_fbp` in Meta format
-(`meta_fbc` empty: no ad click). Rollback tag `backup/main-before-phase-28-20261003-1958`. Meta legal lines: the three
-texts in `.planning/archive/tracking-v1/decisions/2026-09-30-meta-wording.md`, verbatim.
-**Left (owner)**: the Events Manager Test events check, UAT steps in `HANDOVER.md` (Accept all on /about shows exactly
-one PageView and nothing else).
-
-**Plans**: 7/7, all with a SUMMARY
-
-Plans:
-- [x] 28-01-PLAN.md — database: two Meta id columns, pending-only writer and trigger (migration number from controller)
-- [x] 28-02-PLAN.md — the browser loader app/vamos-meta.js and its server twin allow-list (flags off)
-- [x] 28-03-PLAN.md — mount through the cookie banner, switch flag, Meta-string scan rewrite
-- [x] 28-04-PLAN.md — path-scoped Meta security policy, Referrer-Policy strict-origin
-- [x] 28-05-PLAN.md — save _fbp/_fbc on the unpaid booking at Pay (consent, public site only)
-- [x] 28-06-PLAN.md — browser proof at the public addresses, Meta hosts intercepted
-- [x] 28-07-PLAN.md — real-script proof, open the flags, full gate, hand-over
-
-**UI hint**: no new screen. Pixel `1595596972063765`. PageView only.
-
-### Phase 29: Webhook Purchase (archived 2026-10-19, tracking removed)
-
-**Goal**: One Purchase from the settle queue after a real CHF charge, in the francs
-Stripe charged, with saved `_fbp` and `_fbc` only. Quote, pay, and confirmation
-do not change.
-**Depends on**: Phase 28
-**Requirements**: META-10, META-11, META-12, META-13, META-14
-**Success Criteria** (what must be TRUE):
-
-  1. One Purchase leaves the settle queue after a real CHF charge. Value is the francs charged. `CHF 000` sends nothing.
-  2. The payload is `_fbp` and `_fbc` only, and only if they were saved. If neither was saved, send nothing. No email, phone, name, route, flight, booking reference, IP, or user-agent.
-  3. The URL sent to Meta is `https://vamostaxi.site` with no path. The event id is ours, one per booking, reused if the queue retries. It is not the booking reference.
-  4. A Meta failure does not unpay the booking and does not change the webhook response. A retry does not send a second Purchase. Staging uses a test event code. The token is a wrangler secret. If Graph rejects this payload, stop and ask. Do not widen it.
-  5. Must-nots: no `sk_live_`, no `vamostaxi.eu`, no invented legal copy, no invented CHF, no hashed email or phone, no browser Purchase, no middle events (quote seen, checkout started, pay step). Do not change quote, pay, or confirmation. Do not call Graph from the thank-you page or as a second Purchase.
-
-**State**: Shipped 2026-10-04 15:57 (+04). Main `54599783`, Worker `b9e15a18`, branch `gsd/phase-29-purchase` `a42a7049`.
-Migration `20261007260000` (meta_purchase) applied at 15:55 (live `20261004115506`) before the Worker. After a settle
-commits, the queue claims a once-only `meta_purchase_events` row and sends one Conversions API Purchase (CHF charged,
-`_fbp` and `_fbc` only) when the gate, the switch, consent at claim and, in test mode, a test event code all hold; the
-ids are wiped with every decision; a daily 03:00 sweep closes what was left. Reviews: in-workflow 0 critical, then a
-fresh Opus review SHIP-WITH-NOTES, no blocker. Lock-order fix 2026-10-04 16:27 (`41ba7b7d`, migration `20261007270000`,
-live `20261004122704`, no Worker deploy): the claim and the sweep lock the payment before the booking, as settle does.
-Rollback tag `backup/main-before-phase-29-20261004-1553`.
-**Left (owner)**: `META_TEST_EVENT_CODE` is not set. Until he gives the code and it is in `env.staging.vars`, a
-test-mode payment records `no_test_code` and nothing is sent (his payment VT-26-0753, 2026-10-04: skipped,
-`no_test_code`). `29-VERIFICATION.md` stays `human_needed` for the same reason. Notes for later: the
-production database wiring is untested, and `PURCHASE_EVENT_SOURCE_URL` changes at the vamostaxi.eu cutover.
-
-**Plans**: 7/7, all with a SUMMARY
-
-Plans:
-- [x] 29-01-PLAN.md — setup: merge origin/main, lockfile install, own native stack, base commit
-- [x] 29-02-PLAN.md — migration 20261007260000 (claim, once-only table, consent subject, clear-ids) + pgTAP + types
-- [x] 29-03-PLAN.md — capi.ts: locked Purchase payload and one POST; needle scan allow map; Meta bindings typed
-- [x] 29-04-PLAN.md — Pay press saves the consent subject with the Meta ids (D-01)
-- [x] 29-05-PLAN.md — purchase.ts orchestrator (gate, token, Stripe mode, claim, one POST, finish) + Worker-client DB proof
-- [x] 29-06-PLAN.md — settle queue hook after the money steps; queue opts in; return route pinned out
-- [x] 29-07-PLAN.md — owner's test event code, full gates, HANDOVER for the controller
-**UI hint**: no. One Purchase from the settle queue. Do not change quote, pay, or confirmation.
-
 ### Phase 30: Vehicle class lifecycle
 
 **Goal:** A class is added as Draft, goes live only with seats, bags, photo and a price in the live price book, and is retired (never deleted) and can be brought back, all on the dashboard Pricing page. New price books skip retired classes. The word "fleet" leaves the dashboard (`/chauffeurs`). One-off: the 5 test classes and reviews rv-1…rv-5 are removed by a script Koss runs himself.
 **Decisions:** `.planning/decisions/2026-10-11-fleet-lifecycle.md` (signed 2026-10-11)
 **Requirements**: CLS-01, CLS-02, CLS-03, CLS-04, CLS-05, CLS-06, CLS-07, CLS-08, CLS-09, CLS-10, CLS-11, CLS-12, CLS-13, CLS-14 (INT-08 superseded by CLS-04/05)
-**Depends on:** Phase 29
+**Depends on:** Phase 27.1
 **Plans:** 11/11 plans executed
 
 Plans:
@@ -1236,7 +1099,7 @@ Plans:
 **Goal:** Money goes back to customers from the Stripe Dashboard only. On dashboard booking detail, REFUND opens that booking's payment in Stripe in a new tab; the site sends no refund itself except the automatic duplicate-charge refund. The refund-decision box goes. Refunds Stripe makes keep reaching the booking, the dashboard totals and the customer's account through the existing webhook. A paid trip that is cancelled shows one policy line (no amount, never the word Stripe) in en, de, fr and ar. A nightly read-only check mails him when a Stripe refund of the last 48 h is missing on its booking or differs.
 **Decisions:** `.planning/decisions/2026-10-12-refunds-in-stripe.md` (signed 2026-10-12); context `.planning/phases/31-refunds-in-stripe/31-CONTEXT.md`
 **Requirements**: R31-01, R31-02, R31-03, R31-04, R31-05, R31-06, R31-07, R31-08, R31-09, R31-10
-**Depends on:** Phase 29 (no code dependency on Phase 30; shares only `app/vamos-i18n-dict.js`)
+**Depends on:** Phase 27.1 (no code dependency on Phase 30; shares only `app/vamos-i18n-dict.js`)
 **Plans:** 13/13 plans complete
 
 Plans:
@@ -1259,7 +1122,7 @@ Plans:
 **Goal:** Every text that has a language reaches the customer in English, German, French and Arabic without Koss checking it: gaps in the site dictionary and messages, text he types on the dashboard (extras, FAQ, content), emails, customer messages to him and his replies. Gemma 4 on Cloudflare Workers AI fills it in the background, cached by source text and language, never in a public page view; a missing translation shows the source, never a blank. Human strings and owner-approved legal wording are never touched. Nothing marks machine text; a value he types himself always wins (D-05). Dashboard Content › Pages and Legal are removed; home reviews get an on-tap translate button.
 **Decisions:** owner, question form 2026-10-12 ~19:20 and 2026-10-13 ~16:00 +04, design signed 2026-10-13 ~18:35 (`.planning/decisions/2026-10-13-auto-translate.md`); context `.planning/phases/32-auto-translate/32-CONTEXT.md`
 **Requirements**: TR-01 (gaps in the site dictionary, Next messages and e-mail catalog filled silently, never overwriting a human string), TR-02 (text he types on the dashboard is translated on write: extras de/fr/ar filled with no mark, his typed value always wins; review language detected on write), TR-03 (customer messages from the form and e-mail shown to him in his dashboard language with "Translated from" and the original underneath), TR-04 (his reply goes out in the customer's language through his mail app: translation, divider, his text), TR-05 (a customer language outside en/de/fr/ar: inbound still translated for him, his reply goes untranslated), TR-06 (home review cards show the original with a Translate button: on tap, cached, rate-limited, opaque review ref, no vendor name, never at page load), TR-07 (Content › Pages and Content › Legal removed everywhere: screens, rail, routes, staff API, library, tests, docs; no table or column dropped), TR-08 (Vamos Taxi written in Latin in every Arabic string, as a human edit), TR-09 (never machine-translated: legal pages, data-vt-legal, owner-approved and decision-cited lines, non_translatable rows, data-tok copy, dictionary patterns; amounts, CHF, refs, flight numbers, ZRH, class names, Vamos Taxi stay Latin; Swiss ss, never ß), TR-10 (the model is called only through the Workers AI binding with Gemma 4 and thinking off, never AI Gateway, never in a public page load or e-mail render; customer text never on a queue or in logs), TR-11 (a failed or rejected translation shows the source, never a blank, and never blocks a save or a send)
-**Depends on:** Phase 29, Phase 30 merged on main (plan 32-01 stops until it is; Phase 30 changes OpsSidebar, OpsTable, OpsPricing, vamos-ops-data.js and the dictionary). Phase 31 overlaps only on files (dictionary, worker.ts 03:00 cron, env.d.ts, messages/emails ar.json, seed.sql) and does not block.
+**Depends on:** Phase 30 merged on main (plan 32-01 stops until it is; Phase 30 changes OpsSidebar, OpsTable, OpsPricing, vamos-ops-data.js and the dictionary). Phase 31 overlaps only on files (dictionary, worker.ts 03:00 cron, env.d.ts, messages/emails ar.json, seed.sql) and does not block.
 **Plans:** 12 plans
 
 Plans:
@@ -1283,10 +1146,8 @@ v1.0: 1 → 2 → 3 → 4/5/6 (parallel) → 7 → 8 → 9 → 10 → 11 → 18 
 v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 Close-out one-by-one: 17 deploy → 17 SQL apply → 17 UAT → 16 ROADMAP tick → discuss 19 surge → 11-12 owner Publish (never agent)
 v1.2 Payment (leftovers 16/17/19/20 frozen): 21 → 22 → 23 → 24 → 25
-v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 → 27 → 28 → 29
-Order of 2026-09-30 (owner): 26.4.2 → 26.5 → 27 → 28 → 29 → 26.0 → 26.2 → 20 → 19. Source: .planning/decisions/2026-09-30-priorities-and-ship-mode.md
 Where it stands, 2026-10-01 (bookkeeping B10, from .planning/CONTROL-BOARD.md "What is left"): shipped 26.1, 26.3, 26.4, 26.4.1, 26.4.2, 26.5, 26.0, 27, 27.1. Open now, in parallel lanes: 26.2 P6 (A), 26.0 finish B4 (B), this bookkeeping (D), Van luxury up to 12 travellers (V, no phase); the 20 leftovers (R) reached main at 23:49 (3e2bba66), 20-09 live proof left. Then, one at a time after P6, the rest of 26.2. B7 content and legal reached main at 23:55 (ea1141e7) after the owner switched Cloudflare's automatic Web Analytics off; next in that line G23, then the Arabic and design-canvas fixes. Waiting for the owner: 28 then 29 (Meta check). 19 deferred, status question open. The control board is the live source; this line is a snapshot.
-Where it stands, 2026-10-05 (bookkeeping, from .planning/CONTROL-BOARD.md): 28 shipped 2026-10-03 and 29 shipped 2026-10-04, both live; 19 closed by the owner, 20 complete (2026-10-02); 26.2 is the one open phase, for its found rows. Left for the owner on 28 and 29: the Events Manager Test events check and the Meta test event code. The investigation jobs of 2026-10-05 (security, money and database, content, dashboard, review follow-ups, checks) are live and have no phase of their own: they are on the board.
+Where it stands, 2026-10-05 (bookkeeping, from .planning/CONTROL-BOARD.md): 19 closed by the owner, 20 complete (2026-10-02); 26.2 is the one open phase, for its found rows. The investigation jobs of 2026-10-05 (security, money and database, content, dashboard, review follow-ups, checks) are live and have no phase of their own: they are on the board.
 Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026-09-29.md on main, commit 37e55d26), updated 2026-10-01: plan 04.3 replaced by 26.1/26.3, never build · plan 05-19 dropped · plan 05-24 folded into 27.1 and /contact, owner checks left · plan 05-28 shipped 2026-10-01 as B8 · plan 11-12 owner-held, never raise · plan 26.1-28 superseded
 
 | Phase | Plans Complete | Status | Completed |
@@ -1319,7 +1180,6 @@ Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026
 | 23. Wallets + Dashboard methods | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 24. Dual-payer, pay-link, mail split | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Replaced by 26.1/26.3, never build | - |
-| 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
 | 26.0. Main green (INSERTED) | 12/12 | Shipped 6ec73c52, Worker c2127d38; the remaining reds are lane B (B4) | 2026-10-01 |
 | 26.1. Payment and pricing integrity (INSERTED) | 32/32 (26.1-28 superseded) | Shipped cff97a0e; 26.1-28 moot (owner deletes test bookings) | 2026-09-28 |
 | 26.2. Codebase audit, bug fix and simplify (INSERTED) | 3/12 units finished (03, 09, 10) | Open. Live: hand-overs 1 and 2, staff price preview, extras A and D, P1 class change, chauffeurs by class. Left: P6 (lane A), extras B and C, price-band drop, B3, units 01, 02, 04 to 08, 11 not finished, close-out 12, gate scripts (last) | - |
@@ -1328,19 +1188,15 @@ Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026
 | 26.4.1. Laptop booking bar (INSERTED) | 2/2 | Shipped 0f58ab6d, Worker 2b04648a | 2026-09-30 |
 | 26.4.2. Owner booking feedback (INSERTED) | done | Shipped 37ba5b62 plus repairs; class cards layout E, phone home, home without class section | 2026-09-30 |
 | 26.5. Checkout guest / sign in / create account (INSERTED) | 11/11 | Shipped 9a5263cd, Worker 2d5906ce; guest accounts on | 2026-09-30 |
-| 27. Consent record | 18/18 | Shipped ce55cd75, Worker c45d2782; Meta gate still closed | 2026-10-01 |
+| 27. Consent record | 18/18 | Shipped ce55cd75, Worker c45d2782 | 2026-10-01 |
 | 27.1. Finish your account (INSERTED) | 1/1 | Shipped 96a17ab7, Worker 6eb1d700 | 2026-10-01 |
-| 28. Pixel PageView | 7/7 | Shipped da25c7d5, Worker d937114f (migration 20261007240000 live 19:58). Owner-held: his Events Manager Test events check | 2026-10-03 |
-| 29. Webhook Purchase | 7/7 | Shipped 54599783, Worker b9e15a18 (migration 20261007260000 live 15:55; lock-order fix 16:27, 41ba7b7d). Owner-held: the Meta test event code, not set (test payments record no_test_code, nothing is sent); 29-VERIFICATION.md stays human_needed | 2026-10-04 |
 
 ---
 *Roadmap created: 2026-08-17*
-*Granularity: fine (11 phases v1 + 6 phases v1.1 + 5 phases v1.2 + 4 phases v1.3)*
-*Coverage: 80/80 v1 + 9/9 v1.1 + 4/4 chauffeur desk (OPS-11–14) + 11/11 v1.2 (PAY-08…PAY-18) + 14/14 v1.3 (META-01…META-14)*
+*Granularity: fine (11 phases v1 + 6 phases v1.1 + 5 phases v1.2)*
+*Coverage: 80/80 v1 + 9/9 v1.1 + 4/4 chauffeur desk (OPS-11–14) + 11/11 v1.2 (PAY-08…PAY-18)*
 *v1.1 Ops Support added: 2026-09-04*
 *Phase 17 chauffeur desk added: 2026-09-11*
 *v1.2 Payment added: 2026-09-22 (phases 21–25; leftovers 16/17/19/20 unchanged)*
-*v1.3 Meta measurement added: 2026-09-23 (phases 26–29; v1.2 phases 21–25 unchanged)*
 *Phase 26.1 inserted: 2026-09-27 (payment and pricing integrity; INT-01…INT-09; discuss signed the same day)*
 *GSD bookkeeping B10: 2026-10-01 (missing summaries, closed and replaced phases marked, rows for 5.1, 5.2, 6.1, 26.0, 26.2, 26.4.2, 26.5, 27.1)*
-*GSD bookkeeping 2026-10-05: phases 28 and 29 ticked as shipped with their owner-held items named; STATE.md brought to 2026-10-05*

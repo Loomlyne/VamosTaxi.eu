@@ -2,7 +2,7 @@
 
 ## 0. Status
 
-Branch `phase-31-refunds-in-stripe`. The head commit is the one that updates this file (`git log -1`). Second merge of origin/main (95253429: #77 remarketing off, #78 notification kinds, migration 20261012230000) at **edd7d6d8**, clean, no conflicts. First merge was 89e68ca8. Third merge bcf34728 brings origin/main aa85e5ec (planning notes only: Phase 30 Ship decision, Phase 31 internal lines signed); no code, so the gate and pgTAP results below stand.
+Branch `phase-31-refunds-in-stripe`. The head commit is the one that updates this file (`git log -1`). First merge was 89e68ca8. Third merge bcf34728 brings origin/main aa85e5ec (planning notes only: Phase 30 Ship decision, Phase 31 internal lines signed); no code, so the gate and pgTAP results below stand.
 Not pushed to main. No deploy. No live write. No live MCP call during execution; the only live calls were read-only SELECTs on 2026-10-12/13 for the 23514 facts, before execution.
 
 ## 1. What was built
@@ -105,7 +105,6 @@ Full rows: `.planning/decisions/2026-10-12-refund-wording-signed.md` W4, W5.
   - Touched tests: notify-lifecycle, edit-request-notify-outcome, google, refund-mail, notify, money-events, settle: 7 files, 344 passed. `tsc --noEmit` (apps/web) exit 0.
   - Full gate, 23:29:03–23:31:40 on edd7d6d8: `pnpm gate:local && pnpm check:db-fences`, `exit=0`. Log: `evidence/gate-local.log`. apps/web 6088 passed, 55 skipped (the `.local` files); emails 360; db 14; test:db-lab db 76, web 11 + 42 passed; check-db-access-fences all 8 checks passed (1290 files).
   - pgTAP after reset on the own stack (applies 20261012230000 then 20261012240000): `PASS | pgtap | Files=118, Tests=3501`, `exit=0`; notification_kinds, refund_check_reader, seed_idempotent ok. Logs: `evidence/pgtap.log`, `evidence/pgtap-detail.log`.
-  - The browser brief was not re-run after this merge: #77/#78 touch no page the brief covers (app/vamos-google.js is the remarketing switch).
 
 Earlier results (before the second merge):
 

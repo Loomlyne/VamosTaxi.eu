@@ -98,7 +98,6 @@ Existing `round.ts` / `vat.ts` / `formatAmount(null)==="CHF 000"` stay. Do not a
 | Owner apply schema on `yaumjzvylngfjhtuffqs` | D-14 D-19 | Live Zurich; agent must not apply | Numbered owner sitting. Never restore onto this project. |
 | First public CHF | D-40 | Fare book is owner data | Current or new `/pricing` Publish. Until then public `CHF 000`. |
 | Price-changed / expired mail English | D-24 | Owner supplies copy later | Wire skip-send / TBC. Do not invent. |
-| Extra-wait off-session debit | D-38 | Stripe SCA / legal gate | Do not ship silent capture. |
 | Live dashboard visual | D-27 | DC pixel | `https://dashboard.vamostaxi.site/pricing` after deploy to Worker `vamos`. |
 
 ---

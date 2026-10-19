@@ -66,7 +66,6 @@ every served mock. Contact and checkout had none.
 | cancellation §03 | (garbled 24 h / 72 h text) | "…can be changed before pickup, free of charge. …"; the "after that deadline" paragraph removed | owner row 16; settings `modification_deadline_hours` is empty and nothing reads it |
 | privacy | Your account paragraph | pill removed; HTML/JSX comment marks the spot | 26.5 inserts the paragraph there |
 | manage-booking, booking-detail | Change deadline (×2), share, Refund payout time | section 2 | |
-| Next.js cookie banner (`/checkout`, `/confirmation`, sign-up, first visit) | Meta banner line | slot hidden by CSS while it holds a pill: `.vt-ck-meta:has([data-tok]){display:none}` | the Phase 26 tests pin the slot in source; the owner's Meta text (`2026-09-30-meta-wording.md`) replaces the pill in phase 28/29 and the slot shows again by itself |
 
 Still TBC but **not live**: the Next.js copies of about, cookies, imprint credits, privacy (DPO,
 regions, logs, Meta privacy line), terms (extra stop, oversize, payment methods), cancellation

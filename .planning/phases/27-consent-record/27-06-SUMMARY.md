@@ -15,7 +15,6 @@ key-files:
   modified:
     - app/pages/CookieBanner.dc.html
     - app/home/CookieBanner.dc.html
-requirements: [META-03, META-04]
 completed: 2026-09-30
 ---
 

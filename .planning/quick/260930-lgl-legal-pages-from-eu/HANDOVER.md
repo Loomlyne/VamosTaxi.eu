@@ -25,7 +25,7 @@ mock and in the Next.js page.
 Files touched outside the brief's list: `app/pages/{privacy,terms,cancellation,imprint}.dc.html`,
 `app/vamos-i18n-dict.js` (one block after the `'Trip records for'` entry), and two older tests
 that pinned the UID gap (`apps/web/lib/legal/extract-no-invent.test.ts`,
-`apps/web/lib/meta/legal-gate.test.ts`). Messages: 32 new `legal.*` keys in four languages
+Messages: 32 new `legal.*` keys in four languages
 (appended to the end of the `legal` namespace) plus 18 `$meta.noParamKeys` entries. No legal key was deleted.
 
 ## 2. What changed, both surfaces, four languages
@@ -68,7 +68,6 @@ times"). Where this job replaced that text, the "mock after" column says so.
 | privacy | Archiving years (×2) | **Filled** 10 years (owner correction) | "10 years years" → "10 years" |
 | privacy | Finance retention | **Filled** statutory trade and tax retention periods (data protection §10) | "10 years (Swiss books)" kept (old value) |
 | privacy | Log retention, Consent log retention | open, list C | old values |
-| privacy | Meta privacy line | open (Meta legal gate, blocks 28/29) | not on mock |
 | privacy | — | **new** Your account paragraph (26.5) | new pill |
 | terms | Extra stop fee, Oversize item fee | open, list C | "shown on your quote" (old values) |
 | terms | Extra waiting rate (×2) | **Filled** per commenced hour (terms §8) | replaced |
@@ -90,7 +89,6 @@ times"). Where this job replaced that text, the "mock after" column says so.
 | cancellation | Complaint resolution days | **Filled** 30 days | replaced |
 | cancellation | Voucher validity | **Removed** with the voucher section (decision 3) | removed |
 | cookies | Language cookie duration, Session duration, Consent duration | open, list C | old values |
-| cookies | Meta cookie row | open (Meta legal gate) | not on mock |
 
 Effective-date and version gaps (`LegalPage` on every Next.js page) stay open; the owner chose
 "ship day" for the date (decision 14).

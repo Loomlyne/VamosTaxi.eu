@@ -20,7 +20,6 @@ dropped or parked: do not start it. Tell the owner and point to this file.
 | 16 | Staging MX and end-to-end UAT | Complete | Built, `16-UAT.md` complete, 10 of 10 passed. The table said "not started"; that was stale. |
 | 17 | Ops chauffeur profile, shift roster, two-driver vehicles | Closed, feature removed | Owner: "we deleted that part". If it is wanted later it gets a fresh phase. `17-UAT.md` stays as history (partial, some steps failed). |
 | 18 | OPS Pricing source of truth | Complete | |
-| 26 | Legal gate | Complete | On main since 2026-09-24 (b2af7ce8). Pixel stays off. |
 
 ## Replaced, do not build
 
@@ -64,8 +63,7 @@ dropped or parked: do not start it. Tell the owner and point to this file.
 
 ## Order from here
 
-26.3 (shipped 2026-09-29, af93fc8e) → 26.0 → 26.2 → 20 → 19 → 27 to 29 (pixel stays off until the
-owner supplies the legal lines in four languages). Order of 20 before 19 signed by the owner on
+26.3 (shipped 2026-09-29, af93fc8e) → 26.0 → 26.2 → 20 → 19 → 27. Order of 20 before 19 signed by the owner on
 2026-09-29. Phase 26.4 (owner comments 4 to 6 after the 26.3 ship) and the small fixes after the
 ship run beside 26.0.
 

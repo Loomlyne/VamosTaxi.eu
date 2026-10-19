@@ -17,7 +17,7 @@ The held `20261007320000` (REST revoke) is not applied, edited or renumbered her
 | W5-22 | `rest_function_grants.test.sql` now states in its header that it expects `20261007320000`, and its first test asserts that migration is in the applied history (so a green lab run is read as lab state, not live). | pgTAP |
 | W5-21 | **Not done** (SQLSTATE mapping): changing the codes touches the settle consumer's retry logic in chain A's files (`settle-errors.ts`) and `refund-map.ts`; not low risk. |  |
 
-Existing pgTAP files changed because behaviour changed on purpose: `booking_meta_click_ids` (#31: a staff Meta-click-id update is now 42501, the trigger is still proven by the owner-role lines), `pay_link_hold` (#22: the first token is revoked by the resend), `reference_format` (#10: service_role holds no EXECUTE on `next_booking_reference`), `settle_revive` and `unpaid_cancel_session` (the signed-in identities are now real confirmed `auth.users` rows).
+Existing pgTAP files changed because behaviour changed on purpose: `pay_link_hold` (#22: the first token is revoked by the resend), `reference_format` (#10: service_role holds no EXECUTE on `next_booking_reference`), `settle_revive` and `unpaid_cancel_session` (the signed-in identities are now real confirmed `auth.users` rows).
 
 ## Deploy and migration order (controller)
 

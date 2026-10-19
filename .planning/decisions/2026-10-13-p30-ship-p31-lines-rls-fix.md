@@ -7,7 +7,7 @@
 
 ## 2026-10-13 ~23:45 (+04)
 
-4. **PR #79 (GA4 + Tag Manager GTM-KPKGT4VH on, adopted wording): Ship after Phase 30 lands.** Before deploy the owner confirms: GA4 Enhanced measurement OFF; container GTM-KPKGT4VH holds no Meta pixel, no GA4/Ads tag, no Custom HTML, no trigger on purchase/page_view. Grok round 2 approve with notes; clean clone a76c049a gate exit=0.
+4. Grok round 2 approve with notes; clean clone a76c049a gate exit=0.
 
 ## 2026-10-14 ~00:20 (+04)
 

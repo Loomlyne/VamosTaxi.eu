@@ -37,7 +37,7 @@ Files: `app/[locale]/checkout/**` (CheckoutForm, CheckoutPage, PaymentSection, p
 Questions: client never decides paid; return page trusts only server state; redirect and `return_url` allow-list; 3DS/Twint/Link redirect return; confirmation poll budget; double-submit; error states for card declined, expired session, other device; four languages and RTL on every payment string.
 
 ### W4. Webhook ingest, queue, settle (F, G)
-Files: `app/api/stripe/webhook/route.ts`, `lib/checkout/{webhook,webhook-verify,stripe-event-record,settle,settle-errors,charge-gate,dlq,money-events,stripe-fee,notify}.ts`, `worker.ts` (queue, scheduled), `lib/meta/purchase.ts`, `lib/db/system-reads.ts`, `lib/db/identity.ts`.
+Files: `app/api/stripe/webhook/route.ts`, `lib/checkout/{webhook,webhook-verify,stripe-event-record,settle,settle-errors,charge-gate,dlq,money-events,stripe-fee,notify}.ts`, `worker.ts` (queue, scheduled), `lib/db/system-reads.ts`, `lib/db/identity.ts`.
 Questions: raw body kept, signature tolerance, secret rotation; which event types are subscribed in Stripe vs handled in code; record-then-enqueue gap (200 only after both); consumer retry and `max_retries`, ack/retry semantics, DLQ consumer end of line and alerting; out-of-order (`superseded`), duplicate delivery, double settle (U15); capture vs auto-capture, partial failure after state change but before email; amount/currency/booking-id re-verified against DB before marking paid; stale Meta/email side effects replayed on retry; unprocessed-event sweep exists and runs.
 
 ### W5. Database settlement and money tables (H, J)
@@ -78,7 +78,7 @@ Supabase connector, `SELECT` only on project `yaumjzvylngfjhtuffqs`; Stripe conn
 
 ## Not in scope
 
-Meta CAPI beyond the settle hook, Stripe Connect (does not exist), live-key cutover, vamostaxi.eu cutover, price book content, UI polish unrelated to payments.
+Stripe Connect (does not exist), live-key cutover, vamostaxi.eu cutover, price book content, UI polish unrelated to payments.
 
 ## Risks to the review itself
 

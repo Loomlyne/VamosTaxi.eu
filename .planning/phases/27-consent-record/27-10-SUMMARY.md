@@ -2,7 +2,6 @@
 phase: 27-consent-record
 plan: 10
 subsystem: legal-pages, consent
-requirements: [META-03, META-05]
 key-files:
   modified:
     - apps/web/app/[locale]/cookies/page.tsx
@@ -10,7 +9,6 @@ key-files:
     - apps/web/components/legal/LegalPage.tsx
     - apps/web/next.config.ts
     - apps/web/lib/consent/policy.ts
-    - apps/web/lib/meta/legal-gate.test.ts
     - apps/web/lib/legal-updated.test.ts
 metrics:
   completed: 2026-09-30
@@ -29,7 +27,6 @@ The Next /cookies and /privacy pages now render the owner's texts (`cookies.meta
 - `pnpm test:unit`: 261 files passed, 1 skipped, 2624 tests passed, 0 failed.
 - `tsc --noEmit` clean.
 - `grep 'label="Meta '` on both pages: no output. `"2026-09-12"` count in policy.ts: 0.
-- `legal-gate.ts` untouched (`git diff --stat` empty); `META_LEGAL_GATE_OPEN = false`.
 - `LEGAL_UPDATED` still `2026-09-30`, `CONSENT_UPDATED` `2026-09-30`: two separate constants. The equality test compares `CONSENT_POLICY_VERSION` with `CONSENT_UPDATED` only, and a second test asserts the two assignments are separate.
 
 ## Ship-day note

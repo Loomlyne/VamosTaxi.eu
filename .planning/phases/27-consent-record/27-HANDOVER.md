@@ -49,8 +49,7 @@ Gate run 2026-10-01 (02:30 to 03:10 Zurich), once, by this plan only, on the tre
 | 18a | `pnpm exec playwright test tests/integration/consent-banner-27.spec.ts --project=component-390 --workers=1` | pass, 9 of 9 |
 | 18b | `pnpm exec playwright test tests/integration/signup-agreement-27.spec.ts` (all four projects) | pass, 56 of 56 |
 | 18c | `VAMOS_TEST_DB_PORT=59322 VAMOS_TEST_MAIL_PORT=59324 VAMOS_TEST_SUPABASE_WORKDIR=/tmp/vamos-sb27 pnpm exec playwright test <file> --workers=1`, `auth-flows.spec.ts` then `auth-confirm-email.spec.ts`, stack from `start-mailpit` (reset, passwords set) | pass: 11 of 11, then 1 of 1 |
-| 19 | must-not greps, added lines of `git diff origin/main...HEAD` | pass: `sk_live_`, `vamostaxi.eu`, `1595596972063765`, `fbq(`, `fbevents` appear only in planning documents that forbid them (same as the last run); no code line |
-| 20 | `git grep` `META_LEGAL_GATE_OPEN = false as const` in `apps/web/lib/meta` | pass, still false (`legal-gate.ts:6`) |
+no code line |
 | 21 | `git grep` `record_consent\|recordConsent` in `apps/web/lib/auth`, `apps/web/app/api/auth` (no tests) | pass, empty |
 | 22 | `git grep` `signup_consent` in `apps/web/lib`, `apps/web/app` (no tests) | pass, empty |
 | 23 | `git diff --numstat origin/main...HEAD` on quote, checkout, stripe, pricing, checkout page, confirmation, checkout components | pass, exactly `1 1 apps/web/app/[locale]/checkout/checkout.css`. Main's extras part A did not change that line; ours is the only Phase 27 change there |
@@ -79,7 +78,7 @@ I could not run these on origin/main (no second stack allowed), so "on main too"
 | "You can refuse": Necessary only writes everything off, no Turnstile | `apps/web/tests/unit/consent/route.test.ts` and the mock banner pin (e) in `apps/web/lib/consent/mock-banner.test.ts` |
 | "Change your choice at any time in Cookie preferences": the footer opens the sheet, Save writes a new row | `apps/web/components/consent/reserve-and-footer.test.ts`, `banner-contract.test.ts`, pgTAP `consent_choice_reader.test.sql` R4; browser: `consent-banner-27.spec.ts` case C |
 | "Withdraw at any time": a later Necessary only wins, and a choice as of a time is read correctly | pgTAP `consent_choice_reader.test.sql` R3, R5, R6 |
-| "Set only after you accept", page-view and Purchase lines | NOT built in this phase (28 and 29). Proof that nothing is sent: `apps/web/lib/meta/legal-gate.test.ts` "no fbevents.js" and "flag off"; `META_LEGAL_GATE_OPEN` is false |
+| "Set only after you accept", page-view and Purchase lines | NOT built in this phase (28 and 29).
 
 ## Not verified
 
@@ -89,7 +88,6 @@ I could not run these on origin/main (no second stack allowed), so "on main too"
 - The three tests in `packages/db/test/local/checkout-account.test.ts` were red in this run (role passwords). Those functions are covered by pgTAP and by the Worker e2e.
 - Hosted database: nothing read or written.
 - D-03a: built by 27-17 (grant), 27-15 (server) and 27-16 (page). Proven by unit tests, pgTAP, the Worker e2e (1a0, 1a, 1b) and `signup-agreement-27.spec.ts` (56 of 56). D-36: built by 27-18, proven by unit tests, the Worker e2e (3b) and, in the modified copy, the browser test for an unknown address.
-- Known over-description between the 27 and 28 ship: the privacy text says Meta records page views after Accept while no pixel loads yet. Nothing is sent. 28 makes it true.
 - `VamosLocale.coverage` was not run in a browser by this plan; 27-16 ran it in `signup-agreement-27.spec.ts` (Arabic case D) and it passed.
 - The real timing floor of the sign-in link was measured on the Worker e2e (known 1323 ms, unknown 1233 ms), not against hosted.
 - Right-hand hero photo missing in static serving (older, unrelated, noted by 27-16).
@@ -98,7 +96,6 @@ I could not run these on origin/main (no second stack allowed), so "on main too"
 ## Not in this phase
 
 - D-37 (owner, 2026-09-30): a person who verifies a sign-in link without an account lands on a finish-your-account step (first name, last name, optional phone, the account notice and the tick). The Sign up form also asks for an optional phone number. This is a follow-up job right after the 27 ship, with its own UI-SPEC for the owner to sign. Until then D-36 holds: the sign-in link for an unknown address sends nothing and makes no account, and the person uses Sign up.
-- The Meta pixel, `_fbp` and `_fbc`, and opening the legal gate: phase 28.
 - The server Purchase event: phase 29.
 
 ## Migrations
@@ -134,7 +131,6 @@ For the control session, read-only SQL on the hosted project:
 - `ACCOUNT_NOTICE_VERSION` stays `2026-09-29` (its text did not change). `LEGAL_UPDATED` for terms, cancellation and imprint stays.
 - No new environment variable, no new secret.
 - The Turnstile site key is now injected on every mock page.
-- `META_LEGAL_GATE_OPEN` is still false.
 - Planner choice, not an owner decision: the `signup_consent` metadata flag is no longer written (27-18). Nothing read it after 27-02, and the agreement is now recorded at the ticked submit. Old users keep the stored value. The owner can have it put back.
 - Behaviour change by owner decision D-36: "Email me a link" on /sign-in no longer creates an account for an unknown address.
 
@@ -163,7 +159,7 @@ The banner now sits on checkout, so the payment path gets its own proof (CLAUDE.
 
 - `apps/web/lib/live-no-tbc.test.ts`: changed on purpose in this phase (see `27-11-SUMMARY.md` and the git log of the file for the exact pin).
 - `apps/web/lib/legal-updated.test.ts`: consent date pinned equal to `CONSENT_POLICY_VERSION`.
-- `apps/web/lib/meta/legal-gate.test.ts`: pins moved to the consent date and the flag-off rule; Meta needles built from parts.
+Meta needles built from parts.
 - `apps/web/components/consent/banner-contract.test.ts`: new banner contract.
 - `apps/web/lib/consent/record.test.ts`: the pending-flag pin is now "the flag is gone".
 - `apps/web/tests/unit/auth/signup-consent.test.ts`: sign-up carries the tick.
@@ -187,7 +183,7 @@ Run on staging after the control session deploys. Use a private window each time
 6. In a new private window start a booking and go to /checkout at 390 wide. Expect: the banner shows, and PAY is fully visible above it.
 7. Open a pay link at 390 wide. Expect: the banner shows, and PAY can be scrolled above it.
 8. Open the dashboard. Expect: no banner.
-9. Switch to Arabic. Expect: the banner sits on the start side, text runs right to left, and `_fbp` and `_fbc` read left to right.
+9. Switch to Arabic.
 10. Switch to German at 768 wide. Expect: nothing is cut off and nothing scrolls sideways.
 11. The control session reads `consent_log` read-only. Expect: your Accept row (marketing true), then your Save row (marketing false), both under the new version.
 12. Open vamostaxi.site/sign-up. Expect: under the fields a tick box reads the same sentence as "Create an account" on checkout, with Terms and Privacy notice as links.

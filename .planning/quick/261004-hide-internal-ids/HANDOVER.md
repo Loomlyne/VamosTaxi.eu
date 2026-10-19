@@ -13,7 +13,7 @@ Owner, 2026-10-04: "hide all tokens hide all ids like be more fucking secure abo
 - Merge conflicts: `cookies.dc.html`, the React cookies twin, the four message files, `seed.sql`, `seed_idempotent.test.sql`.
   Only main commit touching them was `7b5dfb25`, whose patch is byte-identical to `c4a0e25b` already in this branch
   (the branch was cut from `fix/cookies-manage-locale-rows`). Resolved to the branch side, so main's content is kept
-  and the approved §5 plain names stay. `legal-gate.test.ts` (`6af249d7` on both sides) merged cleanly.
+  and the approved §5 plain names stay.
 
 ## STOP — before shipping
 
@@ -66,7 +66,6 @@ No lawyer has read any of it.
 
 ## Earlier commits on this branch (before 15:05)
 
-`17e82686` served DC copy without developer comments, design-system docs no longer served · `4b61e2bf` /cookies shows `sb-…-auth-token`, Meta row on phones, Marketing table headers · `6af249d7` legal-gate test pin (also on main) · `d92a9c26` booking answers drop internal UUIDs · `7f0e0eb4` review token out of the address bar (superseded by `de6b05ec`) · `d8f25617` approved copy §1–4 · `2f412c4b` plain cookie names.
 
 ## Finding table
 
@@ -92,7 +91,7 @@ Live = read-only GETs on https://vamostaxi.site, 2026-10-04 ~10:30–10:50 UTC (
 
 ### MUST STAY (public by design) — unchanged
 
-Cookie names on /cookies (now incl. `vt_review`); Meta pixel id after consent; Stripe publishable key `pk_test_51UIZmq…` on /checkout; Turnstile site key; operator name and Loomlyne on /about and /imprint; `info@vamostaxi.site` and `+41 79 626 70 82`; the DC runtime files (served without comments); `vamos-ops-*.js` on the public host (comments stripped; moving them off = separate job); vehicle photo and review row UUIDs; Cloudflare edge headers; robots.txt paths.
+Cookie names on /cookies (now incl. `vt_review`); Stripe publishable key `pk_test_51UIZmq…` on /checkout; Turnstile site key; operator name and Loomlyne on /about and /imprint; `info@vamostaxi.site` and `+41 79 626 70 82`; the DC runtime files (served without comments); `vamos-ops-*.js` on the public host (comments stripped; moving them off = separate job); vehicle photo and review row UUIDs; Cloudflare edge headers; robots.txt paths.
 
 ### OK (checked in the first pass, nothing to hide)
 

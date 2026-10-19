@@ -25,4 +25,3 @@
 | 16 | Phone on the normal Sign up form? | Yes on both (Recommended) / Only after a sign-in link | Own words: it asks for the phone number but optional |
 
 Not asked, already decided: the three texts (decision file 2026-09-30), the version bump and
-re-ask (Phase 26 D-13, D-14), the banner on the pay link (META-04), phase order.

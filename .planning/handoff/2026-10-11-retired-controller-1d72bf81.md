@@ -35,7 +35,6 @@ All facts below were read live, read-only, between 20:30 and 20:35 (+04) unless 
   - Dashboard login by e-mail link only (`53bf66f7`)
   - Live publishable key on the staging Worker (#70)
   - Settle closes a canceled intent quietly (`80c173e9`)
-  - Ad tracking: Google tag and Meta events on (10-09)
   - Stale tests fixed
   - CI minutes saving plus `pnpm gate:local` (`df5c2447`)
   - Coupon race and coupon lock fix (#72)
@@ -75,7 +74,6 @@ All facts below were read live, read-only, between 20:30 and 20:35 (+04) unless 
 - **Background agents started by this session:** none running.
 - **Vamos sessions in the app** (read with `list_sessions`). None was running at read time:
   - "Fleet lifecycle discussion", `local_f1a6a4c1-863d-40dd-a248-6d508621d796`, ungrouped. Last active around 20:31. It is the phase 30 owner.
-  - "GSD meta, analytics, ads tracking", `local_b9a8fab0-f8a3-4178-aae5-3d79b1d2a6dc`, ungrouped. Last active around 19:24.
   - "Haiku vs Sonnet for image changes", `local_5dad5a73-fb23-4333-a371-2d12bdfa00cb`, Vamos Taxi group. Last active 2026-10-07.
 - **T3 Code threads:** not readable from this session (no T3 tools). The board names thread `c24bb69d-1096-4631-985c-588cdb7f872f` (Grok) as controller from 2026-10-09 14:55. `CLAUDE.local.md` says it is retired.
 
@@ -125,8 +123,6 @@ All facts below were read live, read-only, between 20:30 and 20:35 (+04) unless 
 6. One 4242 payment, one voucher quote and one cookie-banner choice on live. This releases `20261007320000`.
 7. Dashboard: sign out and in, save one thing, open the board, the calendar, one booking and Money in.
 8. Read /terms 08 and the FAQ "What if my flight is late?" on a phone.
-9. Meta test event code. This may be overtaken: Meta events were opened on 10-09.
-10. Phase 28: one PageView on /about after Accept all. This may be overtaken in the same way.
 11. /imprint in French, then Arabic: is the wording right?
 12. Older UAT: the manage link of VT-26-0743, dashboard New trip, sign-in in 14 steps.
 13. P1 UAT, payment first: 11 steps in `quick/260930-p1-class-change-reprice/HANDOVER.md`.

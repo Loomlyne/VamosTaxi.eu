@@ -147,8 +147,8 @@ if (batch.queue.endsWith("-dlq")) { … }            // existing Stripe DLQ
 ```
 **Cron** (lines 123-139): the `0 3 * * *` block ends with `return;` at line 138; add the translate sweep as its own try/catch with the same `emit(...)` shape:
 ```typescript
-try { const cleaned = await sweepMetaPurchaseIds(env); emit("info", "meta_purchase_sweep", { cleaned }); }
-catch { emit("error", "meta_purchase_sweep", { outcome: "failed" }); }
+try { const cleaned = await sweepSomething(env); emit("info", "<sweep name>", { cleaned }); }
+catch { emit("error", "<sweep name>", { outcome: "failed" }); }
 ```
 Counts only in the log. Mail info@ only on failure (CONTEXT Jev/automation line is a proposal; build only on his word).
 Phase 31 inserts a `refundCheck` try/catch in the same block (see Overlap).

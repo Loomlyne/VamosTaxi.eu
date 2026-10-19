@@ -4,7 +4,6 @@ plan: 08
 subsystem: consent-banner-hosts
 tags: [consent, banner, shell, checkout]
 requires: [27-07]
-requirements: [META-04]
 completed: 2026-09-30
 ---
 
@@ -26,7 +25,6 @@ The Next banner now renders wherever the footer renders (checkout, confirmation,
 ## Commands and results
 - Red first: hosts matrix 7 failed / 9 passed before the SiteShell change; green after.
 - `vitest run components/consent`: 3 files, 29 tests passed.
-- `vitest run lib/meta/legal-gate.test.ts lib/live-no-tbc.test.ts`: 10 passed.
 - `pnpm lint:css` exit 0. `pnpm check:db-fences`: 8 checks passed.
 - Greps: `isHome ? banner` none; `hasConsent` none; `showBanner = !onDashboard` one line; `CookiePrefsListener` appears only in test files asserting absence.
 - `git diff --numstat` on checkout.css and ContactFab.css: 1/1 each.

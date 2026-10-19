@@ -3,7 +3,6 @@ phase: 27-consent-record
 plan: 14
 subsystem: verification
 tags: [gates, hand-over, consent]
-requirements: [META-03, META-04, META-05]
 key-files:
   created:
     - .planning/phases/27-consent-record/27-HANDOVER.md

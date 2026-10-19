@@ -15,7 +15,10 @@
 // automatic injection must stay off, or this allowance lets it run unasked.
 //
 // Owner's tags (2026-10-19): Google Tag Manager GTM-KPKGT4VH, Google tag G-K5MZME44P6, Meta Pixel
-// 1595596972063765. Their hosts are listed below and nowhere else.
+// 1595596972063765. Hosts follow Google's CSP guide for GA4/GTM (collect on analytics.google.com,
+// www.google.com and *.g.doubleclick.net; audiences on google.<country>, listed for the visitor countries
+// we serve) and Meta's pixel hosts. A shorter list silently dropped GA4 hits in the live check of
+// 2026-10-19.
 //
 // Referrer-Policy is strict-origin: a move from a checkout, confirmation or pay-link address to another
 // page of ours tells that page only https://vamostaxi.site/, never the previous address. Cross-site
@@ -26,10 +29,10 @@
 export function contentSecurityPolicy(): string {
   return [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com https://www.googletagmanager.com https://connect.facebook.net",
-    "frame-src challenges.cloudflare.com https://www.googletagmanager.com",
-    "connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://www.facebook.com https://connect.facebook.net",
-    "img-src 'self' data: blob: https://*.mapbox.com https://www.googletagmanager.com https://*.google-analytics.com https://www.facebook.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com https://*.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://connect.facebook.net",
+    "frame-src challenges.cloudflare.com https://*.googletagmanager.com https://td.doubleclick.net https://www.facebook.com",
+    "connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com https://*.googletagmanager.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://*.g.doubleclick.net https://www.google.com https://www.google.ch https://www.google.de https://www.google.fr https://www.google.it https://www.google.at https://www.google.co.uk https://www.google.nl https://www.google.be https://www.google.es https://www.google.ae https://www.google.tn https://www.facebook.com https://connect.facebook.net",
+    "img-src 'self' data: blob: https://*.mapbox.com https://*.googletagmanager.com https://*.google-analytics.com https://*.g.doubleclick.net https://www.google.com https://www.google.ch https://www.google.de https://www.google.fr https://www.google.it https://www.google.at https://www.google.co.uk https://www.google.nl https://www.google.be https://www.google.es https://www.google.ae https://www.google.tn https://www.facebook.com",
     "worker-src 'self' blob:",
     "style-src 'self' 'unsafe-inline'",
     "object-src 'none'",

@@ -13,8 +13,6 @@ pay link. Accept writes Meta on. Necessary only writes Meta off. The latest row 
 The owner's three Meta texts replace the empty Phase 26 slots, and the consent policy version moves
 to the Zurich date of the ship day, so older Accepts ask again.
 
-Not in this phase: loading the pixel (28), saving `_fbp`/`_fbc` (28), sending Purchase (29),
-opening `META_LEGAL_GATE_OPEN` (28 opens it together with the owner's Events Manager flag).
 Nothing is sent to Meta by this phase.
 
 </domain>
@@ -105,7 +103,6 @@ Nothing is sent to Meta by this phase.
 - **D-15:** The banner title "You choose what we measure", kicker, button labels and the other
   three preference rows stay as they are.
 - **D-16:** Never reword, shorten, re-translate or add a sentence to §1–§3. Arabic in RTL with
-  `_fbp`/`_fbc` kept LTR (`.vt-dir-keep`).
 
 - **D-16a (owner, 2026-09-30, UI-SPEC Q-1):** remove "Reset my choice" and the line "Resetting clears the record and brings the banner back…" from /cookies. Lena changes her mind with "Change preferences" / "Necessary only"; each change is a new record.
 
@@ -123,10 +120,6 @@ Nothing is sent to Meta by this phase.
   `/checkout`, `/confirmation`, the pay link, `error.tsx`, `not-found.tsx` — it may be a condition
   to change, not a mount to add). `reset-password.dc.html` gets the banner. `bind.ts` takes the
   categories from the choice; new policy version; owner texts verbatim; sign-up write removed.
-- **D-23:** Pixel (Phase 28, recorded so the consent design holds): the pixel is never in HTML for
-  a person without an Accept under the current version, and never on the pay link,
-  manage-booking, ops/dashboard or any URL carrying a booking reference. Cached marketing HTML
-  carries no pixel and no per-visitor state.
 
 ### Owner answers at planning (2026-09-30, question form)
 - **D-29 (PS-1):** /cookies section 06: remove the lead "Nothing in this category is running
@@ -183,8 +176,6 @@ Nothing is sent to Meta by this phase.
   paid time.
 
 ### Carried forward
-- Nothing to Meta before Accept; `META_LEGAL_GATE_OPEN` stays `false` in this phase.
-- The pixel never loads on a pay link (Phase 28 enforces; 27 adds nothing that loads it).
 - Accept keeps its Turnstile check (`action: consent`), Necessary only does not (existing route).
 - No `sk_live_`, no `vamostaxi.eu`, no invented legal copy, no invented CHF, no hashed e-mail or
   phone, no browser Purchase, no middle events. Quote, pay and confirmation logic unchanged
@@ -207,9 +198,6 @@ Nothing is sent to Meta by this phase.
 
 - `.planning/archive/tracking-v1/decisions/2026-09-30-meta-wording.md` — the three texts, verbatim, four languages; 90 days; Meta Platforms Ireland Ltd
 - `.planning/decisions/2026-09-30-priorities-and-ship-mode.md` — order 27 → 28 → 29, ship-mode limits
-- `.planning/phases/26-legal-gate/26-CONTEXT.md` — D-12…D-15 version rules, D-19 all-or-nothing
-- `.planning/phases/26-legal-gate/26-VERIFICATION.md` — the seven Phase 26 pins
-- `.planning/REQUIREMENTS.md` — META-03, META-04, META-05
 - `.planning/ROADMAP.md` — Phase 27 success criteria
 - `CLAUDE.local.md` — one job, one branch, one ship; read-only live DB
 - `apps/web/middleware.ts` — `DC_PAGES`, `MARKETING_CACHE_PATHS`, `NO_STORE_PATH_PREFIXES`
@@ -219,7 +207,6 @@ Nothing is sent to Meta by this phase.
 - `apps/web/components/consent/CookieBanner.tsx`, `apps/web/components/shell/SiteShell.tsx`, `apps/web/app/[locale]/layout.tsx`
 - `apps/web/app/api/consent/route.ts`, `apps/web/lib/consent/{bind,cookie,ip,policy}.ts`
 - `apps/web/lib/auth/signup-consent.ts` — D-01/D-03
-- `apps/web/lib/meta/legal-gate.ts`, `apps/web/lib/meta/legal-gate.test.ts`
 - `packages/db/supabase/migrations/20260823000018_consent_log.sql` — table and `record_consent`
 - `packages/db/src/pg-types.ts` — array registration (Worker client `fetch_types: false`)
 
@@ -247,8 +234,6 @@ Nothing is sent to Meta by this phase.
 <not_verified_yet>
 ## Known limits
 
-- Between the 27 ship and the 28 ship, the privacy text says Meta records page views after Accept
-  while no pixel is loaded yet. The text over-describes; nothing is sent. 28 makes it true.
 - No lawyer has read the texts (decision file).
 
 </not_verified_yet>
@@ -256,7 +241,6 @@ Nothing is sent to Meta by this phase.
 <deferred>
 ## Deferred Ideas
 
-- Pixel, `_fbp`/`_fbc`, Events Manager confirmation flag, opening `META_LEGAL_GATE_OPEN` — Phase 28.
 - Server Purchase from the settle queue — Phase 29.
 
 </deferred>

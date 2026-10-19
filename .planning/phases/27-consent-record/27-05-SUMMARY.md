@@ -13,7 +13,6 @@ key-files:
     - apps/web/lib/consent/read.test.ts
     - apps/web/app/api/consent/state/route.ts
     - apps/web/tests/unit/consent/state-route.test.ts
-requirements: [META-04, META-05]
 completed: 2026-09-30
 ---
 

@@ -53,7 +53,6 @@ Not checked: Supabase auth settings beyond advisors, direct DB host exposure, Cl
 | U2 | No chauffeur for Business or Van luxury; VT-26-0753 (15 Oct) and VT-26-0752 (16 Oct) are Business | open | owner | blocks the owner |
 | U3 | Refund by hand and class/trip change refuse `sk_live_`; `rk_live_` not handled (`refund.ts:362`, `edit-request.ts:279`, `booking-change.ts:631,968`, `booking-trip-change.ts:278`) | open | owner decides, then controller | blocks the owner at launch |
 | U4 | Refund/dispute events: any DB error except not-found filed as permanent (deadlocks too) (`money-events.ts:100-112,176,225`) | open | controller | rare |
-| U5 | Meta test event code missing; no Purchase ever sent | open | owner | owner |
 | U6 | Checkout signed in as a customer untested since the vt-auth rename | open | owner (one 4242) | not verified |
 | U7 | Dashboard shows CHF 000 while loading or on failure | open | design + job | owner |
 | U8 | Dead session → blank screen, not /login; `/app/vamos-ops-*.js` outside app/ops; no-store vs ETag; Auth call timeout | open | controller | owner |

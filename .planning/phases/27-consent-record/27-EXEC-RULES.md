@@ -10,7 +10,7 @@ HARD RULES (a breach = stop and report, do not work around):
 - Do NOT edit .planning/STATE.md or .planning/ROADMAP.md. Only write your SUMMARY.
 - packages/db/supabase/seed.sql is generated — never hand-edit. Shared files (app/vamos-i18n-dict.js, apps/web/i18n/messages/*.json, app/pages/cookies.dc.html, privacy.dc.html): insert/replace exact lines only, no reordering, no reformatting, no deletions from the dictionary.
 - The owner's Meta texts (.planning/archive/tracking-v1/decisions/2026-09-30-meta-wording.md) are verbatim: never reword, shorten, translate or add to them. Do not write any legal sentence. If a string you need has no existing translation and is not in the plan, STOP and report.
-- Do not read or print secrets. META_LEGAL_GATE_OPEN stays false. No fbevents/pixel, nothing to Meta. Do not change quote/pay/confirmation logic. In test files, Meta pixel needles are built from string parts (lib/meta/legal-gate.test.ts scans test files).
+- Do not read or print secrets. Do not change quote/pay/confirmation logic.
 - Design laws: no glow, no --vt-yellow-50..300 surfaces or -600/-700 text, logical properties, four languages, design-system components only.
 - Other executors may work in this same worktree on different files. `git add` ONLY the files your task changed (explicit paths, never add-all); if `index.lock` exists wait 5s and retry; never commit another plan's files. A Next server start rewrites apps/web/tsconfig.json and apps/web/next-env.d.ts: restore those two with `git checkout -- <file>` and never commit them.
 - Commit per task: `feat(27-NN): …` / `test(27-NN): …`, ending with the line `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.

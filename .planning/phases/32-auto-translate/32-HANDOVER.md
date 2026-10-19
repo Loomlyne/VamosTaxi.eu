@@ -94,7 +94,6 @@ outside its own files):
   (Phase 32 changed comments only there, 32-06), `packages/db/database.types.ts`. Its migrations
   `250000`/`300000` interleave by number with Phase 32's; each is applied by its own file, no
   dependency between them.
-- `quick/ga4-gtm-consent`: `app/vamos-i18n-dict.js`, `apps/web/i18n/messages/ar.json`,
   `packages/db/supabase/seed.sql` (regenerate with `pnpm db:seed:gen`, never hand-merge).
 
 ---

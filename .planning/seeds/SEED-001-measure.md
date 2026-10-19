@@ -29,7 +29,7 @@ PostHog EU host only after consent (Phase 27 consent record); session replay on 
 
 ## Breadcrumbs
 
-app/home/home.dc.html; Phase 27 consent record; Phase 28 Pixel PageView (consent wiring)
+app/home/home.dc.html; Phase 27 consent record
 
 ## Notes
 

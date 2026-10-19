@@ -47,7 +47,6 @@ Done means all of this is true on live data, not on paper:
 | VamosTaxi - session control (local, this folder on `main`; the project thread "Vamos Taxi controller" and the old "Vamos Taxi control session" are retired) | Opus 5.5, xhigh | The only one that commits on main, applies migrations to Supabase `yaumjzvylngfjhtuffqs`, pushes, deploys Worker `vamos` with `--env staging` (and the gateway with an explicit yes) and cleans branches |
 | Phase 26.2 audit | Opus 5.5, xhigh | Dashboard and booking changes: class change, chauffeurs by class, place and time change, extras |
 | Vamos Taxi security phase | Opus 5.5, medium | Phase 20 security batches, refunds by hand, e-mail change |
-| Meta measurement phases 27-29 | Opus 5.5, medium | Consent record (live), pixel page view, purchase event |
 | Phase 26.0 main green completion | Sonnet 5.5, medium | Tests, gates, the GitHub test job |
 | Sub-agents in any session | Sonnet executors, Opus planners | Signed plans only |
 

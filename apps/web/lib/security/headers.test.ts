@@ -66,14 +66,14 @@ describe("security headers (D-32…D-38)", () => {
     const csp = headerMap().get("Content-Security-Policy") ?? "";
     expect(csp).not.toMatch(/stripe\.com/);
     expect(csp).not.toMatch(/link\.com/);
-    expect(csp).toMatch(/frame-src challenges\.cloudflare\.com https:\/\/www\.googletagmanager\.com;/);
+    expect(csp).toMatch(/frame-src challenges\.cloudflare\.com [^;]*googletagmanager[^;]*;/);
     expect(csp).not.toMatch(/maps\.googleapis\.com/);
   });
 
   it("the policy is one fixed string", () => {
     const csp = headerMap().get("Content-Security-Policy");
     expect(csp).toBe(
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com https://www.googletagmanager.com https://connect.facebook.net; frame-src challenges.cloudflare.com https://www.googletagmanager.com; connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://www.facebook.com https://connect.facebook.net; img-src 'self' data: blob: https://*.mapbox.com https://www.googletagmanager.com https://*.google-analytics.com https://www.facebook.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com https://*.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://connect.facebook.net; frame-src challenges.cloudflare.com https://*.googletagmanager.com https://td.doubleclick.net https://www.facebook.com; connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com https://*.googletagmanager.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://*.g.doubleclick.net https://www.google.com https://www.google.ch https://www.google.de https://www.google.fr https://www.google.it https://www.google.at https://www.google.co.uk https://www.google.nl https://www.google.be https://www.google.es https://www.google.ae https://www.google.tn https://www.facebook.com https://connect.facebook.net; img-src 'self' data: blob: https://*.mapbox.com https://*.googletagmanager.com https://*.google-analytics.com https://*.g.doubleclick.net https://www.google.com https://www.google.ch https://www.google.de https://www.google.fr https://www.google.it https://www.google.at https://www.google.co.uk https://www.google.nl https://www.google.be https://www.google.es https://www.google.ae https://www.google.tn https://www.facebook.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
     );
     expect(csp).toBe(contentSecurityPolicy());
   });

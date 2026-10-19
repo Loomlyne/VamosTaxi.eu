@@ -3,7 +3,6 @@ phase: 27-consent-record
 plan: 11
 subsystem: i18n-seed
 tags: [seed, pgtap, i18n]
-requirements: [META-03, META-04]
 key-files:
   modified:
     - packages/db/supabase/seed.sql
