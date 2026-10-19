@@ -1,17 +1,6 @@
-// Owner's tags (2026-10-19): Google Tag Manager, Google tag (GA4), Meta Pixel. Verbatim except consent:
-// CONSENT runs first (Google Consent Mode denied, then the visitor's saved banner choice and every
-// `vamos:consent` event), and Meta starts revoked until Marketing is granted.
+// Owner's tags (2026-10-19): Google Tag Manager, Google tag (GA4), Meta Pixel, verbatim.
+// Owner 2026-10-19: every visit counts whatever the banner choice, so nothing here waits for consent.
 // The mock pages get the same block from scripts/dc-page-base.mjs (TAGS_HEAD / TAGS_BODY).
-
-const CONSENT = `
-window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
-gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:500});
-(function(){function apply(c){if(!c)return;var a=c.analytics===true,m=c.marketing===true;
-gtag('consent','update',{analytics_storage:a?'granted':'denied',ad_storage:m?'granted':'denied',ad_user_data:m?'granted':'denied',ad_personalization:m?'granted':'denied'});
-(function meta(n){if(window.fbq)window.fbq('consent',m?'grant':'revoke');else if(n<100)setTimeout(function(){meta(n+1);},50);})(0);}
-window.addEventListener('vamos:consent',function(e){apply(e&&e.detail);});
-try{fetch('/api/consent/state',{cache:'no-store',credentials:'same-origin'}).then(function(r){return r.ok?r.json():null;}).then(function(j){if(j&&j.ok===true&&j.chosen===true)apply(j.choice);},function(){});}catch(e){}})();
-`;
 
 const GTM = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -36,7 +25,6 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-fbq('consent', 'revoke');
 fbq('init', '1595596972063765');
 fbq('track', 'PageView');
 `;
@@ -45,7 +33,6 @@ fbq('track', 'PageView');
 export function SiteTagsHead() {
   return (
     <>
-      <script dangerouslySetInnerHTML={{ __html: CONSENT }} />
       <script dangerouslySetInnerHTML={{ __html: GTM }} />
       <script async src="https://www.googletagmanager.com/gtag/js?id=G-K5MZME44P6" />
       <script dangerouslySetInnerHTML={{ __html: GTAG }} />

@@ -1,9 +1,8 @@
 // apps/web/lib/consent/web-analytics.ts
 //
-// Cloudflare Web Analytics (cookieless), loaded only after the visitor allows
-// Analytics (owner 2026-10-01; /cookies section 05 "off until you allow them").
-// Cloudflare's automatic injection must stay off, or the beacon runs without
-// consent. The token is the public site tag Cloudflare prints into every page;
+// Cloudflare Web Analytics (cookieless), loaded on every public page: owner
+// 2026-10-19, every visit counts whatever the banner choice. Cloudflare's
+// automatic injection stays off, so the beacon is never added twice. The token is the public site tag Cloudflare prints into every page;
 // app/vamos-consent.js carries the same one for the mock pages.
 
 export const WEB_ANALYTICS_SRC = "https://static.cloudflareinsights.com/beacon.min.js";

@@ -20,8 +20,8 @@
          opts.onInteractive(open) is called with true when the visitor must tick a box (the widget
          is about to show) and false once it is done; with 'interaction-only' most visitors never see it.
 
-   Cloudflare Web Analytics (cookieless) starts only once a saved choice allows
-   Analytics: when state() reads one from the server, or save() records one.
+   Cloudflare Web Analytics (cookieless) starts on every page load: owner 2026-10-19,
+   every visit counts whatever the banner choice.
    Cloudflare's automatic injection must stay off (owner 2026-10-01).
 
    Plain browser script (not transpiled): var, function, fetch + Promise. */
@@ -230,4 +230,5 @@
   }
 
   window.VamosConsent = { state: state, save: save, onChange: onChange, cached: cached, turnstile: turnstile };
+  startAnalytics();
 })();

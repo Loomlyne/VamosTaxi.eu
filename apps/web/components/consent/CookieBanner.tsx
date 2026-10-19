@@ -127,6 +127,8 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
 
   // Read the server's answer once. Nothing paints before it; a failed check shows the banner (D-33).
   useEffect(() => {
+    // Owner 2026-10-19: every visit counts whatever the banner choice.
+    loadWebAnalytics();
     let live = true;
     fetch("/api/consent/state", { cache: "no-store", credentials: "same-origin" })
       .then((r) => (r.ok ? (r.json() as Promise<StateReply>) : Promise.reject(new Error("state"))))
@@ -134,7 +136,6 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
         if (!live) return;
         versionRef.current = typeof j.policyVersion === "string" ? j.policyVersion : null;
         if (j.chosen && j.choice) {
-          if (j.choice.analytics === true) loadWebAnalytics();
           setCats({
             functional: j.choice.functional === true,
             analytics: j.choice.analytics === true,
@@ -254,7 +255,6 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
       });
       if (result.ok) {
         writeCache(versionRef.current, method, chosen);
-        if (chosen.analytics) loadWebAnalytics();
         setCats(chosen);
         setMode("hidden");
         setPending(null);

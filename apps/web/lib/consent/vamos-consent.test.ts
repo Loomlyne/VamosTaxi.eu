@@ -144,28 +144,19 @@ describe("app/vamos-consent.js", () => {
     expect(src.includes("=>")).toBe(false);
   });
 
-  it("Web Analytics starts only after a saved Analytics yes, once, and only on the public site", async () => {
-    const yes = { ok: true, chosen: true, policyVersion: "2026-09-30", choice: { functional: false, analytics: true, marketing: false } };
-    const site = load({ status: 200, body: yes }, "vamostaxi.site");
-    await site.api.state();
-    await site.api.state();
+  it("Web Analytics starts on every page load whatever the choice (owner 2026-10-19), once, and only on the public site", async () => {
+    const no = { ok: true, chosen: true, policyVersion: "2026-09-30", choice: { functional: false, analytics: false, marketing: false } };
+    const site = load({ status: 200, body: no }, "vamostaxi.site");
     expect(site.scripts.length).toBe(1);
     expect(site.scripts[0]!.src).toBe("https://static.cloudflareinsights.com/beacon.min.js");
     expect(JSON.parse(site.scripts[0]!.attrs["data-cf-beacon"]!).token).toMatch(/^[0-9a-f]{32}$/);
-
-    const no = load({ status: 200, body: { ...yes, choice: { ...yes.choice, analytics: false } } }, "vamostaxi.site");
-    await no.api.state();
-    expect(no.scripts.length).toBe(0);
-
-    const unchosen = load({ status: 200, body: { ok: true, chosen: false, policyVersion: "2026-09-30" } }, "vamostaxi.site");
-    await unchosen.api.state();
-    await unchosen.api.save("reject_all", ALL_OFF, {});
-    expect(unchosen.scripts.length).toBe(0);
-    await unchosen.api.save("accept_all", { functional: true, analytics: true, marketing: true }, {});
-    expect(unchosen.scripts.length).toBe(1);
+    await site.api.state();
+    await site.api.save("reject_all", ALL_OFF, {});
+    await site.api.save("accept_all", { functional: true, analytics: true, marketing: true }, {});
+    expect(site.scripts.length).toBe(1);
 
     for (const host of ["localhost", "dashboard.vamostaxi.site"]) {
-      const other = load({ status: 200, body: yes }, host);
+      const other = load({ status: 200, body: no }, host);
       await other.api.state();
       expect(other.scripts.length, host).toBe(0);
     }
