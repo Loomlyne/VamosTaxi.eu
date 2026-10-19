@@ -2,7 +2,7 @@
 --
 -- One lock order for a booking and its payments: the payment row first, then the booking row, then
 -- anything after the booking (a change request, a refund intent). checkout_payment_settle has always
--- locked in this order, and 20261007270000 moved meta_purchase_claim and meta_purchase_sweep to it.
+-- locked in this order.
 -- The functions below locked the booking first and then took FOR UPDATE on a payment of it. A repeated
 -- settle of that payment (a second Stripe event, the return route) holds the payment and waits for the
 -- booking, so the two could deadlock (40P01).
