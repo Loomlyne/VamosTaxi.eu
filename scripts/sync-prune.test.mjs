@@ -49,3 +49,15 @@ test("a file in the source where the destination has a folder (or the reverse) i
   pruneMissing(src, dest);
   assert.equal(existsSync(join(dest, "x")), false);
 });
+
+test("keep: a generated file with no source survives only while its predicate says so", () => {
+  const src = tree(["pages/about.dc.html", "vamos-consent.js"]);
+  const dest = tree(["pages/about.dc.html", "pages/about.html", "pages/gone.html", "vamos-consent.js", "vamos-google.js", "vamos-meta.js"]);
+  const twin = (p) => p.endsWith(".html") && !p.endsWith(".dc.html") && existsSync(join(src, p.replace(/\.html$/, ".dc.html")));
+  const removed = pruneMissing(src, dest, twin);
+  assert.deepEqual(removed.sort(), ["pages/gone.html", "vamos-google.js", "vamos-meta.js"].sort());
+  assert.equal(existsSync(join(dest, "pages/about.html")), true);
+  assert.equal(existsSync(join(dest, "vamos-google.js")), false);
+  rmSync(src, { recursive: true });
+  rmSync(dest, { recursive: true });
+});
