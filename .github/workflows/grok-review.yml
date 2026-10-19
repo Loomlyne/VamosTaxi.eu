@@ -1,0 +1,49 @@
+name: Grok review
+
+# Owner decision 2026-10-19: Grok reviews every pull request; the Cursor, Codex and CodeRabbit apps are
+# uninstalled. One comment per PR, replaced on each run. Needs the XAI_API_KEY repository secret; the model
+# comes from the XAI_MODEL repository variable (default grok-4). Docs and planning changes are skipped.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - "docs/**"
+      - ".planning/**"
+      - "deliverables/**"
+      - "**/*.md"
+
+concurrency:
+  group: grok-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    name: Grok reviews the diff
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: scripts/grok-review.mjs
+          sparse-checkout-cone-mode: false
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+
+      - name: Review
+        env:
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          XAI_MODEL: ${{ vars.XAI_MODEL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/grok-review.mjs
