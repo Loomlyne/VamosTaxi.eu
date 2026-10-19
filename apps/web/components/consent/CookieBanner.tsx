@@ -260,6 +260,8 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
         setPending(null);
         setBusyBoth(false);
         window.dispatchEvent(new Event(CONSENT_RECORDED_EVENT));
+        // The tags' consent script (components/tags/SiteTags.tsx) listens for the same event the mock runtime sends.
+        window.dispatchEvent(new CustomEvent("vamos:consent", { detail: { method, ...chosen } }));
         closeSheet();
         return;
       }

@@ -50,8 +50,17 @@ export function injectBaseInto(html, href) {
  */
 export const TRACKING_HEAD = '<script src="/app/vamos-consent.js"></script>';
 
-/** Owner's tags (2026-10-19), verbatim except the vendors' marker comments (served pages carry no HTML comments): Google Tag Manager, Google tag (GA4), Meta Pixel. Head of every public page. */
-export const TAGS_HEAD = `<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+/** Owner's tags (2026-10-19): Google Tag Manager, Google tag (GA4), Meta Pixel, head of every public page. Verbatim except the vendors' marker comments (served pages carry no HTML comments) and consent: the first script sets Google Consent Mode to denied and applies the visitor's saved banner choice (server record, then every `vamos:consent` event): Analytics -> analytics_storage, Marketing -> ad_* and Meta's fbq consent. Meta starts revoked (one line before init) and queues the PageView until Marketing is granted. */
+export const TAGS_HEAD = `<script>
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:500});
+(function(){function apply(c){if(!c)return;var a=c.analytics===true,m=c.marketing===true;
+gtag('consent','update',{analytics_storage:a?'granted':'denied',ad_storage:m?'granted':'denied',ad_user_data:m?'granted':'denied',ad_personalization:m?'granted':'denied'});
+(function meta(n){if(window.fbq)window.fbq('consent',m?'grant':'revoke');else if(n<100)setTimeout(function(){meta(n+1);},50);})(0);}
+window.addEventListener('vamos:consent',function(e){apply(e&&e.detail);});
+try{fetch('/api/consent/state',{cache:'no-store',credentials:'same-origin'}).then(function(r){return r.ok?r.json():null;}).then(function(j){if(j&&j.ok===true&&j.chosen===true)apply(j.choice);},function(){});}catch(e){}})();
+</script>
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
@@ -73,6 +82,7 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
+fbq('consent', 'revoke');
 fbq('init', '1595596972063765');
 fbq('track', 'PageView');
 </script>
