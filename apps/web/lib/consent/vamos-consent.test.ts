@@ -139,10 +139,9 @@ describe("app/vamos-consent.js", () => {
     expect(h.api.cached()).not.toBeNull();
   });
 
-  it("is plain ES5-style script: no async, no arrow functions, no Meta", () => {
+  it("is plain ES5-style script: no async, no arrow functions", () => {
     expect(/\basync\b/.test(src)).toBe(false);
     expect(src.includes("=>")).toBe(false);
-    expect(/fbevents|facebook/.test(src)).toBe(false);
   });
 
   it("Web Analytics starts only after a saved Analytics yes, once, and only on the public site", async () => {

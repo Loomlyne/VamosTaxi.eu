@@ -19,7 +19,6 @@ import { useVamosLocale } from "@/lib/locale-shim";
 import { geoLocale } from "@/lib/checkout/geo-locale";
 import { partyCap } from "@/lib/checkout/party-cap";
 import { createRateLimitAutoRetry, type RateLimitAutoRetry } from "@/lib/checkout/rate-limit-retry";
-import { initiateEventId, marketingConsentCached } from "@/lib/meta/initiate-id";
 import { buildTripQuery, type Trip, type TripFieldError } from "@/lib/checkout/trip-url";
 import { useCheckoutSettings } from "./CheckoutSettings";
 import { ClassSection, type ClassPhase } from "./sections/ClassSection";
@@ -130,7 +129,6 @@ export function CheckoutPage({
   const editorDirty = useRef(false);
   const quoteRef = useRef<QuoteOk | null>(null);
   const silentLock = useRef<string | null>(null);
-  const initiateSent = useRef(false);
   phaseRef.current = phase;
   quoteRef.current = quote;
   tripRef.current = trip;
@@ -287,44 +285,7 @@ export function CheckoutPage({
     return result;
   }
 
-  /**
-   * Owner wording 2026-10-09: the first vehicle chosen on this page load tells our server, which sends Meta's
-   * InitiateCheckout (the browser never does: the address of this page holds the route). Only the amount of
-   * the class chosen and an id (stable for the same selection in this tab) travel; the server checks consent, flags and origin and always answers 204.
-   */
-  function trackInitiate(slug: string) {
-    if (initiateSent.current) return;
-    const p = phaseRef.current;
-    if (p.kind !== "ready") return;
-    const picked = p.classes.find((c) => c.slug === slug);
-    if (!picked || !picked.eligible || picked.totalRappen === null || picked.totalRappen <= 0) return;
-    initiateSent.current = true;
-    // GA4 (wording 2026-10-11): the same step, the name only, through the loader (Analytics consent decides there).
-    // Same selection in this tab (a reload) keeps the same id, so Meta de-duplicates on event_id.
-    // The id is kept only once Marketing is on; before that nothing is written and each load gets a fresh id.
-    const t = tripRef.current;
-    let store: Storage | null = null;
-    try {
-      store = marketingConsentCached(window.localStorage) ? window.sessionStorage : null;
-    } catch {
-      store = null;
-    }
-    const eventId = initiateEventId(
-      { slug, totalRappen: picked.totalRappen, fid: t.fid, tid: t.tid, from: t.from, to: t.to, when: t.when, pax: t.pax, bags: t.bags },
-      store,
-      () => crypto.randomUUID(),
-    );
-    void fetch("/api/track", {
-      method: "POST",
-      keepalive: true,
-      credentials: "same-origin",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ event: "InitiateCheckout", id: eventId, value_rappen: picked.totalRappen }),
-    }).catch(() => undefined);
-  }
-
   function choose(slug: string) {
-    trackInitiate(slug);
     setSelected(slug);
     const next = { ...tripRef.current, class: slug };
     setTrip(next);

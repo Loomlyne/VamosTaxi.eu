@@ -49,7 +49,7 @@ with what you see in the repo, or you need the exact wording of an owner decisio
   `HcNp9GZYjz`). The old account (IDs contain `AJS2YBf21S`) is retired, and its webhook is
   deleted. Always CHF. Never make Stripe changes yourself.
 - Never invent rates, fares, amounts or legal copy. Pricing is discussed with Koss first.
-- Meta Pixel stays off.
+- Removed 2026-10-19 (Meta and Google integrations); tracking is rebuilt later with new ids.
 - Secrets stay in Koss's terminal. Report "present / missing / exposed" only. Give him one
   numbered step, then wait. Never type a password or 2FA code.
 - Password fields have a right-side show/hide eye.

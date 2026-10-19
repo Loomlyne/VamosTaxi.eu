@@ -897,7 +897,6 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
         });
         const json = (await res.json()) as { ok?: boolean; url?: string; code?: string };
         if (json.ok === true && isStripeCheckoutUrl(json.url)) {
-          // GA4 (wording 2026-10-11): going to payment, the name only (Meta's AddPaymentInfo goes from the server).
           window.location.assign(json.url);
           return;
         }

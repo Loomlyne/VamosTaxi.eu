@@ -54,7 +54,6 @@ import {
   type StuckPaymentAlertInput,
 } from "../ops/must-fix-mail";
 import { deliverMoneyAlert } from "../ops/money-alert-mail";
-import { metaPurchaseDepsFromEnv, sendMetaPurchase, type MetaPurchaseInput } from "../meta/purchase";
 import { pgTextArrayLiteral } from "./pg-array";
 import {
   PAID_ERROR_RETRY_SECONDS,
@@ -193,11 +192,6 @@ export type SettleDeps = MoneyEventDeps & {
   expireSession: (sessionId: string) => Promise<void>;
   /** D-25/D-45: after an expired session is recorded, delete the booking if every session of it is expired and unpaid. Never throws. */
   purgeOnSessionExpired: (sessionId: string, bookingId: string) => Promise<boolean>;
-  /**
-   * Phase 29: Meta Purchase, supplied by the queue consumer only (never the return route). Runs after
-   * every money step; whatever it does, the settle result is unchanged.
-   */
-  sendMetaPurchase?: (input: MetaPurchaseInput) => Promise<void>;
   emit: (level: "debug" | "info" | "warn" | "error", type: string, fields?: Record<string, ScalarValue>) => void;
 };
 
@@ -714,22 +708,6 @@ export async function handleStripeMessageWithDeps(
       }
     }
 
-    // Phase 29 (META-10): after every money step, also when the return route settled first.
-    // Extras never reach it; a refund-required payment reaches it as refundRequired (never sends). A payment
-    // held for an amount mismatch never reaches it: the booking is not confirmed.
-    if (session && !extra && deps.sendMetaPurchase && row.payment_id > 0 && row.amount_mismatch !== true) {
-      try {
-        await deps.sendMetaPurchase({
-          bookingId: row.booking_id,
-          paymentId: row.payment_id,
-          livemode: session.livemode === true,
-          refundRequired: row.refund_required === true,
-          reference: row.reference ?? null,
-        });
-      } catch {
-        deps.emit("error", "meta_purchase_failed", { bookingId: row.booking_id });
-      }
-    }
   }
 
   // 26.1-16 (D-22): only a duplicate whose refund landed is reported, so the
@@ -757,20 +735,9 @@ async function recordPaymentMethod(env: CloudflareEnv, stripe: Stripe, paymentIn
   }
 }
 
-/** Phase 29: the Purchase dep exists only when the caller (the queue consumer) opts in. */
-export function metaPurchaseDepFor(
-  env: CloudflareEnv,
-  options: { metaPurchase?: boolean } | undefined,
-  emit: SettleDeps["emit"],
-): SettleDeps["sendMetaPurchase"] {
-  if (options?.metaPurchase !== true) return undefined;
-  return (input) => sendMetaPurchase(input, metaPurchaseDepsFromEnv(env, emit));
-}
-
 export async function handleStripeMessage(
   env: CloudflareEnv,
   message: StripeQueueMessage,
-  options?: { metaPurchase?: boolean },
 ): Promise<HandleResult> {
   const stripe = stripeFromEnv(env);
   const emit = withRequestContext({
@@ -1018,7 +985,6 @@ export async function handleStripeMessage(
         await sql`select public.stripe_refund_failure_alerted(${input.objectId})`;
       });
     },
-    sendMetaPurchase: metaPurchaseDepFor(env, options, emit),
     emit,
   });
 }

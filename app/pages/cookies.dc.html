@@ -28,7 +28,6 @@
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
 <script src="../vamos-legal-updated.js"></script>
-<script src="../vamos-meta-texts.js"></script>
 <script src="../vamos-consent.js"></script>
 <script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
@@ -100,15 +99,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-ck-name]{display:block;min-width:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-primary)}
 [data-ck-plain]{display:block;font-weight:var(--vt-weight-semibold)}
 [data-ck-tech]{display:block;margin-top:2px;font-family:var(--vt-font-mono);font-size:var(--vt-body-xs);color:var(--vt-text-muted);overflow-wrap:anywhere}
-[data-ct] tbody tr[data-cookies-row] td{display:block;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
-[data-ct] tbody tr[data-cookies-row] td::before{display:none}
 @media (min-width:720px){
 [data-ct] th[scope=col]{display:table-cell;text-align:start;padding-block:0 10px;padding-inline:0 16px;border-bottom:1px solid var(--vt-charcoal-900);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-primary);white-space:nowrap}
 [data-ct] thead{display:table-header-group}
 [data-ct] tbody tr{display:table-row;background:none;border:0;border-radius:0;padding:0;margin:0}
 [data-ct] tbody td{display:table-cell;padding:13px 16px 13px 0;border-bottom:1px solid var(--vt-grey-200)}
 [data-ct] tbody td::before{display:none}
-[data-ct] tbody tr[data-cookies-row] td{display:table-cell;padding-inline-end:0}
 }
 [data-state-row]{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px}
 :focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
@@ -145,11 +141,11 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </nav>
 <p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">Legal</p>
 <h1 style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Cookie policy</h1>
-<p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Four categories, one of which you cannot switch off because the booking would stop working. The other three are off until you say otherwise, except the page views Meta and Google receive from everyone.</p>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Four categories, one of which you cannot switch off because the booking would stop working. The other three are off until you say otherwise.</p>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)" data-vt-no-i18n="1">{{ updatedLabel }}</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1.0</span></div>
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Consent model</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">Opt-in by category; page views for everyone</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Consent model</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">Opt-in by category</span></div>
 <button data-lg-noprint="1" type="button" onClick="{{ openCookiePrefs }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;max-width:100%;padding:8px 20px;text-align:center;line-height:1.3;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);cursor:pointer">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="settings" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>Change your choices</button>
 </div>
@@ -195,7 +191,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <section id="what">
 <h2><span data-lg-n="1">01</span>What we mean by cookies</h2>
 <p>Small files a site stores in your browser, plus the equivalents — local storage and pixels. We group them by what they are for, not by the technology.</p>
-<p>Before you choose, only strictly necessary cookies and Meta's two page-view cookies are set, and Google's tag sends signals without cookies. Every other cookie waits for your choice.</p>
+<p>Nothing except the strictly necessary category is set before you choose. If you never choose, nothing else is ever set.</p>
 </section>
 
 <section id="choice">
@@ -250,11 +246,10 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h2><span data-lg-n="1">05</span>Analytics</h2>
 <p>Which step of a booking people give up on. Aggregated, and never used to make a decision about you.</p>
 <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table data-ct="1">
-<caption>Analytics — no cookies until you allow them</caption>
+<caption>Analytics — off until you allow them</caption>
 <thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Provider</th><th scope="col">Duration</th></tr></thead>
 <tbody>
 <tr><td data-l="Name">No cookie</td><td data-l="Purpose">Counts visits and measures where a booking is abandoned</td><td data-l="Provider">Cloudflare Web Analytics (cookieless)</td><td data-l="Duration">Nothing is stored in your browser</td></tr>
-<tr data-cookies-row="1" data-cookies-ga="1"><td colspan="4" data-vt-no-i18n="1" style="font-family:var(--vt-font-body)"><sc-for list="{{ gaSegs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code class="vt-dir-keep" style="font-family:var(--vt-font-mono);font-size:.92em;background:none">{{ g.t }}</code></sc-if></sc-for></td></tr>
 </tbody>
 </table></div>
 
@@ -262,15 +257,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <section id="marketing">
 <h2><span data-lg-n="1">06</span>Marketing</h2>
-<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table data-ct="1">
-<caption>Marketing</caption>
-<tbody>
-<tr data-cookies-row="1"><td colspan="4" data-vt-no-i18n="1" style="font-family:var(--vt-font-body)"><sc-for list="{{ rowSegs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code class="vt-dir-keep" style="font-family:var(--vt-font-mono);font-size:.92em;background:none">{{ g.t }}</code></sc-if></sc-for></td></tr>
-<tr data-cookies-row="1" data-cookies-google-tag="1"><td colspan="4" data-vt-no-i18n="1" style="font-family:var(--vt-font-body)"><sc-for list="{{ googleTagSegs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code class="vt-dir-keep" style="font-family:var(--vt-font-mono);font-size:.92em;background:none">{{ g.t }}</code></sc-if></sc-for></td></tr>
-<tr data-cookies-row="1" data-cookies-google="1"><td colspan="4" data-vt-no-i18n="1" style="font-family:var(--vt-font-body)"><sc-for list="{{ googleSegs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code class="vt-dir-keep" style="font-family:var(--vt-font-mono);font-size:.92em;background:none">{{ g.t }}</code></sc-if></sc-for></td></tr>
-<sc-if value="{{ gtmShown }}" hint-placeholder-val="{{ false }}"><tr data-cookies-row="1" data-cookies-gtm="1"><td colspan="4" data-vt-no-i18n="1" style="font-family:var(--vt-font-body)"><sc-for list="{{ gtmSegs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code class="vt-dir-keep" style="font-family:var(--vt-font-mono);font-size:.92em;background:none">{{ g.t }}</code></sc-if></sc-for></td></tr></sc-if>
-</tbody>
-</table></div>
+<p>Nothing in this category is running today. It is here because the moment a paid campaign starts, something will be, and a category added later looks like a category that was hidden.</p>
 </section>
 
 <section id="change">
@@ -365,15 +352,6 @@ class Component extends DCLogic {
 
   toggleToc = () => this.setState((s) => ({ tocOpen: !s.tocOpen }));
 
-  segs(key) {
-    if (!window.VamosMetaTexts || typeof window.VamosMetaTexts.segments !== 'function') return [];
-    return window.VamosMetaTexts.segments(key, this.state.lang).map((s) => {
-      if (typeof s === 'string') return { t: s, isText: true, isB: false, isCode: false };
-      if (s && s.b != null) return { t: s.b, isText: false, isB: true, isCode: false };
-      return { t: s && s.code, isText: false, isB: false, isCode: true };
-    });
-  }
-
   fmt(name, on) { return name + ' · ' + (on ? 'on' : 'off'); }
 
   renderVals() {
@@ -387,16 +365,10 @@ class Component extends DCLogic {
     return {
       n14: 14, n16: 16, n18: 18,
       updatedLabel: window.VamosLegalUpdated ? window.VamosLegalUpdated.label('cookies', this.state.lang) : '',
-      rowSegs: this.segs('cookiesRow'),
-      googleTagSegs: this.segs('googleTagRow'),
-      googleSegs: this.segs('googleRow'),
-      gtmShown: !!(window.VamosMetaTexts && window.VamosMetaTexts.gtmShown),
-      gtmSegs: this.segs('gtmRow'),
-      gaSegs: this.segs('gaRow'),
       tocOpen: this.state.tocOpen ? '1' : null,
       toggleToc: this.toggleToc, openCookiePrefs: this.openCookiePrefs,
       proseRef: this.proseRef, tocRef: this.tocRef,
-      stateLabel: c ? ('Saved' + when) : 'Nothing chosen yet — strictly necessary cookies and Meta\'s page-view cookies are set',
+      stateLabel: c ? ('Saved' + when) : 'Nothing chosen yet — only strictly necessary cookies are set',
       toneFunctional: f ? 'success' : 'neutral',
       toneAnalytics: an ? 'success' : 'neutral',
       toneMarketing: m ? 'success' : 'neutral',

@@ -58,7 +58,7 @@ export type CheckoutIntentDeps = {
    * 26.5 D-06: runs once the booking row exists (reuse, attach, create). Writes the
    * account agreement record. A throw is logged and never blocks payment.
    */
-  afterBooking?: (bookingId: string, info: { reference: string; chargedRappen: number }) => Promise<void>;
+  afterBooking?: (bookingId: string) => Promise<void>;
   /**
    * 26.5 account choice (sign-in-first, consent). Called once, after the HMAC lock has
    * verified and before any Stripe call. 26.2 audit U11-4: running it earlier answered
@@ -624,10 +624,10 @@ async function runWebIntent(
     });
   };
 
-  const afterBooking = async (bookingId: string, reference: string) => {
+  const afterBooking = async (bookingId: string) => {
     if (!deps.afterBooking) return;
     try {
-      await deps.afterBooking(bookingId, { reference, chargedRappen });
+      await deps.afterBooking(bookingId);
     } catch (err) {
       // No record means no account later (safe direction). Only the SQLSTATE is logged.
       console.error("checkout_account_record_failed", sqlState(err) ?? "no-sqlstate");
@@ -655,7 +655,7 @@ async function runWebIntent(
       if (!ownsExisting) return okWebResponse(existingOpen, stored, chargedRappen, expiresAt, null);
       await deps.issueManageToken({ bookingId: existingOpen.booking_id, hash: token.hash, expiresAt: manageExpiresAt });
       await saveDetails(existingOpen.booking_id);
-      await afterBooking(existingOpen.booking_id, existingOpen.reference);
+      await afterBooking(existingOpen.booking_id);
       return okWebResponse(existingOpen, stored, chargedRappen, expiresAt, cookie);
     }
     if (stored.status === "expired" && amountMatches(stored, chargedRappen) && sameSelection(stored)) {
@@ -707,7 +707,7 @@ async function runWebIntent(
       if (!ownsExisting) return okWebResponse(row, created, chargedRappen, expiresAt, null);
       await deps.issueManageToken({ bookingId: row.booking_id, hash: token.hash, expiresAt: manageExpiresAt });
       await saveDetails(row.booking_id);
-      await afterBooking(row.booking_id, row.reference);
+      await afterBooking(row.booking_id);
       return okWebResponse(row, created, chargedRappen, expiresAt, cookie);
     } catch (err) {
       await deps.expireCheckoutSession(created.id).catch(() => undefined);
@@ -765,7 +765,7 @@ async function runWebIntent(
         if (!ownsWinner) return okWebResponse(winner, stored, chargedRappen, expiresAt, null);
         await deps.issueManageToken({ bookingId: winner.booking_id, hash: token.hash, expiresAt: manageExpiresAt });
         await saveDetails(winner.booking_id);
-        await afterBooking(winner.booking_id, winner.reference);
+        await afterBooking(winner.booking_id);
         return okWebResponse(winner, stored, chargedRappen, expiresAt, cookie);
       }
       return refuse(isCouponRefusal(err) ? "coupon_no_longer_valid" : "quote_already_booked");
@@ -808,7 +808,7 @@ async function runWebIntent(
     console.error("checkout_set_details_failed", sqlState(err) ?? "no-sqlstate");
     return rpcFailed();
   }
-  await afterBooking(row.booking_id, row.reference);
+  await afterBooking(row.booking_id);
   return okWebResponse(row, payable, chargedRappen, expiresAt, cookie);
 }
 

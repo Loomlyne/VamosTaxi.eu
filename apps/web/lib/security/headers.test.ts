@@ -70,13 +70,12 @@ describe("security headers (D-32…D-38)", () => {
     expect(csp).not.toMatch(/maps\.googleapis\.com/);
   });
 
-  it("the policy is one fixed string and names no advertising or analytics vendor host", () => {
+  it("the policy is one fixed string", () => {
     const csp = headerMap().get("Content-Security-Policy");
     expect(csp).toBe(
       "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com; frame-src challenges.cloudflare.com; connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com; img-src 'self' data: blob: https://*.mapbox.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
     );
     expect(csp).toBe(contentSecurityPolicy());
-    expect(SECURITY_HEADER_PAIRS.map(([, v]) => v).join("\n")).not.toMatch(/facebook|instagram|googletagmanager|google-analytics|doubleclick/i);
   });
 
 

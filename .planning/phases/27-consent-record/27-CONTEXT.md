@@ -92,7 +92,7 @@ Nothing is sent to Meta by this phase.
 
 ### Copy (owner, 2026-09-30)
 - **D-11:** Banner body = the owner's banner text, verbatim, four languages
-  (`.planning/decisions/2026-09-30-meta-wording.md` §1). It replaces "Strictly necessary cookies
+  (`.planning/archive/tracking-v1/decisions/2026-09-30-meta-wording.md` §1). It replaces "Strictly necessary cookies
   keep the booking flow working…" on the mock and `banner-body` / `necessary-cookies-only` on Next.
 - **D-12:** Under it, a link labelled only **"Cookie policy"** to `/cookies`. No sentence added to
   his text. "Read the cookie policy." goes.
@@ -205,7 +205,7 @@ Nothing is sent to Meta by this phase.
 
 **Downstream agents MUST read these before planning or implementing.**
 
-- `.planning/decisions/2026-09-30-meta-wording.md` — the three texts, verbatim, four languages; 90 days; Meta Platforms Ireland Ltd
+- `.planning/archive/tracking-v1/decisions/2026-09-30-meta-wording.md` — the three texts, verbatim, four languages; 90 days; Meta Platforms Ireland Ltd
 - `.planning/decisions/2026-09-30-priorities-and-ship-mode.md` — order 27 → 28 → 29, ship-mode limits
 - `.planning/phases/26-legal-gate/26-CONTEXT.md` — D-12…D-15 version rules, D-19 all-or-nothing
 - `.planning/phases/26-legal-gate/26-VERIFICATION.md` — the seven Phase 26 pins

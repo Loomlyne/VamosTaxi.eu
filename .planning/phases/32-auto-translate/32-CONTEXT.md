@@ -83,7 +83,7 @@ Inference region is not pinned by Cloudflare (nothing published for Workers AI).
 - `apps/web/lib/ops/ticket-inbound.ts`, `apps/web/lib/ops/ticket-mail.ts`, `apps/web/lib/ops/tickets-map.ts`, `app/ops/OpsSupportTicket.dc.html` — support thread, read-only, "Answer by e-mail" opens his mail app (mailto / Gmail compose).
 - `app/ops/OpsContent.dc.html` — Pages and Legal show "Coming soon"; `/api/staff/content/[key]` still exists.
 - ADR-007 (edge residency), ADR-010 (Cloudflare subprocessor), ADR-011 (data-tok labels stay English), ADR-012 (product names Latin).
-- `.planning/decisions/2026-09-30-meta-wording.md` and every other decisions file with approved wording — F-01.
+- `.planning/archive/tracking-v1/decisions/2026-09-30-meta-wording.md` and every other decisions file with approved wording — F-01.
 </canonical_refs>
 
 <code_context>

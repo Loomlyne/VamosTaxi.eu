@@ -34,7 +34,6 @@ import { sweepUnprocessedEvents } from "./lib/checkout/stripe-events-sweep";
 import { sweepStuckNotifications } from "./lib/checkout/notify";
 import { sweepStripeFees } from "./lib/checkout/stripe-fee";
 import { refundCheck } from "./lib/checkout/refund-check";
-import { sweepMetaPurchaseIds } from "./lib/meta/purchase";
 import { expireUnpaidBookings } from "./lib/checkout/expire-unpaid";
 import { purgeExpiredUnpaid } from "./lib/checkout/purge-unpaid";
 import { runReminder24h } from "./lib/lifecycle/reminder";
@@ -130,14 +129,6 @@ export default {
         emit("info", "notification_sweep", { outcome: "ok" });
       } catch {
         emit("error", "notification_sweep", { outcome: "failed" });
-      }
-      // Phase 29 WR-02: empty fbp, fbc and consent subject an interrupted queue run left on a paid
-      // booking. Own try/catch; the log carries the count only.
-      try {
-        const cleaned = await sweepMetaPurchaseIds(env);
-        emit("info", "meta_purchase_sweep", { cleaned });
-      } catch {
-        emit("error", "meta_purchase_sweep", { outcome: "failed" });
       }
       // Phase 31 D-09: nightly refund check (Stripe refunds of the last 48 hours against the bookings; mails
       // info@ on a finding or when Stripe does not answer). Writes no money table; its one write is the
@@ -299,13 +290,12 @@ export default {
         route: `queue:${batch.queue}`,
         locale: null,
       });
-      // Phase 29: only the queue may send the Purchase; the return route never does.
       // 26.1-08: a delayed retry (app_refund_pending) passes delaySeconds through. J2 (W4-14, W1-14,
       // W4-06): a thrown handler is logged at error level and retried after a delay.
       await consumeStripeEventMessage(
         message,
         batch.messages.length,
-        (body) => handleStripeMessage(env, body, { metaPurchase: true }),
+        (body) => handleStripeMessage(env, body),
         emit,
       );
     }

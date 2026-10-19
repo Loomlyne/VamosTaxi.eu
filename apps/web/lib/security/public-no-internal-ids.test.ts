@@ -1,5 +1,5 @@
-// Nothing a visitor can fetch names our Supabase project, and /cookies shows the Meta row
-// as one readable line at every width (owner, 2026-10-04: "hide all ids").
+// Nothing a visitor can fetch names our Supabase project or carries a developer note
+// (owner, 2026-10-04: "hide all ids").
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -134,20 +134,8 @@ describe("no internal ids on public surfaces", () => {
   });
 });
 
-describe("/cookies Meta row renders as one line", () => {
+describe("/cookies rows", () => {
   const cookies = readFileSync(join(repoRoot, "app/pages/cookies.dc.html"), "utf8");
-
-  it("the narrow card layout does not split the owner text into grid cells", () => {
-    expect(cookies).toContain("[data-ct] tbody tr[data-cookies-row] td{display:block;");
-    expect(cookies).toContain("[data-ct] tbody tr[data-cookies-row] td::before{display:none}");
-    expect(cookies).toContain("[data-ct] tbody tr[data-cookies-row] td{display:table-cell;");
-  });
-
-  it("the Marketing table has no column headers over its single sentence", () => {
-    const sec = cookies.match(/<section id="marketing">[\s\S]*?<\/section>/)?.[0] ?? "";
-    expect(sec).toContain("<caption>Marketing</caption>");
-    expect(sec).not.toContain("<thead>");
-  });
 
   it("the auth cookie reads vt-auth", () => {
     expect(cookies).toContain('<span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">vt-auth</span>');
@@ -173,9 +161,6 @@ describe("/cookies Meta row renders as one line", () => {
       );
       expect(dict, plain).toContain(`'${plain}': { de: '`);
     }
-    // The Meta row keeps the owner's verbatim text, no plain-name cell.
-    const meta = cookies.match(/<tr data-cookies-row="1">[\s\S]*?<\/tr>/)?.[0] ?? "";
-    expect(meta).not.toContain("data-ck-name");
   });
 });
 
@@ -192,9 +177,7 @@ describe("legal pages say nothing about test mode or unused vendors (COPY-DRAFT 
     const dict = readFileSync(join(repoRoot, "app/vamos-i18n-dict.js"), "utf8");
     for (const k of [
       "Up to 400 days, or until you sign out", "Up to 400 days", "1 year · 30 minutes", "30 minutes",
-      "No cookie", "Nothing is stored in your browser",
-      // GA4 (adopted 2026-10-11): the Analytics row meta; its sentence is the owner's text (vamos-meta-texts.js).
-      "Cloudflare Web Analytics (cookieless) · Google Analytics", "Up to 90 days",
+      "No cookie", "Nothing is stored in your browser", "Tells us which step of a booking people abandon.",
       "Our suppliers", "Confirmation and driver-detail emails",
     ]) expect(dict, k).toMatch(new RegExp(`'${k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}': \\{ de: '[^']+', fr: '[^']+', ar: '[^']+' \\}`));
   });
@@ -218,11 +201,9 @@ describe("no internal phrases in strings the browser receives (reviewer F2, 2026
       cookies: Record<string, string>;
     };
     expect(en.cookies["sheet-necessary-duration"]).toBe("Up to 400 days");
-    // GA4 wording adopted 2026-10-11 (§1 row meta); the row sentence is cookies.ga-banner-row (owner-texts.test.ts).
-    expect(en.cookies["sheet-analytics-providers"]).toBe("Cloudflare Web Analytics (cookieless) · Google Analytics");
-    expect(en.cookies["sheet-analytics-duration"]).toBe("Up to 90 days");
-    expect(en.cookies["sheet-not-used"]).toBeUndefined();
-    expect(en.cookies["tells-us-which-step-of-a-booking-people-abandon"]).toBeUndefined();
+    expect(en.cookies["sheet-analytics-providers"]).toBe("Cloudflare Web Analytics (cookieless)");
+    expect(en.cookies["sheet-not-used"]).toBe("No cookie");
+    expect(en.cookies["tells-us-which-step-of-a-booking-people-abandon"]).toBe("Tells us which step of a booking people abandon.");
   });
 });
 

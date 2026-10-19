@@ -1,11 +1,10 @@
 // apps/web/lib/consent/policy.ts
 //
 // D-04: policy_version is a dated stamp, not legal copy.
-// 27 D-17: the ship day (Zurich) of the owner's Meta texts. Changing it asks every visitor for
-// consent again, so it moves only with the owner's word (a test pins the value). It is not a
-// display date: each legal page shows its own "Last updated" day from app/vamos-legal-updated.js
+// 27 D-17: the ship day (Zurich) of the cookie and consent texts it covers. Changing it asks every
+// visitor for consent again, so it moves only with the owner's word. It is
+// not a display date: each legal page shows its own "Last updated" day from app/vamos-legal-updated.js
 // (owner, 2026-10-05), and nothing there reads or follows this constant.
-// 2026-10-13: moved with the GA4 wording (adopted with this bump, .planning/decisions/2026-10-11-ga4-wording.md).
-// 2026-10-17: tracking before consent, wording adopted 2026-10-16 (.planning/decisions/2026-10-16-google-advanced-consent-wording.md)
+// 2026-10-19: the Meta and Google integrations were removed and the earlier texts restored.
 
-export const CONSENT_POLICY_VERSION = "2026-10-17";
+export const CONSENT_POLICY_VERSION = "2026-10-19";

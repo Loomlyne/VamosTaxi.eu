@@ -84,7 +84,7 @@ I could not run these on origin/main (no second stack allowed), so "on main too"
 ## Not verified
 
 - Owner UAT below, on staging.
-- No lawyer has read the texts (decision file `.planning/decisions/2026-09-30-meta-wording.md`).
+- No lawyer has read the texts (decision file `.planning/archive/tracking-v1/decisions/2026-09-30-meta-wording.md`).
 - The two Playwright specs `auth-flows` and `auth-confirm-email` were run only against the 59322 stack; never against the default 54322 stack (not allowed here). On that stack, with no `VAMOS_TEST_DB_PORT`, the bindings come from the staging `localConnectionString` in `wrangler.jsonc`, whose password is not the local role password, so a sign-up would answer 503 there. Set `VAMOS_TEST_DB_PORT=54322` to get the local role passwords.
 - The three tests in `packages/db/test/local/checkout-account.test.ts` were red in this run (role passwords). Those functions are covered by pgTAP and by the Worker e2e.
 - Hosted database: nothing read or written.

@@ -1,13 +1,13 @@
 -- refund_lock_order.test.sql
 --
 -- 20261007280000: the refund, change-request and difference-settle functions lock the payment row
--- before the booking row, the order of checkout_payment_settle and meta_purchase_claim, and take no
+-- before the booking row, the order of checkout_payment_settle, and take no
 -- payment lock after the booking lock. Under the booking lock they read the payment again and raise
 -- 'payment-changed' (40001) if it moved. One pgTAP session cannot race itself: this file pins the
 -- order in the function text, the unchanged attributes and the grants. The two-connection proof is
 -- packages/db/test/local/refund-lock-order.test.ts. Run as postgres by `supabase test db`.
 begin;
-select plan(39);
+select plan(38);
 
 -- The body as statements, in order, comments removed, white space folded, lower case.
 create function pg_temp.stmts(p_fn pg_catalog.regprocedure)
@@ -79,13 +79,10 @@ select ok((pg_temp.at(f.fn, 'changed'))[1] < (pg_temp.at(f.fn, 'accept'))[1],
           f.label || ': the payment is checked before accept is called')
   from fns f where f.label in ('booking_staff_change', 'booking_staff_trip_change') order by f.label;
 
--- ── the order the others already follow (2) ────────────────────────────────────────────────────
+-- ── the order the others already follow (1) ────────────────────────────────────────────────────
 select ok((pg_temp.at('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text,int8,text,int8,text)', 'pay'))[1]
           < (pg_temp.at('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text,int8,text,int8,text)', 'booking'))[1],
           'settle: still locks the payment before the booking (if this changes, revisit 20261007280000)');
-select ok((pg_temp.at('public.meta_purchase_claim(uuid,int8,text,bool,bool,text)', 'pay'))[1]
-          < (pg_temp.at('public.meta_purchase_claim(uuid,int8,text,bool,bool,text)', 'booking'))[1],
-          'claim: still locks the payment before the booking');
 
 -- ── attributes and grants unchanged (3) ─────────────────────────────────────────────────────────
 select is((select pg_catalog.count(*)::pg_catalog.int4 from fns f join pg_catalog.pg_proc p on p.oid = f.fn

@@ -60,7 +60,7 @@ Several existing tests pin Phase 26 behaviour that this phase changes on purpose
 
 #### Copy (owner, 2026-09-30)
 - **D-11:** Banner body = the owner's banner text, verbatim, four languages
-  (`.planning/decisions/2026-09-30-meta-wording.md` §1). It replaces "Strictly necessary cookies
+  (`.planning/archive/tracking-v1/decisions/2026-09-30-meta-wording.md` §1). It replaces "Strictly necessary cookies
   keep the booking flow working…" on the mock and `banner-body` / `necessary-cookies-only` on Next.
 - **D-12:** Under it, a link labelled only **"Cookie policy"** to `/cookies`. No sentence added to
   his text. "Read the cookie policy." goes.
@@ -160,7 +160,7 @@ Directives the planner must verify each plan against. Sources: `./CLAUDE.md`, `.
 - **Worker pg client.** `fetch_types: false`: no arrays unless registered in `pg-types.ts`. Prove DB behaviour through the Worker's client options, not the test client.
 - **One job, one branch.** Work only in `/Users/koss/Developer/vamos-wt/phase-27`. Do not touch ROADMAP.md or STATE.md, other worktrees, or `main`. Do not push, do not deploy. Merge main before hand-over; main wins a conflict unless the owner says otherwise.
 - **Gates.** The owner signs discuss, plan, UAT and ship. Every choice goes through the question form: one decision per question, plain words, the page named, one example.
-- **Owner-approved legal texts** are used verbatim from `.planning/decisions/2026-09-30-meta-wording.md`, never reworded.
+- **Owner-approved legal texts** are used verbatim from `.planning/archive/tracking-v1/decisions/2026-09-30-meta-wording.md`, never reworded.
 - **Local Supabase.** Use a port-shifted stack. The `54322` stack belongs to another session.
 - **GSD.** Edits only inside a GSD execute workflow.
 
@@ -377,7 +377,7 @@ Rules:
 - `layout.tsx:63-73`: delete the cookie-based `hasConsent`. Set `showBanner = !onDashboard`, so the banner element is always passed on the public host. Per UI-SPEC the component renders `null` for the card only and never unmounts (the footer listener and sheet stay mounted).
 - `SiteShell.tsx:64`: change `{isHome ? banner : null}` to `{banner}`. The early return at `:55` already excludes ops, dashboard and `/dev`. `isHome` stays for the header only. Covered by construction: `/checkout/*` (nested `checkout/layout.tsx` keeps the shell, per CONTEXT findings), `/confirmation/*`, `/checkout/pay/[token]`, `/review` (Next, `middleware.ts:381` noindex; not in D-07 but a customer page, so the banner showing there is consistent), `error.tsx` and `not-found.tsx`. Both render inside the locale layout (`error.tsx:10-18`, `not-found.tsx:6-12`). A layout-level failure falls to Next's default UI, with no banner, as documented in `error.tsx`.
 - `SiteFooter.tsx:18,248-254,287`: `CookiePrefsListener` today **silently POSTs `settings_change` with all categories false** whenever "Cookie preferences" is clicked on a Next page. Under "latest row wins" that switches Meta off without the visitor choosing. It must become "open the sheet" (D-10). The same applies to `CookieSettingsChangeButton` on the Next cookies page (`cookies/page.tsx:157`).
-- **Copy sharing (Q4).** The two builds cannot share a runtime file: Next reads `i18n/messages/*.json` through `lib/content/messages.ts` (JSON by default, `CONTENT_SOURCE` absent from `wrangler.jsonc`), and the mock reads `vamos-i18n-dict.js` and page JS. Share the **source of truth** instead: both are byte-compared in a vitest against `.planning/decisions/2026-09-30-meta-wording.md` §1–§3.
+- **Copy sharing (Q4).** The two builds cannot share a runtime file: Next reads `i18n/messages/*.json` through `lib/content/messages.ts` (JSON by default, `CONTENT_SOURCE` absent from `wrangler.jsonc`), and the mock reads `vamos-i18n-dict.js` and page JS. Share the **source of truth** instead: both are byte-compared in a vitest against `.planning/archive/tracking-v1/decisions/2026-09-30-meta-wording.md` §1–§3.
   - Mock: `app/vamos-meta-texts.js` holds `{ banner:{en,de,fr,ar}, cookiesRow:{…}, privacyLine:{…} }`. Each value is a segment array, e.g. `[{b:'Meta'},' (Meta Platforms Ireland Ltd). Cookies ',{code:'_fbp'},' and ',{code:'_fbc'},'. Set only…']`. Render inside a `data-vt-no-i18n` wrapper and re-render on `VamosLocale.onChange`.
   - Next: `cookies.meta-banner`, `cookies.meta-row` and `legal.meta-privacy-line` use `<b>…</b>` and `<code>…</code>` tags through `t.rich`. The cookies and privacy Next pages use namespaces `cookies` and `legal` (`cookies/page.tsx:51-53`, `privacy/page.tsx:48`). The `privacy` namespace has 0 keys.
   - The test converts `<b>`, `**`, `{b:…}`, `<code>`, backticks and `{code:…}` into one canonical form and compares all four languages for each of the three texts.
@@ -451,7 +451,7 @@ Not a rename phase, but the version bump and the sign-up removal change stored a
 
 ### Pitfall 3: `i18n:check` parameterisation gate trips on the owner's "90"
 **What goes wrong:** Check 3 of `scripts/check-i18n-coverage.mjs` fails any English message with a bare digit run and no ICU placeholder. §2 contains "90 days".
-**How to avoid:** Add `en.json` `$meta.noParamKeys["cookies.meta-row"] = "owner legal text verbatim, .planning/decisions/2026-09-30-meta-wording.md §2"`. Do not turn 90 into `{days}`: that changes the stored source and complicates the verbatim proof. The seed's `no_param_reason` count goes up by one.
+**How to avoid:** Add `en.json` `$meta.noParamKeys["cookies.meta-row"] = "owner legal text verbatim, .planning/archive/tracking-v1/decisions/2026-09-30-meta-wording.md §2"`. Do not turn 90 into `{days}`: that changes the stored source and complicates the verbatim proof. The seed's `no_param_reason` count goes up by one.
 
 ### Pitfall 4: ICU and rich tags in the owner texts
 **What goes wrong:** next-intl uses ICU MessageFormat. Braces or a `'` before a brace would be parsed. The fr and ar texts contain ASCII `'` ("jusqu'à", "qu'une", "s'ils") but no braces [VERIFIED by reading §1–§3], so they are safe. Markdown `**` and backticks must become `<b>` and `<code>` tags.
