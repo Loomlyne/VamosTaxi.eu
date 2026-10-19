@@ -69,7 +69,7 @@ export const LEGACY_AUTH_COOKIE_RE = /^sb-[A-Za-z0-9_-]+-auth-token(?:[.-][A-Za-
  *
  * HttpOnly (security report S4, 2026-10-05): no browser code reads the session. There is no browser
  * Supabase client (server.ts), the mocks and the React pages ask /api/auth and /api/checkout/me,
- * and the only `document.cookie` writers name NEXT_LOCALE and Meta's cookies. Without it, any
+ * and the only `document.cookie` writes set NEXT_LOCALE. Without it, any
  * injected script could lift the refresh token. @supabase/ssr spreads these options over its own
  * defaults (`httpOnly: false`) on every write and every removal, so this one line covers the
  * chunks (`vt-auth.0`…) and the PKCE verifier too.

@@ -707,7 +707,6 @@ export async function handleStripeMessageWithDeps(
         });
       }
     }
-
   }
 
   // 26.1-16 (D-22): only a duplicate whose refund landed is reported, so the

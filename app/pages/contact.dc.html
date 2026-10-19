@@ -449,7 +449,6 @@ class Component extends DCLogic {
       if (this.turnstileSendGeneration !== generation) return;
       this.turnstileSubmitting = false;
       this.turnstileSendGeneration = 0;
-      /* Meta Lead: the form was sent. No field, no text. */
       this.setState(accepted ? { phase: 'sent', token: '', idempotencyKey: crypto.randomUUID() } : { phase: 'failed', token: '' }, accepted ? undefined : this.retryTurnstile);
     } catch {
       if (this.turnstileSendGeneration !== generation) return;
