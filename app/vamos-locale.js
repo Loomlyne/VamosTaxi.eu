@@ -53,7 +53,9 @@
   var fxRates = { CHF: 1 };
 
   var SKIP_TAGS = { SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, TEXTAREA: 1, CODE: 1, PRE: 1, SVG: 1, CANVAS: 1 };
-  var ATTRS = ['placeholder', 'aria-label', 'title', 'alt'];
+  /* data-l is the label a stacked table cell shows through CSS attr() at phone
+     width (cookies.dc.html), so it is reader-facing copy like the other four. */
+  var ATTRS = ['placeholder', 'aria-label', 'title', 'alt', 'data-l'];
   /* \p{L} where the engine has it, Latin + Arabic otherwise. */
   var HAS_LETTER;
   try { HAS_LETTER = new RegExp('\\p{L}', 'u'); }
@@ -312,11 +314,32 @@
      before being translated, so a node can hold any language and still switch
      to any other — no per-node source cache to go stale when React re-renders
      a subtree or a second pass lands mid-flight. */
+  /* One exception to stateless: two English keys can share a translation
+     (French "Nom" is both "Name" and "Last name"), and the reverse map can only
+     keep one, so French -> Arabic turned a cookie table's "Name" into the
+     surname. Each node remembers the source it was translated from while it
+     still shows what we wrote; anything else (a React re-render) starts over. */
+  var seen = typeof WeakMap === 'function' ? new WeakMap() : null;
+
+  function sourceOf(node, slot, v) {
+    var rec = seen && seen.get(node);
+    return rec && rec[slot] && rec[slot].out === v ? rec[slot].src : v;
+  }
+
+  function remember(node, slot, src, out) {
+    if (!seen) return;
+    var rec = seen.get(node);
+    if (!rec) { rec = {}; seen.set(node, rec); }
+    rec[slot] = { src: src, out: out };
+  }
+
   function applyText(node) {
     var v = node.nodeValue;
     if (!v || !/\S/.test(v)) return;
-    var next = convert(v);
+    var src = sourceOf(node, '#text', v);
+    var next = convert(src);
     if (next !== v) node.nodeValue = next;
+    remember(node, '#text', src, next);
   }
 
   function applyAttrs(el) {
@@ -325,8 +348,10 @@
       if (!el.hasAttribute || !el.hasAttribute(a)) continue;
       var v = el.getAttribute(a);
       if (!v || !/\S/.test(v)) continue;
-      var next = convert(v);
+      var src = sourceOf(el, a, v);
+      var next = convert(src);
       if (next !== v) el.setAttribute(a, next);
+      remember(el, a, src, next);
     }
   }
 
