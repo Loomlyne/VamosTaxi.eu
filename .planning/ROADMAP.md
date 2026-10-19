@@ -115,8 +115,8 @@ the word "Phase", so GSD reads each line as one phase.
 - [x] **Phase 26.5: Checkout guest, sign in or create account (INSERTED)** - Account choice before Stripe; unpaid bookings hidden; paid-only reminder; pay-press limit (shipped 2026-09-30, 9a5263cd, Worker 2d5906ce)
 - [x] **Phase 27: Consent record** - Accept logs Meta on; Dismiss logs Meta off; existing banner until a choice, including a pay link (shipped 2026-10-01, ce55cd75, Worker c45d2782; Meta still off)
 - [x] **Phase 27.1: Finish your account (INSERTED)** - A sign-in-link account finishes (names, optional mobile, the account tick) before it can pay or open a booking (shipped 2026-10-01, 96a17ab7, Worker 6eb1d700)
-- [x] **Phase 28: Pixel PageView** - SHIPPED 2026-10-03 20:00 (+04): main da25c7d5, Worker d937114f, migration 20261007240000 live 19:58; plans 28-01 to 28-07 all with a SUMMARY. Owner-held: his Events Manager Test events check (UAT steps in HANDOVER.md)
-- [x] **Phase 29: Webhook Purchase** - SHIPPED 2026-10-04 15:57 (+04): main 54599783, Worker b9e15a18, migration 20261007260000 live 15:55; lock-order fix 16:27 (41ba7b7d, migration 20261007270000, no deploy); plans 29-01 to 29-07 all with a SUMMARY. Owner-held: the Meta test event code (not set, so a test-mode payment records no_test_code and nothing is sent)
+- [x] **Phase 28: Pixel PageView** (archived 2026-10-19, tracking removed) - SHIPPED 2026-10-03 20:00 (+04): main da25c7d5, Worker d937114f, migration 20261007240000 live 19:58; plans 28-01 to 28-07 all with a SUMMARY. Owner-held: his Events Manager Test events check (UAT steps in HANDOVER.md)
+- [x] **Phase 29: Webhook Purchase** (archived 2026-10-19, tracking removed) - SHIPPED 2026-10-04 15:57 (+04): main 54599783, Worker b9e15a18, migration 20261007260000 live 15:55; lock-order fix 16:27 (41ba7b7d, migration 20261007270000, no deploy); plans 29-01 to 29-07 all with a SUMMARY. Owner-held: the Meta test event code (not set, so a test-mode payment records no_test_code and nothing is sent)
 
 ## Phase Details
 
@@ -1128,7 +1128,7 @@ reach the dashboard customer list; /checkout and /booking-detail are not gated.
 
 **Plans:** 1/1 (`27.1-01-SUMMARY.md`)
 
-### Phase 28: Pixel PageView
+### Phase 28: Pixel PageView (archived 2026-10-19, tracking removed)
 
 **Goal**: After Accept and the legal flag, pixel `1595596972063765` sends PageView
 only on public pages with no token, plus signed-in account and bookings. Click ids
@@ -1153,7 +1153,7 @@ policy on /, /about, /de/about, /privacy, /sign-in and /cookies; the plain polic
 /checkout and the dashboard; no pixel string in any HTML; a fresh headless profile without Accept makes no request to a
 Meta host and sets no `_fb` cookie. The owner's payment VT-26-0752 (2026-10-03 21:19) saved `meta_fbp` in Meta format
 (`meta_fbc` empty: no ad click). Rollback tag `backup/main-before-phase-28-20261003-1958`. Meta legal lines: the three
-texts in `.planning/decisions/2026-09-30-meta-wording.md`, verbatim.
+texts in `.planning/archive/tracking-v1/decisions/2026-09-30-meta-wording.md`, verbatim.
 **Left (owner)**: the Events Manager Test events check, UAT steps in `HANDOVER.md` (Accept all on /about shows exactly
 one PageView and nothing else).
 
@@ -1170,7 +1170,7 @@ Plans:
 
 **UI hint**: no new screen. Pixel `1595596972063765`. PageView only.
 
-### Phase 29: Webhook Purchase
+### Phase 29: Webhook Purchase (archived 2026-10-19, tracking removed)
 
 **Goal**: One Purchase from the settle queue after a real CHF charge, in the francs
 Stripe charged, with saved `_fbp` and `_fbc` only. Quote, pay, and confirmation

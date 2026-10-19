@@ -33,7 +33,8 @@ describe("production cookie banner (27 contract, D-04 D-09)", () => {
     for (const key of ["necessary", "functional", "analytics", "marketing"]) {
       expect(src, key).toContain(`key: "${key}"`);
     }
-    expect(src).toContain('t.rich("meta-row"');
+    expect(src).toContain('t("measures-which-advert-brought-you-here-nothing-i")');
+    expect(src).not.toContain("meta-row");
     expect(src).not.toContain("PendingSlot");
     expect(src).not.toMatch(/sk_live_/);
     expect(src).not.toMatch(/\bCHF\b/);
@@ -45,7 +46,7 @@ describe("production cookie banner (27 contract, D-04 D-09)", () => {
     expect(src).toMatch(/mode === "unknown"\) return null/);
   });
 
-  it("Turnstile is only rendered for a choice with Meta on", () => {
+  it("Turnstile is only rendered for a choice with Marketing on", () => {
     expect(src.match(/<TurnstileWidget/g)).toHaveLength(1);
     expect(src).toMatch(/if \(!chosen\.marketing\)/);
     const refuse = block(src, "const necessaryOnly");

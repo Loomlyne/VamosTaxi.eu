@@ -22,8 +22,8 @@ const SKIP_DIRS = new Set(["node_modules", ".next", ".open-next", ".wrangler"]);
 
 // Binary/media/build-artifact extensions. A retired account suffix cannot
 // meaningfully appear inside a PNG's bytes; reading ~1,200 visual-baseline
-// snapshots as utf8 text is the exact trap that timed out lib/meta/legal-gate
-// .test.ts's full-tree walk after this plan's PR #60 merge added them. This
+// snapshots as utf8 text is the exact trap that timed out an earlier full-tree
+// source walk after this plan's PR #60 merge added them. This
 // walk stays a source-file check, not an image-content check.
 const SKIP_EXTENSIONS = new Set([
   "png",

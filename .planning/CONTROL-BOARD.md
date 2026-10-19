@@ -309,7 +309,7 @@ Owner's order: booking, payments, account, Meta first.
 | 4 | SEO follow-up | **Live 15:20**, gateway 15:22. Live read: dashboard robots.txt is `Disallow: /`, dashboard sign-in opens; a stored Arabic language without a cookie lands on `/ar` on the first view | |
 | 5 | Class cards: layout E, small photo files | **Live 16:12** (owner said Ship). Live read at 1440: photo on the side, small card; `?w=640` answers a 138 KB WebP in about 1 second, original 2.77 MB | Owner: look, then one 4242 (checkout class step changed) |
 | 6 | 27 consent record | **Live 03:02** | Next: 28 pixel page view and 29 purchase event; the owner's two switches in Meta Events Manager first |
-| 7 | 28 pixel page view, 29 purchase event | Not started. Meta wording is the owner's (`.planning/decisions/2026-09-30-meta-wording.md`) | After 27. Two switches in Meta Events Manager first |
+| 7 | 28 pixel page view, 29 purchase event | Not started. Meta wording is the owner's (`.planning/archive/tracking-v1/decisions/2026-09-30-meta-wording.md`) | After 27. Two switches in Meta Events Manager first |
 | 8 | Phase 20 batch B | Waits | After 26.5. Includes refunds by hand (F11): signed plan first |
 | 9 | Phase 20 batch C part 1 (Arabic font from our host; four hardening fixes approved 2026-10-01; last-admin guard `20261005150000`) | **Handed over** `dcfcc64c` | Control check, owner's Ship. Part 2 (F12 confirm screen, F16) after 27 |
 | 10 | Phone home design | **Live 15:20** (owner signed and said Ship). Live read at 375: hero fills the screen, Trustpilot row inside the booking card. Full-page menu and Safari bar colour: the owner's iPhone check | Owner's iPhone |
@@ -517,7 +517,7 @@ Brought to 2026-10-05 18:12 (+04) by the GSD bookkeeping job (branch `docs/gsd-b
 | 7 | Dashboard: sign out and in once (writes the HttpOnly cookie), save one thing, open the board, the calendar, one booking and Money in. Source: fix/security-hardening, fix/dashboard-fixes | dashboard |
 | 8 | Read /terms 08 and the FAQ "What if my flight is late?" on a phone (new flight wording, 5 Oct). Source: fix/content-flight-promise | phone |
 | 9 | Phase 29, Meta: give the controller the test event code (Events Manager, pixel 1595596972063765, Test events). None is set, so test payments send nothing (no_test_code). Source: 29-VERIFICATION | Meta |
-| 10 | Phase 28, Meta: on /about press Accept all; Events Manager Test events must show exactly one PageView and nothing else. Source: phases/28-pixel-pageview/HANDOVER.md | site, Meta |
+| 10 | Phase 28, Meta: on /about press Accept all; Events Manager Test events must show exactly one PageView and nothing else. Source: archive/tracking-v1/phases/28-pixel-pageview/HANDOVER.md | site, Meta |
 | 11 | /imprint in French, then Arabic: is the wording right? The German text is the binding one. Source: audit U28, quick 261003-legal-lines-imprint | site |
 | 12 | Older UAT not reported: manage link of VT-26-0743, dashboard New trip, sign-in 14 steps | e-mail, dashboard, phone |
 | 13 | **P1 UAT, payment first** (dashboard.vamostaxi.site, test bookings paid with the Stripe test card): Economy to Business, pay the difference from the e-mail with 4242; Withdraw change on a second booking; Business to Economy, Refund due, the refund line on the customer page in four languages, Confirm refund. 11 steps in `.planning/quick/260930-p1-class-change-reprice/HANDOVER.md`. Control reads `booking_payments` and `booking_refunds` after steps 5 and 10 | dashboard, e-mail |

@@ -26,16 +26,11 @@ describe("cookies mock (27-09)", () => {
     expect(cookies).toContain("Change preferences");
   });
 
-  it("D-29: no lead sentence, caption Marketing, one row with the section 2 text", () => {
-    expect(cookies).not.toContain("Nothing in this category is running today");
-    expect(cookies).toContain("<caption>Marketing</caption>");
-    expect(cookies).toContain("this.segs('cookiesRow')");
-    expect(cookies).toContain("VamosMetaTexts.segments(key, this.state.lang)");
-    const row = cookies.match(/<tr data-cookies-row="1">[\s\S]*?<\/tr>/)?.[0] ?? "";
-    expect(row).toContain('colspan="4"');
-    expect(row).toContain('data-vt-no-i18n="1"');
-    expect(row).not.toContain("data-l=");
-    expect(row).not.toContain("data-tok");
+  it("Marketing: the restored lead sentence only, no table (none/not used rows stay out, COPY-DRAFT 2026-10-04)", () => {
+    const sec = cookies.match(/<section id="marketing">[\s\S]*?<\/section>/)?.[0] ?? "";
+    expect(sec).toContain("<p>Nothing in this category is running today. It is here because");
+    expect(sec).not.toContain("<table");
+    expect(cookies).not.toContain("data-cookies-row");
   });
 
   it("D-30: necessary row name and duration, purpose and provider unchanged", () => {
@@ -50,12 +45,10 @@ describe("cookies mock (27-09)", () => {
 });
 
 describe("privacy mock (27-09)", () => {
-  it("D-14: section 04 ends with the section 3 text, inside data-vt-no-i18n", () => {
-    expect(privacy).toContain("this.segs('privacyLine'");
-    expect(privacy).toContain("VamosMetaTexts.segments(key, lang)");
+  it("section 04 lists the suppliers and carries no extra line", () => {
     const sec = privacy.match(/<section id="processors">[\s\S]*?<\/section>/)?.[0] ?? "";
-    expect(sec).toMatch(/<p data-vt-no-i18n="1" data-privacy-line="1">[\s\S]*<strong[\s\S]*<\/p>\s*(<\/sc-if>\s*)?<\/section>$/);
-    expect(sec.match(/<p data-vt-no-i18n="1" data-privacy-line="1">[\s\S]*<\/p>/)?.[0]).not.toContain("data-tok");
+    expect(sec).toContain("Stripe Payments Europe Ltd");
+    expect(sec).not.toContain("data-privacy-line");
   });
 
   it("D-31 (owner, 2026-10-05): privacy shows its own Last updated day, not the consent version", () => {

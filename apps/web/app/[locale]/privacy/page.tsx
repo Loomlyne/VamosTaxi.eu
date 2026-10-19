@@ -206,16 +206,6 @@ export default async function PrivacyPage({
             }
           />
           <ListRow
-            title="Google Ireland Ltd"
-            subtitle={
-              <>
-                {t("google-processor")}
-                <br />
-                {t("ga-processor")}
-              </>
-            }
-          />
-          <ListRow
             title={t("partner-carriers")}
             subtitle={t("the-driver-assigned-to-your-journey-receives-you")}
             last
@@ -350,23 +340,6 @@ export default async function PrivacyPage({
           {tCommon("cookies-consent")}
         </h2>
         <p>{t("strictly-necessary-cookies-keep-a-booking-workin")}</p>
-        <div className="vt-legal-blank" data-meta-slot="privacy">
-          <p>
-            {t.rich("meta-privacy-line", {
-              b: (chunks) => <strong>{chunks}</strong>,
-            })}
-          </p>
-          <p>
-            {t.rich("google-privacy-line", {
-              b: (chunks) => <strong>{chunks}</strong>,
-            })}
-          </p>
-          <p>
-            {t.rich("ga-privacy-line", {
-              b: (chunks) => <strong>{chunks}</strong>,
-            })}
-          </p>
-        </div>
         <p>
           <Link href="/cookies">{t("read-the-cookie-policy")}</Link>
           {tCommon("or")}{" "}

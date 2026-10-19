@@ -1,6 +1,6 @@
 // apps/web/tests/integration/signup-agreement-27.spec.ts
 //
-// Phase 27 plan 16 (META-03, D-03a). Browser proof of the sign-up tick on the mock sign-up page
+// Phase 27 plan 16 (D-03a). Browser proof of the sign-up tick on the mock sign-up page
 // (app/pages/sign-in.html -> AuthForm.dc.html), served the way consent-banner-27.spec.ts serves it:
 // a node:http static server over apps/web/public (run scripts/sync-dc-mock-to-public.mjs first).
 // No Next server, no database. POST /api/auth is answered by page.route and its bodies collected.

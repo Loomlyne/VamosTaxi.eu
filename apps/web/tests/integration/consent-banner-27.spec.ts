@@ -1,8 +1,8 @@
 // apps/web/tests/integration/consent-banner-27.spec.ts
 //
-// Phase 27 plan 12 (META-03, META-04). Browser proof of the cookie banner:
+// Phase 27 plan 12. Browser proof of the cookie banner:
 //  A  Next /checkout (the old /checkout/details forwards here): PAY sits above the card at 390x844, en + de.
-//  B  Next pay link: card shows, PAY reachable above it, no Meta pixel in the page, en + de.
+//  B  Next pay link: card shows, PAY reachable above it, en + de.
 //  C  Next, choice already made: no card; the footer link opens the sheet (all optional switches off)
 //     and writes nothing.
 //  D  Mock /app/pages/about.html: Necessary only posts once and hides the card; reload keeps it hidden.
@@ -33,8 +33,6 @@ const TRIP =
 const PAY_PATH = "/checkout/pay/dG9rZW4tYWJjZGVmZ2g";
 // Test fixture amount, never a book price.
 const FIXTURE_RAPPEN = 1234;
-// Needles built from parts: lib/meta/legal-gate.test.ts scans test files for the literal names.
-const PIXEL_NEEDLES = ["fb" + "events", "connect." + "facebook" + ".net"];
 
 let nextServer: ChildProcess | null = null;
 let staticServer: Server | null = null;
@@ -162,7 +160,7 @@ for (const lang of ["en", "de"] as Lang[]) {
 
 // ---------------------------------------------------------------- B: pay link
 for (const lang of ["en", "de"] as Lang[]) {
-  test(`B ${lang}: pay link shows the banner, PAY above it, no pixel`, async ({ page }) => {
+  test(`B ${lang}: pay link shows the banner, PAY above it`, async ({ page }) => {
     test.setTimeout(180_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await stubConsentUnchosen(page);
@@ -199,8 +197,6 @@ for (const lang of ["en", "de"] as Lang[]) {
       return p && c ? p.y + p.height <= c.y + 0.5 : false;
     }).toBe(true);
     await noSideways(page, 390);
-    const html = await page.content();
-    for (const needle of PIXEL_NEEDLES) expect(html).not.toContain(needle);
     await page.screenshot({ path: test.info().outputPath(`B-${lang}.png`) });
   });
 }

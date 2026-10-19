@@ -3,7 +3,6 @@
 // Cookie banner ported from app/pages/CookieBanner.dc.html (27-UI-SPEC, D-04, D-09).
 // The server is the record: state comes from the state route (GET), every choice goes
 // through POST /api/consent with the categories chosen. localStorage is a display cache only.
-// Nothing here talks to Meta.
 
 import "./CookieBanner.css";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
@@ -134,8 +133,6 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
       .then((j) => {
         if (!live) return;
         versionRef.current = typeof j.policyVersion === "string" ? j.policyVersion : null;
-        // M1 (adopted 2026-10-16, .planning/decisions/2026-10-16-google-advanced-consent-wording.md): Meta's page
-        // view and its cookies _fbp/_fbc are for every visitor now, so a refusal no longer deletes them.
         if (j.chosen && j.choice) {
           if (j.choice.analytics === true) loadWebAnalytics();
           setCats({
@@ -258,7 +255,6 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
       if (result.ok) {
         writeCache(versionRef.current, method, chosen);
         if (chosen.analytics) loadWebAnalytics();
-        // M1 (2026-10-16): a choice without Marketing no longer deletes Meta's cookies (page views are for everyone).
         setCats(chosen);
         setMode("hidden");
         setPending(null);
@@ -283,7 +279,7 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
     if (busyRef.current) return;
     setError(null);
     if (!chosen.marketing) {
-      // Refusing or saving without Meta never waits on Turnstile.
+      // Refusing or saving without Marketing never waits on Turnstile.
       setBusyBoth(true);
       void doPost(method, chosen, null, newKey());
       return;
@@ -356,9 +352,8 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
       key: "analytics",
       title: t("analytics"),
       aria: t("analytics-cookies"),
-      // Owner text, .planning/decisions/2026-10-11-ga4-wording.md §1 (GA4 sits under Analytics).
-      body: t("ga-banner-row"),
-      meta: [t("sheet-analytics-providers"), t("sheet-analytics-duration")],
+      body: t("tells-us-which-step-of-a-booking-people-abandon"),
+      meta: [t("sheet-analytics-providers"), t("sheet-not-used")],
       checked: cats.analytics,
       set: (v) => setCats((c) => ({ ...c, analytics: v })),
     },
@@ -366,18 +361,7 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
       key: "marketing",
       title: tCommon("marketing"),
       aria: t("marketing-cookies"),
-      body: (
-        <>
-          {t.rich("meta-row", {
-            b: (chunks) => <strong>{chunks}</strong>,
-            code: (chunks) => <code className="vt-dir-keep vt-ck-code">{chunks}</code>,
-          })}{" "}
-          {t.rich("google-row", {
-            b: (chunks) => <strong>{chunks}</strong>,
-            code: (chunks) => <code className="vt-dir-keep vt-ck-code">{chunks}</code>,
-          })}
-        </>
-      ),
+      body: t("measures-which-advert-brought-you-here-nothing-i"),
       checked: cats.marketing,
       set: (v) => setCats((c) => ({ ...c, marketing: v })),
     },
@@ -403,14 +387,12 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
           <div className="vt-ck-sheet" data-ck-sheet="1" ref={cardRef} aria-busy={busyStr}>
             <p className="vt-ck-kicker">{tCommon("cookies")}</p>
             <h2 className="vt-ck-title">{t("you-choose-what-we-measure")}</h2>
-            {/* Owner texts: the banner (2026-10-09 §1), then the Tag Manager sentence (2026-10-13-gtm-wording.md §1). */}
-            <p className="vt-ck-body vt-ck-body--first">
-              {t.rich("meta-banner", {})}
-            </p>
             <p className="vt-ck-body vt-ck-body--link">
+              {t("strictly-necessary-cookies-keep-the-booking-flow")}{" "}
               <Link href="/cookies" className="vt-ck-link">
-                {tCommon("cookie-policy")}
+                {t("cookie-policy")}
               </Link>
+              .
             </p>
             {sheetOpen ? null : alert}
             {sheetOpen ? null : turnstile("card")}

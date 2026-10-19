@@ -142,26 +142,6 @@ export default async function CookiesPage({
             ]}
           />
         </div>
-        <div className="vt-legal-blank--row" data-meta-slot="cookies">
-          <p>
-            {tCookies.rich("meta-row", {
-              b: (chunks) => <strong>{chunks}</strong>,
-              code: (chunks) => <code className="vt-dir-keep">{chunks}</code>,
-            })}
-          </p>
-          {/* Owner text, .planning/decisions/2026-10-16-google-advanced-consent-wording.md A4 */}
-          <p>
-            {tCookies.rich("google-tag-row", {
-              b: (chunks) => <strong>{chunks}</strong>,
-            })}
-          </p>
-          <p>
-            {tCookies.rich("google-row", {
-              b: (chunks) => <strong>{chunks}</strong>,
-              code: (chunks) => <code className="vt-dir-keep">{chunks}</code>,
-            })}
-          </p>
-        </div>
       </section>
 
       <section id="analytics">
@@ -171,13 +151,6 @@ export default async function CookiesPage({
         </h2>
         <p>{tCookies("cookieless-analytics")}</p>
         <p>{tCookies("no-ads")}</p>
-        {/* Owner text, .planning/decisions/2026-10-11-ga4-wording.md §2 */}
-        <p data-ga-row="cookies">
-          {tCookies.rich("ga-row", {
-            b: (chunks) => <strong>{chunks}</strong>,
-            code: (chunks) => <code className="vt-dir-keep">{chunks}</code>,
-          })}
-        </p>
       </section>
 
       <section id="change">

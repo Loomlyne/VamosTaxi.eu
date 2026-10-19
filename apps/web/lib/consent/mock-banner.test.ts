@@ -69,12 +69,6 @@ describe("mock cookie banners", () => {
     );
   });
 
-  it.each(BOTH)("(h) %s: nothing to Meta", (_n, src) => {
-    // Built from parts so the legal-gate scan of product files does not find the needles here.
-    const needles = ["fbev" + "ents", "facebook" + ".net", "connect." + "facebook", "15955969" + "72063765"];
-    for (const needle of needles) expect(src).not.toContain(needle);
-  });
-
   it.each(BOTH)("(i) %s: the six review states are reachable", (_n, src) => {
     const props = src.match(/data-props="([^"]*)"/)![1]!.replace(/&quot;/g, '"');
     const options: string[] = JSON.parse(props).startState.options;
@@ -85,12 +79,13 @@ describe("mock cookie banners", () => {
     expect(src).toContain("ck-gallery=1");
   });
 
-  it.each(BOTH)("(j) %s: owner texts come from VamosMetaTexts, the old copy is gone", (_n, src) => {
-    expect(src).toContain("VamosMetaTexts.segments");
-    expect(src).toContain("../vamos-meta-texts.js");
+  it.each(BOTH)("(j) %s: the banner and the category rows read the plain copy", (_n, src) => {
     expect(src).toContain("../vamos-consent.js");
-    expect(src).not.toContain("Strictly necessary cookies keep the booking flow working");
-    expect(src).not.toContain("Nothing in this category is running today");
+    expect(src).toContain(
+      "Strictly necessary cookies keep the booking flow working. Analytics and marketing stay off until you turn them on. Read the",
+    );
+    expect(src).toContain("Tells us which step of a booking people abandon.");
+    expect(src).toContain("Measures which advert brought you here. Nothing in this category is running today.");
     expect(src).not.toContain("data-lenis-prevent");
   });
 });

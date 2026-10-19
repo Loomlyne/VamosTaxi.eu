@@ -27,7 +27,6 @@
 <script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
-<script src="../vamos-meta-texts.js"></script>
 <script src="../vamos-consent.js"></script>
 <script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
@@ -59,7 +58,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-ck-banner]{position:fixed;inset-inline:16px;inset-block-end:16px;z-index:70}
 [data-ck-ts]{display:flex;gap:8px;min-block-size:0;flex-basis:100%}
 [data-ck-gal]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,452px),1fr));gap:24px;padding:32px;background:var(--vt-grey-50);font-family:var(--vt-font-body)}
-[data-ck-code]{font-family:var(--vt-font-mono);font-size:.92em;background:none;border:0;padding:0;color:inherit}
 [data-ck-cats]{display:flex;flex-direction:column}
 [data-ck-meta]{display:flex;flex-direction:column;gap:4px}
 [data-ck-acts]{display:flex;flex-direction:column;gap:10px}
@@ -73,9 +71,8 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-ck-banner="1" ref="{{ bannerRef }}" data-screen-label="Cookie banner" role="region" aria-label="Cookie choices" style="font-family:var(--vt-font-body)">
 <div data-ck-sheet="1" data-ck-card="1" aria-busy="{{ busyStr }}" style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-lg);padding:24px">
 <p style="margin:0 0 10px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Cookies</p>
-<h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">You choose what else we measure</h2>
-<p data-vt-no-i18n="1" style="margin:0 0 8px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:46ch">{{ bannerText }}</p>
-<p style="margin:0 0 18px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading)"><a data-ck-link="1" href="../pages/cookies.dc.html">Cookie policy</a></p>
+<h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">You choose what we measure</h2>
+<p style="margin:0 0 18px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:46ch">Strictly necessary cookies keep the booking flow working. Analytics and marketing stay off until you turn them on. Read the <a data-ck-link="1" href="../pages/cookies.dc.html">cookie policy</a>.</p>
 <sc-if value="{{ alertSave }}" hint-placeholder-val="{{ false }}">
 <div style="margin-block-end:12px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" title="Your choice was not saved. Try again." hint-size="100%,56px"></x-import></div>
 </sc-if>
@@ -117,12 +114,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <sc-if value="{{ r.isText }}" hint-placeholder-val="{{ true }}">
 <p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">{{ r.desc }}</p>
 </sc-if>
-<sc-if value="{{ r.isSeg }}" hint-placeholder-val="{{ false }}">
-<p data-vt-no-i18n="1" style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><sc-for list="{{ r.segs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code data-ck-code="1" class="vt-dir-keep">{{ g.t }}</code></sc-if></sc-for></p>
-</sc-if>
-<sc-if value="{{ r.isSegMeta }}" hint-placeholder-val="{{ false }}">
-<p data-vt-no-i18n="1" style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><sc-for list="{{ r.segs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code data-ck-code="1" class="vt-dir-keep">{{ g.t }}</code></sc-if></sc-for></p>
-</sc-if>
 <sc-if value="{{ r.hasMeta }}" hint-placeholder-val="{{ true }}">
 <div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>{{ r.m1 }}</span><span>{{ r.m2 }}</span></div>
 </sc-if>
@@ -161,9 +152,8 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p style="margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ g.label }}</p>
 <div data-ck-card="1" aria-busy="{{ g.busyStr }}" style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-lg);padding:24px;max-inline-size:452px">
 <p style="margin:0 0 10px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Cookies</p>
-<h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">You choose what else we measure</h2>
-<p style="margin:0 0 8px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:46ch">{{ galleryText }}</p>
-<p style="margin:0 0 18px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading)"><a data-ck-link="1" href="../pages/cookies.dc.html">Cookie policy</a></p>
+<h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">You choose what we measure</h2>
+<p style="margin:0 0 18px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:46ch">Strictly necessary cookies keep the booking flow working. Analytics and marketing stay off until you turn them on. Read the <a data-ck-link="1" href="../pages/cookies.dc.html">cookie policy</a>.</p>
 <sc-if value="{{ g.alertSave }}" hint-placeholder-val="{{ false }}">
 <div style="margin-block-end:12px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" title="Your choice was not saved. Try again." hint-size="100%,56px"></x-import></div>
 </sc-if>
@@ -195,12 +185,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);line-height:1.3;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">{{ r.title }}</h3>
 <sc-if value="{{ r.isText }}" hint-placeholder-val="{{ true }}">
 <p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">{{ r.desc }}</p>
-</sc-if>
-<sc-if value="{{ r.isSeg }}" hint-placeholder-val="{{ false }}">
-<p style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><sc-for list="{{ r.segs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code data-ck-code="1" class="vt-dir-keep">{{ g.t }}</code></sc-if></sc-for></p>
-</sc-if>
-<sc-if value="{{ r.isSegMeta }}" hint-placeholder-val="{{ false }}">
-<p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><sc-for list="{{ r.segs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code data-ck-code="1" class="vt-dir-keep">{{ g.t }}</code></sc-if></sc-for></p>
 </sc-if>
 <sc-if value="{{ r.hasMeta }}" hint-placeholder-val="{{ true }}">
 <div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>{{ r.m1 }}</span><span>{{ r.m2 }}</span></div>
@@ -500,40 +484,30 @@ class Component extends DCLogic {
   toggleAnalytics = (e) => this.setState({ analytics: e.target.checked, dirty: true });
   toggleMarketing = (e) => this.setState({ marketing: e.target.checked, dirty: true });
 
-  segs(key, lang) {
-    if (!window.VamosMetaTexts || typeof window.VamosMetaTexts.segments !== 'function') return [];
-    return window.VamosMetaTexts.segments(key, lang || this.state.lang).map((s) => {
-      if (typeof s === 'string') return { t: s, isText: true, isB: false, isCode: false };
-      if (s && s.b != null) return { t: s.b, isText: false, isB: true, isCode: false };
-      return { t: s && s.code, isText: false, isB: false, isCode: true };
-    });
-  }
-
   rowsFor(o) {
     const off = o.off;
     return [
-      { title: 'Strictly necessary', isText: true, isSeg: false, isSegMeta: false, segs: [],
+      { title: 'Strictly necessary', isText: true,
         desc: 'Holds your booking while you fill it in, processes the payment, blocks fraud and records this consent. The site does not work without them.',
         hasMeta: true, m1: 'Vamos Taxi · Stripe · Supabase · Cloudflare', m2: 'Up to 400 days',
         always: true, checked: true, off: true, aria: 'Strictly necessary cookies, always on', change: NOOP },
-      { title: 'Functional', isText: true, isSeg: false, isSegMeta: false, segs: [],
+      { title: 'Functional', isText: true,
         desc: 'Remembers your language and your last pickup address so you do not type them twice.',
         hasMeta: true, m1: 'Vamos Taxi', m2: 'until you change language or clear recent places',
         always: false, checked: o.f, off: off, aria: 'Functional cookies', change: this.toggleFunctional },
-      { title: 'Analytics', isText: false, isSeg: false, isSegMeta: true, segs: this.segs('analyticsRow', o.lang),
-        desc: '',
-        hasMeta: true, m1: 'Cloudflare Web Analytics (cookieless) · Google Analytics', m2: 'Up to 90 days',
+      { title: 'Analytics', isText: true,
+        desc: 'Tells us which step of a booking people abandon.',
+        hasMeta: true, m1: 'Cloudflare Web Analytics (cookieless)', m2: 'No cookie',
         always: false, checked: o.a, off: off, aria: 'Analytics cookies', change: this.toggleAnalytics },
-      { title: 'Marketing', isText: false, isSeg: true, isSegMeta: false, segs: this.segs('cookiesRow', o.lang).concat([{ t: ' ', isText: true, isB: false, isCode: false }], this.segs('googleRow', o.lang)),
-        desc: '', hasMeta: false, m1: '', m2: '',
+      { title: 'Marketing', isText: true,
+        desc: 'Measures which advert brought you here. Nothing in this category is running today.',
+        hasMeta: false, m1: '', m2: '',
         always: false, checked: o.m, off: off, aria: 'Marketing cookies', change: this.toggleMarketing },
     ];
   }
 
   renderVals() {
     const s = this.state;
-    // Owner texts: the banner (2026-10-09 §1) and, after it, the Tag Manager sentence (2026-10-13-gtm-wording.md §1).
-    const bannerText = this.segs('banner').map((g) => g.t).join('') + (window.VamosMetaTexts && window.VamosMetaTexts.gtmShown ? ' ' + this.segs('gtmBanner').map((g) => g.t).join('') : '');
     const card = (label, o) => Object.assign({
       label, busy: false, busyStr: 'false', alertSave: false, alertCheck: false, ts: false,
     }, o, { busyStr: o && o.busy ? 'true' : 'false' });
@@ -544,14 +518,12 @@ class Component extends DCLogic {
       busy: s.busy, busyStr: s.busy ? 'true' : 'false',
       alertSave: s.alert === 'save', alertCheck: s.alert === 'check',
       tsPlaceholder: s.tsPlaceholder,
-      bannerText,
       rows: this.rowsFor({ f: s.functional, a: s.analytics, m: s.marketing, off: s.busy }),
       acceptAll: this.acceptAll, rejectAll: this.rejectAll, savePrefs: this.savePrefs,
       openPrefs: this.openPrefs, closePrefs: this.closePrefs, veilClick: this.veilClick,
       dialogRef: this.dialogRef, bannerRef: this.bannerRef,
       tsBannerRef: this.tsBannerRef, tsSheetRef: this.tsSheetRef,
       gallery: this.gallery,
-      galleryText: this.gallery ? this.segs('banner', 'en').map((g) => g.t).join('') + (window.VamosMetaTexts && window.VamosMetaTexts.gtmShown ? ' ' + this.segs('gtmBanner', 'en').map((g) => g.t).join('') : '') : '',
       galleryCards: this.gallery ? [
         card('Default', {}),
         card('Busy', { busy: true }),

@@ -1,8 +1,8 @@
 {
   "notes": {
     "keys": "Cancellation-policy and refund wording: legal in effect, never machine-translated (F-01). Dotted paths in the messages catalogs or the e-mail catalog.",
-    "prefixes": "legal. (legal pages), cookies. (owner-approved cookie rows, see .planning/decisions/2026-09-30-meta-wording.md and the cookie decisions), consent. (consent banner wording).",
-    "texts": "Exact English lines whose approved wording lives in .planning/decisions (Meta banner, cookies row and privacy line) and the 24-hour cancellation line; the dictionary copy of these lines is skipped too. The runner also scans data-vt-legal pages, CookieBanner and data-tok spans at run time."
+    "prefixes": "legal. (legal pages), cookies. (owner-approved cookie rows, see the cookie decisions), consent. (consent banner wording).",
+    "texts": "Exact English lines whose approved wording lives in .planning/decisions (the 24-hour cancellation line); the dictionary copy of these lines is skipped too. The runner also scans data-vt-legal pages, CookieBanner and data-tok spans at run time."
   },
   "keys": [
     "checkout.cancel-free-of-charge-up-to-24-hours-before-pick",
@@ -24,9 +24,6 @@
     "consent."
   ],
   "texts": [
-    "We use necessary cookies to run your booking. If you accept, Meta (Facebook and Instagram) may also measure visits to this site and completed bookings, so we can see which adverts work. You can refuse, and you can change your choice at any time in Cookie preferences.",
-    "Meta (Meta Platforms Ireland Ltd). Cookies _fbp and _fbc. Set only after you accept. They let Meta recognise this browser to measure adverts. Kept for up to 90 days.",
-    "Meta Platforms Ireland Ltd. Advert measurement, only with your consent. After you accept, Meta records that a page of this site was opened. After a paid booking we send Meta one message with the amount paid and the two Meta cookie identifiers, if they exist. We do not send your name, email, phone number, route, flight or booking reference. Meta may process this data outside Switzerland. You can withdraw your consent at any time in Cookie preferences.",
     "Cancel free of charge up to 24 hours before pickup, or move the time from the manage-booking link in your email.",
     "This trip will be cancelled. You get a full refund; our team sends it.",
     "This trip will be cancelled. Our team decides the refund and tells you by email.",

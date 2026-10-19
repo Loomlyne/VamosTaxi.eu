@@ -1,6 +1,6 @@
 // apps/web/tests/support/consent-state.ts
 //
-// Phase 27 (META-04). The consent banner asks the server whether this browser already chose
+// Phase 27. The consent banner asks the server whether this browser already chose
 // (GET /api/consent/state). Specs that are not about the banner answer "chosen" so the card
 // never appears; the banner spec answers "not chosen" and follows the POSTs it sees.
 

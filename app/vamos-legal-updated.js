@@ -9,9 +9,9 @@
 (function () {
   var UPDATED = {
     cancellation: '2026-10-05', // flight lines (04); last text change before: 2026-10-03, 3cac1fc5
-    cookies: '2026-10-17', // tracking before consent (.planning/decisions/2026-10-16-google-advanced-consent-wording.md); last text change before: 2026-10-04, bce75750 / 5a027e71
+    cookies: '2026-10-19', // Meta and Google rows removed, earlier texts restored; last text change before: 2026-10-04, bce75750 / 5a027e71
     imprint: '2026-10-05', // 09 internal note removed
-    privacy: '2026-10-17', // tracking before consent (.planning/decisions/2026-10-16-google-advanced-consent-wording.md); last text change before: 2026-10-05, flight lines (02)
+    privacy: '2026-10-19', // Meta and Google lines removed, earlier texts restored; last text change before: 2026-10-05, flight lines (02)
     terms: '2026-10-05', // flight lines (06, 08); last text change before: 2026-10-03, 3cac1fc5
   };
 

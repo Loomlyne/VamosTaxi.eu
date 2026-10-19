@@ -129,18 +129,19 @@ select is((select count(*) from public.reviews where published)::int, 0, 'no see
 -- 2026-10-09 payments review J5: +7 keys (checkout.payUnknownNotice, payUnpaidNotice, payFailedNotice, payCheckingTitle, payCheckingBody, payCheckingStalledBody, payCheckingAgain): seed header 2699 keys, 102 no-param-reason.
 -- 2026-10-09 payments review J6: +3 keys (checkout.pickupPassed, pickupTooSoon, amountBelowMinimum): seed header 2702 keys, 102 no-param-reason.
 -- 2026-10-09 payments review J8: +2 keys (checkout.methodNoteNoTwint, refundArrivalNote), -1 (checkout.stripePayoutOn): seed header 2703 keys, 102 no-param-reason.
--- 2026-10-09 ad tracking wording, merged onto the payments branch: +3 keys (cookies.google-row, legal.google-privacy-line, legal.google-processor), google-row gains a no-param reason: seed header 2706 keys, 103 no-param-reason.
+-- 2026-10-09 tracking wording (removed 2026-10-19), merged onto the payments branch: +3 keys, one gains a no-param reason: seed header 2706 keys, 103 no-param-reason.
 -- 2026-10-11 J1-J10 landed on main: +1 key from main #74 (checkout.vatIncluded), which main had not regenerated into the seed: seed header 2707 keys, 103 no-param-reason.
--- 2026-10-13 GA4 wording (adopted 2026-10-11): +5 keys (cookies.ga-banner-row, cookies.ga-row, cookies.sheet-analytics-duration, legal.ga-privacy-line, legal.ga-processor), -2 replaced (cookies.sheet-not-used, cookies.tells-us-which-step-of-a-booking-people-abandon); ga-row, sheet-analytics-duration and ga-privacy-line gain a no-param reason: seed header 2710 keys, 106 no-param-reason.
--- 2026-10-13 Google Tag Manager wording (adopted as written 2026-10-13): +4 keys (cookies.gtm-banner, cookies.gtm-row, legal.gtm-privacy-line, legal.gtm-processor), no new no-param reason: seed header 2714 keys, 106 no-param-reason.
+-- 2026-10-13 tracking wording (removed 2026-10-19): +5 keys, -2 replaced (cookies.sheet-not-used, cookies.tells-us-which-step-of-a-booking-people-abandon); three gain a no-param reason: seed header 2710 keys, 106 no-param-reason.
+-- 2026-10-13 tracking wording (removed 2026-10-19): +4 keys, no new no-param reason: seed header 2714 keys, 106 no-param-reason.
 -- 2026-10-13 Phase 31 (31-10): -1 dead key (account.refund-waiting-on-review): seed header 2706 keys, 103 no-param-reason.
 -- 2026-10-14 PR #81: -2 keys (price.surcharge.region_premium.label, .rule; region % removed, 0 live snapshots carry it): seed header 2704 keys, 103 no-param-reason.
--- 2026-10-14 GA4/GTM branch merged with main (Phase 31 -1, PR #81 -2): seed header 2711 keys, 106 no-param-reason.
--- 2026-10-16 tracking before consent (wording adopted 2026-10-16): +1 key (cookies.google-tag-row), no new no-param reason: seed header 2712 keys, 106 no-param-reason.
-select is((select count(*) from public.content_strings)::int, 2712 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
+-- 2026-10-14 tracking branch merged with main (Phase 31 -1, PR #81 -2): seed header 2711 keys, 106 no-param-reason.
+-- 2026-10-16 tracking wording (removed 2026-10-19): +1 key, no new no-param reason: seed header 2712 keys, 106 no-param-reason.
+-- 2026-10-19 tracking integrations removed: -16 tracking keys, +2 restored (cookies.sheet-not-used, cookies.tells-us-which-step-of-a-booking-people-abandon), five no-param reasons gone: seed header 2698 keys, 101 no-param-reason.
+select is((select count(*) from public.content_strings)::int, 2698 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
 select is((select count(*) from public.content_strings where pending_value)::int, 16, '16 pending-value keys (ADR-011, Law 04 data-tok)');
 select is((select count(*) from public.content_strings where non_translatable)::int, 8 + 26, '8 non-translatable seed keys (ADR-012) + 26 migration canton names');
-select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 106, '106 no-param-reason keys (I18N-06; count re-read from the seed header after B7 + /confirmation)');
+select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 101, '101 no-param-reason keys (I18N-06; count re-read from the seed header after B7 + /confirmation)');
 select ok(
   (select de is not null and fr is not null and ar is not null from public.content_strings where key = 'price.surcharge.night.rule'),
   'price.surcharge.night.rule (Plan 02-04) has a non-null de/fr/ar translation'

@@ -65,14 +65,6 @@ STRIPE_ACCOUNT_ID=acct_1UIZmqHcNp9GZYjz
 # Optional. "on" adds TWINT to the hosted Checkout page; anything else is card only.
 STRIPE_CHECKOUT_TWINT=
 
-# ── Meta (server Purchase event; owner-gated) ──
-# Optional. Conversions API token. Only lib/meta/purchase.ts reads it; never print or log it.
-META_CAPI_ACCESS_TOKEN=
-# Optional. The pixel id the Conversions API posts to. Empty: the server sends nothing.
-META_PIXEL_ID=
-# Optional. Events Manager test event code. A test-mode payment sends no event while this is empty.
-META_TEST_EVENT_CODE=
-
 # ── Staff, health and content switches ──
 # Optional. HMAC key (32+ characters) for the staff re-auth cookie; empty: password, e-mail and factor changes are refused.
 STAFF_REAUTH_SECRET=

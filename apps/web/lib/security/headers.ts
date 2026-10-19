@@ -14,9 +14,8 @@
 // visitor allows Analytics (lib/consent/web-analytics.ts); Cloudflare's
 // automatic injection must stay off, or this allowance lets it run unasked.
 //
-// 2026-10-18 (owner): every Meta and Google tag was removed from the site. No advertising or analytics
-// vendor host is listed here; the owner installs the next tags himself, and the hosts they need are added
-// with them, never before.
+// No advertising or analytics vendor host is listed here. A host is added with the tag that needs it,
+// never before.
 //
 // Referrer-Policy is strict-origin: a move from a checkout, confirmation or pay-link address to another
 // page of ours tells that page only https://vamostaxi.site/, never the previous address. Cross-site

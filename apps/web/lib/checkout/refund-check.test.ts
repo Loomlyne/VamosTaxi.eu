@@ -464,13 +464,13 @@ describe("source pins", () => {
     expect(body).not.toContain("sql.array");
   });
 
-  it("the 03:00 cron runs the check in its own try/catch, after the other two blocks and before return", () => {
+  it("the 03:00 cron runs the check in its own try/catch, after the notification sweep and before return", () => {
     const branch = worker.indexOf('if (controller.cron === "0 3 * * *")');
     expect(branch).toBeGreaterThan(-1);
     const ret = worker.indexOf("return;", branch);
     const at = worker.indexOf("await refundCheck(env)");
     expect(worker.split("refundCheck(env)")).toHaveLength(2);
-    expect(at).toBeGreaterThan(worker.indexOf('"meta_purchase_sweep", { outcome: "failed" }', branch));
+    expect(at).toBeGreaterThan(worker.indexOf('"notification_sweep", { outcome: "failed" }', branch));
     expect(at).toBeGreaterThan(branch);
     expect(at).toBeLessThan(ret);
     // Phase 32 merge: the translate sweep runs after this block in the same cron branch, so the

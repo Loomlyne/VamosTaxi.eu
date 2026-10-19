@@ -40,13 +40,13 @@ describe("legal pages Last updated: each page its own day", () => {
     expect(src).not.toMatch(/var LEGAL_UPDATED\b|var CONSENT_UPDATED\b|consentLabel|consentIso/);
   });
 
-  it("each page's own day: cookies and privacy 2026-10-17 (tracking before consent), the rest 2026-10-05", () => {
+  it("each page's own day: cookies and privacy 2026-10-19 (Meta and Google removed), the rest 2026-10-05", () => {
     // A page's text change moves that page's date and this line together.
     expect(parseLegalUpdated(src)).toEqual({
       cancellation: "2026-10-05",
-      cookies: "2026-10-17",
+      cookies: "2026-10-19",
       imprint: "2026-10-05",
-      privacy: "2026-10-17",
+      privacy: "2026-10-19",
       terms: "2026-10-05",
     });
   });
@@ -104,7 +104,7 @@ describe("legal pages Last updated: each page its own day", () => {
 });
 
 describe("consent version is its own constant", () => {
-  it("CONSENT_POLICY_VERSION is set once, in policy.ts (its value is pinned in meta/legal-gate.test.ts)", () => {
+  it("CONSENT_POLICY_VERSION is set once, in policy.ts (no other test pins its value)", () => {
     const policy = read("apps/web/lib/consent/policy.ts");
     const matches = [...policy.matchAll(/export const CONSENT_POLICY_VERSION\s*=\s*"(\d{4}-\d{2}-\d{2})"/g)];
     expect(matches).toHaveLength(1);

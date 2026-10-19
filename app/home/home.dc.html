@@ -1962,7 +1962,6 @@ class Component extends DCLogic {
     if (r.fl) p.set('flight', r.fl);
     const prefix = (s.lang === 'de' || s.lang === 'fr' || s.lang === 'ar') ? '/' + s.lang : '';
     this.setState({ errs: r.errs });
-    /* Meta ViewContent: the price button was pressed with a valid trip. One fixed word, never the trip. */
     location.assign(prefix + '/checkout?' + p.toString());
   }
   submitBox = () => {
