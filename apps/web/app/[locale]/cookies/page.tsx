@@ -8,7 +8,6 @@ import { Table, type TableColumn } from "@/components/data";
 import { CookieSettingsChangeButton } from "@/components/consent/CookieBanner";
 import { LanguageCoverageNotice, LegalPage, PendingSlot, type LegalSection } from "@/components/legal";
 import { buildAlternates } from "@/lib/metadata";
-import { GTM_OPEN } from "@/lib/google/flag";
 
 const { Link, getPathname } = createNavigation(routing);
 
@@ -162,13 +161,6 @@ export default async function CookiesPage({
               code: (chunks) => <code className="vt-dir-keep">{chunks}</code>,
             })}
           </p>
-          {GTM_OPEN ? (
-            <p>
-              {tCookies.rich("gtm-row", {
-                b: (chunks) => <strong>{chunks}</strong>,
-              })}
-            </p>
-          ) : null}
         </div>
       </section>
 

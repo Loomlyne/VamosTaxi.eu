@@ -12,7 +12,6 @@ export const GRAPH_VERSION = "v26.0";
 /** The only page address Meta is told about. */
 export const PURCHASE_EVENT_SOURCE_URL = "https://vamostaxi.site";
 
-const PIXEL_ID = "1595596972063765";
 const GRAPH_HOST = "https://graph.facebook.com";
 
 export type PurchaseEventInput = {
@@ -131,11 +130,12 @@ export function metaTestEventToSend(livemode: boolean, code: string | null): { s
 
 /**
  * Sends one event (any ServerEvent; the name is kept for the Purchase callers). No retry. Never throws. The token goes in the body, never in the address.
+ * The pixel id is a Worker secret (META_PIXEL_ID) since 2026-10-18: it is never written in source.
  * Keeps only the HTTP status and the Graph error code and subcode of the answer.
  */
 export async function postPurchase(
   fetchFn: typeof fetch,
-  args: { event: ServerEvent; token: string; testEventCode: string | null },
+  args: { event: ServerEvent; token: string; pixelId: string; testEventCode: string | null },
 ): Promise<PostOutcome> {
   const body = new URLSearchParams();
   body.set("data", JSON.stringify([args.event]));
@@ -144,7 +144,7 @@ export async function postPurchase(
 
   let res: Response;
   try {
-    res = await fetchFn(`${GRAPH_HOST}/${GRAPH_VERSION}/${PIXEL_ID}/events`, {
+    res = await fetchFn(`${GRAPH_HOST}/${GRAPH_VERSION}/${args.pixelId}/events`, {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
       body,

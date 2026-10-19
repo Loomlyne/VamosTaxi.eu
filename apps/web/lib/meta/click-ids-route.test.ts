@@ -47,6 +47,8 @@ vi.mock("@/lib/db/identity", () => ({
   asQuote: async (_e: unknown, fn: (sql: unknown) => unknown) => fn(fakeSql()),
 }));
 vi.mock("@/lib/consent/read", () => ({ readConsentChoice: async () => ({ marketing: state.marketing }) }));
+// 2026-10-18: the real gate is closed (every Meta tag removed). These cases prove the route mechanics, so the gate is held open here.
+vi.mock("@/lib/meta/legal-gate", async (orig) => ({ ...(await orig<object>()), metaMeasurementAllowed: () => true, metaEventsAllowed: () => true }));
 vi.mock("@/lib/checkout/intent-schema", () => ({
   checkoutIntentSchema: { safeParse: (data: unknown) => ({ success: true, data }) },
 }));

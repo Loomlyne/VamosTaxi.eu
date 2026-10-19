@@ -55,7 +55,6 @@ test("tracking loaders go straight after <base>, once, only on CookieBanner page
   assert.ok(out.includes(`<base href="/app/pages/">\n${TRACKING_HEAD}`));
   assert.equal(injectTrackingInto(out), out);
   const head = out.slice(0, out.indexOf("</head>"));
-  assert.ok(head.indexOf("vamos-consent.js") < head.indexOf("vamos-meta.js"));
   const noBanner = page.replace("CookieBanner", "SiteFooter");
   assert.equal(injectTrackingInto(noBanner), noBanner);
 });

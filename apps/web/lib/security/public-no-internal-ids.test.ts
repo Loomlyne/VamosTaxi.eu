@@ -101,7 +101,7 @@ describe("no internal ids on public surfaces", () => {
       }
     }
     expect(unreadable).toEqual([]);
-  });
+  }, 120_000); // acorn parses every served dashboard file: well over the 5 s default on a CI runner (2026-10-19)
 
   // A served licence or readme is copied as it is (no strip): an internal note there must fail here.
   // public/brand is committed, so this runs without a sync; app, _ds and assets are added once synced.

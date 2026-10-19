@@ -18,6 +18,7 @@ function make(over: Partial<FunnelDeps> = {}) {
   const fetchFn = vi.fn(async () => new Response(JSON.stringify({ events_received: 1 }), { status: 200 }));
   const deps: FunnelDeps = {
     token: () => TOKEN,
+    pixelId: () => "1234567890",
     testEventCode: () => null,
     livemode: () => true,
     fetch: fetchFn as unknown as typeof fetch,
@@ -37,11 +38,10 @@ describe("sendFunnelEvent", () => {
     expect(deps.token).not.toHaveBeenCalled();
   });
 
-  it("the flags are open: the default gate sends one real event", async () => {
+  it("the default gate is closed (2026-10-18, every Meta tag removed): nothing leaves", async () => {
     const { deps, fetchFn } = make();
-    expect(await sendFunnelEvent(send, deps)).toBe("sent");
-    expect(fetchFn).toHaveBeenCalledTimes(1);
-    expect(bodyOf(fetchFn).get("test_event_code")).toBeNull();
+    expect(await sendFunnelEvent(send, deps)).toBe("skip");
+    expect(fetchFn).not.toHaveBeenCalled();
   });
 
   it("open, live mode: one POST with the exact event, no test code", async () => {

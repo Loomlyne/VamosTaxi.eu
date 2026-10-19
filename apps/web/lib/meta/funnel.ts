@@ -24,6 +24,8 @@ export type FunnelSend = {
 
 export type FunnelDeps = {
   token: () => string | null;
+  /** The pixel id (META_PIXEL_ID). Missing: skipped as no_token. */
+  pixelId: () => string | null;
   testEventCode: () => string | null;
   livemode: () => boolean;
   fetch: typeof fetch;
@@ -53,7 +55,8 @@ export async function sendFunnelEvent(
   try {
     if (!allowed()) return "skip";
     const token = deps.token();
-    if (!token) {
+    const pixelId = deps.pixelId();
+    if (!token || !pixelId) {
       deps.log({ event: send.name, outcome: "skip", reason: "no_token" });
       return "skip";
     }
@@ -76,7 +79,7 @@ export async function sendFunnelEvent(
       deps.log({ event: send.name, outcome: "skip", reason: "nothing_to_send" });
       return "skip";
     }
-    const outcome = await postPurchase(deps.fetch, { event, token, testEventCode: testCode });
+    const outcome = await postPurchase(deps.fetch, { event, token, pixelId, testEventCode: testCode });
     deps.log({
       event: send.name,
       outcome: outcome.state,
@@ -97,6 +100,7 @@ export async function sendFunnelEvent(
 export function metaFunnelDepsFromEnv(env: CloudflareEnv): FunnelDeps {
   return {
     token: () => env.META_CAPI_ACCESS_TOKEN || null,
+    pixelId: () => env.META_PIXEL_ID || null,
     testEventCode: () => env.META_TEST_EVENT_CODE || null,
     livemode: () => (env.STRIPE_PUBLISHABLE_KEY ?? "").startsWith("pk_live_"),
     fetch: (...a) => fetch(...a),

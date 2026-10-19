@@ -6,6 +6,7 @@ import { buildFunnelEvent, buildPurchaseEvent, metaTestEventToSend, postPurchase
 const FBP = "fb.1.1727771234567.1234567890";
 const FBC = "fb.1.1727771234567.AbCdEfGh";
 const TOKEN = "fake-token-for-tests";
+const PIXEL = "1234567890";
 const base = { eventId: "e1", eventTimeSeconds: 1727771234, chargedRappen: 12000 };
 
 function allKeys(v: unknown, out = new Set<string>()): Set<string> {
@@ -108,11 +109,11 @@ describe("postPurchase", () => {
 
   it("sends one POST with the token in the body only", async () => {
     const f = vi.fn(async () => res(200, { events_received: 1 }));
-    const out = await postPurchase(f as unknown as typeof fetch, { event, token: TOKEN, testEventCode: null });
+    const out = await postPurchase(f as unknown as typeof fetch, { event, token: TOKEN, pixelId: PIXEL, testEventCode: null });
     expect(out).toEqual({ state: "sent", http: 200, code: null, subcode: null });
     expect(f).toHaveBeenCalledTimes(1);
     const [url, init] = f.mock.calls[0] as unknown as [string, RequestInit];
-    expect(url).toBe(`https://graph.facebook.com/${GRAPH_VERSION}/1595596972063765/events`);
+    expect(url).toBe(`https://graph.facebook.com/${GRAPH_VERSION}/${PIXEL}/events`);
     expect(url).not.toContain("?");
     expect(url).not.toContain(TOKEN);
     expect(init.method).toBe("POST");
@@ -126,7 +127,7 @@ describe("postPurchase", () => {
 
   it("adds the test event code only when given", async () => {
     const f = vi.fn(async () => res(200, { events_received: 1 }));
-    await postPurchase(f as unknown as typeof fetch, { event, token: TOKEN, testEventCode: "TEST123" });
+    await postPurchase(f as unknown as typeof fetch, { event, token: TOKEN, pixelId: PIXEL, testEventCode: "TEST123" });
     const [, init] = f.mock.calls[0] as unknown as [string, RequestInit];
     expect((init.body as URLSearchParams).get("test_event_code")).toBe("TEST123");
   });
@@ -135,7 +136,7 @@ describe("postPurchase", () => {
     const f = vi.fn(async () =>
       res(400, { error: { code: 100, error_subcode: 2804050, fbtrace_id: "x", message: "secret-echo" } }),
     );
-    const out = await postPurchase(f as unknown as typeof fetch, { event, token: TOKEN, testEventCode: null });
+    const out = await postPurchase(f as unknown as typeof fetch, { event, token: TOKEN, pixelId: PIXEL, testEventCode: null });
     expect(out).toEqual({ state: "rejected", http: 400, code: 100, subcode: 2804050 });
     expect(Object.keys(out).sort()).toEqual(["code", "http", "state", "subcode"]);
   });
@@ -150,7 +151,7 @@ describe("postPurchase", () => {
     ];
     for (const c of cases) {
       const f = vi.fn(c);
-      const out = await postPurchase(f as unknown as typeof fetch, { event, token: TOKEN, testEventCode: null });
+      const out = await postPurchase(f as unknown as typeof fetch, { event, token: TOKEN, pixelId: PIXEL, testEventCode: null });
       expect(out.state).toBe("failed");
       expect(f).toHaveBeenCalledTimes(1);
     }

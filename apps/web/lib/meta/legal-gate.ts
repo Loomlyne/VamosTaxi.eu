@@ -1,32 +1,22 @@
 // apps/web/lib/meta/legal-gate.ts
 //
 // Fail-closed. Not env, not a pill scan, not Accept.
-// Phase 28 plan 28-07 opened both flags. If either condition stops being true, set it back to false:
-// the loader (app/vamos-meta.js) and the mock-page policy (lib/meta/pixel-csp.ts) both follow.
+// 2026-10-18 (owner): every Meta tag was removed from the site, browser and server. All three flags are
+// false, so the server-side Conversions API (purchase.ts, funnel.ts, the /api/track route) sends nothing and
+// saves no Meta click id. The owner installs the next tags himself; these flags open again only with them.
 // Do not import the pixel id. Do not import React.
 
-/**
- * The owner's three legal texts are live on the banner, the cookies page and the privacy page in four
- * languages: Phase 27 ship ce55cd75, the de/fr/ar lines 3cac1fc5, decision 2026-09-30-meta-wording.
- */
-export const META_LEGAL_GATE_OPEN = true as const;
+/** The browser pixel and its legal texts are gone (2026-10-18). */
+export const META_LEGAL_GATE_OPEN = false as const;
 
-/**
- * The owner confirmed both Events Manager switches off for the pixel on 2026-10-03
- * (.planning/decisions/2026-10-01-meta-events-manager-switches.md, addendum 2026-10-03; Meta's setup file
- * re-read at 2026-10-03 14:00:50 UTC). If he ever reports a switch back on, this goes false again.
- */
-export const META_EVENTS_MANAGER_SWITCHES_OFF = true as const;
+/** Kept for the day a pixel comes back: the owner must confirm both Events Manager switches off again. */
+export const META_EVENTS_MANAGER_SWITCHES_OFF = false as const;
 
-/**
- * The owner's wider Meta wording (decision 2026-10-09-ad-tracking-wording.md: the price button, the contact
- * buttons, the contact form, vehicle chosen, go to payment) is live. Opened 2026-10-09: the site is live
- * and these events are real. The loader (app/vamos-meta.js, EVENTS_ON) carries the same value.
- */
-export const META_EVENTS_OPEN = true as const;
+/** The booking-step and contact events are gone with the pixel (2026-10-18). */
+export const META_EVENTS_OPEN = false as const;
 
 export function metaMeasurementAllowed(): boolean {
-  return META_LEGAL_GATE_OPEN === true && META_EVENTS_MANAGER_SWITCHES_OFF === true;
+  return (META_LEGAL_GATE_OPEN as boolean) === true && (META_EVENTS_MANAGER_SWITCHES_OFF as boolean) === true;
 }
 
 /** The page-view gate and the wider events flag, both: the only test the extra events use. */

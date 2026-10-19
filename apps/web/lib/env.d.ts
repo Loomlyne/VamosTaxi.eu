@@ -360,6 +360,12 @@ interface CloudflareEnv {
   META_CAPI_ACCESS_TOKEN?: string;
 
   /**
+   * Meta pixel id for the Conversions API address (2026-10-18: no longer written in source). Wrangler secret on
+   * Worker vamos, set by the owner with the next pixel. Missing: the server sends nothing (skipped as no_token).
+   */
+  META_PIXEL_ID?: string;
+
+  /**
    * Meta Events Manager test event code. Not used on this live site.
    * A live payment is always a real event. A test payment is not sent when this secret is missing.
    * Wrangler secret. Never paste it into chat.

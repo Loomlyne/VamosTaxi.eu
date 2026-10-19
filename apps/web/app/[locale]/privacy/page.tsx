@@ -6,7 +6,6 @@ import { Button, Card } from "@/components/core";
 import { List, ListRow } from "@/components/data";
 import { LanguageCoverageNotice, LegalPage, PendingSlot, type LegalSection } from "@/components/legal";
 import { buildAlternates } from "@/lib/metadata";
-import { GTM_OPEN } from "@/lib/google/flag";
 import { SUPPORT_EMAIL, SUPPORT_EMAIL_HREF } from "@/lib/contact-channels";
 
 const { Link, getPathname } = createNavigation(routing);
@@ -213,12 +212,6 @@ export default async function PrivacyPage({
                 {t("google-processor")}
                 <br />
                 {t("ga-processor")}
-                {GTM_OPEN ? (
-                  <>
-                    <br />
-                    {t("gtm-processor")}
-                  </>
-                ) : null}
               </>
             }
           />
@@ -373,13 +366,6 @@ export default async function PrivacyPage({
               b: (chunks) => <strong>{chunks}</strong>,
             })}
           </p>
-          {GTM_OPEN ? (
-            <p>
-              {t.rich("gtm-privacy-line", {
-                b: (chunks) => <strong>{chunks}</strong>,
-              })}
-            </p>
-          ) : null}
         </div>
         <p>
           <Link href="/cookies">{t("read-the-cookie-policy")}</Link>
