@@ -138,10 +138,11 @@ select is((select count(*) from public.reviews where published)::int, 0, 'no see
 -- 2026-10-14 tracking branch merged with main (Phase 31 -1, PR #81 -2): seed header 2711 keys, 106 no-param-reason.
 -- 2026-10-16 tracking wording (removed 2026-10-19): +1 key, no new no-param reason: seed header 2712 keys, 106 no-param-reason.
 -- 2026-10-19 tracking integrations removed: -16 tracking keys, +2 restored (cookies.sheet-not-used, cookies.tells-us-which-step-of-a-booking-people-abandon), five no-param reasons gone: seed header 2698 keys, 101 no-param-reason.
-select is((select count(*) from public.content_strings)::int, 2698 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
+-- 2026-10-19 tracking wording (owner-approved, Google and Meta lines): +15 keys (cookies.ga-*, fbp-*, google-ads-*, marketing-intro, analytics-*, banner marketing line, legal.google-*, meta-*), -1 (old banner marketing key); three gain a no-param reason: seed header 2712 keys, 104 no-param-reason.
+select is((select count(*) from public.content_strings)::int, 2712 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
 select is((select count(*) from public.content_strings where pending_value)::int, 16, '16 pending-value keys (ADR-011, Law 04 data-tok)');
 select is((select count(*) from public.content_strings where non_translatable)::int, 8 + 26, '8 non-translatable seed keys (ADR-012) + 26 migration canton names');
-select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 101, '101 no-param-reason keys (I18N-06; count re-read from the seed header after B7 + /confirmation)');
+select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 104, '104 no-param-reason keys (I18N-06; count re-read from the seed header after B7 + /confirmation)');
 select ok(
   (select de is not null and fr is not null and ar is not null from public.content_strings where key = 'price.surcharge.night.rule'),
   'price.surcharge.night.rule (Plan 02-04) has a non-null de/fr/ar translation'

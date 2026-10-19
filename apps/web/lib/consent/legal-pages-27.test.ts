@@ -26,10 +26,13 @@ describe("cookies mock (27-09)", () => {
     expect(cookies).toContain("Change preferences");
   });
 
-  it("Marketing: the restored lead sentence only, no table (none/not used rows stay out, COPY-DRAFT 2026-10-04)", () => {
+  it("Marketing: the owner-approved lead sentence and the _fbp / Google rows (2026-10-19)", () => {
     const sec = cookies.match(/<section id="marketing">[\s\S]*?<\/section>/)?.[0] ?? "";
-    expect(sec).toContain("<p>Nothing in this category is running today. It is here because");
-    expect(sec).not.toContain("<table");
+    expect(sec).toContain("<p>Measures whether our adverts on Google, Facebook and Instagram lead to bookings, and lets us show our adverts to people who visited the site. Off until you allow it.</p>");
+    expect(sec).toContain("<caption>Marketing — off until you allow it</caption>");
+    expect(sec).toContain("Meta Pixel · Meta Platforms Ireland Ltd");
+    expect(sec).toContain("Google Tag Manager · Google Ireland Ltd");
+    expect(sec).not.toContain("Nothing in this category is running today");
     expect(cookies).not.toContain("data-cookies-row");
   });
 

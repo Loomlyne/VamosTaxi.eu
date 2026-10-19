@@ -1,7 +1,6 @@
-# DRAFT for the owner's approval — Google and Meta lines for /cookies and /privacy (2026-10-19)
+# Google and Meta lines for /cookies and /privacy — APPROVED by the owner 2026-10-19
 
-Status: **draft, not on the site.** Nothing here ships until the owner approves it word for word. After approval the
-English goes in as written and de / fr / ar are translated in the same pass (Swiss German, "ss").
+Status: **approved as written** (owner, 2026-10-19). English verbatim on the site; de / fr / ar translated in the same pass (Swiss German, "ss"). The cookie banner's Marketing line reuses the approved words: "Measures whether our adverts on Google, Facebook and Instagram lead to bookings."
 
 What the site does today (checked live 2026-10-19, Worker 5096af41):
 - Before a choice, or after "Only necessary": no Google or Meta cookie is set. Google receives a cookieless
@@ -51,7 +50,4 @@ Intro:
 
 ---
 
-Open for the owner's word:
-1. Approve, change or strike each quoted line above.
-2. The "cookieless signal before consent" (Google Consent Mode, advanced) stays on unless you say to send nothing to Google before consent.
-3. Your adviser checks the Data Privacy Framework line before it goes live.
+Approved with it: the cookieless Google signal before consent (Consent Mode, advanced) stays on. The adviser may still review the Data Privacy Framework line.

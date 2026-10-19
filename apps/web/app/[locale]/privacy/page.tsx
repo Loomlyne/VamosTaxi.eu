@@ -205,6 +205,8 @@ export default async function PrivacyPage({
               </>
             }
           />
+          <ListRow title="Google Ireland Ltd" subtitle={t("google-supplier-purpose")} />
+          <ListRow title="Meta Platforms Ireland Ltd" subtitle={t("meta-supplier-purpose")} />
           <ListRow
             title={t("partner-carriers")}
             subtitle={t("the-driver-assigned-to-your-journey-receives-you")}
@@ -219,6 +221,7 @@ export default async function PrivacyPage({
           {t("transfers-abroad")}
         </h2>
         <p>{t("some-of-these-suppliers-process-data-outside-swi")}</p>
+        <p>{t("google-meta-us-transfer")}</p>
         {/* Owner decision 13 (2026-09-30): hidden from customers, kept for the lawyer.
             Client legal text · transfer mechanism:
             One current mechanism per destination — an adequacy decision, or standard contractual

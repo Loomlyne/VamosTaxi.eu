@@ -1115,7 +1115,6 @@
     "marketing-cookies": "ملفات ارتباط تسويقية",
     "marketing-duration": "Marketing duration",
     "marketing-providers": "Marketing providers",
-    "measures-which-advert-brought-you-here-nothing-i": "تقيس الإعلان الذي جاء بك إلى هنا. ولا شيء مفعّل في هذه الفئة حاليًا.",
     "necessary-cookies-only": "ملفات تعريف الارتباط الضرورية فقط",
     "necessary-duration": "Necessary duration",
     "necessary-only": "الضرورية فقط",
@@ -1140,7 +1139,19 @@
     "you-choose-what-we-measure": "أنت تختار ما نقيسه",
     "your-choice-is-stored-for-store-consent-months-m": "يُحفظ اختيارك مدة {STORE_CONSENT_MONTHS} شهرًا ويمكن تغييره في أي وقت.",
     "sheet-not-used": "لا يوجد ملف تعريف ارتباط",
-    "tells-us-which-step-of-a-booking-people-abandon": "يُخبرنا في أي خطوة من الحجز يتوقف الناس."
+    "tells-us-which-step-of-a-booking-people-abandon": "يُخبرنا في أي خطوة من الحجز يتوقف الناس.",
+    "analytics-intro": "أي الصفحات يزورها الناس وفي أي خطوة من الحجز يتوقفون. بيانات مجمّعة، ولا تُستخدم أبدًا لاتخاذ قرار بشأنك.",
+    "ga-cookie-purpose": "تميّز زيارة عن أخرى لنتمكن من عدّ الزوار والصفحات",
+    "ga-cookie-duration": "سنتان",
+    "analytics-consent-mode-note": "إلى أن تسمح بالتحليلات، لا تتلقى Google سوى إشارة بأن صفحة قد عُرضت، دون ملف ارتباط ودون معرّف.",
+    "marketing-intro": "تقيس ما إذا كانت إعلاناتنا على Google وFacebook وInstagram تؤدي إلى حجوزات، وتتيح لنا عرض إعلاناتنا على من زاروا الموقع. متوقفة حتى تسمح بها.",
+    "fbp-cookie-purpose": "تربط زيارتك بإعلاناتنا على Facebook وInstagram",
+    "fbp-cookie-duration": "90 يومًا",
+    "google-ads-name": "إشارات Google الإعلانية",
+    "google-ads-purpose": "تقيس إعلاناتنا على Google وتكوّن شرائح جمهور إعلانية",
+    "google-ads-duration": "حتى سنتين",
+    "measures-whether-our-adverts-on-google-facebook": "تقيس ما إذا كانت إعلاناتنا على Google وFacebook وInstagram تؤدي إلى حجوزات.",
+    "analytics-cloudflare-duration": "لا يُخزَّن شيء في متصفحك"
   },
   "errors": {
     "notFoundTitle": "لم نتمكن من العثور على هذه الصفحة.",
@@ -1447,7 +1458,7 @@
     "on-this-page": "في هذه الصفحة",
     "one-number-one-address-one-person-who-answers": "رقم واحد، وعنوان واحد، وشخص واحد يجيب.",
     "one-source-of-truth": "مرجع واحد لا غير",
-    "only-what-a-transfer-needs-plus-what-the-law-mak": "فقط ما تحتاجه الرحلة، وما يُلزمنا القانون بحفظه. نحن لا نشتري بيانات عنك ولا نبني ملفات إعلانية.",
+    "only-what-a-transfer-needs-plus-what-the-law-mak": "فقط ما تحتاجه الرحلة، وما يُلزمنا القانون بحفظه. نحن لا نشتري بيانات عنك. وإذا سمحت بملفات الارتباط التسويقية، تستخدم Google وMeta زيارتك لقياس إعلاناتنا وعرضها.",
     "open-your-booking-from-the-confirmation-email-or": "افتح حجزك من بريد التأكيد، أو اتصل بنا واذكر الرقم المرجعي. النتيجة نفسها والتأكيد الكتابي نفسه.",
     "open-your-cookie-preferences": "افتح تفضيلات ملفات تعريف الارتباط",
     "open-your-preferences-from-the-link-in-the-foote": "افتح تفضيلاتك من الرابط في تذييل كل صفحة، أو من القسم",
@@ -1651,7 +1662,10 @@
     "our-team-decides-refund-email": "يقرّر فريقنا مبلغ الاسترداد ويُبلغك به عبر البريد الإلكتروني.",
     "extended-city-stay-15-shown-on-quote": "إقامة ممتدة في المدينة، حتى 15 دقيقة: مبيّنة في عرض السعر الخاص بك.",
     "changes-free-before-pickup": "يمكن تعديل الوقت والعنوان وعدد الركاب وفئة السيارة قبل الانطلاق، دون رسوم. وإن غيّر التعديل السعر، تدفع الفرق أو نردّه لك — ولا شيء أكثر من الفرق.",
-    "terms-driver-details-by-email": "نرسل اسم السائق والمركبة ولوحتها عبر البريد الإلكتروني فور تعيين السائق، ثم مرة أخرى في التذكير قبل 24 ساعة من موعد الانطلاق. رقم السائق موجود في صفحة إدارة حجزك."
+    "terms-driver-details-by-email": "نرسل اسم السائق والمركبة ولوحتها عبر البريد الإلكتروني فور تعيين السائق، ثم مرة أخرى في التذكير قبل 24 ساعة من موعد الانطلاق. رقم السائق موجود في صفحة إدارة حجزك.",
+    "google-supplier-purpose": "تحليلات الموقع وقياس الإعلانات، فقط بموافقتك · دبلن، أيرلندا؛ Google LLC، الولايات المتحدة",
+    "meta-supplier-purpose": "قياس الإعلانات على Facebook وInstagram، فقط بموافقتك · دبلن، أيرلندا؛ Meta Platforms Inc.، الولايات المتحدة",
+    "google-meta-us-transfer": "قد تعالج Google وMeta البيانات في الولايات المتحدة. وكلتاهما معتمدة بموجب إطار خصوصية البيانات الأوروبي-الأمريكي والسويسري-الأمريكي، كما تسري بنودهما التعاقدية القياسية أيضًا."
   },
   "ops": {
     "add-a-note-visible-to-dispatch-only": "أضف ملاحظة يراها قسم التشغيل وحده…",

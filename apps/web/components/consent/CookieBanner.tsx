@@ -363,7 +363,7 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
       key: "marketing",
       title: tCommon("marketing"),
       aria: t("marketing-cookies"),
-      body: t("measures-which-advert-brought-you-here-nothing-i"),
+      body: t("measures-whether-our-adverts-on-google-facebook"),
       checked: cats.marketing,
       set: (v) => setCats((c) => ({ ...c, marketing: v })),
     },

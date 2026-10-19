@@ -690,7 +690,6 @@
   "Max passengers": "ops.max-passengers",
   "May": "common.may",
   "Measured from the pickup time in your confirmation, not from the time you booked.": "legal.measured-from-the-pickup-time-in-your-confirmati",
-  "Measures which advert brought you here. Nothing in this category is running today.": "cookies.measures-which-advert-brought-you-here-nothing-i",
   "Measures which advert or campaign led to a booking": "legal.measures-which-advert-or-campaign-led-to-a-booki",
   "Meet & greet": "common.meet-greet",
   "Meet & greet, arrivals": "common.meet-greet-arrivals",
@@ -1546,5 +1545,6 @@
   "Sign-in failed. Check the email and password.": "ops.credential-failed",
   "That code did not work. Try again.": "ops.mfa-failed",
   "Internal tool. Dispatcher and admin access only.": "ops.internal-tool-note",
-  "Payments · Luxembourg — only if that extra method is switched on": "common.payments-luxembourg-only-if-wallet-is-switched-on"
+  "Payments · Luxembourg — only if that extra method is switched on": "common.payments-luxembourg-only-if-wallet-is-switched-on",
+  "Measures whether our adverts on Google, Facebook and Instagram lead to bookings.": "cookies.measures-whether-our-adverts-on-google-facebook"
 }

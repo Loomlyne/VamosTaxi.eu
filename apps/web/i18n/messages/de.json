@@ -1115,7 +1115,6 @@
     "marketing-cookies": "Marketing-Cookies",
     "marketing-duration": "Marketing duration",
     "marketing-providers": "Marketing providers",
-    "measures-which-advert-brought-you-here-nothing-i": "Misst, welche Anzeige Sie hierher geführt hat. In dieser Kategorie läuft derzeit nichts.",
     "necessary-cookies-only": "Nur notwendige Cookies",
     "necessary-duration": "Necessary duration",
     "necessary-only": "Nur notwendige",
@@ -1140,7 +1139,19 @@
     "you-choose-what-we-measure": "Sie entscheiden, was wir messen",
     "your-choice-is-stored-for-store-consent-months-m": "Ihre Auswahl wird {STORE_CONSENT_MONTHS} Monate gespeichert und kann jederzeit geändert werden.",
     "sheet-not-used": "Kein Cookie",
-    "tells-us-which-step-of-a-booking-people-abandon": "Zeigt uns, bei welchem Schritt eine Buchung abgebrochen wird."
+    "tells-us-which-step-of-a-booking-people-abandon": "Zeigt uns, bei welchem Schritt eine Buchung abgebrochen wird.",
+    "analytics-intro": "Welche Seiten Menschen besuchen und bei welchem Buchungsschritt sie abbrechen. Aggregiert, und nie Grundlage einer Entscheidung über Sie.",
+    "ga-cookie-purpose": "Unterscheidet einen Besuch vom anderen, damit wir Besucher und Seiten zählen können",
+    "ga-cookie-duration": "2 Jahre",
+    "analytics-consent-mode-note": "Solange Sie die Analyse nicht erlauben, erhält Google nur ein Signal, dass eine Seite aufgerufen wurde, ohne Cookie und ohne Kennung.",
+    "marketing-intro": "Misst, ob unsere Anzeigen auf Google, Facebook und Instagram zu Buchungen führen, und lässt uns Besuchern der Website unsere Anzeigen zeigen. Aus, bis Sie es erlauben.",
+    "fbp-cookie-purpose": "Verknüpft Ihren Besuch mit unseren Anzeigen auf Facebook und Instagram",
+    "fbp-cookie-duration": "90 Tage",
+    "google-ads-name": "Werbesignale von Google",
+    "google-ads-purpose": "Misst unsere Google-Anzeigen und bildet Werbezielgruppen",
+    "google-ads-duration": "Bis zu 2 Jahre",
+    "measures-whether-our-adverts-on-google-facebook": "Misst, ob unsere Anzeigen auf Google, Facebook und Instagram zu Buchungen führen.",
+    "analytics-cloudflare-duration": "In Ihrem Browser wird nichts gespeichert"
   },
   "errors": {
     "notFoundTitle": "Diese Seite finden wir nicht.",
@@ -1447,7 +1458,7 @@
     "on-this-page": "Auf dieser Seite",
     "one-number-one-address-one-person-who-answers": "Eine Nummer, eine Adresse, eine Person, die antwortet.",
     "one-source-of-truth": "Eine verbindliche Quelle",
-    "only-what-a-transfer-needs-plus-what-the-law-mak": "Nur, was ein Transfer braucht, und was das Gesetz uns aufzubewahren vorschreibt. Wir kaufen keine Daten über Sie und erstellen keine Werbeprofile.",
+    "only-what-a-transfer-needs-plus-what-the-law-mak": "Nur, was ein Transfer braucht, und was das Gesetz uns aufzubewahren vorschreibt. Wir kaufen keine Daten über Sie. Wenn Sie Marketing-Cookies erlauben, nutzen Google und Meta Ihren Besuch, um unsere Anzeigen zu messen und auszuspielen.",
     "open-your-booking-from-the-confirmation-email-or": "Öffnen Sie Ihre Buchung über die Bestätigungs-E-Mail oder rufen Sie uns an und nennen Sie die Referenz. Gleiches Ergebnis, gleiche schriftliche Bestätigung.",
     "open-your-cookie-preferences": "Cookie-Einstellungen öffnen",
     "open-your-preferences-from-the-link-in-the-foote": "Öffnen Sie Ihre Einstellungen über den Link im Fussbereich jeder Seite oder über Abschnitt",
@@ -1651,7 +1662,10 @@
     "our-team-decides-refund-email": "Unser Team entscheidet über die Rückerstattung und teilt sie Ihnen per E-Mail mit.",
     "extended-city-stay-15-shown-on-quote": "Verlängerter Stadtaufenthalt, bis zu 15 Minuten: in Ihrem Angebot ausgewiesen.",
     "changes-free-before-pickup": "Zeit, Adresse, Passagierzahl und Fahrzeugklasse lassen sich vor der Abholung kostenlos ändern. Verschiebt die Änderung den Fahrpreis, zahlen Sie die Differenz oder wir erstatten sie — nie mehr als die Differenz.",
-    "terms-driver-details-by-email": "Fahrername, Fahrzeug und Kennzeichen senden wir per E-Mail, sobald ein Fahrer zugeteilt ist, und nochmals in der Erinnerung 24 Stunden vor der Abholung. Die Nummer des Fahrers steht auf Ihrer Seite «Buchung verwalten»."
+    "terms-driver-details-by-email": "Fahrername, Fahrzeug und Kennzeichen senden wir per E-Mail, sobald ein Fahrer zugeteilt ist, und nochmals in der Erinnerung 24 Stunden vor der Abholung. Die Nummer des Fahrers steht auf Ihrer Seite «Buchung verwalten».",
+    "google-supplier-purpose": "Website-Analyse und Anzeigenmessung, nur mit Ihrer Einwilligung · Dublin, Irland; Google LLC, Vereinigte Staaten",
+    "meta-supplier-purpose": "Anzeigenmessung auf Facebook und Instagram, nur mit Ihrer Einwilligung · Dublin, Irland; Meta Platforms Inc., Vereinigte Staaten",
+    "google-meta-us-transfer": "Google und Meta können Daten in den Vereinigten Staaten verarbeiten. Beide sind nach dem Data Privacy Framework EU–USA und Schweiz–USA zertifiziert, und zusätzlich gelten ihre Standardvertragsklauseln."
   },
   "ops": {
     "add-a-note-visible-to-dispatch-only": "Notiz hinzufügen, nur für die Disposition sichtbar…",

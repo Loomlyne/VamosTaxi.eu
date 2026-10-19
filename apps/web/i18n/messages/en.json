@@ -1115,7 +1115,6 @@
     "marketing-cookies": "Marketing cookies",
     "marketing-duration": "Marketing duration",
     "marketing-providers": "Marketing providers",
-    "measures-which-advert-brought-you-here-nothing-i": "Measures which advert brought you here. Nothing in this category is running today.",
     "necessary-cookies-only": "Necessary cookies only",
     "necessary-duration": "Necessary duration",
     "necessary-only": "Necessary only",
@@ -1140,7 +1139,19 @@
     "you-choose-what-we-measure": "You choose what we measure",
     "your-choice-is-stored-for-store-consent-months-m": "Your choice is stored for {STORE_CONSENT_MONTHS} months and can be changed any time.",
     "sheet-not-used": "No cookie",
-    "tells-us-which-step-of-a-booking-people-abandon": "Tells us which step of a booking people abandon."
+    "tells-us-which-step-of-a-booking-people-abandon": "Tells us which step of a booking people abandon.",
+    "analytics-intro": "Which pages people visit and which step of a booking they give up on. Aggregated, and never used to make a decision about you.",
+    "ga-cookie-purpose": "Tells one visit from another so we can count visitors and pages",
+    "ga-cookie-duration": "2 years",
+    "analytics-consent-mode-note": "Until you allow Analytics, Google receives only a signal that a page was viewed, with no cookie and no identifier.",
+    "marketing-intro": "Measures whether our adverts on Google, Facebook and Instagram lead to bookings, and lets us show our adverts to people who visited the site. Off until you allow it.",
+    "fbp-cookie-purpose": "Links your visit to our adverts on Facebook and Instagram",
+    "fbp-cookie-duration": "90 days",
+    "google-ads-name": "Google advertising signals",
+    "google-ads-purpose": "Measures our Google adverts and builds advertising audiences",
+    "google-ads-duration": "Up to 2 years",
+    "measures-whether-our-adverts-on-google-facebook": "Measures whether our adverts on Google, Facebook and Instagram lead to bookings.",
+    "analytics-cloudflare-duration": "Nothing is stored in your browser"
   },
   "errors": {
     "notFoundTitle": "We can't find that page.",
@@ -1447,7 +1458,7 @@
     "on-this-page": "On this page",
     "one-number-one-address-one-person-who-answers": "One number, one address, one person who answers.",
     "one-source-of-truth": "One source of truth",
-    "only-what-a-transfer-needs-plus-what-the-law-mak": "Only what a transfer needs, plus what the law makes us keep. We do not buy data about you and we do not build advertising profiles.",
+    "only-what-a-transfer-needs-plus-what-the-law-mak": "Only what a transfer needs, plus what the law makes us keep. We do not buy data about you. If you allow Marketing cookies, Google and Meta use your visit to measure and show our adverts.",
     "open-your-booking-from-the-confirmation-email-or": "Open your booking from the confirmation email, or call us and quote the reference. Same outcome, same written confirmation.",
     "open-your-cookie-preferences": "open your cookie preferences",
     "open-your-preferences-from-the-link-in-the-foote": "Open your preferences from the link in the footer of every page, or from section",
@@ -1651,7 +1662,10 @@
     "our-team-decides-refund-email": "Our team decides the refund and tells you by email.",
     "extended-city-stay-15-shown-on-quote": "Extended city stay, up to 15 minutes: shown on your quote.",
     "changes-free-before-pickup": "Time, address, passenger count and vehicle class can be changed before pickup, free of charge. If the change moves the fare, you pay or we refund the difference — never more than the difference.",
-    "terms-driver-details-by-email": "Driver name, vehicle and plate are sent by email as soon as a driver is assigned, and again in the reminder 24 hours before pickup. The driver's number is on your manage-booking page."
+    "terms-driver-details-by-email": "Driver name, vehicle and plate are sent by email as soon as a driver is assigned, and again in the reminder 24 hours before pickup. The driver's number is on your manage-booking page.",
+    "google-supplier-purpose": "Site analytics and advert measurement, only with your consent · Dublin, Ireland; Google LLC, United States",
+    "meta-supplier-purpose": "Advert measurement on Facebook and Instagram, only with your consent · Dublin, Ireland; Meta Platforms Inc., United States",
+    "google-meta-us-transfer": "Google and Meta may process data in the United States. Both are certified under the EU–US and Swiss–US Data Privacy Framework, and their standard contractual clauses apply as well."
   },
   "ops": {
     "add-a-note-visible-to-dispatch-only": "Add a note visible to dispatch only…",
@@ -2846,7 +2860,10 @@
       "legal.team-refund-paid-30-days-acceptance": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
       "legal.and-we-resolve-within-30-days": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
       "legal.extended-city-stay-15-shown-on-quote": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count",
-      "legal.terms-driver-details-by-email": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count"
+      "legal.terms-driver-details-by-email": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count",
+      "cookies.ga-cookie-duration": "_ga cookie lifetime 2 years, owner-approved wording, .planning/decisions/2026-10-19-tracking-wording.md",
+      "cookies.fbp-cookie-duration": "_fbp cookie lifetime 90 days, owner-approved wording, .planning/decisions/2026-10-19-tracking-wording.md",
+      "cookies.google-ads-duration": "Google advertising signals up to 2 years, owner-approved wording, .planning/decisions/2026-10-19-tracking-wording.md"
     }
   },
   "quote": {

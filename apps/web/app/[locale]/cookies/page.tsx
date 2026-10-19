@@ -14,8 +14,9 @@ const { Link, getPathname } = createNavigation(routing);
 const COOKIES_SECTIONS: LegalSection[] = [
   { id: "what", number: "01", titleKey: "legal.what-we-mean-by-cookies" },
   { id: "necessary", number: "02", titleKey: "cookies.cookies-we-set" },
-  { id: "analytics", number: "03", titleKey: "cookies.cookieless-analytics" },
-  { id: "change", number: "04", titleKey: "legal.changing-your-mind" },
+  { id: "analytics", number: "03", titleKey: "cookies.analytics" },
+  { id: "marketing", number: "04", titleKey: "common.marketing" },
+  { id: "change", number: "05", titleKey: "legal.changing-your-mind" },
 ];
 
 type CookieRow = {
@@ -147,15 +148,67 @@ export default async function CookiesPage({
       <section id="analytics">
         <h2>
           <span data-lg-n="1">03</span>
-          {tCookies("cookieless-analytics")}
+          {tCookies("analytics")}
         </h2>
-        <p>{tCookies("cookieless-analytics")}</p>
-        <p>{tCookies("no-ads")}</p>
+        <p>{tCookies("analytics-intro")}</p>
+        <div>
+          <Table
+            columns={columns}
+            rowKey="slug"
+            rows={[
+              {
+                slug: "cloudflare",
+                name: tCookies("sheet-not-used"),
+                purpose: t("counts-visits-and-measures-where-a-booking-is-ab"),
+                provider: tCookies("sheet-analytics-providers"),
+                duration: tCookies("analytics-cloudflare-duration"),
+              },
+              {
+                slug: "ga",
+                name: <CookieTech tech="_ga · _ga_K5MZME44P6" />,
+                purpose: tCookies("ga-cookie-purpose"),
+                provider: "Google Analytics · Google Ireland Ltd",
+                duration: tCookies("ga-cookie-duration"),
+              },
+            ]}
+          />
+        </div>
+        <p>{tCookies("analytics-consent-mode-note")}</p>
+      </section>
+
+      <section id="marketing">
+        <h2>
+          <span data-lg-n="1">04</span>
+          {tCommon("marketing")}
+        </h2>
+        <p>{tCookies("marketing-intro")}</p>
+        <div>
+          <Table
+            columns={columns}
+            rowKey="slug"
+            rows={[
+              {
+                slug: "fbp",
+                name: <CookieTech tech="_fbp" />,
+                purpose: tCookies("fbp-cookie-purpose"),
+                provider: "Meta Pixel · Meta Platforms Ireland Ltd",
+                duration: tCookies("fbp-cookie-duration"),
+              },
+              {
+                slug: "google-ads",
+                name: tCookies("google-ads-name"),
+                purpose: tCookies("google-ads-purpose"),
+                provider: "Google Tag Manager · Google Ireland Ltd",
+                duration: tCookies("google-ads-duration"),
+              },
+            ]}
+          />
+        </div>
       </section>
 
       <section id="change">
         <h2>
-          <span data-lg-n="1">04</span>
+          <span data-lg-n="1">05</span>
           {t("changing-your-mind")}
         </h2>
         <p>{tCookies("withdrawal-new-row")}</p>
@@ -203,6 +256,19 @@ function CookieName({ plain, tech }: { plain: string; tech: string }) {
       >
         {tech}
       </span>
+    </span>
+  );
+}
+
+/** A cookie name with no plain-language label: the technical name only, kept LTR and untranslated. */
+function CookieTech({ tech }: { tech: string }) {
+  return (
+    <span
+      data-vt-no-i18n
+      className="vt-dir-keep"
+      style={{ fontFamily: "var(--vt-font-mono)", fontSize: "var(--vt-body-xs)", overflowWrap: "anywhere" }}
+    >
+      {tech}
     </span>
   );
 }

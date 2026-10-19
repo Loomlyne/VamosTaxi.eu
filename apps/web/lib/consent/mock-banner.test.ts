@@ -85,7 +85,7 @@ describe("mock cookie banners", () => {
       "Strictly necessary cookies keep the booking flow working. Analytics and marketing stay off until you turn them on. Read the",
     );
     expect(src).toContain("Tells us which step of a booking people abandon.");
-    expect(src).toContain("Measures which advert brought you here. Nothing in this category is running today.");
+    expect(src).toContain("Measures whether our adverts on Google, Facebook and Instagram lead to bookings.");
     expect(src).not.toContain("data-lenis-prevent");
   });
 });

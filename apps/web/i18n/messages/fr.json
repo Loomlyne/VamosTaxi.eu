@@ -1115,7 +1115,6 @@
     "marketing-cookies": "Cookies marketing",
     "marketing-duration": "Marketing duration",
     "marketing-providers": "Marketing providers",
-    "measures-which-advert-brought-you-here-nothing-i": "Mesurent quelle publicité vous a amené ici. Rien n’est actif dans cette catégorie aujourd’hui.",
     "necessary-cookies-only": "Cookies nécessaires uniquement",
     "necessary-duration": "Necessary duration",
     "necessary-only": "Nécessaires uniquement",
@@ -1140,7 +1139,19 @@
     "you-choose-what-we-measure": "Vous choisissez ce que nous mesurons",
     "your-choice-is-stored-for-store-consent-months-m": "Votre choix est conservé {STORE_CONSENT_MONTHS} mois et peut être modifié à tout moment.",
     "sheet-not-used": "Aucun cookie",
-    "tells-us-which-step-of-a-booking-people-abandon": "Nous indique à quelle étape une réservation est abandonnée."
+    "tells-us-which-step-of-a-booking-people-abandon": "Nous indique à quelle étape une réservation est abandonnée.",
+    "analytics-intro": "Quelles pages les gens visitent et à quelle étape d’une réservation ils abandonnent. Agrégé, et jamais utilisé pour prendre une décision vous concernant.",
+    "ga-cookie-purpose": "Distingue une visite d’une autre pour que nous puissions compter les visiteurs et les pages",
+    "ga-cookie-duration": "2 ans",
+    "analytics-consent-mode-note": "Tant que vous n’autorisez pas la mesure d’audience, Google reçoit seulement un signal indiquant qu’une page a été consultée, sans cookie et sans identifiant.",
+    "marketing-intro": "Mesure si nos publicités sur Google, Facebook et Instagram débouchent sur des réservations, et nous permet de montrer nos publicités aux personnes qui ont visité le site. Désactivé jusqu’à votre autorisation.",
+    "fbp-cookie-purpose": "Relie votre visite à nos publicités sur Facebook et Instagram",
+    "fbp-cookie-duration": "90 jours",
+    "google-ads-name": "Signaux publicitaires de Google",
+    "google-ads-purpose": "Mesure nos publicités Google et constitue des audiences publicitaires",
+    "google-ads-duration": "Jusqu’à 2 ans",
+    "measures-whether-our-adverts-on-google-facebook": "Mesurent si nos publicités sur Google, Facebook et Instagram débouchent sur des réservations.",
+    "analytics-cloudflare-duration": "Rien n’est enregistré dans votre navigateur"
   },
   "errors": {
     "notFoundTitle": "Nous ne trouvons pas cette page.",
@@ -1447,7 +1458,7 @@
     "on-this-page": "Sur cette page",
     "one-number-one-address-one-person-who-answers": "Un numéro, une adresse, une personne qui répond.",
     "one-source-of-truth": "Une seule référence",
-    "only-what-a-transfer-needs-plus-what-the-law-mak": "Uniquement ce qu’exige un transfert, plus ce que la loi nous impose de conserver. Nous n’achetons pas de données vous concernant et ne construisons pas de profils publicitaires.",
+    "only-what-a-transfer-needs-plus-what-the-law-mak": "Uniquement ce qu’exige un transfert, plus ce que la loi nous impose de conserver. Nous n’achetons pas de données vous concernant. Si vous autorisez les cookies marketing, Google et Meta utilisent votre visite pour mesurer et diffuser nos publicités.",
     "open-your-booking-from-the-confirmation-email-or": "Ouvrez votre réservation depuis l’e-mail de confirmation, ou appelez-nous en indiquant la référence. Même résultat, même confirmation écrite.",
     "open-your-cookie-preferences": "ouvrir vos préférences cookies",
     "open-your-preferences-from-the-link-in-the-foote": "Ouvrez vos préférences depuis le lien en pied de chaque page, ou depuis la section",
@@ -1651,7 +1662,10 @@
     "our-team-decides-refund-email": "Notre équipe décide du remboursement et vous en informe par e-mail.",
     "extended-city-stay-15-shown-on-quote": "Séjour en ville prolongé, jusqu’à 15 minutes : indiqué sur votre devis.",
     "changes-free-before-pickup": "L’heure, l’adresse, le nombre de passagers et la classe de véhicule peuvent être modifiés avant la prise en charge, sans frais. Si la modification change le tarif, vous payez ou nous remboursons la différence — jamais plus que la différence.",
-    "terms-driver-details-by-email": "Le nom du chauffeur, le véhicule et la plaque sont envoyés par e-mail dès qu’un chauffeur est attribué, puis à nouveau dans le rappel 24 heures avant la prise en charge. Le numéro du chauffeur figure sur votre page de gestion de réservation."
+    "terms-driver-details-by-email": "Le nom du chauffeur, le véhicule et la plaque sont envoyés par e-mail dès qu’un chauffeur est attribué, puis à nouveau dans le rappel 24 heures avant la prise en charge. Le numéro du chauffeur figure sur votre page de gestion de réservation.",
+    "google-supplier-purpose": "Analyse du site et mesure publicitaire, uniquement avec votre consentement · Dublin, Irlande ; Google LLC, États-Unis",
+    "meta-supplier-purpose": "Mesure publicitaire sur Facebook et Instagram, uniquement avec votre consentement · Dublin, Irlande ; Meta Platforms Inc., États-Unis",
+    "google-meta-us-transfer": "Google et Meta peuvent traiter des données aux États-Unis. Les deux sont certifiés au titre du Data Privacy Framework UE–États-Unis et Suisse–États-Unis, et leurs clauses contractuelles types s’appliquent également."
   },
   "ops": {
     "add-a-note-visible-to-dispatch-only": "Ajouter une note visible du dispatch uniquement…",

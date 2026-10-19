@@ -33,7 +33,7 @@ describe("production cookie banner (27 contract, D-04 D-09)", () => {
     for (const key of ["necessary", "functional", "analytics", "marketing"]) {
       expect(src, key).toContain(`key: "${key}"`);
     }
-    expect(src).toContain('t("measures-which-advert-brought-you-here-nothing-i")');
+    expect(src).toContain('t("measures-whether-our-adverts-on-google-facebook")');
     expect(src).not.toContain("meta-row");
     expect(src).not.toContain("PendingSlot");
     expect(src).not.toMatch(/sk_live_/);
