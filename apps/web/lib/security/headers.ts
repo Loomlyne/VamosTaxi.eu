@@ -10,9 +10,9 @@
 // host is allowlisted. Add one back only with the surface that needs it.
 //
 // Cloudflare Web Analytics: static.cloudflareinsights.com serves the beacon,
-// cloudflareinsights.com receives it. Our own code loads it only after the
-// visitor allows Analytics (lib/consent/web-analytics.ts); Cloudflare's
-// automatic injection must stay off, or this allowance lets it run unasked.
+// cloudflareinsights.com receives it. Cloudflare's zone auto-install injects it
+// (owner 2026-10-20); none of our code loads it, and the controller keeps it off
+// dashboard.vamostaxi.site with a Cloudflare rule.
 //
 // Owner's tags (2026-10-19): Google Tag Manager GTM-KPKGT4VH, Google tag G-K5MZME44P6, Meta Pixel
 // 1595596972063765. Hosts follow Google's CSP guide for GA4/GTM (collect on analytics.google.com,

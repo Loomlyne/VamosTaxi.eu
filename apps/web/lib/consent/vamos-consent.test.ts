@@ -144,21 +144,17 @@ describe("app/vamos-consent.js", () => {
     expect(src.includes("=>")).toBe(false);
   });
 
-  it("Web Analytics starts on every page load whatever the choice (owner 2026-10-19), once, and only on the public site", async () => {
+  it("adds no Cloudflare Web Analytics beacon on any host (Cloudflare's zone auto-install owns it, owner 2026-10-20)", async () => {
     const no = { ok: true, chosen: true, policyVersion: "2026-09-30", choice: { functional: false, analytics: false, marketing: false } };
-    const site = load({ status: 200, body: no }, "vamostaxi.site");
-    expect(site.scripts.length).toBe(1);
-    expect(site.scripts[0]!.src).toBe("https://static.cloudflareinsights.com/beacon.min.js");
-    expect(JSON.parse(site.scripts[0]!.attrs["data-cf-beacon"]!).token).toMatch(/^[0-9a-f]{32}$/);
-    await site.api.state();
-    await site.api.save("reject_all", ALL_OFF, {});
-    await site.api.save("accept_all", { functional: true, analytics: true, marketing: true }, {});
-    expect(site.scripts.length).toBe(1);
-
-    for (const host of ["localhost", "dashboard.vamostaxi.site"]) {
-      const other = load({ status: 200, body: no }, host);
-      await other.api.state();
-      expect(other.scripts.length, host).toBe(0);
+    for (const host of ["vamostaxi.site", "vamostaxi.eu", "localhost", "dashboard.vamostaxi.site"]) {
+      const h = load({ status: 200, body: no }, host);
+      await h.api.state();
+      await h.api.save("reject_all", ALL_OFF, {});
+      await h.api.save("accept_all", { functional: true, analytics: true, marketing: true }, {});
+      expect(h.scripts.filter((s) => (s.src ?? "").includes("cloudflareinsights")).length, host).toBe(0);
+    }
+    for (const word of ["cloudflareinsights", "data-cf-beacon", "startAnalytics"]) {
+      expect(src.includes(word), word).toBe(false);
     }
   });
 });

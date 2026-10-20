@@ -20,9 +20,10 @@
          opts.onInteractive(open) is called with true when the visitor must tick a box (the widget
          is about to show) and false once it is done; with 'interaction-only' most visitors never see it.
 
-   Cloudflare Web Analytics (cookieless) starts on every page load: owner 2026-10-19,
-   every visit counts whatever the banner choice.
-   Cloudflare's automatic injection must stay off (owner 2026-10-01).
+   Cloudflare Web Analytics is not loaded here. Cloudflare's zone auto-install injects the
+   beacon on every page (owner 2026-10-20; the API refuses to switch auto-install off for this
+   zone, which supersedes the 2026-10-01 "automatic injection stays off" note). Every visit
+   still counts whatever the banner choice (owner 2026-10-19).
 
    Plain browser script (not transpiled): var, function, fetch + Promise. */
 (function () {
@@ -33,23 +34,6 @@
   var API_SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
   var policyVersion = null;
   var scriptRequested = false;
-  /* Public site tag; apps/web/lib/consent/web-analytics.ts carries the same one. */
-  var BEACON_SRC = 'https://static.cloudflareinsights.com/beacon.min.js';
-  var BEACON_TOKEN = '792482ef56d84c46aee4f6501205ce68';
-
-  function startAnalytics() {
-    try {
-      var host = location.hostname || '';
-      if (!/(^|\.)vamostaxi\.(site|eu)$/.test(host) || host.indexOf('dashboard.') === 0) return;
-      if (document.querySelector('script[src="' + BEACON_SRC + '"]')) return;
-      var s = document.createElement('script');
-      s.defer = true;
-      s.src = BEACON_SRC;
-      s.setAttribute('data-cf-beacon', JSON.stringify({ token: BEACON_TOKEN }));
-      document.head.appendChild(s);
-    } catch (e) { /* no analytics is never an error for the visitor */ }
-  }
-
   function lang() {
     var l = window.VamosLocale && window.VamosLocale.lang;
     var v = typeof l === 'function' ? l.call(window.VamosLocale) : l;
@@ -66,7 +50,6 @@
           return res.json().then(function (j) {
             if (!j || j.ok !== true) return failed();
             if (typeof j.policyVersion === 'string') policyVersion = j.policyVersion;
-            if (j.chosen === true && j.choice && j.choice.analytics === true) startAnalytics();
             return done({
               ok: true,
               chosen: j.chosen === true,
@@ -121,7 +104,6 @@
       }).then(function (res) {
         if (res.ok) {
           writeCache(method, payload);
-          if (payload.analytics) startAnalytics();
           var detail = {
             method: method, functional: payload.functional,
             analytics: payload.analytics, marketing: payload.marketing,
@@ -230,5 +212,4 @@
   }
 
   window.VamosConsent = { state: state, save: save, onChange: onChange, cached: cached, turnstile: turnstile };
-  startAnalytics();
 })();

@@ -14,7 +14,6 @@ import { trapTab } from "@/lib/a11y/focus-trap";
 import { Alert } from "@/components/feedback";
 import { Switch } from "@/components/forms";
 import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
-import { loadWebAnalytics } from "@/lib/consent/web-analytics";
 
 const { Link } = createNavigation(routing);
 
@@ -127,8 +126,6 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
 
   // Read the server's answer once. Nothing paints before it; a failed check shows the banner (D-33).
   useEffect(() => {
-    // Owner 2026-10-19: every visit counts whatever the banner choice.
-    loadWebAnalytics();
     let live = true;
     fetch("/api/consent/state", { cache: "no-store", credentials: "same-origin" })
       .then((r) => (r.ok ? (r.json() as Promise<StateReply>) : Promise.reject(new Error("state"))))
