@@ -11,7 +11,10 @@
  * `/app/ops/*` `/_next/*` `/brand/*` and dotted files go to vamos default
  * fetch on vamostaxi.site so OpenNext ASSETS hit. Documents stay on Dashboard.
  * Exception (F16): `/app/ops/*` goes to Dashboard, which reads the file from ASSETS itself.
+ *
+ * fh7 (2026-10-20): HTML responses get Cache-Control no-transform so the zone's Web Analytics auto-injection skips the console (owner decision).
  */
+import { withNoTransform } from "./lib/security/no-transform";
 import { isApexAssetPath } from "./lib/security/pin-sni";
 
 export interface Env {
@@ -45,7 +48,7 @@ function apexAssetRequest(request: Request): Request {
 }
 
 export default {
-  fetch(request: Request, env: Env): Promise<Response> | Response {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const sni = sniOf(request);
     if (sni && sni !== DASHBOARD_HOST) {
       return new Response(null, {
@@ -68,11 +71,11 @@ export default {
     // F16: dashboard screen files are answered by the Dashboard entrypoint (dashboard host only).
     // The public entrance 404s /app/ops/*, so they must not be sent there.
     if (path === "/app/ops" || path.startsWith("/app/ops/")) {
-      return env.APP.fetch(request);
+      return withNoTransform(await env.APP.fetch(request));
     }
     if (isApexAssetPath(path)) {
-      return env.PUBLIC.fetch(apexAssetRequest(request));
+      return withNoTransform(await env.PUBLIC.fetch(apexAssetRequest(request)));
     }
-    return env.APP.fetch(request);
+    return withNoTransform(await env.APP.fetch(request));
   },
 };
