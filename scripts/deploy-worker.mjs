@@ -93,7 +93,10 @@ function main() {
   }
   const here = dirname(fileURLToPath(import.meta.url));
   run(process.execPath, [resolve(here, "sync-dc-mock-to-public.mjs")]);
-  run("opennextjs-cloudflare", ["build"]);
+  // Next 15 is outside the Next.js support window. OpenNext 1.20 stops the build
+  // without this flag. The framework upgrade stays its own phase; this only lets
+  // the current Worker deploy.
+  run("opennextjs-cloudflare", ["build", "--dangerouslyUseUnsupportedNextVersion"]);
   run("opennextjs-cloudflare", openNextDeployArgs(parsed.args));
 }
 
