@@ -62,6 +62,12 @@ describe("security headers (D-32…D-38)", () => {
     expect(csp).not.toMatch(/frame-src [^;]*cloudflareinsights/);
   });
 
+  it("CSP allows the Google Ads conversion host (GTM CSP report, 2026-10-23)", () => {
+    const csp = headerMap().get("Content-Security-Policy") ?? "";
+    expect(csp).toMatch(/connect-src [^;]*https:\/\/ad\.doubleclick\.net/);
+    expect(csp).toMatch(/img-src [^;]*https:\/\/ad\.doubleclick\.net/);
+  });
+
   it("CSP allows no Stripe or Link host: card entry is Stripe's hosted page only (D-48)", () => {
     const csp = headerMap().get("Content-Security-Policy") ?? "";
     expect(csp).not.toMatch(/stripe\.com/);
@@ -73,7 +79,7 @@ describe("security headers (D-32…D-38)", () => {
   it("the policy is one fixed string", () => {
     const csp = headerMap().get("Content-Security-Policy");
     expect(csp).toBe(
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com https://*.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://connect.facebook.net; frame-src challenges.cloudflare.com https://*.googletagmanager.com https://td.doubleclick.net https://www.facebook.com; connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com https://*.googletagmanager.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://*.g.doubleclick.net https://www.google.com https://www.google.ch https://www.google.de https://www.google.fr https://www.google.it https://www.google.at https://www.google.co.uk https://www.google.nl https://www.google.be https://www.google.es https://www.google.ae https://www.google.tn https://www.facebook.com https://connect.facebook.net; img-src 'self' data: blob: https://*.mapbox.com https://*.googletagmanager.com https://*.google-analytics.com https://*.g.doubleclick.net https://www.google.com https://www.google.ch https://www.google.de https://www.google.fr https://www.google.it https://www.google.at https://www.google.co.uk https://www.google.nl https://www.google.be https://www.google.es https://www.google.ae https://www.google.tn https://www.facebook.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com https://*.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://connect.facebook.net; frame-src challenges.cloudflare.com https://*.googletagmanager.com https://td.doubleclick.net https://www.facebook.com; connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com https://*.googletagmanager.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://*.g.doubleclick.net https://ad.doubleclick.net https://www.google.com https://www.google.ch https://www.google.de https://www.google.fr https://www.google.it https://www.google.at https://www.google.co.uk https://www.google.nl https://www.google.be https://www.google.es https://www.google.ae https://www.google.tn https://www.facebook.com https://connect.facebook.net; img-src 'self' data: blob: https://*.mapbox.com https://*.googletagmanager.com https://*.google-analytics.com https://*.g.doubleclick.net https://ad.doubleclick.net https://www.google.com https://www.google.ch https://www.google.de https://www.google.fr https://www.google.it https://www.google.at https://www.google.co.uk https://www.google.nl https://www.google.be https://www.google.es https://www.google.ae https://www.google.tn https://www.facebook.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
     );
     expect(csp).toBe(contentSecurityPolicy());
   });
