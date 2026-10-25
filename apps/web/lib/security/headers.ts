@@ -21,6 +21,9 @@
 // 2026-10-19.
 // ad.doubleclick.net (connect-src, img-src): Google Ads / Floodlight conversion hits from the Google tag;
 // *.g.doubleclick.net does not match it. Flagged by GTM's CSP report on 2026-10-23.
+// *.run.app and *.on.aws (connect-src only): Meta pixel gateway /events calls. The hostnames rotate
+// (mpc-prod-….run.app, ….on.aws), so one name does not hold. Owner allowed them on 2026-10-23.
+// PageView already arrived on facebook.com and connect.facebook.net without these.
 //
 // Referrer-Policy is strict-origin: a move from a checkout, confirmation or pay-link address to another
 // page of ours tells that page only https://vamostaxi.site/, never the previous address. Cross-site
@@ -33,7 +36,7 @@ export function contentSecurityPolicy(): string {
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com https://*.googletagmanager.com https://www.google-analytics.com https://www.google.com https://googleads.g.doubleclick.net https://www.googleadservices.com https://connect.facebook.net",
     "frame-src challenges.cloudflare.com https://*.googletagmanager.com https://td.doubleclick.net https://www.facebook.com",
-    "connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com https://*.googletagmanager.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://*.g.doubleclick.net https://ad.doubleclick.net https://www.google.com https://www.google.ch https://www.google.de https://www.google.fr https://www.google.it https://www.google.at https://www.google.co.uk https://www.google.nl https://www.google.be https://www.google.es https://www.google.ae https://www.google.tn https://www.facebook.com https://connect.facebook.net",
+    "connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com https://*.googletagmanager.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://*.g.doubleclick.net https://ad.doubleclick.net https://www.google.com https://www.google.ch https://www.google.de https://www.google.fr https://www.google.it https://www.google.at https://www.google.co.uk https://www.google.nl https://www.google.be https://www.google.es https://www.google.ae https://www.google.tn https://www.facebook.com https://connect.facebook.net https://*.run.app https://*.on.aws",
     "img-src 'self' data: blob: https://*.mapbox.com https://*.googletagmanager.com https://*.google-analytics.com https://*.g.doubleclick.net https://ad.doubleclick.net https://www.google.com https://www.google.ch https://www.google.de https://www.google.fr https://www.google.it https://www.google.at https://www.google.co.uk https://www.google.nl https://www.google.be https://www.google.es https://www.google.ae https://www.google.tn https://www.facebook.com",
     "worker-src 'self' blob:",
     "style-src 'self' 'unsafe-inline'",
