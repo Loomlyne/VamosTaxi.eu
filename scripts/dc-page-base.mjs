@@ -50,8 +50,24 @@ export function injectBaseInto(html, href) {
  */
 export const TRACKING_HEAD = '<script src="/app/vamos-consent.js"></script>';
 
-/** Owner's tags (2026-10-19): Google Tag Manager, Google tag (GA4), Meta Pixel, head of every public page. Verbatim except the vendors' marker comments (served pages carry no HTML comments). Owner 2026-10-19: every visit counts whatever the banner choice, so nothing here waits for consent. */
-export const TAGS_HEAD = `<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+/** Google Consent Mode v2, advanced (owner 2026-10-26): default denied before GTM and gtag load; the visitor's saved
+ * choice updates it at once from the banner's display cache (so a conversion on the first paint is not sent as
+ * denied), then from the server record (/api/consent/state, which wins), then on every `vamos:consent` event. Analytics -> analytics_storage, Marketing ->
+ * ad_storage, ad_user_data, ad_personalization. Google only: Meta and Cloudflare stay as they are. Same text as
+ * CONSENT in apps/web/components/tags/SiteTags.tsx. */
+export const CONSENT_HEAD = `<script>
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:500});
+(function(){function apply(c){if(!c)return;var a=c.analytics===true,m=c.marketing===true;
+gtag('consent','update',{analytics_storage:a?'granted':'denied',ad_storage:m?'granted':'denied',ad_user_data:m?'granted':'denied',ad_personalization:m?'granted':'denied'});}
+window.addEventListener('vamos:consent',function(e){apply(e&&e.detail);});
+try{apply(JSON.parse(localStorage.getItem('vamosCookieConsent')||'null'));}catch(e){}
+try{fetch('/api/consent/state',{cache:'no-store',credentials:'same-origin'}).then(function(r){return r.ok?r.json():null;}).then(function(j){if(j&&j.ok===true)apply(j.chosen===true?j.choice:{analytics:false,marketing:false});},function(){});}catch(e){}})();
+</script>
+`;
+
+/** Owner's tags (2026-10-19): Google Tag Manager, Google tag (GA4), Meta Pixel, head of every public page, after CONSENT_HEAD. Verbatim except the vendors' marker comments (served pages carry no HTML comments). Google waits for the consent signal (2026-10-26); Meta counts every visit (2026-10-19). */
+export const TAGS_HEAD = `${CONSENT_HEAD}<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);

@@ -13,7 +13,6 @@ import { Button, Icon } from "@/components/core";
 import { trapTab } from "@/lib/a11y/focus-trap";
 import { Alert } from "@/components/feedback";
 import { Switch } from "@/components/forms";
-import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
 
 const { Link } = createNavigation(routing);
 
@@ -25,12 +24,11 @@ export type ConsentPostMethod = "accept_all" | "reject_all" | "settings_change";
 
 type Cats = { functional: boolean; analytics: boolean; marketing: boolean };
 type Mode = "unknown" | "banner" | "hidden";
-type Origin = "card" | "sheet";
 type StateReply = { chosen?: boolean; policyVersion?: string; choice?: Partial<Cats> };
 
 /**
  * POSTs one consent choice to /api/consent.
- * @param input chosen method and the three categories; Turnstile token only when marketing is on
+ * @param input chosen method and the three categories (no human check on consent, owner 2026-10-26)
  * @returns ok, or the server error code
  */
 export async function postConsentRecord(input: {
@@ -39,7 +37,6 @@ export async function postConsentRecord(input: {
   functional: boolean;
   analytics: boolean;
   marketing: boolean;
-  turnstileToken?: string;
   idempotencyKey?: string;
 }): Promise<{ ok: true } | { ok: false; code: string; status: number }> {
   const res = await fetch("/api/consent", {
@@ -52,7 +49,6 @@ export async function postConsentRecord(input: {
       functional: input.functional,
       analytics: input.analytics,
       marketing: input.marketing,
-      ...(input.turnstileToken ? { turnstileToken: input.turnstileToken } : {}),
       ...(input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : {}),
     }),
   });
@@ -101,7 +97,7 @@ type Row = {
   set?: (v: boolean) => void;
 };
 
-export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
+export function CookieBanner() {
   const t = useTranslations("cookies");
   const tCommon = useTranslations("common");
   const locale = useLocale() as Locale;
@@ -109,14 +105,11 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
   const [mode, setMode] = useState<Mode>("unknown");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<"save" | "check" | null>(null);
+  const [error, setError] = useState<"save" | null>(null);
   const [cats, setCats] = useState<Cats>({ functional: false, analytics: false, marketing: false });
-  const [pending, setPending] = useState<Origin | null>(null);
-  const [resetNonce, setResetNonce] = useState(0);
 
   const versionRef = useRef<string | null>(null);
   const busyRef = useRef(false);
-  const pendingRef = useRef<{ method: ConsentPostMethod; cats: Cats; key: string } | null>(null);
   const keyRef = useRef<string>("");
   const cardRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -241,20 +234,18 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
     setBusy(v);
   }
 
-  async function doPost(method: ConsentPostMethod, chosen: Cats, token: string | null, key: string) {
+  async function doPost(method: ConsentPostMethod, chosen: Cats, key: string) {
     try {
       const result = await postConsentRecord({
         method,
         locale,
         ...chosen,
-        ...(token ? { turnstileToken: token } : {}),
         idempotencyKey: key,
       });
       if (result.ok) {
         writeCache(versionRef.current, method, chosen);
         setCats(chosen);
         setMode("hidden");
-        setPending(null);
         setBusyBoth(false);
         window.dispatchEvent(new Event(CONSENT_RECORDED_EVENT));
         // The tags' consent script (components/tags/SiteTags.tsx) listens for the same event the mock runtime sends.
@@ -266,55 +257,28 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
     } catch {
       setError("save");
     }
-    // Failed: new idempotency key, fresh challenge, controls live again (pressing one is the retry).
+    // Failed: new idempotency key, controls live again (pressing one is the retry).
     newKey();
-    setPending(null);
-    setResetNonce((n) => n + 1);
-    pendingRef.current = null;
     setBusyBoth(false);
   }
 
-  function submit(method: ConsentPostMethod, chosen: Cats, origin: Origin) {
+  // Every choice saves in one click: no human check on consent (owner 2026-10-26, replaces 27 D-33).
+  function submit(method: ConsentPostMethod, chosen: Cats) {
     if (busyRef.current) return;
     setError(null);
-    if (!chosen.marketing) {
-      // Refusing or saving without Marketing never waits on Turnstile.
-      setBusyBoth(true);
-      void doPost(method, chosen, null, newKey());
-      return;
-    }
-    if (!siteKey) {
-      setError("check");
-      return;
-    }
     setBusyBoth(true);
-    pendingRef.current = { method, cats: chosen, key: newKey() };
-    setPending(origin);
+    void doPost(method, chosen, newKey());
   }
 
-  function onToken(token: string | null) {
-    const p = pendingRef.current;
-    if (!p) return;
-    if (token) {
-      pendingRef.current = null;
-      void doPost(p.method, p.cats, token, p.key);
-      return;
-    }
-    pendingRef.current = null;
-    setPending(null);
-    setError("check");
-    setBusyBoth(false);
-  }
-
-  const acceptAll = (origin: Origin) => {
+  const acceptAll = () => {
     const all = { functional: true, analytics: true, marketing: true };
     setCats(all);
-    submit("accept_all", all, origin);
+    submit("accept_all", all);
   };
   const necessaryOnly = () => {
     const none = { functional: false, analytics: false, marketing: false };
     setCats(none);
-    submit("reject_all", none, "card");
+    submit("reject_all", none);
   };
   const openSheet = () => {
     if (busyRef.current) return;
@@ -325,7 +289,7 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
 
   if (mode === "unknown") return null;
 
-  const alertText = error === "save" ? t("save-failed") : error === "check" ? tCommon("form-challenge-failed") : null;
+  const alertText = error === "save" ? t("save-failed") : null;
   const busyStr = busy ? "true" : "false";
 
   const rows: Row[] = [
@@ -372,13 +336,6 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
     </div>
   ) : null;
 
-  const turnstile = (origin: Origin) =>
-    pending === origin ? (
-      <div className="vt-ck-turnstile" data-action="consent" data-ck-ts={origin}>
-        <TurnstileWidget siteKey={siteKey} action="consent" onToken={onToken} resetNonce={resetNonce} />
-      </div>
-    ) : null;
-
   return (
     <>
       {showCard ? (
@@ -394,9 +351,8 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
               .
             </p>
             {sheetOpen ? null : alert}
-            {sheetOpen ? null : turnstile("card")}
             <div className="vt-ck-acts" data-ck-acts="1">
-              <Button variant="primary" size="md" type="button" disabled={busy} onClick={() => acceptAll("card")}>
+              <Button variant="primary" size="md" type="button" disabled={busy} onClick={acceptAll}>
                 {t("accept-all")}
               </Button>
               <Button variant="ghost" size="md" type="button" disabled={busy} onClick={necessaryOnly}>
@@ -470,17 +426,16 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
 
             <div className="vt-ck-foot">
               {alert ? <div className="vt-ck-foot__full">{alert}</div> : null}
-              {turnstile("sheet")}
               <Button
                 variant="primary"
                 size="md"
                 type="button"
                 disabled={busy}
-                onClick={() => submit("settings_change", cats, "sheet")}
+                onClick={() => submit("settings_change", cats)}
               >
                 {t("save-choices")}
               </Button>
-              <Button variant="ghost" size="md" type="button" disabled={busy} onClick={() => acceptAll("sheet")}>
+              <Button variant="ghost" size="md" type="button" disabled={busy} onClick={acceptAll}>
                 {t("accept-all")}
               </Button>
               <p className="vt-ck-foot__note">{t("sheet-footer-note")}</p>

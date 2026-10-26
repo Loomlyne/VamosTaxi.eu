@@ -46,12 +46,11 @@ describe("production cookie banner (27 contract, D-04 D-09)", () => {
     expect(src).toMatch(/mode === "unknown"\) return null/);
   });
 
-  it("Turnstile is only rendered for a choice with Marketing on", () => {
-    expect(src.match(/<TurnstileWidget/g)).toHaveLength(1);
-    expect(src).toMatch(/if \(!chosen\.marketing\)/);
+  it("no choice waits on Turnstile (owner 2026-10-26, replaces 27 D-33)", () => {
+    expect(src).not.toMatch(/Turnstile|turnstile/);
     const refuse = block(src, "const necessaryOnly");
-    expect(refuse).not.toContain("Turnstile");
     expect(refuse).toContain('"reject_all"');
+    expect(block(src, "const acceptAll")).toContain('"accept_all"');
   });
 
   it("the footer event only opens the sheet: no write", () => {

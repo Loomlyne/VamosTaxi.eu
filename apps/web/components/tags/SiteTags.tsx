@@ -1,6 +1,17 @@
 // Owner's tags (2026-10-19): Google Tag Manager, Google tag (GA4), Meta Pixel, verbatim.
-// Owner 2026-10-19: every visit counts whatever the banner choice, so nothing here waits for consent.
+// CONSENT runs first (owner 2026-10-26): Google Consent Mode v2 advanced, default denied, then the visitor's saved
+// choice (display cache at once, then the server record, which wins) and every `vamos:consent` event. Google only; Meta counts every visit (2026-10-19).
 // The mock pages get the same block from scripts/dc-page-base.mjs (TAGS_HEAD / TAGS_BODY).
+
+export const CONSENT = `
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:500});
+(function(){function apply(c){if(!c)return;var a=c.analytics===true,m=c.marketing===true;
+gtag('consent','update',{analytics_storage:a?'granted':'denied',ad_storage:m?'granted':'denied',ad_user_data:m?'granted':'denied',ad_personalization:m?'granted':'denied'});}
+window.addEventListener('vamos:consent',function(e){apply(e&&e.detail);});
+try{apply(JSON.parse(localStorage.getItem('vamosCookieConsent')||'null'));}catch(e){}
+try{fetch('/api/consent/state',{cache:'no-store',credentials:'same-origin'}).then(function(r){return r.ok?r.json():null;}).then(function(j){if(j&&j.ok===true)apply(j.chosen===true?j.choice:{analytics:false,marketing:false});},function(){});}catch(e){}})();
+`;
 
 const GTM = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -29,10 +40,11 @@ fbq('init', '1595596972063765');
 fbq('track', 'PageView');
 `;
 
-/** Head block: GTM, gtag.js, Meta Pixel. */
+/** Head block: Google consent default, GTM, gtag.js, Meta Pixel. */
 export function SiteTagsHead() {
   return (
     <>
+      <script dangerouslySetInnerHTML={{ __html: CONSENT }} />
       <script dangerouslySetInnerHTML={{ __html: GTM }} />
       <script async src="https://www.googletagmanager.com/gtag/js?id=G-K5MZME44P6" />
       <script dangerouslySetInnerHTML={{ __html: GTAG }} />

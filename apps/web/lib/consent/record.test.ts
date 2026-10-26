@@ -87,26 +87,13 @@ describe("POST /api/consent HTTP mapping (D-03, D-11, D-14)", () => {
     expect(src).not.toMatch(/save_choices/);
   });
 
-  it("Turnstile iff the row will have marketing true; reject_all never (27 D-33)", () => {
+  it("consent never waits on Turnstile (owner 2026-10-26, replaces 27 D-33)", () => {
     const route = readRepo("apps/web/app/api/consent/route.ts");
-    const turnstile = readRepo("apps/web/lib/turnstile.ts");
     const post = route.slice(route.indexOf("export async function POST"));
-    expect(turnstile).toMatch(/TurnstileAction = [\s\S]*consent/);
-    expect(post).toMatch(/verifyTurnstile/);
-    expect(post).toMatch(/action:\s*["']consent["']/);
-    expect(post).toMatch(/challenge_failed/);
-    expect(post).toMatch(/403/);
-    expect(route).not.toMatch(/from ["']@\/lib\/abuse\/turnstile["']/);
+    expect(route).not.toMatch(/verifyTurnstile|needsTurnstile|challenge_failed/);
     expect(post).toMatch(/accept_all/);
     expect(post).toMatch(/reject_all/);
     expect(post).toMatch(/settings_change/);
-    const verifyAt = post.indexOf("verifyTurnstile");
-    expect(verifyAt).toBeGreaterThan(-1);
-    const verifyBlock = post.slice(post.lastIndexOf("if", verifyAt), verifyAt);
-    expect(verifyBlock).toMatch(/needsTurnstile\(categories\)/);
-    expect(verifyBlock).not.toMatch(/reject_all/);
-    const choice = readRepo("apps/web/lib/consent/choice.ts");
-    expect(choice).toMatch(/marketing === true/);
   });
 
   it("rate-limits consent:${ip} and consent:${ip}:${subject} before write", () => {
