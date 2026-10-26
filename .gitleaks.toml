@@ -18,6 +18,12 @@ description = "Vendored binaries and inlined design-system data URIs are not cre
 paths = [
   '''^assets/.*''',
   '''^design-system/assets/.*''',
+  # Owner approved 2026-10-26: the full-history scan on the hand-started deploy (366 findings) was all
+  # test material: lab and test-run evidence (manage links of throwaway lab bookings, Stripe idempotency
+  # keys, stub tokens), test briefs, and unit/e2e fixtures. None is a credential. Real code stays scanned.
+  '''^\.planning/(quick|phases)/[^/]+/(evidence|mirror|tools)/.*''',
+  '''^\.planning/.*TEST-BRIEF\.md$''',
+  '''^apps/web/.*\.(test|spec)\.tsx?$''',
 ]
 
 # The design-system bundle inlines images/fonts as base64 data URIs — those
@@ -31,4 +37,8 @@ regexes = [
   # Stripe publishable keys (test and live) are public by design. Secret keys stay scanned.
   '''pk_test_[A-Za-z0-9]+''',
   '''pk_live_[A-Za-z0-9]+''',
+  # The literal placeholder used in tests and audits, never a real secret key.
+  '''sk_test_placeholder''',
+  # Cloudflare Web Analytics site tag: public, it ships in every page's beacon script.
+  '''792482ef56d84c46aee4f6501205ce68''',
 ]
