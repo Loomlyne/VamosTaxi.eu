@@ -15,15 +15,6 @@ import { clientMessages } from "@/lib/i18n/client-messages";
 import { checkoutPaymentMethodTypes } from "@/lib/checkout/payment-methods";
 import "../globals.css";
 
-function turnstileSiteKey(): string | undefined {
-  try {
-    const { env } = getCloudflareContext();
-    return env.TURNSTILE_SITE_KEY ?? process.env.TURNSTILE_SITE_KEY;
-  } catch {
-    return process.env.TURNSTILE_SITE_KEY;
-  }
-}
-
 /** J8 (W3-08): the footer names TWINT only while the Stripe page offers it. Any doubt is "off". */
 function twintOffered(): boolean {
   try {
@@ -90,7 +81,6 @@ export default async function LocaleLayout({
   const onDashboard = isDashboardHost(
     headerList.get("x-vamos-request-host") ?? headerList.get("host"),
   );
-  const siteKey = turnstileSiteKey();
   const showBanner = !onDashboard;
 
   return (
@@ -118,7 +108,7 @@ export default async function LocaleLayout({
           <SiteShell
             header={<SiteHeader />}
             footer={<SiteFooter showTwint={twintOffered()} />}
-            banner={showBanner ? <CookieBanner siteKey={siteKey} /> : null}
+            banner={showBanner ? <CookieBanner /> : null}
           >
             {children}
           </SiteShell>

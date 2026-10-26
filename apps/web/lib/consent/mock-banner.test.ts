@@ -50,10 +50,12 @@ describe("mock cookie banners", () => {
     expect(body).not.toMatch(/save\(|VamosConsent/);
   });
 
-  it.each(BOTH)("(e) %s: Necessary only never waits on Turnstile", (_n, src) => {
-    const body = handler(src, "rejectAll");
-    expect(body.toLowerCase()).not.toContain("turnstile");
-    expect(body).toContain("this.submit(false,");
+  it.each(BOTH)("(e) %s: no choice waits on Turnstile (owner 2026-10-26)", (_n, src) => {
+    expect(src.toLowerCase()).not.toContain("turnstile");
+    expect(src).not.toContain("turnstileToken");
+    for (const name of ["acceptAll", "rejectAll", "savePrefs"]) {
+      expect(handler(src, name)).toContain("this.submit(() => window.VamosConsent.save(");
+    }
   });
 
   it.each(BOTH)("(f) %s: visibility is decided by the server, not by localStorage", (_n, src) => {
@@ -69,10 +71,10 @@ describe("mock cookie banners", () => {
     );
   });
 
-  it.each(BOTH)("(i) %s: the six review states are reachable", (_n, src) => {
+  it.each(BOTH)("(i) %s: the review states are reachable", (_n, src) => {
     const props = src.match(/data-props="([^"]*)"/)![1]!.replace(/&quot;/g, '"');
     const options: string[] = JSON.parse(props).startState.options;
-    for (const s of ["banner", "busy", "turnstile", "error-save", "error-check", "prefs", "prefs-saved", "hidden"]) {
+    for (const s of ["banner", "busy", "error-save", "prefs", "prefs-saved", "hidden"]) {
       expect(options).toContain(s);
       expect(src.split(`'${s}'`).length - 1).toBeGreaterThanOrEqual(1);
     }

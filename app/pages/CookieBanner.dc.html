@@ -56,7 +56,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-ck-pill]:active{transform:translateY(1px)}
 [data-ck-x]:hover{background:var(--vt-grey-100)}
 [data-ck-banner]{position:fixed;inset-inline:16px;inset-block-end:16px;z-index:70}
-[data-ck-ts]{display:flex;gap:8px;min-block-size:0;flex-basis:100%}
 [data-ck-gal]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,452px),1fr));gap:24px;padding:32px;background:var(--vt-grey-50);font-family:var(--vt-font-body)}
 [data-ck-cats]{display:flex;flex-direction:column}
 [data-ck-meta]{display:flex;flex-direction:column;gap:4px}
@@ -75,13 +74,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p style="margin:0 0 18px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:46ch">Strictly necessary cookies keep the booking flow working. Analytics and marketing stay off until you turn them on. Read the <a data-ck-link="1" href="cookies.dc.html">cookie policy</a>.</p>
 <sc-if value="{{ alertSave }}" hint-placeholder-val="{{ false }}">
 <div style="margin-block-end:12px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" title="Your choice was not saved. Try again." hint-size="100%,56px"></x-import></div>
-</sc-if>
-<sc-if value="{{ alertCheck }}" hint-placeholder-val="{{ false }}">
-<div style="margin-block-end:12px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" title="The check did not go through. Try again." hint-size="100%,56px"></x-import></div>
-</sc-if>
-<div data-ck-ts="1" data-vt-no-i18n="1" ref="{{ tsBannerRef }}" style="margin-block-end:8px"></div>
-<sc-if value="{{ tsPlaceholder }}" hint-placeholder-val="{{ false }}">
-<div data-vt-no-i18n="1" style="min-block-size:65px;margin-block-end:8px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);display:grid;place-items:center;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">Cloudflare check shown here</div>
 </sc-if>
 <div data-ck-acts="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" disabled="{{ busy }}" onClick="{{ acceptAll }}" hint-size="128px,44px">Accept all</x-import>
@@ -132,10 +124,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <sc-if value="{{ alertSave }}" hint-placeholder-val="{{ false }}">
 <div style="flex-basis:100%"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" title="Your choice was not saved. Try again." hint-size="100%,56px"></x-import></div>
 </sc-if>
-<sc-if value="{{ alertCheck }}" hint-placeholder-val="{{ false }}">
-<div style="flex-basis:100%"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" title="The check did not go through. Try again." hint-size="100%,56px"></x-import></div>
-</sc-if>
-<div data-ck-ts="1" data-vt-no-i18n="1" ref="{{ tsSheetRef }}"></div>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" disabled="{{ busy }}" onClick="{{ savePrefs }}" hint-size="150px,44px">Save choices</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" disabled="{{ busy }}" onClick="{{ acceptAll }}" hint-size="128px,44px">Accept all</x-import>
 <p style="margin:0;margin-inline-start:auto;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">Your choice is stored in this browser until you change it.</p>
@@ -156,12 +144,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p style="margin:0 0 18px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:46ch">Strictly necessary cookies keep the booking flow working. Analytics and marketing stay off until you turn them on. Read the <a data-ck-link="1" href="cookies.dc.html">cookie policy</a>.</p>
 <sc-if value="{{ g.alertSave }}" hint-placeholder-val="{{ false }}">
 <div style="margin-block-end:12px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" title="Your choice was not saved. Try again." hint-size="100%,56px"></x-import></div>
-</sc-if>
-<sc-if value="{{ g.alertCheck }}" hint-placeholder-val="{{ false }}">
-<div style="margin-block-end:12px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" title="The check did not go through. Try again." hint-size="100%,56px"></x-import></div>
-</sc-if>
-<sc-if value="{{ g.ts }}" hint-placeholder-val="{{ false }}">
-<div style="min-block-size:65px;margin-block-end:8px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);display:grid;place-items:center;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">Cloudflare check shown here</div>
 </sc-if>
 <div data-ck-acts="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" disabled="{{ g.busy }}" hint-size="128px,44px">Accept all</x-import>
@@ -210,23 +192,15 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </sc-if>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:560},&quot;startState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;busy&quot;,&quot;turnstile&quot;,&quot;error-save&quot;,&quot;error-check&quot;,&quot;prefs&quot;,&quot;prefs-saved&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
-// The server is the record (27-CONTEXT D-06). VamosConsent owns the request, the
-// display cache and Turnstile; this component owns the states and the copy.
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:560},&quot;startState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;busy&quot;,&quot;error-save&quot;,&quot;prefs&quot;,&quot;prefs-saved&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
+// The server is the record (27-CONTEXT D-06). VamosConsent owns the request and the
+// display cache; this component owns the states and the copy. No human check on consent
+// (owner 2026-10-26, replaces 27 D-33): every choice saves in one click.
 const NOOP = () => {};
 
 class Component extends DCLogic {
   dialogRef = React.createRef();
   bannerRef = React.createRef();
-  tsBannerRef = React.createRef();
-  tsSheetRef = React.createRef();
-  ts = null;
-  warm = null;     // the banner's own check, solved as soon as the banner shows
-  warmBroken = false;
-  warmTried = false;
-  warmInteractive = false;
-  preToken = null; // its answer, used once by the next save
-  waiting = null;  // a save that pressed before the answer came
   opener = null;
   unmounted = false;
   _ro = null;
@@ -239,15 +213,13 @@ class Component extends DCLogic {
     this.gallery = /[?&]ck-gallery=1(&|$)/.test(String(window.location.search || ''));
     const s = {
       decided: false, known: this.forced, dirty: false,
-      mode: 'unknown', busy: false, alert: null, tsPlaceholder: false,
+      mode: 'unknown', busy: false, alert: null,
       functional: false, analytics: false, marketing: false,
       lang: this.curLang(),
     };
     if (start === 'banner') s.mode = 'banner';
     if (start === 'busy') { s.mode = 'banner'; s.busy = true; }
-    if (start === 'turnstile') { s.mode = 'banner'; s.busy = true; s.tsPlaceholder = true; }
     if (start === 'error-save') { s.mode = 'banner'; s.alert = 'save'; }
-    if (start === 'error-check') { s.mode = 'banner'; s.alert = 'check'; }
     if (start === 'prefs') s.mode = 'prefs';
     if (start === 'prefs-saved') {
       s.mode = 'prefs'; s.decided = true;
@@ -295,15 +267,12 @@ class Component extends DCLogic {
   }
   componentDidUpdate() {
     this.observe(); this.syncReserve();
-    if (this.state.mode === 'banner' && !this.state.decided) this.warmToken();
   }
   componentWillUnmount() {
     this.unmounted = true;
     if (this._offLocale) this._offLocale();
     if (this._offConsent) this._offConsent();
     if (this._bindTimer) clearTimeout(this._bindTimer);
-    this.destroyTs();
-    this.destroyWarm();
     if (this._ro) this._ro.disconnect();
     window.removeEventListener('vamos:cookie-prefs', this.openPrefs);
     document.removeEventListener('keydown', this.onKey);
@@ -332,7 +301,7 @@ class Component extends DCLogic {
   }
 
   // The banner is fixed, so reserve real space for it below 640px: measured, because its
-  // height changes with viewport width, German copy, the Alert and a Turnstile challenge.
+  // height changes with viewport width, German copy and the Alert.
   syncReserve = () => {
     const root = document.documentElement;
     /* The contact button steps aside on a phone while the card is open (ContactButton.dc.html). */
@@ -356,103 +325,37 @@ class Component extends DCLogic {
 
   onKey = (e) => { if (e.key === 'Escape' && this.state.mode === 'prefs' && !this.state.busy) this.closePrefs(); };
 
-  destroyTs() {
-    if (this.ts) { try { this.ts.remove(); } catch (e) { /* widget already gone */ } this.ts = null; }
-  }
-
-  // Owner order 2026-10-17: Accept must not wait. The Cloudflare check runs while the visitor reads the banner;
-  // Accept then sends the answer it already has. The server still checks the token, as before.
-  warmToken() {
-    if (this.forced || this.warm || this.warmTried || this.ts || this.unmounted || !window.VamosConsent) return;
-    const box = this.tsBannerRef.current;
-    if (!box) return;
-    this.warmTried = true; // once per page: after a break the old per-press check owns the box
-    this.preToken = null;
-    this.warmBroken = false;
-    this.warm = window.VamosConsent.turnstile(
-      box,
-      (token) => { const go = this.waiting; this.waiting = null; if (go) go(token); else this.preToken = token; },
-      (kind) => {
-        this.preToken = null;
-        if (kind !== 'expired') this.warmBroken = true; // Turnstile refreshes an expired answer by itself
-        if (this.waiting) { this.waiting = null; this.fail('check'); }
-      },
-      // Cloudflare asks the visitor to tick the box: the 8 s limit waits while it is on screen.
-      { onInteractive: (on) => { this.warmInteractive = on; } }
-    );
-    if (this.warm) this.warm.execute();
-  }
-  destroyWarm() {
-    if (this.warm) { try { this.warm.remove(); } catch (e) { /* widget already gone */ } this.warm = null; }
-    this.preToken = null; this.waiting = null;
-    if (this._waitTimer) { clearTimeout(this._waitTimer); this._waitTimer = null; }
-  }
-
-  // One request at a time. `doSave(token)` is the one POST; Necessary only never asks for a token.
-  submit(needsToken, doSave, cats) {
+  // One request at a time. `doSave()` is the one POST.
+  submit(doSave, cats) {
     if (this.forced || this.state.busy || this.unmounted) return;
-    const where = this.state.mode === 'prefs' ? 'sheet' : 'banner';
-    this.destroyTs();
-    this.setState({ busy: true, alert: null }, () => {
-      if (!needsToken) { this.finish(doSave(undefined), cats); return; }
-      const go = (token) => this.finish(doSave(token), cats);
-      if (this.preToken) { const t = this.preToken; this.preToken = null; go(t); return; }
-      if (where === 'banner' && this.warm && !this.warmBroken) {
-        this.waiting = go;
-        // Never wait for ever: no answer in 8 s shows the usual check error, and the next press asks afresh.
-        const giveUp = () => {
-          if (this.waiting !== go) return;
-          if (this.warmInteractive) { this._waitTimer = setTimeout(giveUp, 8000); return; }
-          this.waiting = null; this.warmBroken = true; this.fail('check');
-        };
-        this._waitTimer = setTimeout(giveUp, 8000);
-        return;
-      }
-      this.destroyWarm(); // the background check broke: ask the old way, in the same box
-      const box = where === 'sheet' ? this.tsSheetRef.current : this.tsBannerRef.current;
-      this.ts = window.VamosConsent.turnstile(
-        box,
-        (token) => this.finish(doSave(token), cats),
-        () => this.fail('check')
-      );
-      if (this.ts) this.ts.execute();
-    });
+    this.setState({ busy: true, alert: null }, () => this.finish(doSave(), cats));
   }
   finish(request, cats) {
     request.then((r) => {
       if (this.unmounted) return;
       if (r && r.ok) {
-        this.destroyTs();
-        this.destroyWarm();
         this.setState({
           busy: false, alert: null, decided: true, known: true, mode: 'hidden',
           functional: cats.functional, analytics: cats.analytics, marketing: cats.marketing,
         }, this.restoreFocus);
         return;
       }
-      this.fail(r && r.code === 'challenge_failed' ? 'check' : 'save');
+      this.setState({ busy: false, alert: 'save' });
     });
-  }
-  fail(kind) {
-    if (this.unmounted) return;
-    if (this.ts) { try { this.ts.reset(); } catch (e) { /* widget already gone */ } }
-    // A used or failed answer is spent: ask the banner's check for a fresh one for the next press.
-    if (this.warm && !this.warmBroken) { this.preToken = null; try { this.warm.reset(); this.warm.execute(); } catch (e) { /* widget already gone */ } }
-    this.setState({ busy: false, alert: kind });
   }
 
   acceptAll = () => {
     const cats = { functional: true, analytics: true, marketing: true };
-    this.submit(true, (t) => window.VamosConsent.save('accept_all', cats, { turnstileToken: t }), cats);
+    this.submit(() => window.VamosConsent.save('accept_all', cats, {}), cats);
   };
   rejectAll = () => {
     const cats = { functional: false, analytics: false, marketing: false };
-    this.submit(false, () => window.VamosConsent.save('reject_all', cats, {}), cats);
+    this.submit(() => window.VamosConsent.save('reject_all', cats, {}), cats);
   };
   savePrefs = () => {
     const s = this.state;
     const cats = { functional: s.functional, analytics: s.analytics, marketing: s.marketing };
-    this.submit(cats.marketing, (t) => window.VamosConsent.save('settings_change', cats, { turnstileToken: t }), cats);
+    this.submit(() => window.VamosConsent.save('settings_change', cats, {}), cats);
   };
 
   // Opens the sheet only. It never writes a row (D-10).
@@ -461,15 +364,12 @@ class Component extends DCLogic {
     if (this.state.mode === 'prefs') return;
     const a = document.activeElement;
     this.opener = this.state.mode === 'banner' ? 'banner' : (a && a !== document.body ? a : null);
-    // The sheet replaces the banner and its box: the background check goes with it, the sheet asks per press.
-    this.destroyWarm(); this.warmTried = false; this.warmBroken = false;
     this.setState({ mode: 'prefs', alert: null }, () => {
       const el = this.dialogRef.current; if (el) el.focus();
     });
   };
   closePrefs = () => {
     if (this.state.busy) return;
-    this.destroyTs();
     this.setState((st) => ({ mode: st.decided ? 'hidden' : (st.known ? 'banner' : 'unknown'), alert: null }), this.restoreFocus);
   };
   restoreFocus = () => {
@@ -509,27 +409,23 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state;
     const card = (label, o) => Object.assign({
-      label, busy: false, busyStr: 'false', alertSave: false, alertCheck: false, ts: false,
+      label, busy: false, busyStr: 'false', alertSave: false,
     }, o, { busyStr: o && o.busy ? 'true' : 'false' });
     return {
       n18: 18,
       showBanner: s.mode === 'banner',
       showPrefs: s.mode === 'prefs',
       busy: s.busy, busyStr: s.busy ? 'true' : 'false',
-      alertSave: s.alert === 'save', alertCheck: s.alert === 'check',
-      tsPlaceholder: s.tsPlaceholder,
+      alertSave: s.alert === 'save',
       rows: this.rowsFor({ f: s.functional, a: s.analytics, m: s.marketing, off: s.busy }),
       acceptAll: this.acceptAll, rejectAll: this.rejectAll, savePrefs: this.savePrefs,
       openPrefs: this.openPrefs, closePrefs: this.closePrefs, veilClick: this.veilClick,
       dialogRef: this.dialogRef, bannerRef: this.bannerRef,
-      tsBannerRef: this.tsBannerRef, tsSheetRef: this.tsSheetRef,
       gallery: this.gallery,
       galleryCards: this.gallery ? [
         card('Default', {}),
         card('Busy', { busy: true }),
-        card('Turnstile waiting', { busy: true, ts: true }),
         card('Save failed', { alertSave: true }),
-        card('Check failed', { alertCheck: true }),
       ] : [],
       galleryRows: this.gallery ? this.rowsFor({ f: true, a: false, m: true, off: true, lang: 'en' }) : [],
     };

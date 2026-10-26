@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { categoriesForChoice, needsTurnstile } from "./choice";
+import { categoriesForChoice } from "./choice";
 
 describe("categoriesForChoice (27 D-05)", () => {
   it("accept_all is all true and ignores the body", () => {
@@ -29,13 +29,5 @@ describe("categoriesForChoice (27 D-05)", () => {
     expect(
       categoriesForChoice("settings_change", { functional: true, analytics: 1, marketing: false }),
     ).toEqual({ ok: false });
-  });
-});
-
-describe("needsTurnstile (27 D-33)", () => {
-  it("is true only when marketing is true", () => {
-    expect(needsTurnstile({ functional: true, analytics: true, marketing: true })).toBe(true);
-    expect(needsTurnstile({ functional: true, analytics: true, marketing: false })).toBe(false);
-    expect(needsTurnstile({ functional: false, analytics: false, marketing: false })).toBe(false);
   });
 });

@@ -1,6 +1,6 @@
 // POST /api/consent — record_consent after GUC bind (SITE-08 / D-03 / D-14).
-// The row carries the categories the visitor chose (27 D-05). Turnstile is fail-closed
-// whenever that row has marketing true (27 D-33); rows with marketing false never wait on it.
+// The row carries the categories the visitor chose (27 D-05). No Turnstile on consent (owner 2026-10-26,
+// replaces 27 D-33): every choice saves in one click; the per-IP write limit below is the abuse guard.
 // Guest writes use asCheckout with no claims only (D-08; 261005 S6: record_consent is executable by
 // vamos_checkout, not by anon, so Supabase REST cannot write consent rows past this route's limits).
 // Do not import @vamos/db.
@@ -12,7 +12,7 @@ import {
   type ConsentLocale,
   type ConsentMethod,
 } from "@/lib/consent/bind";
-import { categoriesForChoice, needsTurnstile } from "@/lib/consent/choice";
+import { categoriesForChoice } from "@/lib/consent/choice";
 import {
   consentSubjectSetCookie,
   mintConsentSubject,
@@ -21,7 +21,6 @@ import {
 import { cfConnectingIp, truncateClientIp } from "@/lib/consent/ip";
 import { asCheckout } from "@/lib/db/identity";
 import { csrfForbidden } from "@/lib/security/origin";
-import { verifyTurnstile } from "@/lib/turnstile";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +54,6 @@ export async function POST(request: Request): Promise<Response> {
   const blocked = csrfForbidden(request);
   if (blocked) return blocked;
   const { env } = getCloudflareContext();
-  const bindings = env as unknown as Record<string, string | undefined>;
 
   let raw: unknown;
   try {
@@ -91,25 +89,6 @@ export async function POST(request: Request): Promise<Response> {
     subject,
   });
   if (!limited.ok) return json({ ok: false, code: "rate_limited" }, 429);
-
-  if (needsTurnstile(categories)) {
-    const token = typeof body.turnstileToken === "string" ? body.turnstileToken : "";
-    const challenge = await verifyTurnstile(
-      env.TURNSTILE_SECRET_KEY ?? process.env.TURNSTILE_SECRET_KEY,
-      token,
-      {
-        action: "consent",
-        // Always a fresh key made here, never the browser's: Cloudflare repeats a success for a token re-verified
-        // with the same idempotency_key for 300 s, so a client-chosen key would let one solved token be replayed.
-        idempotencyKey: crypto.randomUUID(),
-        allowedHostnames:
-          bindings.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES ??
-          process.env.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES,
-        remoteip: connectingIp ?? undefined,
-      },
-    );
-    if (!challenge.ok) return json({ ok: false, code: "challenge_failed" }, 403);
-  }
 
   try {
     await asCheckout(env, null, async (tx) => {

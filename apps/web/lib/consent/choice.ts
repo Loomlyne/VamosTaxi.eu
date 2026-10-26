@@ -35,8 +35,3 @@ export function categoriesForChoice(
   }
   return { ok: true, categories: { functional, analytics, marketing } };
 }
-
-/** Turnstile is required whenever the row to be written turns Marketing on (D-33). */
-export function needsTurnstile(categories: ConsentCategories): boolean {
-  return categories.marketing === true;
-}

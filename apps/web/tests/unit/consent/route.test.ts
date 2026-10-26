@@ -1,4 +1,4 @@
-// 27 D-05 / D-33: POST /api/consent writes the chosen categories; Turnstile iff marketing is true.
+// 27 D-05: POST /api/consent writes the chosen categories. No Turnstile on consent (owner 2026-10-26, replaces D-33).
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -38,24 +38,30 @@ beforeEach(() => {
 });
 
 describe("POST /api/consent", () => {
-  it("accept_all without a valid token is 403 challenge_failed and writes nothing", async () => {
-    verifyTurnstile.mockResolvedValue({ ok: false });
-    const res = await post({ method: "accept_all", locale: "en", turnstileToken: "bad" });
-    expect(res.status).toBe(403);
-    expect(await res.json()).toEqual({ ok: false, code: "challenge_failed" });
-    expect(asCheckout).not.toHaveBeenCalled();
-    expect(recordConsent).not.toHaveBeenCalled();
-  });
-
-  it("accept_all with a valid token records all true and sets the subject cookie", async () => {
-    verifyTurnstile.mockResolvedValue({ ok: true });
-    const res = await post({ method: "accept_all", locale: "de", turnstileToken: "ok" });
+  it("accept_all records all true with no token, never calls Turnstile, sets the subject cookie", async () => {
+    const res = await post({ method: "accept_all", locale: "de" });
     expect(res.status).toBe(200);
+    expect(verifyTurnstile).not.toHaveBeenCalled();
     expect(recordConsent.mock.calls[0]?.[1]).toMatchObject({ method: "accept_all", categories: ALL_TRUE });
     // 261005 S6: written as vamos_checkout with no claims, never as anon (Supabase REST cannot call it).
     expect(asCheckout.mock.calls[0]?.[1]).toBeNull();
     expect(res.headers.get("Set-Cookie")).toContain("consent_subject=");
     expect(res.headers.get("Cache-Control")).toBe("private, no-store");
+  });
+
+  it("a stray turnstileToken in the body is ignored", async () => {
+    const res = await post({ method: "accept_all", locale: "en", turnstileToken: "anything" });
+    expect(res.status).toBe(200);
+    expect(verifyTurnstile).not.toHaveBeenCalled();
+    expect(recordConsent).toHaveBeenCalledTimes(1);
+  });
+
+  it("the write limit still answers 429 and writes nothing", async () => {
+    checkWriteRateLimit.mockResolvedValue({ ok: false });
+    const res = await post({ method: "accept_all", locale: "en" });
+    expect(res.status).toBe(429);
+    expect(await res.json()).toEqual({ ok: false, code: "rate_limited" });
+    expect(recordConsent).not.toHaveBeenCalled();
   });
 
   it("reject_all never verifies Turnstile and records all false, even if the body says otherwise", async () => {
@@ -81,15 +87,11 @@ describe("POST /api/consent", () => {
     });
   });
 
-  it("settings_change with marketing true needs the token, then records marketing true", async () => {
-    verifyTurnstile.mockResolvedValueOnce({ ok: false });
+  it("settings_change with marketing true records marketing true with no token", async () => {
     const body = { method: "settings_change", locale: "en", functional: true, analytics: true, marketing: true };
-    const denied = await post(body);
-    expect(denied.status).toBe(403);
-    expect(recordConsent).not.toHaveBeenCalled();
-    verifyTurnstile.mockResolvedValueOnce({ ok: true });
-    const ok = await post({ ...body, turnstileToken: "ok" });
+    const ok = await post(body);
     expect(ok.status).toBe(200);
+    expect(verifyTurnstile).not.toHaveBeenCalled();
     expect(recordConsent.mock.calls[0]?.[1]).toMatchObject({ categories: ALL_TRUE });
   });
 
