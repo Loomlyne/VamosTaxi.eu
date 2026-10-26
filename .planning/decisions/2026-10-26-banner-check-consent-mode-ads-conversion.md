@@ -20,3 +20,7 @@ Owner report: "The cookie is not working when I accept all, the ads are not conv
 - Google Ads advertiser verification ("business not verified"): owner's step in Google Ads, outside the code.
 - Retire the two old URL conversion actions in Google Ads once the new one records a booking (owner).
 - Banner, /cookies and /privacy wording: still says Analytics and Marketing stay off until allowed, which is not true for Meta. Wording is the owner's (2026-10-19 decision item 1).
+
+## Deploy through GitHub Actions (owner, 2026-10-26)
+
+Owner: "You need to use GitHub Actions? Now I have changed the visibility from private to public. So go ahead and get it done now." The repo is public, so Actions minutes are free. `deploy-staging.yml` `deploy` job now runs from a hand-started run with `deploy` ticked, after gate, unit and database pass (visual/e2e must pass when ticked). Replaces the 2026-09-29 rule "Worker `vamos` ships from the owner's Mac only"; the Mac deploy still works. Owner asked for a Jev check of this decision: Jev (plugin `typesafe`) is not installed in the cloud container, so no Jev call was made (no simulated score).

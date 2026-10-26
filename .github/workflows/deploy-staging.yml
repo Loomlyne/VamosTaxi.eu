@@ -4,8 +4,9 @@ name: Deploy Staging
 # unit tests and the database suite (reset from zero, pgTAP, seed and types drift, mutation gate). The repo is
 # private, so every minute bills and macOS bills 10x. The two expensive jobs run only when this workflow is started
 # by hand with their box ticked: `e2e` (the booking-funnel shards on Linux, about 109 billed minutes) and `visual`
-# (the macOS screenshot diffs). The deploy to https://vamostaxi.site is not done here at all (owner decision
-# 2026-09-29: Worker `vamos` ships from the owner's Mac). Never vamostaxi.eu. Never db:push the live bookings project.
+# (the macOS screenshot diffs). Deploy to https://vamostaxi.site: only from a hand-started run with `deploy` ticked,
+# after gate, unit and database pass (owner 2026-10-26, repo public: replaces "Worker `vamos` ships from the owner's
+# Mac only" of 2026-09-29; the Mac deploy still works). Never vamostaxi.eu. Never db:push the live bookings project.
 on:
   # No push trigger (owner, 2026-10-11): 86 pushes to main in ten days used the month's Actions minutes. The gate, unit
   # and database checks run locally before a phase PR; this workflow is an independent re-check started by hand.
@@ -20,10 +21,14 @@ on:
         description: "Also run the macOS screenshot-diff job (billed at 10x: about 25 minutes is about 250 billed minutes)"
         type: boolean
         default: false
+      deploy:
+        description: "Deploy Worker vamos (vamostaxi.site) after gate, unit and database pass"
+        type: boolean
+        default: false
 
 # A push-triggered run deploys nothing, so a superseded one is just a duplicate: it gets its own group per ref and is
 # cancelled. A hand-started run keeps the old, uncancellable group (T-01-07), so two of them queue instead of
-# racing. (The `deploy` job itself never runs: see the comment on it.)
+# racing. (The `deploy` job runs only from a hand-started run with `deploy` ticked: see the comment on it.)
 concurrency:
   group: deploy-staging-${{ github.event_name == 'workflow_dispatch' && 'deploy' || github.ref }}
   cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
@@ -171,11 +176,14 @@ jobs:
 
   deploy:
     name: Deploy to staging
-    # Never runs, not even from a hand-started run. Owner decision 2026-09-29 (CLAUDE.local.md, "Live facts"):
-    # Worker `vamos` is deployed from the owner's Mac only, by the control session, with wrangler; this job is kept
-    # so the steps stay readable, like `data-06` below. A hand-started run with `visual` or `e2e` ticked used to
-    # deploy here when the rest passed. To hand deploys to GitHub, the owner changes that rule first, then this line.
-    if: false
+    # Owner 2026-10-26 (repo made public; replaces the 2026-09-29 "owner's Mac only" rule): runs from a hand-started
+    # run with `deploy` ticked, once gate, unit and database pass. `visual` and `e2e` stay optional: when ticked they
+    # must pass too; when not ticked they are skipped and do not block.
+    if: >-
+      ${{ always() && github.event_name == 'workflow_dispatch' && inputs.deploy &&
+      needs.gate.result == 'success' && needs.unit.result == 'success' && needs.database.result == 'success' &&
+      contains(fromJSON('["success","skipped"]'), needs.visual.result) &&
+      contains(fromJSON('["success","skipped"]'), needs['e2e-linux'].result) }}
     needs: [gate, unit, database, visual, e2e-linux]
     runs-on: ubuntu-latest
     steps:

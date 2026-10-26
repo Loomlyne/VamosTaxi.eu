@@ -77,7 +77,10 @@ describe("no vamostaxi.eu bind (D-28)", () => {
     expect(staging).not.toMatch(/vamostaxi\.eu/);
     expect(staging).not.toMatch(/db:push/);
     expect(staging).toMatch(/curl -sfI https:\/\/vamostaxi\.site/);
-    expect(staging).toMatch(/if: false/);
+    expect(staging).toMatch(/if: false/); // data-06 stays off
+    // Owner 2026-10-26: the deploy job runs only from a hand-started run with `deploy` ticked, after the checks pass.
+    expect(staging).toMatch(/github\.event_name == 'workflow_dispatch' && inputs\.deploy/);
+    expect(staging).toMatch(/needs\.gate\.result == 'success' && needs\.unit\.result == 'success' && needs\.database\.result == 'success'/);
     const production = readRepo(".github/workflows/deploy-production.yml").replace(
       /^\s*#.*$/gm,
       "",
