@@ -22,6 +22,6 @@ Checked on vamostaxi.site (Chromium, fresh profile):
 - `/` and `/checkout`: Accept all → `POST /api/consent` 200, banner closes in ~1 s, zero requests to challenges.cloudflare.com.
 - Google: dataLayer `consent default denied` → `update granted` after Accept all; hits carry `gcd=13r3r3r3r5l1` and `gcs=G111` after the click.
 - `/`, `/de` (`lang="de"`), `/ar` (`dir="rtl"`), `/cookies`, `/checkout` 200.
-- Four test consent rows written on live by these checks (one curl POST, Accept all on `/` and `/checkout`, plus none else).
+- Three test consent rows written on live by these checks: one curl POST, Accept all on `/` and on `/checkout`.
 
 Not verified yet: a real booking sending the Ads conversion (needs a paid booking).
