@@ -24,6 +24,9 @@ describe("Google consent default", () => {
     }
     expect(CONSENT).toContain("addEventListener('vamos:consent'");
     expect(CONSENT).toContain("/api/consent/state");
+    // the server record wins: no saved choice for this policy version puts Google back to denied
+    expect(CONSENT).toContain("apply(j.chosen===true?j.choice:{analytics:false,marketing:false})");
+    expect(CONSENT.indexOf("vamosCookieConsent")).toBeLessThan(CONSENT.indexOf("/api/consent/state"));
   });
 
   it("leaves Meta alone", () => {

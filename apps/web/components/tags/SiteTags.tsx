@@ -1,6 +1,6 @@
 // Owner's tags (2026-10-19): Google Tag Manager, Google tag (GA4), Meta Pixel, verbatim.
 // CONSENT runs first (owner 2026-10-26): Google Consent Mode v2 advanced, default denied, then the visitor's saved
-// banner choice and every `vamos:consent` event. Google only; Meta counts every visit (2026-10-19).
+// choice (display cache at once, then the server record, which wins) and every `vamos:consent` event. Google only; Meta counts every visit (2026-10-19).
 // The mock pages get the same block from scripts/dc-page-base.mjs (TAGS_HEAD / TAGS_BODY).
 
 export const CONSENT = `
@@ -9,7 +9,8 @@ gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personali
 (function(){function apply(c){if(!c)return;var a=c.analytics===true,m=c.marketing===true;
 gtag('consent','update',{analytics_storage:a?'granted':'denied',ad_storage:m?'granted':'denied',ad_user_data:m?'granted':'denied',ad_personalization:m?'granted':'denied'});}
 window.addEventListener('vamos:consent',function(e){apply(e&&e.detail);});
-try{fetch('/api/consent/state',{cache:'no-store',credentials:'same-origin'}).then(function(r){return r.ok?r.json():null;}).then(function(j){if(j&&j.ok===true&&j.chosen===true)apply(j.choice);},function(){});}catch(e){}})();
+try{apply(JSON.parse(localStorage.getItem('vamosCookieConsent')||'null'));}catch(e){}
+try{fetch('/api/consent/state',{cache:'no-store',credentials:'same-origin'}).then(function(r){return r.ok?r.json():null;}).then(function(j){if(j&&j.ok===true)apply(j.chosen===true?j.choice:{analytics:false,marketing:false});},function(){});}catch(e){}})();
 `;
 
 const GTM = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':

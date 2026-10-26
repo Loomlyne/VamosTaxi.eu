@@ -51,7 +51,8 @@ export function injectBaseInto(html, href) {
 export const TRACKING_HEAD = '<script src="/app/vamos-consent.js"></script>';
 
 /** Google Consent Mode v2, advanced (owner 2026-10-26): default denied before GTM and gtag load; the visitor's saved
- * choice (/api/consent/state) and every `vamos:consent` event update it. Analytics -> analytics_storage, Marketing ->
+ * choice updates it at once from the banner's display cache (so a conversion on the first paint is not sent as
+ * denied), then from the server record (/api/consent/state, which wins), then on every `vamos:consent` event. Analytics -> analytics_storage, Marketing ->
  * ad_storage, ad_user_data, ad_personalization. Google only: Meta and Cloudflare stay as they are. Same text as
  * CONSENT in apps/web/components/tags/SiteTags.tsx. */
 export const CONSENT_HEAD = `<script>
@@ -60,7 +61,8 @@ gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personali
 (function(){function apply(c){if(!c)return;var a=c.analytics===true,m=c.marketing===true;
 gtag('consent','update',{analytics_storage:a?'granted':'denied',ad_storage:m?'granted':'denied',ad_user_data:m?'granted':'denied',ad_personalization:m?'granted':'denied'});}
 window.addEventListener('vamos:consent',function(e){apply(e&&e.detail);});
-try{fetch('/api/consent/state',{cache:'no-store',credentials:'same-origin'}).then(function(r){return r.ok?r.json():null;}).then(function(j){if(j&&j.ok===true&&j.chosen===true)apply(j.choice);},function(){});}catch(e){}})();
+try{apply(JSON.parse(localStorage.getItem('vamosCookieConsent')||'null'));}catch(e){}
+try{fetch('/api/consent/state',{cache:'no-store',credentials:'same-origin'}).then(function(r){return r.ok?r.json():null;}).then(function(j){if(j&&j.ok===true)apply(j.chosen===true?j.choice:{analytics:false,marketing:false});},function(){});}catch(e){}})();
 </script>
 `;
 

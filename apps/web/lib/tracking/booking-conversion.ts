@@ -5,6 +5,8 @@
 export const GOOGLE_ADS_CONVERSION = "AW-368142830/2ZvxCLnF2M8cEO7Txa8B";
 
 const SENT_PREFIX = "vamosConv:";
+/** Holds even when storage is blocked, for every re-render and refresh of this page load. */
+const sentThisLoad = new Set<string>();
 /** A revisit long after payment (e-mail link, other device) is not a new conversion. */
 const FRESH_MS = 24 * 60 * 60 * 1000;
 
@@ -32,6 +34,7 @@ export function sendBookingConversion(input: BookingConversionInput, now: number
     const paid = Date.parse(input.paidAt);
     if (Number.isFinite(paid) && now - paid > FRESH_MS) return false;
   }
+  if (sentThisLoad.has(input.reference)) return false;
   const key = SENT_PREFIX + input.reference;
   try {
     if (w.localStorage.getItem(key)) return false;
@@ -58,6 +61,7 @@ export function sendBookingConversion(input: BookingConversionInput, now: number
     w.fbq("track", "Purchase", { value, currency: "CHF" }, { eventID: input.reference });
   }
 
+  sentThisLoad.add(input.reference);
   try {
     w.localStorage.setItem(key, new Date(now).toISOString());
   } catch {

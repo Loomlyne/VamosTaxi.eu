@@ -47,6 +47,22 @@ describe("sendBookingConversion", () => {
     expect(gtag).toHaveBeenCalledTimes(2);
   });
 
+  it("sends once per page load even when storage throws", () => {
+    const broken = window.localStorage;
+    window.localStorage = {
+      getItem: () => {
+        throw new Error("blocked");
+      },
+      setItem: () => {
+        throw new Error("blocked");
+      },
+    } as unknown as Storage;
+    const input = { reference: "VT-26-0817", chargedRappen: 100, paidAt: null };
+    expect(sendBookingConversion(input, NOW)).toBe(true);
+    expect(sendBookingConversion(input, NOW)).toBe(false);
+    window.localStorage = broken;
+  });
+
   it("a voucher booking with nothing charged sends value 0", () => {
     sendBookingConversion({ reference: "VT-26-0814", chargedRappen: null, paidAt: null }, NOW);
     expect(gtag.mock.calls[0]![2]).toMatchObject({ value: 0, currency: "CHF" });
