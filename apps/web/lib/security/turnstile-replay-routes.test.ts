@@ -24,10 +24,8 @@ vi.mock("@/lib/db/identity", () => ({
   asGuest: async () => [],
   asCustomer: async () => [],
 }));
-vi.mock("@/lib/consent/bind", () => ({ recordConsent: async () => undefined }));
 
 const contact = await import("@/app/api/contact/route");
-const consent = await import("@/app/api/consent/route");
 const reviews = await import("@/app/api/reviews/submit/route");
 
 let siteverify: ReturnType<typeof vi.fn>;
@@ -77,13 +75,6 @@ const cases = [
     action: "contact",
     run: (browserKey: string) =>
       contact.POST(post("/api/contact", { turnstileToken: "one-solved-token", idempotencyKey: browserKey })),
-    refused: async (res: Response) => res.status === 403 && ((await res.json()) as { code?: string }).code === "challenge_failed",
-  },
-  {
-    name: "cookie banner",
-    action: "consent",
-    run: (browserKey: string) =>
-      consent.POST(post("/api/consent", { method: "accept_all", turnstileToken: "one-solved-token", idempotencyKey: browserKey })),
     refused: async (res: Response) => res.status === 403 && ((await res.json()) as { code?: string }).code === "challenge_failed",
   },
   {

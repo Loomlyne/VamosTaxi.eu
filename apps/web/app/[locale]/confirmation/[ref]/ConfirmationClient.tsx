@@ -35,6 +35,7 @@ import type { ReceiptRow } from "@/lib/checkout/confirmation-receipt";
 import type { BookingReceipt } from "@/lib/checkout/booking-read";
 import { formatAmount } from "@/lib/currency";
 import { voucherBadgeStatus, voucherNeedsPayment } from "@/lib/checkout/voucher-badge";
+import { sendBookingConversion } from "@/lib/tracking/booking-conversion";
 
 /**
  * Where the server left the page. "processing" is the return path from Stripe
@@ -625,6 +626,24 @@ export function ConfirmationClient({
     refreshed.current = true;
     router.refresh();
   }, [returnPhase, booking, router]);
+
+  // Owner 2026-10-26: a booked trip is one conversion for Google Ads, GA4 and Meta, sent once the facts are read
+  // (receipt rows), never for processing, failed, refunded-only, unpaid or cancelled pages.
+  const convBadge = voucherBadgeStatus(liveStatus || booking?.status, livePayment ?? booking?.paymentStatus ?? null);
+  const convBooked =
+    initialPhase !== "hidden" &&
+    !refundedOnly &&
+    (convBadge === "paid" || convBadge === "confirmed" || convBadge === "assigned") &&
+    (returnPhase === "booked" || !onReturnPath);
+  const convReady = convBooked && Boolean(booking?.receipt?.rows?.length);
+  useEffect(() => {
+    if (!convReady || !booking) return;
+    sendBookingConversion({
+      reference,
+      chargedRappen: booking.receipt?.chargedRappen ?? null,
+      paidAt: booking.paidAt ?? null,
+    });
+  }, [convReady, booking, reference]);
 
 
   if (initialPhase === "hidden") {
