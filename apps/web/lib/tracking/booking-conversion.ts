@@ -20,6 +20,11 @@ export type BookingConversionInput = {
   chargedRappen: number | null;
   /** ISO time the payment settled; null for a voucher booking. */
   paidAt: string | null;
+  /** VAT in the charge, in rappen, from the receipt's VAT row; null when the receipt has none. */
+  vatRappen?: number | null;
+  /** The booked class, for the GA4 item; the item is left out when the slug is missing. */
+  vehicleClassSlug?: string | null;
+  vehicleClassName?: string | null;
 };
 
 /**
@@ -56,7 +61,25 @@ export function sendBookingConversion(input: BookingConversionInput, now: number
     currency: "CHF",
     transaction_id: input.reference,
   });
-  gtag("event", "purchase", { transaction_id: input.reference, value, currency: "CHF" });
+  // One transfer is one item at the full charged price; a transfer has no shipping. Tax only on a real charge.
+  gtag("event", "purchase", {
+    transaction_id: input.reference,
+    value,
+    currency: "CHF",
+    ...(value > 0 && input.vatRappen != null && input.vatRappen > 0 ? { tax: Math.round(input.vatRappen) / 100 } : {}),
+    ...(input.vehicleClassSlug
+      ? {
+          items: [
+            {
+              item_id: input.vehicleClassSlug,
+              item_name: input.vehicleClassName || input.vehicleClassSlug,
+              price: value,
+              quantity: 1,
+            },
+          ],
+        }
+      : {}),
+  });
   if (typeof w.fbq === "function") {
     w.fbq("track", "Purchase", { value, currency: "CHF" }, { eventID: input.reference });
   }

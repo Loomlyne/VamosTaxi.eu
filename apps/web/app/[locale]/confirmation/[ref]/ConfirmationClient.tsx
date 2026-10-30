@@ -642,6 +642,9 @@ export function ConfirmationClient({
       reference,
       chargedRappen: booking.receipt?.chargedRappen ?? null,
       paidAt: booking.paidAt ?? null,
+      vatRappen: booking.receipt?.rows.find((row) => row.kind === "vat")?.amountRappen ?? null,
+      vehicleClassSlug: booking.vehicleClassSlug ?? null,
+      vehicleClassName: booking.receipt?.vehicleClassName ?? null,
     });
   }, [convReady, booking, reference]);
 

@@ -40,6 +40,42 @@ describe("sendBookingConversion", () => {
     expect(fbq).toHaveBeenCalledWith("track", "Purchase", { value: 123.45, currency: "CHF" }, { eventID: "VT-26-0812" });
   });
 
+  it("adds tax and the booked class as one item to the GA4 purchase only", () => {
+    sendBookingConversion(
+      {
+        reference: "VT-26-0818",
+        chargedRappen: 12345,
+        paidAt: null,
+        vatRappen: 925,
+        vehicleClassSlug: "economy-sedan",
+        vehicleClassName: "Economy Sedan",
+      },
+      NOW,
+    );
+    expect(gtag).toHaveBeenCalledWith("event", "purchase", {
+      transaction_id: "VT-26-0818",
+      value: 123.45,
+      currency: "CHF",
+      tax: 9.25,
+      items: [{ item_id: "economy-sedan", item_name: "Economy Sedan", price: 123.45, quantity: 1 }],
+    });
+    expect(gtag.mock.calls[0]![2]).not.toHaveProperty("items");
+    expect(fbq.mock.calls[0]![2]).toEqual({ value: 123.45, currency: "CHF" });
+  });
+
+  it("sends no tax when nothing was charged, and falls back to the slug as the item name", () => {
+    sendBookingConversion(
+      { reference: "VT-26-0819", chargedRappen: null, paidAt: null, vatRappen: 925, vehicleClassSlug: "economy-sedan" },
+      NOW,
+    );
+    expect(gtag.mock.calls[1]![2]).toEqual({
+      transaction_id: "VT-26-0819",
+      value: 0,
+      currency: "CHF",
+      items: [{ item_id: "economy-sedan", item_name: "economy-sedan", price: 0, quantity: 1 }],
+    });
+  });
+
   it("sends once per reference in this browser", () => {
     const input = { reference: "VT-26-0813", chargedRappen: 5000, paidAt: null };
     expect(sendBookingConversion(input, NOW)).toBe(true);
