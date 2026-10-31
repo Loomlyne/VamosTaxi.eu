@@ -94,14 +94,8 @@ describe("GET /api/geo/suggest order", () => {
     });
   });
 
-  it("keeps Mapbox's order with order=mapbox and refuses any other order value", async () => {
+  it("refuses an order value: nothing may ask for a list to take the first hit from", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => Response.json(upstream)));
-    expect((await idsAndKinds(suggestRequest("zur", { order: "mapbox" }))).ids).toEqual([
-      "sbx.city",
-      "sbx.airport",
-      "sbx.station",
-    ]);
-    const refused = await GET(suggestRequest("zur", { order: "price" }));
-    expect(refused.status).toBe(400);
+    expect((await GET(suggestRequest("zur", { order: "mapbox" }))).status).toBe(400);
   });
 });

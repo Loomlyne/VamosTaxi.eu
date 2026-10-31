@@ -86,44 +86,40 @@ describe("fetchQuote", () => {
     expect(r.kind).toBe("ok");
     expect(f).toHaveBeenCalledTimes(1);
   });
-  it("falls back to suggest then retrieve under a fresh session once (A3)", async () => {
-    const calls: string[] = [];
-    const f = vi.fn(async (input: string, init?: RequestInit) => {
-      calls.push(input.split("?")[0] as string);
-      if (input.startsWith("/api/geo/suggest")) {
-        return new Response(JSON.stringify({ ok: true, suggestions: [{ mapbox_id: "fresh-id", name: "x", address: "" }] }));
-      }
-      const body = JSON.parse(String(init?.body));
-      return calls.filter((c) => c === "/api/quote").length === 1
+  it("asks again for the same places under a fresh session, once (A3)", async () => {
+    const bodies: { pickup: { mapbox_id: string; session_token: string }; dropoff: { mapbox_id: string } }[] = [];
+    const f = vi.fn(async (_input: string, init?: RequestInit) => {
+      bodies.push(JSON.parse(String(init?.body)));
+      return bodies.length === 1
         ? new Response(JSON.stringify({ ok: false, error: "place_unresolved", i18n_key: "quote.geo.no_results" }), { status: 422 })
-        : new Response(JSON.stringify({ ...okJson, quote_id: body.pickup.mapbox_id }));
-    });
-    const r = await fetchQuote(f, url(), ctx);
-    expect(r).toMatchObject({ kind: "ok", quoteId: "fresh-id" });
-    expect(calls).toEqual(["/api/quote", "/api/geo/suggest", "/api/geo/suggest", "/api/quote"]);
-  });
-  it("asks suggest for Mapbox's own order, because the fallback takes the first hit", async () => {
-    const urls: string[] = [];
-    const f = vi.fn(async (input: string) => {
-      if (input.startsWith("/api/geo/suggest")) {
-        urls.push(input);
-        return new Response(JSON.stringify({ ok: true, suggestions: [{ mapbox_id: "fresh-id", name: "x", address: "" }] }));
-      }
-      return urls.length === 0
-        ? new Response(JSON.stringify({ ok: false, error: "place_unresolved" }), { status: 422 })
         : new Response(JSON.stringify(okJson));
     });
-    await fetchQuote(f, url(), ctx);
-    expect(urls).toHaveLength(2);
-    for (const u of urls) expect(new URL(u, "https://x.test").searchParams.get("order")).toBe("mapbox");
+    expect(await fetchQuote(f, url(), ctx)).toMatchObject({ kind: "ok" });
+    expect(bodies).toHaveLength(2);
+    expect(bodies[1]?.pickup.mapbox_id).toBe(bodies[0]?.pickup.mapbox_id);
+    expect(bodies[1]?.dropoff.mapbox_id).toBe(bodies[0]?.dropoff.mapbox_id);
+    expect(bodies[1]?.pickup.session_token).not.toBe(bodies[0]?.pickup.session_token);
   });
-  it("reports place_unresolved when the fallback finds nothing, and a network failure", async () => {
-    const f = vi.fn(async (input: string) =>
-      input.startsWith("/api/geo/suggest")
-        ? new Response(JSON.stringify({ ok: true, suggestions: [] }))
-        : new Response(JSON.stringify({ ok: false, error: "place_unresolved" }), { status: 422 }),
-    );
-    expect(await fetchQuote(f, url(), ctx)).toMatchObject({ code: "place_unresolved" });
+  it("never searches for the words: a place that stays unresolved stays refused", async () => {
+    const urls: string[] = [];
+    const f = vi.fn(async (input: string) => {
+      urls.push(input);
+      return new Response(JSON.stringify({ ok: false, error: "place_unresolved", i18n_key: "quote.geo.no_results" }), { status: 422 });
+    });
+    expect(await fetchQuote(f, url(), ctx)).toMatchObject({ code: "place_unresolved", i18nKey: "quote.geo.no_results" });
+    expect(urls).toEqual(["/api/quote", "/api/quote"]);
+  });
+  it.each([
+    ["the pickup", { fid: "" }],
+    ["the drop-off", { tid: "" }],
+    ["both ends", { fid: "", tid: "" }],
+  ])("a trip with no chosen place for %s is not quotable and asks nothing", async (_label, over) => {
+    const f = vi.fn(async () => new Response(JSON.stringify(okJson)));
+    expect(tripIsQuotable(url(over))).toBe(false);
+    expect(await fetchQuote(f, url(over), ctx)).toMatchObject({ kind: "error", code: "trip_incomplete" });
+    expect(f).not.toHaveBeenCalled();
+  });
+  it("reports a network failure", async () => {
     const boom = vi.fn(async () => {
       throw new Error("offline");
     });

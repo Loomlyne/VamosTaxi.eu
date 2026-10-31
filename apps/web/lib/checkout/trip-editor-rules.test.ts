@@ -29,6 +29,22 @@ describe("validateEditor flight rule (D-09)", () => {
   });
 });
 
+describe("validateEditor chosen places", () => {
+  const trip = { ...base, airport: false, flight: "" };
+  it("typed words without a chosen place must be chosen from the list", () => {
+    expect(validateEditor({ ...trip, fromId: null }).from).toBe("choose");
+    expect(validateEditor({ ...trip, toId: null }).to).toBe("choose");
+  });
+  it("an empty field stays required, and two chosen places pass", () => {
+    expect(validateEditor({ ...trip, from: " ", fromId: null }).from).toBe("required");
+    expect(validateEditor({ ...trip, to: "", toId: null }).to).toBe("required");
+    expect(validateEditor(trip)).toEqual({});
+  });
+  it("the same place twice is still the same place", () => {
+    expect(validateEditor({ ...trip, toId: "a" }).to).toBe("same");
+  });
+});
+
 describe("airportByName", () => {
   it("reads airport names", () => {
     expect(airportByName("Zurich Airport (ZRH)")).toBe(true);

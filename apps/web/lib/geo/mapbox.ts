@@ -87,12 +87,6 @@ export type SuggestInput = {
   sessionToken: string;
   language: GeoLanguage;
   proximity?: GeoPoint;
-  /**
-   * True keeps Mapbox's own order. Only for a caller that takes the first hit
-   * as the answer to a full address (checkout's stale-link lookup); a list the
-   * customer reads gets airports first.
-   */
-  mapboxOrder?: boolean;
 };
 
 /** Public place kind drawn as an icon + label in the address list. */
@@ -324,8 +318,8 @@ function suggestionKind(props: Record<string, unknown>): SuggestKind {
 /**
  * Airports first (owner 2026-10-04): when any suggestion is an airport, every
  * airport leads, in Mapbox's order among themselves, then the rest in Mapbox's
- * order. No airport in the list: the list is returned untouched. This is the
- * single place the list order is decided; no client re-sorts.
+ * order. No airport in the list: the list is returned untouched. With
+ * exactNameFirst this is the one place the list order is decided; no client re-sorts.
  */
 export function airportsFirst(hits: SuggestHit[]): SuggestHit[] {
   if (!hits.some((h) => h.kind === "airport")) return hits;
@@ -333,6 +327,21 @@ export function airportsFirst(hits: SuggestHit[]): SuggestHit[] {
     ...hits.filter((h) => h.kind === "airport"),
     ...hits.filter((h) => h.kind !== "airport"),
   ];
+}
+
+/** Lower case, no accents: "Zürich" and "zurich" read as one name. */
+function plainName(value: string): string {
+  return value.normalize("NFD").replace(/\p{M}/gu, "").trim().toLowerCase();
+}
+
+/**
+ * A place named exactly what the customer typed comes before places that only look like it:
+ * for "Zug" Mapbox answers a moving company ("ZügelPartner") ahead of Zug itself. Stable.
+ */
+export function exactNameFirst<T extends { name: string }>(hits: readonly T[], q: string): T[] {
+  const typed = plainName(q);
+  const exact = (h: T) => plainName(h.name) === typed;
+  return [...hits.filter(exact), ...hits.filter((h) => !exact(h))];
 }
 
 function cantonFromProperties(props: Record<string, unknown>): string | null {
@@ -492,7 +501,7 @@ export async function suggest(
     const hit = mapSuggestion(raw);
     if (hit) suggestions.push(hit);
   }
-  return { suggestions: input.mapboxOrder ? suggestions : airportsFirst(suggestions) };
+  return { suggestions: airportsFirst(exactNameFirst(suggestions, input.q)) };
 }
 
 export async function retrieve(
