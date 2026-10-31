@@ -1,5 +1,13 @@
 # Control board
 
+**Controller since 2026-10-31: T3 Code thread `46cc55aa-7644-44df-9954-73863d645414` (Claude Opus 5.5), in this folder on `main`, on the owner's word in that thread.**
+
+**Live 2026-10-31:** Worker version `432d147b`, `main` `b58ed5f3`. Shipped: #94 places are never guessed (`1f406e46`), #95 Zermatt measured to Täsch (`b58ed5f3`). Checked on vamostaxi.site: Airport to Zug 48.8 km, Airport to Zermatt 254 km, 8 of 8 journeys (before #95). Not checked: a real payment since 2026-10-09.
+
+**Waiting for the owner:** real-card test; Zermatt meeting wording; time picker; cookie card; reviews; late-flight and no-show wording.
+
+**Retired 2026-10-31:** T3 Code thread `0fbbf0c1-980e-4de3-9345-e3c8fe69811b` (idle since 2026-10-19).
+
 **Controller since 2026-10-11 20:47 (+04): T3 Code thread `0fbbf0c1-980e-4de3-9345-e3c8fe69811b` ("VamosTaxi controller", Claude Opus 5.5), in this folder on `main`. It builds nothing itself: it starts one work thread per phase (own worktree and branch from `origin/main`), checks, lands, reads live and keeps this board. Every Ship is the owner's own answer in the question form (owner, 2026-10-11; replaces the 2026-10-01 standing order).**
 
 **Retired 2026-10-11, 20:35 (+04):** Claude Code session `1d72bf81-bf8b-4701-a3a1-d3fd79b5acc4` ("Vamos Taxi controller"); hand-off `.planning/handoff/2026-10-11-retired-controller-1d72bf81.md`.
@@ -10,7 +18,7 @@
 
 **Control rule (owner, 2026-10-01 18:01 +04; replaces the 17:03 take-over line of `95ccece6` and the 17:12 strict rule of `150a2a20`):**
 - Vamos runs from plain Claude Code on the owner's Mac. Every job runs locally, never in the cloud.
-- One controller session: the T3 Code thread `0fbbf0c1-980e-4de3-9345-e3c8fe69811b` (since 2026-10-11 20:47 +04; every earlier controller is retired, see the lines above), in `/Users/koss/Developer/VamosTaxi.eu` on `main`. Only it commits and pushes main, applies live migrations, deploys Workers and cleans branches.
+- One controller session: the T3 Code thread `46cc55aa-7644-44df-9954-73863d645414` (since 2026-10-31; every earlier controller is retired, see the lines above), in `/Users/koss/Developer/VamosTaxi.eu` on `main`. Only it commits and pushes main, applies live migrations, deploys Workers and cleans branches.
 - Every other session is a job session. It runs GSD with the owner's `CLAUDE.local.md`, has its own app worktree under `.claude/worktrees/` in the main folder (the app makes it when the owner starts the session; `/Users/koss/Developer/vamos-wt` is gone, owner 2026-10-01 about 23:35 +04: "vamos-wt no more") and branch cut from `origin/main`, builds and tests, merges `origin/main` back in, writes a hand-over file for the controller and stops.
 - The claude.ai project coordinator and its threads are retired, the "Vamos Taxi controller" thread (`local_f9f33973-…`) included.
 - A fresh reviewer session, not the builder, reads every money, sign-in or database change before it ships. Opus plans and reviews; Sonnet builds.
