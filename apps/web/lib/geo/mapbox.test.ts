@@ -23,6 +23,7 @@ import {
 import {
   MAPBOX_FETCH_TIMEOUT_MS,
   airportsFirst,
+  toRoadEnds,
   exactNameFirst,
   retrieve,
   reverse,
@@ -894,6 +895,33 @@ describe("routeLegs", () => {
     )[1];
     expect(second).toBeDefined();
     expect(second!.url).toContain("7.7795,46.0678");
+  });
+
+  describe("car-free towns", () => {
+    const ROAD_END = { lng: 7.77495977, lat: 46.06771131 };
+    const ZERMATT_STATION = { lng: 7.7479, lat: 46.0237 };
+    const TOWN_EDGE = { lng: 7.7491, lat: 46.0007 }; // Furi side, 2.2 km from the centre
+
+    it("measures a trip to Zermatt to the road end at Täsch", async () => {
+      const { fetchFn, calls } = captureFetch(() => jsonResponse(FIXTURE_DIRECTIONS_OK));
+      const result = await routeLegs([{ origin: ZRH, destination: ZERMATT_STATION }], TOKEN_ENV, { fetch: fetchFn });
+      expect(result.ok && result.legs[0]!.road).toBe(true);
+      expect(calls[0]!.url).toContain(`${ROAD_END.lng},${ROAD_END.lat}`);
+      expect(calls[0]!.url).not.toContain("7.7479");
+    });
+    it("does the same for a trip from anywhere in town", () => {
+      expect(toRoadEnds({ origin: TOWN_EDGE, destination: ZRH })).toEqual({ origin: ROAD_END, destination: ZRH });
+    });
+    it("leaves other trips, and Täsch itself, alone", () => {
+      const plain = { origin: ZURICH_HB, destination: ZRH };
+      expect(toRoadEnds(plain)).toEqual(plain);
+      const tasch = { origin: ZRH, destination: ROAD_END };
+      expect(toRoadEnds(tasch)).toEqual(tasch);
+    });
+    it("a trip inside Zermatt keeps its own pins", () => {
+      const within = { origin: ZERMATT_STATION, destination: TOWN_EDGE };
+      expect(toRoadEnds(within)).toEqual(within);
+    });
   });
 
   it("uses Mapbox sphere metres from USA to China when driving has no ocean line", async () => {

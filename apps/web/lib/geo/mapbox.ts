@@ -72,6 +72,17 @@ const LOCAL_ISLAND_M = 2_500;
 const TILEQUERY_RADIUS_M = 25_000;
 const SNAP_NUDGE_M = 8_000;
 
+/**
+ * Cars stop short of these towns, so Directions finds no road to them and the fare fell back to a
+ * straight line (Zurich Airport to Zermatt: 170.5 km; the drive is about 254 km). A trip to or from
+ * anywhere in town is measured to where the road ends, which is where the driver meets the
+ * customer (owner, 2026-10-31). The town stays the booked place; only the metres change.
+ */
+const CAR_FREE_TOWNS: readonly { center: GeoPoint; radiusM: number; roadEnd: GeoPoint }[] = [
+  // Zermatt. Road end: Matterhorn Terminal Täsch, 5.7 km north, so outside the 4 km circle.
+  { center: { lng: 7.7491, lat: 46.0207 }, radiusM: 4_000, roadEnd: { lng: 7.77495977, lat: 46.06771131 } },
+];
+
 export type GeoLanguage = "en" | "de" | "fr" | "ar";
 
 export type GeoPoint = { lng: number; lat: number };
@@ -700,6 +711,21 @@ function roadHitFromTilequery(body: unknown): RoadHit | null {
   return { point: pick.point, major: MAJOR_ROAD.includes(pick.className) };
 }
 
+function carFreeTown(pin: GeoPoint) {
+  return CAR_FREE_TOWNS.find((town) => sphereMetres(pin, town.center) <= town.radiusM) ?? null;
+}
+
+/** Each end inside a car-free town moves to its road end. A trip within one town has no road to measure. */
+export function toRoadEnds(leg: RouteLegInput): RouteLegInput {
+  const from = carFreeTown(leg.origin);
+  const to = carFreeTown(leg.destination);
+  if (from && from === to) return leg;
+  return {
+    origin: from?.roadEnd ?? leg.origin,
+    destination: to?.roadEnd ?? leg.destination,
+  };
+}
+
 function samePin(a: GeoPoint, b: GeoPoint): boolean {
   return a.lng === b.lng && a.lat === b.lat;
 }
@@ -815,10 +841,11 @@ export async function routeLegs(
   const fetchImpl = deps.fetch ?? globalThis.fetch;
   const mapped: RouteLeg[] = [];
   for (let i = 0; i < legs.length; i += 1) {
-    const leg = legs[i];
-    if (!leg) {
+    const asked = legs[i];
+    if (!asked) {
       return { ok: false, code: "route_unavailable" };
     }
+    const leg = toRoadEnds(asked);
     // D-16: profile is mapbox/driving. driving-traffic is a live duration for
     // *now* and the wrong input for a pickup weeks away. Matrix has no
     // geometry, and QUOTE-01 needs the line.
