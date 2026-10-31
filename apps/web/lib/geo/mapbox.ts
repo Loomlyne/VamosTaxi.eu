@@ -69,6 +69,8 @@ const SKIP_ROAD: readonly string[] = Object.freeze([
 
 /** Car-free towns sit on a local graph. The valley road is kilometres out. */
 const LOCAL_ISLAND_M = 2_500;
+/** Closer than this to a road end after moving, the trip is local: no drive to measure. */
+const ROAD_END_NEIGHBOUR_M = 1_500;
 const TILEQUERY_RADIUS_M = 25_000;
 const SNAP_NUDGE_M = 8_000;
 
@@ -715,15 +717,20 @@ function carFreeTown(pin: GeoPoint) {
   return CAR_FREE_TOWNS.find((town) => sphereMetres(pin, town.center) <= town.radiusM) ?? null;
 }
 
-/** Each end inside a car-free town moves to its road end. A trip within one town has no road to measure. */
+/**
+ * Each end inside a car-free town moves to its road end. A trip within one town has no road to
+ * measure, and neither does a trip from the road end into town (Täsch to Zermatt would shrink to
+ * nothing and lose its fare): both keep their own pins.
+ */
 export function toRoadEnds(leg: RouteLegInput): RouteLegInput {
   const from = carFreeTown(leg.origin);
   const to = carFreeTown(leg.destination);
   if (from && from === to) return leg;
-  return {
+  const moved = {
     origin: from?.roadEnd ?? leg.origin,
     destination: to?.roadEnd ?? leg.destination,
   };
+  return sphereMetres(moved.origin, moved.destination) < ROAD_END_NEIGHBOUR_M ? leg : moved;
 }
 
 function samePin(a: GeoPoint, b: GeoPoint): boolean {
@@ -869,7 +876,7 @@ export async function routeLegs(
         continue;
       }
     }
-    mapped.push({ leg_seq: seq, ...sphereLeg(leg) });
+    mapped.push({ leg_seq: seq, ...sphereLeg(asked) });
   }
   return { ok: true, legs: mapped };
 }

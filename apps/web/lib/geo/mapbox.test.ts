@@ -918,6 +918,32 @@ describe("routeLegs", () => {
       const tasch = { origin: ZRH, destination: ROAD_END };
       expect(toRoadEnds(tasch)).toEqual(tasch);
     });
+    it("a trip between Täsch and Zermatt keeps its own pins, both ways, so it keeps a fare", () => {
+      const fromTerminal = { origin: ROAD_END, destination: ZERMATT_STATION };
+      expect(toRoadEnds(fromTerminal)).toEqual(fromTerminal);
+      const toVillage = { origin: ZERMATT_STATION, destination: { lng: 7.7779, lat: 46.0704 } };
+      expect(toRoadEnds(toVillage)).toEqual(toVillage);
+    });
+    it("a road that fails still falls back to the booked place, not the road end", async () => {
+      const { fetchFn } = captureFetch((url) =>
+        url.includes("/tilequery/") ? jsonResponse(FIXTURE_TILEQUERY_EMPTY) : jsonResponse(FIXTURE_DIRECTIONS_NO_ROUTE),
+      );
+      const result = await routeLegs([{ origin: ZRH, destination: ZERMATT_STATION }], TOKEN_ENV, { fetch: fetchFn });
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.legs[0]!.road).toBe(false);
+      expect(result.legs[0]!.distance_m).toBe(Math.trunc(sphereMetres(ZRH, ZERMATT_STATION)));
+    });
+    it("return trips measure both legs to the road end", async () => {
+      const { fetchFn, calls } = captureFetch(() => jsonResponse(FIXTURE_DIRECTIONS_OK));
+      await routeLegs(
+        [{ origin: ZRH, destination: ZERMATT_STATION }, { origin: ZERMATT_STATION, destination: ZRH }],
+        TOKEN_ENV,
+        { fetch: fetchFn },
+      );
+      expect(calls).toHaveLength(2);
+      for (const call of calls) expect(call.url).toContain(`${ROAD_END.lng},${ROAD_END.lat}`);
+    });
     it("a trip inside Zermatt keeps its own pins", () => {
       const within = { origin: ZERMATT_STATION, destination: TOWN_EDGE };
       expect(toRoadEnds(within)).toEqual(within);
