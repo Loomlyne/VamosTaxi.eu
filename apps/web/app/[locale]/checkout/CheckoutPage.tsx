@@ -120,6 +120,7 @@ export function CheckoutPage({
   const [selected, setSelectedState] = useState<string | null>(null);
   const [classError, setClassError] = useState(false);
   const [editorOpen, setEditorOpen] = useState(!quotable && !resuming);
+  const [editorKey, setEditorKey] = useState(0);
   const [resumeBookingId, setResumeBookingId] = useState<string | null>(null);
 
   const selectedRef = useRef<string | null>(null);
@@ -177,7 +178,10 @@ export function CheckoutPage({
   /** The trip has words but no chosen place: keep the words, open the editor, ask to choose. Never a guess. */
   const chooseAgain = useCallback((next: Trip) => {
     setTrip(next);
-    replaceUrl(next);
+    // Keeps `resume` and `pay`: a refresh of a Back-from-Stripe link must still find its booking.
+    window.history.replaceState(window.history.state, "", `${window.location.pathname}?${buildTripQuery(next, { resume: true, pay: true })}`);
+    // An editor opened while the quote was running holds the refused ids: start it again.
+    setEditorKey((k) => k + 1);
     setQuote(null);
     setPhase({ kind: "idle" });
     setEditorOpen(true);
@@ -349,6 +353,7 @@ export function CheckoutPage({
         <div className="vt-co__top">
           {editorOpen ? (
             <TripEditor
+              key={editorKey}
               trip={trip}
               locale={locale}
               initialErrors={tripReady ? [] : errors}
