@@ -527,6 +527,11 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
         const restored: Trip = { ...parsed, class: answer.class, extras: answer.extra_codes, resume: resumeId, pay: tripRef.current.pay };
         window.history.replaceState(window.history.state, "", `${window.location.pathname}?${buildTripQuery(restored, { resume: true, pay: true })}`);
         setFlightState(restored.flightDisplay ?? "");
+        // A booking started before saved places carried ids: its link has words only.
+        if (!tripIsQuotable(restored)) {
+          flow.chooseAgain(restored);
+          return;
+        }
         await requoteTrip(restored);
       } else if (answer.class) {
         flow.setSelectedClass(answer.class);

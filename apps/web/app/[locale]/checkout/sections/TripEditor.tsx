@@ -90,6 +90,9 @@ export function TripEditor({
   const dirty =
     from.trim() !== (trip.from ?? "") ||
     to.trim() !== (trip.to ?? "") ||
+    // The same words can be another place, or the place an old link never named.
+    fromId !== trip.fid ||
+    toId !== trip.tid ||
     joinWhen(date, time) !== trip.when ||
     pax !== (trip.pax ?? 1) ||
     bags !== (trip.bags ?? 0) ||

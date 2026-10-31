@@ -664,7 +664,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 const LANGS = ['en','de','fr','ar'];
 const CURS = { CHF:{s:'CHF '}, EUR:{s:'€ '}, USD:{s:'$'}, AED:{s:'AED '} };
 /** Saved Vamos places. `mapbox_id` is the exact place, checked by name against Search Box: the quote prices this
-    place and never searches for the words on the row (a text search once priced Zug at a Zurich moving company). */
+    place and never searches for the words on the row (a text search once priced Zug at a Zurich moving company).
+    Run scripts/check-saved-places.mjs after changing a row, and now and then: Mapbox can retire an id. */
 const LOCS = [
   { id:'zrh2', n:'Zurich Airport (ZRH), Terminal 2', s:'Kloten · meet & greet in arrivals', icon:'plane-landing', lat:47.4515, lon:8.5644, air:true, mapbox_id:'dXJuOm1ieHBvaTphZjM2MTdjMC05YmU2LTQ4MWQtYWE0Yi0xNzNmMTJjZjg0NmU' },
   { id:'zrh1', n:'Zurich Airport (ZRH), Terminal 1', s:'Kloten · meet & greet in arrivals', icon:'plane-landing', lat:47.4505, lon:8.5620, air:true, mapbox_id:'dXJuOm1ieHBvaTo5ZTY1NDgxYy01YjM0LTRjMjQtYTRlMC02NDYwY2NmNDUwZDI' },
@@ -748,6 +749,8 @@ const KIND_META = {
 };
 /** Saved places carry no server kind: named here by id; the other rows are plain street / town addresses. */
 const LOC_KIND = { zrh2: 'airport', zrh1: 'airport', gva: 'airport', bsl: 'airport', hb: 'station', dolder: 'hotel', baur: 'hotel' };
+/** Where we drive names the airport by code; a row with no route id uses the saved place. */
+const SAVED_AIRPORT = { ZRH: 'zrh2', GVA: 'gva', BSL: 'bsl' };
 const POPULAR_IDS = ['zrh2', 'gva', 'bsl', 'hb'];
 /** Old Worker answers have no kind: fall back to the saved-place icon, plane for airports, pin otherwise. */
 function kindIcon(l) {
@@ -1167,7 +1170,8 @@ class Component extends DCLogic {
          mapbox ids, so both ends are chosen places; an id-less end stays typed text, as To always was. */
       const from = String(d.from || '').replace(/\s+/g, ' ').trim().slice(0, 200);
       const asLoc = (id, n, air) => (id ? { id: String(id), n: n, s: '', air: !!air, mapbox_id: String(id), session_token: geoSession(), geoHit: true } : null);
-      const fromLoc = from.length >= 2 ? asLoc(d.fromMapboxId, from, true) : null;
+      const savedAirport = LOCS.find((l) => l.id === SAVED_AIRPORT[d.fromCode]);
+      const fromLoc = from.length >= 2 ? asLoc(d.fromMapboxId || (savedAirport && savedAirport.mapbox_id), from, true) : null;
       const toLoc = asLoc(d.toMapboxId, name, false);
       this.setState((s) => {
         const patch = {
@@ -1931,8 +1935,8 @@ class Component extends DCLogic {
     const pl = s.pickupLoc, dl = s.dropLoc;
     const pText = String(s.pickupText || '').replace(/\s+/g, ' ').trim();
     const dText = String(s.dropText || '').replace(/\s+/g, ' ').trim();
-    if (!pl || !pl.mapbox_id || pText.length < 2) errs.pickup = 'Enter a pickup address';
-    if (!dl || !dl.mapbox_id || dText.length < 2) errs.dest = 'Enter a drop-off address';
+    if (!pl || !pl.mapbox_id || pText.length < 2) errs.pickup = pText.length >= 2 ? 'Choose your pickup from the list' : 'Enter a pickup address';
+    if (!dl || !dl.mapbox_id || dText.length < 2) errs.dest = dText.length >= 2 ? 'Choose your drop-off from the list' : 'Enter a drop-off address';
     else if (pl && ((pl.mapbox_id && pl.mapbox_id === dl.mapbox_id) || pText.toLowerCase() === dText.toLowerCase())) errs.dest = 'Pickup and drop-off are the same place';
     const air = this.pickupAir();
     const fl = String(s.fno || '').trim();

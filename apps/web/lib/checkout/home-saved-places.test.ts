@@ -36,6 +36,14 @@ describe("saved places on the home box", () => {
     expect(hit).toContain("mapbox_id: l.mapbox_id");
     expect(hit).toContain("session_token: geoSession()");
   });
+  it("where we drive can fill every airport it names from a saved place", () => {
+    const code = new Function(`${block("const SAVED_AIRPORT = ", "const POPULAR_IDS")}; return SAVED_AIRPORT;`)() as Record<string, string>;
+    for (const [iata, id] of Object.entries(code)) {
+      const row = LOCS.find((l) => l.id === id);
+      expect(row?.air, iata).toBe(true);
+      expect(row?.mapbox_id, iata).toBeTruthy();
+    }
+  });
   it("the box refuses a place with no id, so words never reach /checkout", () => {
     const check = block("const pl = s.pickupLoc, dl = s.dropLoc;", "const air = this.pickupAir();");
     expect(check).toContain("!pl.mapbox_id");
