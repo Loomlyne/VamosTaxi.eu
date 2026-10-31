@@ -73,9 +73,12 @@ export function TripEditor({
   const [time, setTime] = useState(initialWhen.time);
   const [pax, setPax] = useState(trip.pax ?? 1);
   const [bags, setBags] = useState(trip.bags ?? 0);
-  const [errors, setErrors] = useState<EditorFieldErrors>(() =>
-    Object.fromEntries(initialErrors.map((e) => [e.field, e.reason])),
-  );
+  const [errors, setErrors] = useState<EditorFieldErrors>(() => ({
+    // Words from an old or shared link are not a chosen place: say so as the editor opens.
+    ...(trip.from && !trip.fid ? { from: "choose" as const } : {}),
+    ...(trip.to && !trip.tid ? { to: "choose" as const } : {}),
+    ...Object.fromEntries(initialErrors.map((e) => [e.field, e.reason])),
+  }));
   const [refusal, setRefusal] = useState<QuoteRefusal | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -87,6 +90,9 @@ export function TripEditor({
   const dirty =
     from.trim() !== (trip.from ?? "") ||
     to.trim() !== (trip.to ?? "") ||
+    // The same words can be another place, or the place an old link never named.
+    fromId !== trip.fid ||
+    toId !== trip.tid ||
     joinWhen(date, time) !== trip.when ||
     pax !== (trip.pax ?? 1) ||
     bags !== (trip.bags ?? 0) ||
@@ -145,10 +151,11 @@ export function TripEditor({
     if (!reason) return null;
     switch (field) {
       case "from":
-        return t("errPickup");
+        return reason === "choose" ? t("errPickupChoose") : t("errPickup");
       case "flight":
         return reason === "invalid" ? t("errFlightCheck") : t("errFlight");
       case "to":
+        if (reason === "choose") return t("errDropoffChoose");
         return reason === "same" ? t("errSamePlace") : t("errDropoff");
       case "when":
         return t("errWhen");

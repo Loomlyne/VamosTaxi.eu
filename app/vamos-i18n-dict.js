@@ -2264,6 +2264,8 @@
       'See prices': { de: 'Preise anzeigen', fr: 'Voir les prix', ar: 'عرض الأسعار' },
       'Enter a pickup address': { de: 'Abholadresse eingeben', fr: 'Saisissez une adresse de prise en charge', ar: 'أدخل عنوان الانطلاق' },
       'Enter a drop-off address': { de: 'Zieladresse eingeben', fr: 'Saisissez une adresse de dépose', ar: 'أدخل عنوان الوصول' },
+      'Choose your pickup from the list': { de: 'Abholort aus der Liste wählen', fr: 'Choisissez le lieu de prise en charge dans la liste', ar: 'اختر مكان الانطلاق من القائمة' },
+      'Choose your drop-off from the list': { de: 'Zielort aus der Liste wählen', fr: 'Choisissez le lieu de dépose dans la liste', ar: 'اختر مكان الوصول من القائمة' },
       'Enter the flight number': { de: 'Flugnummer eingeben', fr: 'Saisissez le numéro de vol', ar: 'أدخل رقم الرحلة' },
       'Check the flight number': { de: 'Flugnummer prüfen', fr: 'Vérifiez le numéro de vol', ar: 'تحقّق من رقم الرحلة' },
       'Choose a pickup time': { de: 'Abholzeit wählen', fr: 'Choisissez l’heure de prise en charge', ar: 'اختر وقت الانطلاق' },

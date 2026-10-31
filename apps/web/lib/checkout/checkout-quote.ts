@@ -94,29 +94,24 @@ export type QuoteResult = QuoteOk | QuoteRefusal;
 
 const CLASS_BLOCKS: readonly string[] = ["pax", "bags", "unavailable", "no_rate", "route_off"];
 
-/** `null` when a field the server needs is missing — the editor opens instead. */
+/**
+ * A place counts only as the exact place the customer chose (`fid`, `tid`). Words alone are
+ * not quotable: the editor opens and asks them to choose, because a text search can land
+ * somewhere else and the price and the driver would follow it.
+ */
 export function tripIsQuotable(trip: Trip): boolean {
-  return Boolean(trip.from && trip.to && trip.when && trip.pax != null && trip.bags != null);
+  return Boolean(trip.from && trip.fid && trip.to && trip.tid && trip.when && trip.pax != null && trip.bags != null);
 }
 
 function newSessionToken(): string {
   return crypto.randomUUID();
 }
 
-export function buildQuoteBody(
-  trip: Trip,
-  ctx: QuoteContext,
-  places?: { pickup: QuotePlace; dropoff: QuotePlace },
-): QuoteRequestBody | null {
+export function buildQuoteBody(trip: Trip, ctx: QuoteContext): QuoteRequestBody | null {
   if (!tripIsQuotable(trip)) return null;
   const session = trip.gs ?? newSessionToken();
-  const pickup: QuotePlace =
-    places?.pickup ??
-    { kind: "retrieve", mapbox_id: trip.fid ?? "", session_token: session, text: trip.from as string };
-  const dropoff: QuotePlace =
-    places?.dropoff ??
-    { kind: "retrieve", mapbox_id: trip.tid ?? "", session_token: session, text: trip.to as string };
-  if (!pickup.mapbox_id || !dropoff.mapbox_id) return null;
+  const pickup: QuotePlace = { kind: "retrieve", mapbox_id: trip.fid as string, session_token: session, text: trip.from as string };
+  const dropoff: QuotePlace = { kind: "retrieve", mapbox_id: trip.tid as string, session_token: session, text: trip.to as string };
   const body: QuoteRequestBody = {
     locale: ctx.locale,
     display_currency: ctx.currency,
@@ -243,62 +238,26 @@ async function post(fetchImpl: FetchLike, body: QuoteRequestBody): Promise<Quote
 }
 
 /**
- * Research assumption A3: a shared trip URL can carry a stale or foreign Search Box
- * session. The server refuses the place (`place_unresolved`); the page then looks the
- * address text up again under a fresh session (suggest, then retrieve) and asks once more.
+ * A shared trip URL can carry a stale or foreign Search Box session, and the server then refuses
+ * the place (`place_unresolved`). The page asks once more for the SAME places under a fresh session.
+ * It never looks the words up instead: the first hit for "Zug" was a moving company in Zurich, so
+ * the customer saw 7.8 km instead of 49. If the places still do not resolve, the refusal stands and
+ * the customer chooses again in the editor.
  *
- * `order=mapbox`: this takes the first hit, so it asks for Mapbox's own order. The list a
- * customer reads puts airports first; "Zürich, Switzerland" must not resolve to the airport.
- *
- * Rate limit (quick 261003 review): on this path one price request spends TWO /api/quote
- * tokens (4/60 bare) plus two lookup tokens. The second POST is deliberately counted: the
- * server cannot tell a genuine re-ask from a forged one, and an uncounted "retry" flag would
- * be a free Directions call for anyone. The first refusal happens after the limiter step
- * (Mapbox retrieve is what fails), so it cannot be refunded either. It only happens for a
- * stale or foreign Search Box session (a shared or old link), not normally on a fresh
- * home → /checkout hand-off.
+ * Rate limit: on this path one price request spends two /api/quote tokens. The second POST is
+ * deliberately counted: the server cannot tell a genuine re-ask from a forged one.
  */
-async function resolveByText(
-  fetchImpl: FetchLike,
-  text: string,
-  locale: GeoLocale,
-  session: string,
-): Promise<QuotePlace | null> {
-  try {
-    const res = await fetchImpl(
-      `/api/geo/suggest?q=${encodeURIComponent(text)}&session_token=${encodeURIComponent(session)}&locale=${locale}&order=mapbox`,
-      { credentials: "same-origin" },
-    );
-    const json = asRecord(await res.json().catch(() => null));
-    const first = asRecord(Array.isArray(json.suggestions) ? json.suggestions[0] : null);
-    if (typeof first.mapbox_id !== "string" || first.mapbox_id === "") return null;
-    return { kind: "retrieve", mapbox_id: first.mapbox_id, session_token: session, text: text.slice(0, 200) };
-  } catch {
-    return null;
-  }
-}
-
 export async function fetchQuote(
   fetchImpl: FetchLike,
   trip: Trip,
   ctx: QuoteContext,
 ): Promise<QuoteResult> {
   const first = buildQuoteBody(trip, ctx);
-  if (first) {
-    const result = await post(fetchImpl, first);
-    if (!(result.kind === "error" && result.code === "place_unresolved")) return result;
-  }
-  if (!tripIsQuotable(trip)) {
+  if (!first) {
     return { kind: "error", code: "trip_incomplete", i18nKey: null, params: null, challenge: false, pricingNotLive: false };
   }
-  const session = newSessionToken();
-  const [pickup, dropoff] = await Promise.all([
-    resolveByText(fetchImpl, trip.from as string, ctx.locale, session),
-    resolveByText(fetchImpl, trip.to as string, ctx.locale, session),
-  ]);
-  if (!pickup || !dropoff) {
-    return { kind: "error", code: "place_unresolved", i18nKey: "quote.geo.no_results", params: null, challenge: false, pricingNotLive: false };
-  }
-  const retry = buildQuoteBody(trip, ctx, { pickup, dropoff });
-  return retry ? post(fetchImpl, retry) : { kind: "error", code: "place_unresolved", i18nKey: "quote.geo.no_results", params: null, challenge: false, pricingNotLive: false };
+  const result = await post(fetchImpl, first);
+  if (!(result.kind === "error" && result.code === "place_unresolved")) return result;
+  const retry = buildQuoteBody({ ...trip, gs: newSessionToken() }, ctx);
+  return retry ? post(fetchImpl, retry) : result;
 }

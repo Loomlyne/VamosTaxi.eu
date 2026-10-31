@@ -23,6 +23,7 @@ import {
 import {
   MAPBOX_FETCH_TIMEOUT_MS,
   airportsFirst,
+  exactNameFirst,
   retrieve,
   reverse,
   routeLegs,
@@ -294,7 +295,6 @@ describe("suggest", () => {
 
     async function idsFor(
       entries: { id: string; extra: Record<string, unknown> }[],
-      mapboxOrder?: boolean,
     ): Promise<string[]> {
       const { fetchFn } = captureFetch(() =>
         jsonResponse({
@@ -306,7 +306,7 @@ describe("suggest", () => {
         }),
       );
       const result = await suggest(
-        { q: "zur", sessionToken: SESSION, language: "en", mapboxOrder },
+        { q: "zur", sessionToken: SESSION, language: "en" },
         TOKEN_ENV,
         { fetch: fetchFn },
       );
@@ -359,13 +359,25 @@ describe("suggest", () => {
       ]);
     });
 
-    it("keeps Mapbox's order when the caller asks for it (checkout's first-hit lookup)", async () => {
-      const entries = [
-        { id: "Zürich", extra: { feature_type: "place" } },
-        { id: "Zurich Airport", extra: airport },
-      ];
-      expect(await idsFor(entries, true)).toEqual(["Zürich", "Zurich Airport"]);
-      expect(await idsFor(entries, false)).toEqual(["Zurich Airport", "Zürich"]);
+    it("puts a place named exactly what was typed first, ignoring case and accents", () => {
+      const hit = (name: string) => ({ name });
+      const names = (q: string, list: string[]) => exactNameFirst(list.map(hit), q).map((h) => h.name);
+      expect(names("Zug", ["ZügelPartner GmbH", "Zug", "Zug Marina"])).toEqual(["Zug", "ZügelPartner GmbH", "Zug Marina"]);
+      expect(names(" zurich ", ["Zurich Airport", "Zürich"])).toEqual(["Zürich", "Zurich Airport"]);
+      expect(names("zur", ["Zürich", "Zurzach"])).toEqual(["Zürich", "Zurzach"]);
+    });
+
+    it("an airport stays ahead of an exact name", async () => {
+      const { fetchFn } = captureFetch(() =>
+        jsonResponse({
+          suggestions: [
+            { mapbox_id: "zurich", name: "Zurich", feature_type: "place" },
+            { mapbox_id: "airport", name: "Zurich Airport", ...airport },
+          ],
+        }),
+      );
+      const result = await suggest({ q: "zurich", sessionToken: SESSION, language: "en" }, TOKEN_ENV, { fetch: fetchFn });
+      expect(result.suggestions.map((h) => h.mapbox_id)).toEqual(["airport", "zurich"]);
     });
 
     it("airportsFirst is stable and returns an empty list as is", () => {

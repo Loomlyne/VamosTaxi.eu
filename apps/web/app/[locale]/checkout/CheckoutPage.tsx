@@ -64,6 +64,8 @@ export type CheckoutFlow = {
   editorDirty: MutableRefObject<boolean>;
   /** `resume=` could not refill the page (no cookie, booking purged): open the editor. */
   resumeFailed: () => void;
+  /** The trip has words but no chosen place: keep the words and ask the customer to choose. */
+  chooseAgain: (next: Trip) => void;
   money: (rappen: number | null) => string;
 };
 
@@ -118,6 +120,7 @@ export function CheckoutPage({
   const [selected, setSelectedState] = useState<string | null>(null);
   const [classError, setClassError] = useState(false);
   const [editorOpen, setEditorOpen] = useState(!quotable && !resuming);
+  const [editorKey, setEditorKey] = useState(0);
   const [resumeBookingId, setResumeBookingId] = useState<string | null>(null);
 
   const selectedRef = useRef<string | null>(null);
@@ -172,11 +175,30 @@ export function CheckoutPage({
   const runQuoteRef = useRef(runQuote);
   runQuoteRef.current = runQuote;
   const autoRetry = useRef<RateLimitAutoRetry | null>(null);
+  /** The trip has words but no chosen place: keep the words, open the editor, ask to choose. Never a guess. */
+  const chooseAgain = useCallback((next: Trip) => {
+    setTrip(next);
+    // Keeps `resume` and `pay`: a refresh of a Back-from-Stripe link must still find its booking.
+    window.history.replaceState(window.history.state, "", `${window.location.pathname}?${buildTripQuery(next, { resume: true, pay: true })}`);
+    // An editor opened while the quote was running holds the refused ids: start it again.
+    setEditorKey((k) => k + 1);
+    setQuote(null);
+    setPhase({ kind: "idle" });
+    setEditorOpen(true);
+  }, []);
+  const chooseAgainRef = useRef(chooseAgain);
   /** Quote for the class list itself (page load, TRY AGAIN, the auto retry) and report how it settled. */
   const quoteShown = useCallback((next: Trip) => {
     const pending = runQuoteRef.current(next);
     const mine = seq.current; // runQuote has already taken its request number
-    void pending.then((result) => autoRetry.current?.settled(result.kind === "error" ? result.code : null, mine));
+    void pending.then((result) => {
+      autoRetry.current?.settled(result.kind === "error" ? result.code : null, mine);
+      // Mapbox no longer knows a place in this trip (a retired id, an old link). Asking again
+      // repeats the refusal, and the answer does not say which end failed: choose both again.
+      if (result.kind === "error" && result.code === "place_unresolved" && mine === seq.current) {
+        chooseAgainRef.current({ ...next, fid: null, tid: null });
+      }
+    });
   }, []);
   useEffect(() => {
     const auto = createRateLimitAutoRetry({
@@ -317,10 +339,11 @@ export function CheckoutPage({
         setPhase({ kind: "idle" });
         setEditorOpen(true);
       },
+      chooseAgain,
       money,
     }),
     // choose() reads refs only
-    [locale, trip, quote, phase, selected, editorOpen, resumeBookingId, resuming, applyTrip, resignFlight, money, closeEditor],
+    [locale, trip, quote, phase, selected, editorOpen, resumeBookingId, resuming, applyTrip, resignFlight, money, closeEditor, chooseAgain],
   );
   const desktop = useIsDesktop();
 
@@ -330,6 +353,7 @@ export function CheckoutPage({
         <div className="vt-co__top">
           {editorOpen ? (
             <TripEditor
+              key={editorKey}
               trip={trip}
               locale={locale}
               initialErrors={tripReady ? [] : errors}

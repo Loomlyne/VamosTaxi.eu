@@ -34,9 +34,6 @@ const SuggestQuery = z
     session_token: z.string().uuid(),
     locale: z.enum(LOCALES),
     proximity: z.string().optional(),
-    // order=mapbox keeps Mapbox's own order (no airports-first). For a caller
-    // that takes the first hit as the answer to a full address.
-    order: z.literal("mapbox").optional(),
   })
   .strict();
 
@@ -101,7 +98,6 @@ export async function GET(request: Request) {
         sessionToken: parsed.data.session_token,
         language: parsed.data.locale,
         proximity,
-        mapboxOrder: parsed.data.order === "mapbox",
       },
       env,
     );

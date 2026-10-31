@@ -7,7 +7,7 @@ export function airportByName(text: string): boolean {
   return AIRPORT_NAME.test(text);
 }
 
-export type EditorFieldErrors = Partial<Record<TripField, "required" | "invalid" | "same">>;
+export type EditorFieldErrors = Partial<Record<TripField, "required" | "invalid" | "same" | "choose">>;
 
 /**
  * Pure: the same gaps the home box reports, in the same order (UI-SPEC S2).
@@ -26,8 +26,10 @@ export function validateEditor(input: {
 }): EditorFieldErrors {
   const errors: EditorFieldErrors = {};
   if (!input.from.trim()) errors.from = "required";
+  else if (!input.fromId) errors.from = "choose";
   if (input.flight.trim() && !normaliseFlight(input.flight)) errors.flight = "invalid";
   if (!input.to.trim()) errors.to = "required";
+  else if (!input.toId) errors.to = "choose";
   else if (
     input.from.trim() &&
     ((input.fromId && input.fromId === input.toId) ||
